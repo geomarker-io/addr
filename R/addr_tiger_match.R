@@ -78,7 +78,7 @@ addr_match_tiger_street_ranges <- function(x,
 
   street_matches <-
     addr_match_street(ia,
-      suppressWarnings(as_addr(names(d_tiger))),
+      suppressWarnings(addr:::as_addr(glue::glue("1234 {names(d_tiger)} Cincinnati Ohio 45229"))),
       stringdist_match = "osa_lt_1",
       match_street_type = TRUE
     ) |>
