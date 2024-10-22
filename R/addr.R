@@ -15,7 +15,7 @@
 #' In addition to the cleaning steps described in the arguments, the street number is coerced
 #' to a numeric after removing non-numeric characters.
 #' See `addr_tag()` for details on address component tagging.
-#' 
+#'
 #' In the case of an address having more than one word for a tag (e.g., "Riva Ridge" for `StreetName`),
 #' then these are concatenated together, separated by a space in the order they appeared in the address.
 #' @param x a character vector of address strings
@@ -53,8 +53,10 @@ addr <- function(x = character(),
     toi$street_name <-
       stringr::str_replace_all(
         toi$street_name,
-        stringr::regex(c("^east " = "e ", "^west " = "w ", "^north " = "n ", "^south " = "s ",
-                         " east " = " e ", " west " = " w ", " north " = " n ", " south " = " s "), ignore_case = TRUE)
+        stringr::regex(c(
+          "^east " = "e ", "^west " = "w ", "^north " = "n ", "^south " = "s ",
+          " east " = " e ", " west " = " w ", " north " = " n ", " south " = " s "
+        ), ignore_case = TRUE)
       )
   }
   if (expand_street_type) {
@@ -128,7 +130,20 @@ methods::setOldClass(c("addr", "vctrs_vctr"))
 
 #' @export
 format.addr <- function(x, ...) {
-  as.character(x)
+  xd <- vctrs::vec_data(x)
+  paste(
+    cli::style_bold(cli::col_magenta(xd$street_number)),
+    cli::style_underline(cli::col_red(stringr::str_to_title(xd$street_name))),
+    cli::style_dim(cli::col_red(stringr::str_to_title(xd$street_type))),
+    cli::style_underline(cli::col_grey(stringr::str_to_title(xd$city))),
+    cli::style_italic(cli::col_grey(stringr::str_to_upper(xd$state))),
+    cli::style_underline(cli::col_blue(xd$zip_code))
+  )
+}
+
+#' @export
+print.addr <- function(x, ...) {
+  cat(format(x), "\n")
 }
 
 #' @export
