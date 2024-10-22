@@ -15,7 +15,7 @@ See stringdist::stringdist-metrics for more details on string metrics and the op
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0.9010</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0.9020</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -112,9 +112,7 @@ a named list of possible addr matches for each addr in <code>x</code></p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="addr.html">addr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"3333 Burnet Ave Cincinnati OH 45229"</span>, <span class="st">"5130 RAPID RUN RD CINCINNATI OHIO 45238"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu">addr_match</span><span class="op">(</span><span class="fu"><a href="cagis_addr.html">cagis_addr</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">cagis_addr</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;addr[2]&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 3333 Burnet Avenue Cincinnati OH 45229     </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2] 5130 Rapid Run Road Delhi Township OH 45238</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BB00BB; font-weight: bold;">3333</span> <span style="color: #BB0000; text-decoration: underline;">Burnet</span> <span style="color: #BB0000; font-weight: 100;">Avenue</span> <span style="color: #555555; text-decoration: underline;">Cincinnati</span> <span style="color: #555555; font-style: italic;">OH</span> <span style="color: #0000BB; text-decoration: underline;">45229</span> <span style="color: #BB00BB; font-weight: bold;">5130</span> <span style="color: #BB0000; text-decoration: underline;">Rapid Run</span> <span style="color: #BB0000; font-weight: 100;">Road</span> <span style="color: #555555; text-decoration: underline;">Delhi Township</span> <span style="color: #555555; font-style: italic;">OH</span> <span style="color: #0000BB; text-decoration: underline;">45238</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="addr.html">addr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"3333 Burnet Ave Cincinnati OH 45229"</span>, <span class="st">"5130 RAPID RUN RD CINCINNATI OHIO 45238"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu">addr_match</span><span class="op">(</span><span class="fu"><a href="cagis_addr.html">cagis_addr</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">cagis_addr</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
