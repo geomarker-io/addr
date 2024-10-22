@@ -1,4 +1,4 @@
-#' CAGIS Addresses
+#' CAGIS Addresses (Q4 2024)
 #'
 #' @returns An example tibble created from the CAGIS addresses with a pre-calculated, unique `cagis_addr` vector column.
 #' The `cagis_addr_data` column is a list of tibbles because one CAGIS address can correspond to multiple
