@@ -2,8 +2,8 @@ Package: addr
 Title: Clean, Parse, Harmonize, Match, and Geocode Messy Real-World Addresses
 Version: 0.4.0.9020
 Authors@R: 
-    person("Cole", "Brokamp", , "cole@colebrokamp.com", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0002-0289-3151"))
+    c(person("Cole", "Brokamp", email = "cole@colebrokamp.com", role = c("aut", "cre")),
+      person("Erika", "Manning", role = c("aut")))
 Description: Addresses that were not validated at the time of collection are often heterogenously formatted, making them difficult to compare or link to other sets of addresses. The addr package is designed to clean character strings of addresses, use the `usaddress` library to tag address components, and paste together select components to create a normalized address. Normalized addresses can be hashed to create hashdresses that can be used to merge with other sets of addresses.
 URL: https://github.com/cole-brokamp/addr, https://cole-brokamp.github.io/addr/
 BugReports: https://github.com/cole-brokamp/addr/issues
