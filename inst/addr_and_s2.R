@@ -1,12 +1,12 @@
 devtools::load_all()
 library(s2)
+library(dplyr, warn.conflicts = FALSE)
 
 cagis_s2 <-
   cagis_addr()$cagis_addr_data |>
   purrr::modify_if(\(.) length(.) > 0 && nrow(.) > 1, dplyr::slice_sample, n = 1) |>
   purrr::map_vec(purrr::pluck, "cagis_s2", .default = NA, .ptype = s2::s2_cell())
 
-set.seed(1)
 d <- addr_match_geocode(
   x = sample(voter_addresses(), 500),
   ref_addr = cagis_addr()$cagis_addr,
@@ -17,16 +17,21 @@ d <- addr_match_geocode(
 
 table(d$match_method)
 
-d <-
-  dplyr::filter(d, match_method %in% c("ref_addr", "tiger_range"))
+d <- d |>
+  filter(match_method %in% c("ref_addr", "tiger_range")) |>
+  mutate(
+    s2_fine_grid = s2_cell_parent(s2, 14),
+    s2_coarse_grid = s2_cell_parent(s2, 13),
+    across(c(s2_fine_grid, s2_coarse_grid), as.character, .names = "{.col}_char")
+  )
 
-d$coarse_s2 <- s2_cell_parent(d$s2, 14)
-d$coarse_s2_char <- as.character(d$coarse_s2)
-
-# median cell side length in sq m
-sqrt(median(s2_cell_area_approx(d$coarse_s2)))
+# median cell side length in m
+sqrt(median(s2_cell_area_approx(d$s2_fine_grid)))
 # median area in sq km
-median(s2_cell_area_approx(d$coarse_s2)) / 1000000
+median(s2_cell_area_approx(d$s2_fine_grid)) / 1000000
+
+sqrt(median(s2_cell_area_approx(d$s2_coarse_grid)))
+median(s2_cell_area_approx(d$s2_coarse_grid)) / 1000000
 
 d$geometry <- sf::st_as_sfc(s2::s2_cell_center(d$s2))
 
@@ -35,13 +40,13 @@ bg <-
   dplyr::filter(substr(GEOID, 1, 5) == "39061") |>
   dplyr::mutate(geometry = sf::st_as_sfc(s2_geography))
 
-s2_plot(bg$s2_geography, border = codec::codec_colors("grey blue"), col = codec::codec_colors("white"))
-s2::s2_plot(s2_cell_to_lnglat(d$s2), add = TRUE, col = codec::codec_colors("darkish blue"), pch = 19)
+## s2_plot(bg$s2_geography, border = codec::codec_colors("grey blue"), col = codec::codec_colors("white"))
+## s2::s2_plot(s2_cell_to_lnglat(d$s2), add = TRUE, col = codec::codec_colors("darkish blue"), pch = 19)
 
 library(rdeck)
 
 rdeck(
-  map_style = "mapbox://styles/brokamrc/cm2auuzwp00wc01qkel44d123",
+  map_style = "mapbox://styles/brokamrc/cm2jtbccr007801pebyz0hk43",
   initial_bounds = sf::st_bbox(bg$geometry)
 ) |>
   add_polygon_layer(
@@ -57,30 +62,25 @@ rdeck(
     visibility_toggle = TRUE,
     pickable = FALSE
   ) |>
-  ## add_polygon_layer(
-  ##   data = d,
-  ##   name = "s2_cell_outlines",
-  ##   get_polygon = coarse_geo
-  ## ) |>
+  add_s2_layer(
+    data = d,
+    name = "S2 geometry level 13 (~ 1 sq km)",
+    get_s2_token = s2_coarse_grid_char,
+    opacity = 0.2,
+    get_fill_color = codec::codec_colors("light blue")
+  ) |>
   add_s2_layer(
     data = d,
     name = "S2 geometry level 14 (~ 0.25 sq km)",
-    get_s2_token = coarse_s2_char,
-    opacity = 0.5,
-    get_fill_color = codec::codec_colors("red")
+    get_s2_token = s2_fine_grid_char,
+    opacity = 0.2,
+    get_fill_color = codec::codec_colors("orange")
   ) |>
   add_scatterplot_layer(
     name = "S2 geometry cell center",
     data = d,
-    opacity = 0.5,
-    get_radius = 50,
+    opacity = 1,
+    get_radius = 34,
     get_position = geometry,
-    get_fill_color = codec::codec_colors("orange"),
-    )
-
-|>
-  add_tile_layer(data = labels_tiles, name = "labels", visible = TRUE, pickable = FALSE)
-
-labels_tile_url <- glue::glue(
-  "https://api.mapbox.com/styles/v1/brokamrc/{style_id}/tiles/256/{z}/{x}/{y}@2x?access_token={Sys.getenv('MAPBOX_TOKEN')}"
-)
+    get_fill_color = codec::codec_colors("red"),
+  )
