@@ -25,7 +25,7 @@ none: unmatched using all previous approaches; return missing s2 cell identifier
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0.9020</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0.9090</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -119,8 +119,8 @@ precision of 'street' &amp; score &gt; 0.55):</p><table class="table table"><tr>
 <span class="r-in"><span>  <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map_vec</a></span><span class="op">(</span><span class="fu">purrr</span><span class="fu">::</span><span class="va"><a href="https://purrr.tidyverse.org/reference/pluck.html" class="external-link">pluck</a></span>, <span class="st">"cagis_s2"</span>, .default <span class="op">=</span> <span class="cn">NA</span>, .ptype <span class="op">=</span> <span class="fu">s2</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/s2/reference/s2_cell.html" class="external-link">s2_cell</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">addr_match_geocode</span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="voter_addresses.html">voter_addresses</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">100</span><span class="op">)</span>, ref_s2 <span class="op">=</span> <span class="va">cagis_s2</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> matching addresses in 19/33 ZIP codes [3.7s elapsed] </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> matching addresses in 33/33 ZIP codes [6.5s elapsed] </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> matching addresses in 21/33 ZIP codes [4.1s elapsed] </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> matching addresses in 33/33 ZIP codes [6.4s elapsed] </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 100 × 3</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                                 addr s2             match_method</span>
