@@ -44,9 +44,7 @@ library(addr)
 
 ``` r
 addr(c("3333 Burnet Ave Cincinnati OH 45229", "202 Riva Ridge Ct Cincinnati OH 45140"))
-#> <addr[2]>
-#> [1] 3333 Burnet Avenue Cincinnati OH 45229  
-#> [2] 202 Riva Ridge Court Cincinnati OH 45140
+#> 3333 Burnet Avenue Cincinnati OH 45229 202 Riva Ridge Court Cincinnati OH 45140
 ```
 
 Under the hood, an `addr` vector keeps a record of the tagged and
@@ -83,10 +81,7 @@ addr(c("3333 Burnet Ave Cincinnati OH 45229",
     "5131 RAPID RUN RD CINCINNATI OHIO 45238"
 )) |>
   addr_match(cagis_addr()$cagis_addr)
-#> <addr[3]>
-#> [1] 3333 Burnet Avenue Cincinnati OH 45229     
-#> [2] 5130 Rapid Run Road Delhi Township OH 45238
-#> [3] NA
+#> 3333 Burnet Avenue Cincinnati OH 45229 5130 Rapid Run Road Delhi Township OH 45238 NA NA NA NA NA NA
 ```
 
 Use the matched addr vector to merge in address-specific data in the
@@ -163,15 +158,15 @@ addr_match_geocode(x = sample(voter_addresses(), 100),
 #> # A tibble: 100 × 3
 #>                                           addr s2               match_method
 #>                                         <addr> <s2cell>         <fct>       
-#>  1     411 Pedretti Avenue Cincinnati OH 45238 8841b6192539a2e5 ref_addr    
-#>  2    7432 Bayswater Drive Cincinnati OH 45255 8841af3264f87405 tiger_range 
-#>  3      5366 Dickens Drive Cincinnati OH 45241 884051140ea170a7 ref_addr    
-#>  4        245 Mcguire Lane Cincinnati OH 45215 88405286586bc095 ref_addr    
-#>  5     3909 Dickson Avenue Cincinnati OH 45229 8841b30e55fab54d ref_addr    
-#>  6      4025 Egbert Avenue Cincinnati OH 45220 8841b37c962f5a3b ref_addr    
-#>  7   11451 Folkstone Drive Cincinnati OH 45240 88404ebd7161497d ref_addr    
-#>  8  1860 Queen City Avenue Cincinnati OH 45214 8841b43472fe3997 ref_addr    
-#>  9 9797 Cooper Woods Court Cincinnati OH 45241 88405251fbc59f91 ref_addr    
-#> 10       3815 Lincoln Road Cincinnati OH 45247 88403554febe6d93 ref_addr    
+#>  1       6971 Warder Drive Cincinnati OH 45224 88404ca4593038b7 ref_addr    
+#>  2     894 Woodshire Drive Cincinnati OH 45233 8841c97f9ee596d3 ref_addr    
+#>  3        269 Fleming Road Cincinnati OH 45215 88404c542fe43b4f ref_addr    
+#>  4     846 Oakfield Avenue Cincinnati OH 45224 88404ca8c2b81cc1 ref_addr    
+#>  5     6248 Elkwater Court Cincinnati OH 45248 8841cbb1da9b3963 ref_addr    
+#>  6       7740 Bowen Avenue Cincinnati OH 45255 8841a939f7c04e25 tiger_range 
+#>  7        6622 Abell Court Cincinnati OH 45247 884034efad1f9595 ref_addr    
+#>  8      3185 Jackfrost Way Cincinnati OH 45251 88404a3fb4362e93 ref_addr    
+#>  9 2577 Williamsburg Drive Cincinnati OH 45225 8841b4fe6c8193cd ref_addr    
+#> 10             NA NA W Mill St Cleves OH 45002 NA               none        
 #> # ℹ 90 more rows
 ```
