@@ -150,23 +150,23 @@ cagis_s2 <-
    purrr::modify_if(\(.) length(.) > 0 && nrow(.) > 1, dplyr::slice_sample, n = 1) |>
    purrr::map_vec(purrr::pluck, "cagis_s2", .default = NA, .ptype = s2::s2_cell())
    
-addr_match_geocode(x = sample(voter_addresses(), 100), 
+addr_match_geocode(x = voter_addresses()[1040:1100], 
                    ref_addr = cagis_addr()$cagis_addr,
                    ref_s2 = cagis_s2,
                    county = "39061",
                    year = "2022")
-#> # A tibble: 100 × 3
-#>                                            addr s2               match_method
-#>                                          <addr> <s2cell>         <fct>       
-#>  1      NA NA E Charlton St Cincinnati OH 45219 NA               none        
-#>  2 NA W 647 Mcmicken Avenue Cincinnati OH 45214 NA               none        
-#>  3      10524 Lees Creek Road Harrison OH 45030 88402e13d938d877 ref_addr    
-#>  4       5818 Panama Street Cincinnati OH 45230 8841ae2d00b6db31 tiger_range 
-#>  5        7985 Camp Road Camp Dennison OH 45111 8840553ee8e34dfd ref_addr    
-#>  6      902 Vienwoods Drive Cincinnati OH 45211 NA               none        
-#>  7          4470 Abby Court Cincinnati OH 45248 8841caec1047f94d ref_addr    
-#>  8     6715 Palmetto Street Cincinnati OH 45227 8841acf1063a839b ref_addr    
-#>  9        3220 Buell Street Cincinnati OH 45211 8841ca700e5f9ac7 ref_addr    
-#> 10       5541 Surrey Avenue Cincinnati OH 45248 8841caf5f0bfbb3b ref_addr    
-#> # ℹ 90 more rows
+#> # A tibble: 61 × 3
+#>                                          addr s2               match_method
+#>                                        <addr> <s2cell>         <fct>       
+#>  1     9822 Tollgate Lane Cincinnati OH 45242 8840538796e0aca3 ref_addr    
+#>  2  3840 Applegate Avenue Cincinnati OH 45211 8841ca63599fc325 ref_addr    
+#>  3     2819 Hocking Drive Cincinnati OH 45233 8841cb8ea9f6c543 ref_addr    
+#>  4  8311 Wetherfield Lane Cincinnati OH 45236 8840536907b7ccc5 ref_addr    
+#>  5          529 13th E St Cincinnati OH 45202 NA               none        
+#>  6     996 Wittshire Lane Cincinnati OH 45255 8841a91704d8f5a5 tiger_range 
+#>  7 5110 Herringbone Drive Cincinnati OH 45227 8841ad10999e2617 ref_addr    
+#>  8    7081 Jeannie Avenue Cincinnati OH 45230 8841aed03759a5c5 ref_addr    
+#>  9 6924 Miami Bluff Drive Cincinnati OH 45227 8841ac605740b499 ref_addr    
+#> 10    433 Mcdowell Street Cincinnati OH 45226 8841adf7a4bb9c83 ref_addr    
+#> # ℹ 51 more rows
 ```

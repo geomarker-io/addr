@@ -112,7 +112,7 @@ cagis_s2 <-
    purrr::modify_if(\(.) length(.) > 0 && nrow(.) > 1, dplyr::slice_sample, n = 1) |>
    purrr::map_vec(purrr::pluck, "cagis_s2", .default = NA, .ptype = s2::s2_cell())
    
-addr_match_geocode(x = sample(voter_addresses(), 100), 
+addr_match_geocode(x = voter_addresses()[1040:1100], 
                    ref_addr = cagis_addr()$cagis_addr,
 				   ref_s2 = cagis_s2,
 				   county = "39061",
