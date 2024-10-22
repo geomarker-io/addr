@@ -8,7 +8,7 @@ test_that("addr_match_geocode() works", {
   table(my_geocodes$match_method) |>
     expect_identical(
       structure(
-        c(ref_addr = 216L, tiger_range = 11L, tiger_street = 2L, none = 22L),
+        c(ref_addr = 216L, tiger_range = 16L, tiger_street = 2L, none = 17L),
         dim = 4L,
         dimnames = structure(list(c("ref_addr", "tiger_range", "tiger_street", "none")), names = ""),
         class = "table"

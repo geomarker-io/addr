@@ -54,6 +54,9 @@ get_tiger_street_ranges <- function(county, year = "2022") {
 #' a street range tibble with zero rows indicates that although a street was matched,
 #' there was no range containing the street number
 #' @export
+#' @details
+#' To best parse street names and types, this function appends dummy address components just
+#' for the purposes of matching tiger street range names (e.g., `1234 {tiger_street_name} Anytown AB 00000`)
 #' @examples
 #' my_addr <- as_addr(c("224 Woolper Ave", "3333 Burnet Ave", "33333 Burnet Ave", "609 Walnut St"))
 #' 
@@ -78,7 +81,7 @@ addr_match_tiger_street_ranges <- function(x,
 
   street_matches <-
     addr_match_street(ia,
-      suppressWarnings(as_addr(names(d_tiger))),
+      suppressWarnings(as_addr(glue::glue("1234 {names(d_tiger)} Anytown AB 00000"))),
       stringdist_match = "osa_lt_1",
       match_street_type = TRUE
     ) |>
