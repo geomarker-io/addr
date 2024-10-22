@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -145,25 +145,25 @@
 <span>   <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/modify.html" class="external-link">modify_if</a></span><span class="op">(</span>\<span class="op">(</span><span class="va">.</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span>, <span class="fu">dplyr</span><span class="fu">::</span><span class="va"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice_sample</a></span>, n <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>   <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map_vec</a></span><span class="op">(</span><span class="fu">purrr</span><span class="fu">::</span><span class="va"><a href="https://purrr.tidyverse.org/reference/pluck.html" class="external-link">pluck</a></span>, <span class="st">"cagis_s2"</span>, .default <span class="op">=</span> <span class="cn">NA</span>, .ptype <span class="op">=</span> <span class="fu">s2</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/s2/reference/s2_cell.html" class="external-link">s2_cell</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span>   </span>
-<span><span class="fu"><a href="reference/addr_match_geocode.html">addr_match_geocode</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="reference/voter_addresses.html">voter_addresses</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">100</span><span class="op">)</span>, </span>
+<span><span class="fu"><a href="reference/addr_match_geocode.html">addr_match_geocode</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="reference/voter_addresses.html">voter_addresses</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fl">1040</span><span class="op">:</span><span class="fl">1100</span><span class="op">]</span>, </span>
 <span>                   ref_addr <span class="op">=</span> <span class="fu"><a href="reference/cagis_addr.html">cagis_addr</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">cagis_addr</span>,</span>
 <span>                   ref_s2 <span class="op">=</span> <span class="va">cagis_s2</span>,</span>
 <span>                   county <span class="op">=</span> <span class="st">"39061"</span>,</span>
 <span>                   year <span class="op">=</span> <span class="st">"2022"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; # A tibble: 100 × 3</span></span>
-<span><span class="co">#&gt;                                            addr s2               match_method</span></span>
-<span><span class="co">#&gt;                                          &lt;addr&gt; &lt;s2cell&gt;         &lt;fct&gt;       </span></span>
-<span><span class="co">#&gt;  1      NA NA E Charlton St Cincinnati OH 45219 NA               none        </span></span>
-<span><span class="co">#&gt;  2 NA W 647 Mcmicken Avenue Cincinnati OH 45214 NA               none        </span></span>
-<span><span class="co">#&gt;  3      10524 Lees Creek Road Harrison OH 45030 88402e13d938d877 ref_addr    </span></span>
-<span><span class="co">#&gt;  4       5818 Panama Street Cincinnati OH 45230 8841ae2d00b6db31 tiger_range </span></span>
-<span><span class="co">#&gt;  5        7985 Camp Road Camp Dennison OH 45111 8840553ee8e34dfd ref_addr    </span></span>
-<span><span class="co">#&gt;  6      902 Vienwoods Drive Cincinnati OH 45211 NA               none        </span></span>
-<span><span class="co">#&gt;  7          4470 Abby Court Cincinnati OH 45248 8841caec1047f94d ref_addr    </span></span>
-<span><span class="co">#&gt;  8     6715 Palmetto Street Cincinnati OH 45227 8841acf1063a839b ref_addr    </span></span>
-<span><span class="co">#&gt;  9        3220 Buell Street Cincinnati OH 45211 8841ca700e5f9ac7 ref_addr    </span></span>
-<span><span class="co">#&gt; 10       5541 Surrey Avenue Cincinnati OH 45248 8841caf5f0bfbb3b ref_addr    </span></span>
-<span><span class="co">#&gt; # ℹ 90 more rows</span></span></code></pre></div>
+<span><span class="co">#&gt; # A tibble: 61 × 3</span></span>
+<span><span class="co">#&gt;                                          addr s2               match_method</span></span>
+<span><span class="co">#&gt;                                        &lt;addr&gt; &lt;s2cell&gt;         &lt;fct&gt;       </span></span>
+<span><span class="co">#&gt;  1     9822 Tollgate Lane Cincinnati OH 45242 8840538796e0aca3 ref_addr    </span></span>
+<span><span class="co">#&gt;  2  3840 Applegate Avenue Cincinnati OH 45211 8841ca63599fc325 ref_addr    </span></span>
+<span><span class="co">#&gt;  3     2819 Hocking Drive Cincinnati OH 45233 8841cb8ea9f6c543 ref_addr    </span></span>
+<span><span class="co">#&gt;  4  8311 Wetherfield Lane Cincinnati OH 45236 8840536907b7ccc5 ref_addr    </span></span>
+<span><span class="co">#&gt;  5          529 13th E St Cincinnati OH 45202 NA               none        </span></span>
+<span><span class="co">#&gt;  6     996 Wittshire Lane Cincinnati OH 45255 8841a91704d8f5a5 tiger_range </span></span>
+<span><span class="co">#&gt;  7 5110 Herringbone Drive Cincinnati OH 45227 8841ad10999e2617 ref_addr    </span></span>
+<span><span class="co">#&gt;  8    7081 Jeannie Avenue Cincinnati OH 45230 8841aed03759a5c5 ref_addr    </span></span>
+<span><span class="co">#&gt;  9 6924 Miami Bluff Drive Cincinnati OH 45227 8841ac605740b499 ref_addr    </span></span>
+<span><span class="co">#&gt; 10    433 Mcdowell Street Cincinnati OH 45226 8841adf7a4bb9c83 ref_addr    </span></span>
+<span><span class="co">#&gt; # ℹ 51 more rows</span></span></code></pre></div>
 </div>
 </div>
 </div>
