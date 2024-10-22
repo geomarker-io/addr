@@ -3,6 +3,7 @@
 S3method(as.character,addr)
 S3method(as.data.frame,addr)
 S3method(format,addr)
+S3method(print,addr)
 S3method(vec_ptype_abbr,addr)
 S3method(vec_ptype_full,addr)
 export(addr)
