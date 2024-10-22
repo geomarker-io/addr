@@ -5,11 +5,11 @@
 
 <!-- badges: start -->
 
-[![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![CRAN
-status](https://www.r-pkg.org/badges/version/hashdress)](https://CRAN.R-project.org/package=hashdress)
+status](https://www.r-pkg.org/badges/version/addr)](https://CRAN.R-project.org/package=addr)
 [![R-CMD-check](https://github.com/cole-brokamp/addr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/cole-brokamp/addr/actions/workflows/R-CMD-check.yaml)
+[![Lifecycle:
+stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
 
 Addresses that were not validated at the time of collection are often
@@ -156,17 +156,17 @@ addr_match_geocode(x = sample(voter_addresses(), 100),
                    county = "39061",
                    year = "2022")
 #> # A tibble: 100 × 3
-#>                                           addr s2               match_method
-#>                                         <addr> <s2cell>         <fct>       
-#>  1       6971 Warder Drive Cincinnati OH 45224 88404ca4593038b7 ref_addr    
-#>  2     894 Woodshire Drive Cincinnati OH 45233 8841c97f9ee596d3 ref_addr    
-#>  3        269 Fleming Road Cincinnati OH 45215 88404c542fe43b4f ref_addr    
-#>  4     846 Oakfield Avenue Cincinnati OH 45224 88404ca8c2b81cc1 ref_addr    
-#>  5     6248 Elkwater Court Cincinnati OH 45248 8841cbb1da9b3963 ref_addr    
-#>  6       7740 Bowen Avenue Cincinnati OH 45255 8841a939f7c04e25 tiger_range 
-#>  7        6622 Abell Court Cincinnati OH 45247 884034efad1f9595 ref_addr    
-#>  8      3185 Jackfrost Way Cincinnati OH 45251 88404a3fb4362e93 ref_addr    
-#>  9 2577 Williamsburg Drive Cincinnati OH 45225 8841b4fe6c8193cd ref_addr    
-#> 10             NA NA W Mill St Cleves OH 45002 NA               none        
+#>                                            addr s2               match_method
+#>                                          <addr> <s2cell>         <fct>       
+#>  1      NA NA E Charlton St Cincinnati OH 45219 NA               none        
+#>  2 NA W 647 Mcmicken Avenue Cincinnati OH 45214 NA               none        
+#>  3      10524 Lees Creek Road Harrison OH 45030 88402e13d938d877 ref_addr    
+#>  4       5818 Panama Street Cincinnati OH 45230 8841ae2d00b6db31 tiger_range 
+#>  5        7985 Camp Road Camp Dennison OH 45111 8840553ee8e34dfd ref_addr    
+#>  6      902 Vienwoods Drive Cincinnati OH 45211 NA               none        
+#>  7          4470 Abby Court Cincinnati OH 45248 8841caec1047f94d ref_addr    
+#>  8     6715 Palmetto Street Cincinnati OH 45227 8841acf1063a839b ref_addr    
+#>  9        3220 Buell Street Cincinnati OH 45211 8841ca700e5f9ac7 ref_addr    
+#> 10       5541 Surrey Avenue Cincinnati OH 45248 8841caf5f0bfbb3b ref_addr    
 #> # ℹ 90 more rows
 ```
