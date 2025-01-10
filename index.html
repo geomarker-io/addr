@@ -9,8 +9,8 @@
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/Source_Code_Pro-0.4.9/font.css" rel="stylesheet">
-<link href="deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Clean, Parse, Harmonize, Match, and Geocode Messy Real-World Addresses">
 <meta name="description" content="Addresses that were not validated at the time of collection are often heterogenously formatted, making them difficult to compare or link to other sets of addresses. The addr package is designed to clean character strings of addresses, use the `usaddress` library to tag address components, and paste together select components to create a normalized address. Normalized addresses can be hashed to create hashdresses that can be used to merge with other sets of addresses.">
 <meta property="og:description" content="Addresses that were not validated at the time of collection are often heterogenously formatted, making them difficult to compare or link to other sets of addresses. The addr package is designed to clean character strings of addresses, use the `usaddress` library to tag address components, and paste together select components to create a normalized address. Normalized addresses can be hashed to create hashdresses that can be used to merge with other sets of addresses.">
@@ -55,11 +55,14 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>You can install the development version of addr from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
+<p>Install the latest stable release of addr from <a href="https://r-universe.dev" class="external-link">R-universe</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"addr"</span>, repos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"https://geomarker-io.r-universe.dev"</span>, <span class="st">"https://cloud.r-project.org"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Or, install the development version of addr from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"cole-brokamp/addr"</span><span class="op">)</span></span></code></pre></div>
-<p>addr requires a working <a href="https://www.rust-lang.org/learn/get-started" class="external-link">Rust</a> toolchain; install one using <a href="https://www.rust-lang.org/tools/install" class="external-link">rustup</a>.</p>
+<p>Installing addr from GitHub requires a working <a href="https://www.rust-lang.org/learn/get-started" class="external-link">Rust</a> toolchain; install one using <a href="https://www.rust-lang.org/tools/install" class="external-link">rustup</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="using">Using<a class="anchor" aria-label="anchor" href="#using"></a>
@@ -68,20 +71,20 @@
 <h3 id="addr-vectors-in-r">addr vectors in R<a class="anchor" aria-label="anchor" href="#addr-vectors-in-r"></a>
 </h3>
 <p>The <code>addr</code> package provides the <code>addr</code> R object, which stores standardized address tags, but acts like a usual vector in R:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/cole-brokamp/addr" class="external-link">addr</a></span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/cole-brokamp/addr" class="external-link">addr</a></span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/addr.html">addr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"3333 Burnet Ave Cincinnati OH 45229"</span>, <span class="st">"202 Riva Ridge Ct Cincinnati OH 45140"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; 3333 Burnet Avenue Cincinnati OH 45229 202 Riva Ridge Court Cincinnati OH 45140</span></span></code></pre></div>
 <p>Under the hood, an <code>addr</code> vector keeps a record of the tagged and standardized address components so that they can be used with other functions. To inspect or use them directly:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/addr.html">addr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"3333 Burnet Ave Cincinnati OH 45229"</span>, <span class="st">"202 Riva Ridge Ct Cincinnati OH 45140"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   street_number street_name street_type       city state zip_code</span></span>
 <span><span class="co">#&gt; 1          3333      burnet      avenue cincinnati    oh    45229</span></span>
 <span><span class="co">#&gt; 2           202  riva ridge       court cincinnati    oh    45140</span></span></code></pre></div>
 <p>or</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/addr.html">addr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"3333 Burnet Ave Cincinnati OH 45229"</span>, <span class="st">"202 Riva Ridge Ct Cincinnati OH 45140"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "3333 Burnet Avenue Cincinnati OH 45229"  </span></span>
@@ -91,7 +94,7 @@
 <h3 id="addr-matching">addr matching<a class="anchor" aria-label="anchor" href="#addr-matching"></a>
 </h3>
 <p>List all of the potentially matching <code>addr</code>s in a reference set of <code>addr</code>s with <code><a href="reference/addr_match.html">addr_match()</a></code>. The code below matches input addresses to the reference set of all addresses in Hamilton County, OH included in the package:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/addr.html">addr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"3333 Burnet Ave Cincinnati OH 45229"</span>, </span>
 <span>    <span class="st">"5130 RAPID RUN RD CINCINNATI OHIO 45238"</span>,</span>
 <span>    <span class="st">"5131 RAPID RUN RD CINCINNATI OHIO 45238"</span></span>
@@ -99,7 +102,7 @@
 <span>  <span class="fu"><a href="reference/addr_match.html">addr_match</a></span><span class="op">(</span><span class="fu"><a href="reference/cagis_addr.html">cagis_addr</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">cagis_addr</span><span class="op">)</span></span>
 <span><span class="co">#&gt; 3333 Burnet Avenue Cincinnati OH 45229 5130 Rapid Run Road Delhi Township OH 45238 NA NA NA NA NA NA</span></span></code></pre></div>
 <p>Use the matched addr vector to merge in address-specific data in the included <code>cagis_addr</code> object.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/addr.html">addr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"3333 Burnet Ave Cincinnati OH 45229"</span>, <span class="st">"5130 RAPID RUN RD CINCINNATI OHIO 45238"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="reference/addr_match.html">addr_match</a></span><span class="op">(</span><span class="fu"><a href="reference/cagis_addr.html">cagis_addr</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">cagis_addr</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/enframe.html" class="external-link">enframe</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"input_addr"</span>, value <span class="op">=</span> <span class="st">"ca"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -110,7 +113,7 @@
 <span><span class="co">#&gt; 1          1      3333 Burnet Avenue Cincinnati OH 45229            [1 × 6]</span></span>
 <span><span class="co">#&gt; 2          2 5130 Rapid Run Road Delhi Township OH 45238            [1 × 6]</span></span></code></pre></div>
 <p>If exact matching fails, use matching to TIGER street range files from the US census:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/addr.html">addr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"3333 Burnet Ave Cincinnati OH 45229"</span>, <span class="st">"5130 RAPID RUN RD CINCINNATI OHIO 45238"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="reference/addr_match_tiger_street_ranges.html">addr_match_tiger_street_ranges</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $`3333 Burnet Avenue Cincinnati OH 45229`</span></span>
@@ -126,7 +129,7 @@
 <span><span class="co">#&gt;   &lt;chr&gt;     &lt;s2_geography&gt;                                           &lt;dbl&gt; &lt;dbl&gt;</span></span>
 <span><span class="co">#&gt; 1 650346231 LINESTRING (-84.608444 39.110496, -84.6087 39.110523, -…  5094  5199</span></span></code></pre></div>
 <p>Because the addresses are possibly located on more than one street range geography, use the <code>summarize</code> argument to return the centroid of each set of matched street ranges and then add TIGER/Line census block group identifers via geospatial intersection:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/addr.html">addr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"3333 Burnet Ave Cincinnati OH 45229"</span>, <span class="st">"5130 RAPID RUN RD CINCINNATI OHIO 45238"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="reference/addr_match_tiger_street_ranges.html">addr_match_tiger_street_ranges</a></span><span class="op">(</span>county <span class="op">=</span> <span class="st">"39061"</span>, summarize <span class="op">=</span> <span class="st">"centroid"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -137,7 +140,7 @@
 <span><span class="co">#&gt; 1 103925697-103925699 POINT (-84.5004091 39.1408146)  3247  3399 390610270002</span></span>
 <span><span class="co">#&gt; 2 650346231           POINT (-84.6103702 39.1110311)  5094  5199 390610214011</span></span></code></pre></div>
 <p>The above process is conducted, with default matching arguments, in the function <code>addr_match_geocode</code>, which requires a vector of reference s2 cell locations: <strong>As of now, this process only works with the <code>cagis_s2</code> available as below and for matching within Hamilton County, OH (36061) using 2022 TIGER street range files</strong></p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># select one s2 cell at random from addresses with more than one parcel identifier and coordinates</span></span>
 <span><span class="va">cagis_s2</span> <span class="op">&lt;-</span></span>
@@ -154,7 +157,7 @@
 <span><span class="co">#&gt;                                          addr s2               match_method</span></span>
 <span><span class="co">#&gt;                                        &lt;addr&gt; &lt;s2cell&gt;         &lt;fct&gt;       </span></span>
 <span><span class="co">#&gt;  1     9822 Tollgate Lane Cincinnati OH 45242 8840538796e0aca3 ref_addr    </span></span>
-<span><span class="co">#&gt;  2  3840 Applegate Avenue Cincinnati OH 45211 8841ca63599fc325 ref_addr    </span></span>
+<span><span class="co">#&gt;  2  3840 Applegate Avenue Cincinnati OH 45211 8841ca6358e35e7b ref_addr    </span></span>
 <span><span class="co">#&gt;  3     2819 Hocking Drive Cincinnati OH 45233 8841cb8ea9f6c543 ref_addr    </span></span>
 <span><span class="co">#&gt;  4  8311 Wetherfield Lane Cincinnati OH 45236 8840536907b7ccc5 ref_addr    </span></span>
 <span><span class="co">#&gt;  5          529 13th E St Cincinnati OH 45202 NA               none        </span></span>
@@ -205,6 +208,7 @@
 <li><a href="https://CRAN.R-project.org/package=addr" class="external-link"><img src="https://www.r-pkg.org/badges/version/addr" alt="CRAN status"></a></li>
 <li><a href="https://github.com/cole-brokamp/addr/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/cole-brokamp/addr/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://lifecycle.r-lib.org/articles/stages.html#stable" class="external-link"><img src="https://img.shields.io/badge/lifecycle-stable-brightgreen.svg" alt="Lifecycle: stable"></a></li>
+<li><a href="https://geomarker-io.r-universe.dev/addr" class="external-link"><img src="https://geomarker-io.r-universe.dev/badges/addr" alt="r-universe"></a></li>
 </ul>
 </div>
 
