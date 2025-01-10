@@ -10,6 +10,7 @@ status](https://www.r-pkg.org/badges/version/addr)](https://CRAN.R-project.org/p
 [![R-CMD-check](https://github.com/cole-brokamp/addr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/cole-brokamp/addr/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle:
 stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+[![r-universe](https://geomarker-io.r-universe.dev/badges/addr)](https://geomarker-io.r-universe.dev/addr)
 <!-- badges: end -->
 
 Addresses that were not validated at the time of collection are often
@@ -19,7 +20,14 @@ real-world addresses in R to use for data linkages.
 
 ## Installation
 
-You can install the development version of addr from
+Install the latest stable release of addr from
+[R-universe](https://r-universe.dev) with:
+
+``` r
+install.packages("addr", repos = c("https://geomarker-io.r-universe.dev", "https://cloud.r-project.org"))
+```
+
+Or, install the development version of addr from
 [GitHub](https://github.com/) with:
 
 ``` r
@@ -27,7 +35,7 @@ You can install the development version of addr from
 pak::pak("cole-brokamp/addr")
 ```
 
-addr requires a working
+Installing addr from GitHub requires a working
 [Rust](https://www.rust-lang.org/learn/get-started) toolchain; install
 one using [rustup](https://www.rust-lang.org/tools/install).
 
@@ -159,7 +167,7 @@ addr_match_geocode(x = voter_addresses()[1040:1100],
 #>                                          addr s2               match_method
 #>                                        <addr> <s2cell>         <fct>       
 #>  1     9822 Tollgate Lane Cincinnati OH 45242 8840538796e0aca3 ref_addr    
-#>  2  3840 Applegate Avenue Cincinnati OH 45211 8841ca63599fc325 ref_addr    
+#>  2  3840 Applegate Avenue Cincinnati OH 45211 8841ca6358e35e7b ref_addr    
 #>  3     2819 Hocking Drive Cincinnati OH 45233 8841cb8ea9f6c543 ref_addr    
 #>  4  8311 Wetherfield Lane Cincinnati OH 45236 8840536907b7ccc5 ref_addr    
 #>  5          529 13th E St Cincinnati OH 45202 NA               none        
