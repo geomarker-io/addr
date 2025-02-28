@@ -7,9 +7,10 @@
 #' See `stringdist::stringdist-metrics` for more details on string metrics and the optimal string alignment (`osa`) method.
 #' @param x an addr vector to match
 #' @param ref_addr an addr vector to search for matches in
-#' @param stringdist_match method for determining string match of street name:
+#' @param match_street_name method for determining string match of street name:
 #' "osa_lt_1" requires an optimized string distance less than 1; "exact" requires an exact match
-#' @param match_street_type logical; require street type to be identical to match?
+#' @param match_street_type method for determining string match of street type:
+#' "exact" requires an exact match; "none" ignores street types
 #' @param simplify logical; randomly select one addr from multi-matches and return an
 #' addr() vector instead of a list? (empty addr vectors and NULL values are converted
 #' to NA)
@@ -29,8 +30,8 @@
 #' @export
 addr_match <- function(x,
                        ref_addr,
-                       stringdist_match = c("osa_lt_1", "exact"),
-                       match_street_type = TRUE, # TODO change into c("exact", "none")
+                       match_street_name = c("osa_lt_1", "exact"),
+                       match_street_type = c("exact", "none"),
                        simplify = TRUE) {
   ia <- stats::na.omit(unique(as_addr(x)))
   ra <- unique(as_addr(ref_addr))
@@ -74,20 +75,17 @@ addr_match <- function(x,
   return(out)
 }
 
-## addr_match_zip <- function(input_addr, ref_addr) {
-##   zip_dist <- stringdist::stringdistmatrix(vctrs::field(input_addr, "zip_code"), vctrs::field(ref_addr, "zip_code"))
-##   exact_matches <- apply(zip_dist, MARGIN = 1, FUN = \(.) which(. == 0), simplify = FALSE)
-##   names(exact_matches) <- as.character(input_addr)
-##   return(exact_matches)
-## }
-
 #' match addresses street names and numbers
 #'
 #' @rdname addr_match
 #' @export
-addr_match_street_name_and_number <- function(x, ref_addr, stringdist_match = c("osa_lt_1", "exact"), match_street_type = TRUE, simplify = TRUE) {
+addr_match_street_name_and_number <- function(x,
+                                              ref_addr,
+                                              match_street_name = c("osa_lt_1", "exact"),
+                                              match_street_type = c("exact", "none"),
+                                              simplify = TRUE) {
   street_name_matches <-
-    addr_match_street(x, ref_addr, stringdist_match = stringdist_match, match_street_type = match_street_type)
+    addr_match_street(x, ref_addr, match_street_name = match_street_name, match_street_type = match_street_type)
   street_number_matches <-
     stringdist::stringdistmatrix(
       vctrs::field(x, "street_number"),
@@ -115,23 +113,24 @@ addr_match_street_name_and_number <- function(x, ref_addr, stringdist_match = c(
 #' @rdname addr_match
 #' @export
 addr_match_street <- function(x, ref_addr,
-                              stringdist_match = c("osa_lt_1", "exact"),
-                              match_street_type = TRUE) {
+                              match_street_name = c("osa_lt_1", "exact"),
+                              match_street_type = c("exact", "none")) {
   stringdist_match <- rlang::arg_match(stringdist_match)
+  match_street_type <- rlang::arg_match(match_street_type)
 
   street_name_dist <-
     stringdist::stringdistmatrix(vctrs::field(x, "street_name"), vctrs::field(ref_addr, "street_name"))
 
   exact_matches <- apply(street_name_dist, MARGIN = 1, FUN = \(.) which(. == 0), simplify = FALSE)
 
-  if (stringdist_match == "exact") {
+  if (match_street_name == "exact") {
     the_matches <- exact_matches
-  } else if (stringdist_match == "osa_lt_1") {
+  } else if (match_street_name == "osa_lt_1") {
     one_off_matches <- apply(street_name_dist, MARGIN = 1, FUN = \(.) which(. == 1), simplify = FALSE)
     the_matches <- ifelse(lapply(exact_matches, length) != 0, exact_matches, one_off_matches)
   }
 
-  if (match_street_type) {
+  if (match_street_type == "exact") {
     street_type_matches <-
       stringdist::stringdistmatrix(vctrs::field(x, "street_type"), vctrs::field(ref_addr, "street_type")) |>
       apply(MARGIN = 1, FUN = \(.) which(. == 0), simplify = FALSE)
