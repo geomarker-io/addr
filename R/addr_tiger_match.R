@@ -82,8 +82,8 @@ addr_match_tiger_street_ranges <- function(x,
   street_matches <-
     addr_match_street(ia,
       suppressWarnings(as_addr(glue::glue("1234 {names(d_tiger)} Anytown AB 00000"))),
-      stringdist_match = "osa_lt_1",
-      match_street_type = TRUE
+      match_street_name = "osa_lt_1",
+      match_street_type = "exact"
     ) |>
     purrr::map(\(.) d_tiger[.]) |>
     purrr::map(purrr::pluck, 1,

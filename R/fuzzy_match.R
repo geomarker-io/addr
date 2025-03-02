@@ -1,7 +1,7 @@
 #' fuzzy match strings in x to y using optimized string alignment (ignoring capitalization)
 #' @param x character vector to match
 #' @param y character vector to match to
-#' @param osa_max_dist maximum osa distance to consider a match
+#' @param osa_max_dist maximum OSA distance to consider a match
 #' @param ties if multiple strings in `y` are tied for the minimum osa distances with a string in `x`,
 #' then specify "first" or "random" as a tiebreaker
 #' @return an integer vector representing the position of the best matching string in `y` for each string in `x`;

@@ -58,8 +58,8 @@ addr_match_geocode <- function(x,
   x_addr_ref_match <-
     addr_match(x_addr,
       ref_addr,
-      stringdist_match = "osa_lt_1",
-      match_street_type = TRUE,
+      match_street_name = "osa_lt_1",
+      match_street_type = "exact",
       simplify = TRUE
     )
 

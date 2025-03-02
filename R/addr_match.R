@@ -50,7 +50,7 @@ addr_match <- function(x,
 
   matches <-
     purrr::map(zip_list, \(.) addr_match_street_name_and_number(.$ia, .$ra,
-      match_street_name = match_streeet_name,
+      match_street_name = match_street_name,
       match_street_type = match_street_type,
       simplify = FALSE
     ),
