@@ -50,7 +50,7 @@ addr_match <- function(x,
 
   matches <-
     purrr::map(zip_list, \(.) addr_match_street_name_and_number(.$ia, .$ra,
-      stringdist_match = stringdist_match,
+      match_street_name = match_streeet_name,
       match_street_type = match_street_type,
       simplify = FALSE
     ),
@@ -115,7 +115,7 @@ addr_match_street_name_and_number <- function(x,
 addr_match_street <- function(x, ref_addr,
                               match_street_name = c("osa_lt_1", "exact"),
                               match_street_type = c("exact", "none")) {
-  stringdist_match <- rlang::arg_match(stringdist_match)
+  match_street_name <- rlang::arg_match(match_street_name)
   match_street_type <- rlang::arg_match(match_street_type)
 
   street_name_dist <-
@@ -138,6 +138,5 @@ addr_match_street <- function(x, ref_addr,
   }
   return(the_matches)
 }
-
 
 utils::globalVariables(c("ia_zips", "ra_zips"))
