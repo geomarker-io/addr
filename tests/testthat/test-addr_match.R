@@ -15,7 +15,7 @@ test_that("addr_match_street() works", {
   addr_match_street(
     addr(c("224 Woolper St Cincinnati OH 45220", "123 Nain Street Cincinnati OH 45123", "3333 Burnet Ave Cincinnati OH 45219")),
     addr(c("Woolper Ave", "Main Street", "Burnet Ave", "Bulnet Ave")),
-    match_street_type = FALSE
+    match_street_type = "none"
   ) |>
     expect_identical(list(1L, 2L, 3L))
 

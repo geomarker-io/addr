@@ -9,24 +9,24 @@
 addr_match(
   x,
   ref_addr,
-  stringdist_match = c("osa_lt_1", "exact"),
-  match_street_type = TRUE,
+  match_street_name = c("osa_lt_1", "exact"),
+  match_street_type = c("exact", "none"),
   simplify = TRUE
 )
 
 addr_match_street_name_and_number(
   x,
   ref_addr,
-  stringdist_match = c("osa_lt_1", "exact"),
-  match_street_type = TRUE,
+  match_street_name = c("osa_lt_1", "exact"),
+  match_street_type = c("exact", "none"),
   simplify = TRUE
 )
 
 addr_match_street(
   x,
   ref_addr,
-  stringdist_match = c("osa_lt_1", "exact"),
-  match_street_type = TRUE
+  match_street_name = c("osa_lt_1", "exact"),
+  match_street_type = c("exact", "none")
 )
 }
 \arguments{
@@ -34,10 +34,11 @@ addr_match_street(
 
 \item{ref_addr}{an addr vector to search for matches in}
 
-\item{stringdist_match}{method for determining string match of street name:
+\item{match_street_name}{method for determining string match of street name:
 "osa_lt_1" requires an optimized string distance less than 1; "exact" requires an exact match}
 
-\item{match_street_type}{logical; require street type to be identical to match?}
+\item{match_street_type}{method for determining string match of street type:
+"exact" requires an exact match; "none" ignores street types}
 
 \item{simplify}{logical; randomly select one addr from multi-matches and return an
 addr() vector instead of a list? (empty addr vectors and NULL values are converted

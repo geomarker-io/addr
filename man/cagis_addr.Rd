@@ -2,7 +2,7 @@
 % Please edit documentation in R/data.R
 \name{cagis_addr}
 \alias{cagis_addr}
-\title{CAGIS Addresses}
+\title{CAGIS Addresses (Q4 2024)}
 \usage{
 cagis_addr()
 }
@@ -19,7 +19,7 @@ cell towers (\code{CTW}), vacant or commercial lots (\code{LOT}), and other misc
 }
 }
 \description{
-CAGIS Addresses
+CAGIS Addresses (Q4 2024)
 }
 \examples{
 cagis_addr()
