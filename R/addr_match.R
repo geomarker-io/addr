@@ -1,21 +1,18 @@
 #' matching addr vectors
 #'
-#' For an addr vector, the string distances are calculated between a reference addr vector (`ref_addr`).
-#' A list of matching reference addr vectors less than or equal to the specified
-#' [optimal string alignment](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Optimal_string_alignment_distance)
-#' distances are returned.
-#' See `stringdist::stringdist-metrics` for more details on string metrics and the optimal string alignment (`osa`) method.
+#' Optimized String Alignment (OSA) distances are used to
+#' choose a set of matching reference addr with flexible, field-specific thresholds.
+#' See `fuzzy_match()`/`fuzzy_match_addr_field()` for more details.
+#' addr vectors are matched in groups by five digit ZIP codes.
 #' @param x an addr vector to match
 #' @param ref_addr an addr vector to search for matches in
-#' @param match_street_name method for determining string match of street name:
-#' "osa_lt_1" requires an optimized string distance less than 1; "exact" requires an exact match
-#' @param match_street_type method for determining string match of street type:
-#' "exact" requires an exact match; "none" ignores street types
 #' @param simplify logical; randomly select one addr from multi-matches and return an
 #' addr() vector instead of a list? (empty addr vectors and NULL values are converted
 #' to NA)
-#' @returns for `addr_match()` and `addr_match_street_name_number()`,
-#' a named list of possible addr matches for each addr in `x`
+#' @returns a named list of possible addr matches for each addr in `x`;
+#' a list value of NULL means the zip code was not matched and
+#' a list value of a zero-length addr vector means the zip code was matched,
+#' but the street number, name, and type were not matched
 #' @examples
 #' addr(c("3333 Burnet Ave Cincinnati OH 45229", "5130 RAPID RUN RD CINCINNATI OHIO 45238")) |>
 #'   addr_match(cagis_addr()$cagis_addr)
@@ -30,9 +27,10 @@
 #' @export
 addr_match <- function(x,
                        ref_addr,
-                       match_street_name = c("osa_lt_1", "exact"),
-                       match_street_type = c("exact", "none"),
-                       simplify = TRUE) {
+                       max_dist_street_number = 0,
+                       max_dist_street_name = 1,
+                       max_dist_street_type = 0,
+                       simplify = FALSE) {
   ia <- stats::na.omit(unique(as_addr(x)))
   ra <- unique(as_addr(ref_addr))
 
@@ -49,9 +47,11 @@ addr_match <- function(x,
     purrr::discard(\(.) any(is.na(.$ia), is.na(.$ra)))
 
   matches <-
-    purrr::map(zip_list, \(.) addr_match_street_name_and_number(.$ia, .$ra,
-      match_street_name = match_street_name,
-      match_street_type = match_street_type,
+    purrr::map(zip_list, \(.x) addr_match_line_one(
+      .x$ia, .x$ra,
+      max_dist_street_number = max_dist_street_number,
+      max_dist_street_name = max_dist_street_name,
+      max_dist_street_type = max_dist_street_type,
       simplify = FALSE
     ),
     .progress = list(
@@ -75,68 +75,44 @@ addr_match <- function(x,
   return(out)
 }
 
-#' match addresses street names and numbers
+#' match addr vectors based on street number, name, and type
 #'
+#' @param max_dist_street_number maximum OSA distance to consider a match for the addr street_number;
+#' set to NULL to disregard street number
+#' @param max_dist_street_name maximum OSA distance to consider a match for the addr street_name
+#' @param max_dist_street_type maximum OSA distance to consider a match for the addr street_type
 #' @rdname addr_match
 #' @export
-addr_match_street_name_and_number <- function(x,
-                                              ref_addr,
-                                              match_street_name = c("osa_lt_1", "exact"),
-                                              match_street_type = c("exact", "none"),
-                                              simplify = TRUE) {
-  street_name_matches <-
-    addr_match_street(x, ref_addr, match_street_name = match_street_name, match_street_type = match_street_type)
-  street_number_matches <-
-    stringdist::stringdistmatrix(
-      vctrs::field(x, "street_number"),
-      vctrs::field(ref_addr, "street_number"),
-    ) |>
-    apply(MARGIN = 1, FUN = \(.) which(. <= 0), simplify = FALSE)
-  the_matches <- purrr::map2(street_name_matches, street_number_matches, intersect)
+#' @examples
+#' addr_match_line_one(addr(c("3333 Burnet Ave", "3333 Foofy Ave")),
+#'                     addr(c("Main Street", "Burnet Avenue")),
+#'                     max_dist_street_number = NULL)
+addr_match_line_one <- function(x, ref_addr,
+                                max_dist_street_number = 0,
+                                max_dist_street_name = 1,
+                                max_dist_street_type = 0,
+                                simplify = FALSE) {
+  matches <- list()
+  if (!is.null(max_dist_street_number)) {
+    matches$street_number <- fuzzy_match_addr_field(x, ref_addr, "street_number", max_dist_street_number)
+  }
+  matches$street_name <- fuzzy_match_addr_field(x, ref_addr, "street_name", max_dist_street_name)
+  matches$street_type <- fuzzy_match_addr_field(x, ref_addr, "street_type", max_dist_street_type)
+
   out <-
-    purrr::map(the_matches, \(.) ref_addr[.]) |>
+    purrr::reduce(matches, \(.x, .y) purrr::map2(.x, .y, intersect)) |>
+    purrr::modify_if(\(.x) all(is.na(.x)), \(.x) NULL) |>
+    purrr::map(\(.x) ref_addr[.x]) |>
     purrr::set_names(x)
+
   if (simplify) {
     out <-
       out |>
-      purrr::modify_if(\(.) length(.) > 1, sample, size = 1) |>
-      purrr::modify_if(\(.) length(.) == 0, \(.) NA) |>
+      purrr::modify_if(\(.x) length(.x) > 1, sample, size = 1) |>
+      purrr::modify_if(\(.x) length(.x) == 0, \(.x) NA) |>
       purrr::list_c(ptype = addr())
   }
   return(out)
-}
-
-
-#' match addresses by street names
-#'
-#' @returns for addr_match_street, a list of possible addr matches for each addr in `x` (as `ref_addr` indices)
-#' @rdname addr_match
-#' @export
-addr_match_street <- function(x, ref_addr,
-                              match_street_name = c("osa_lt_1", "exact"),
-                              match_street_type = c("exact", "none")) {
-  match_street_name <- rlang::arg_match(match_street_name)
-  match_street_type <- rlang::arg_match(match_street_type)
-
-  street_name_dist <-
-    stringdist::stringdistmatrix(vctrs::field(x, "street_name"), vctrs::field(ref_addr, "street_name"))
-
-  exact_matches <- apply(street_name_dist, MARGIN = 1, FUN = \(.) which(. == 0), simplify = FALSE)
-
-  if (match_street_name == "exact") {
-    the_matches <- exact_matches
-  } else if (match_street_name == "osa_lt_1") {
-    one_off_matches <- apply(street_name_dist, MARGIN = 1, FUN = \(.) which(. == 1), simplify = FALSE)
-    the_matches <- ifelse(lapply(exact_matches, length) != 0, exact_matches, one_off_matches)
-  }
-
-  if (match_street_type == "exact") {
-    street_type_matches <-
-      stringdist::stringdistmatrix(vctrs::field(x, "street_type"), vctrs::field(ref_addr, "street_type")) |>
-      apply(MARGIN = 1, FUN = \(.) which(. == 0), simplify = FALSE)
-    the_matches <- purrr::map2(the_matches, street_type_matches, intersect)
-  }
-  return(the_matches)
 }
 
 utils::globalVariables(c("ia_zips", "ra_zips"))

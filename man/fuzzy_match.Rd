@@ -3,7 +3,7 @@
 \name{fuzzy_match}
 \alias{fuzzy_match}
 \alias{fuzzy_match_addr_field}
-\title{fuzzy match strings in x to y using optimized string alignment (ignoring capitalization)}
+\title{fuzzy match}
 \usage{
 fuzzy_match(x, y, osa_max_dist = 1, ties = c("first", "random", "all"))
 
@@ -40,4 +40,7 @@ fuzzy match strings in x to y using optimized string alignment (ignoring capital
 }
 \details{
 \code{fuzzy_match_addr_field} is a helper to match addr vectors using fuzzy_match on a specific field
+}
+\examples{
+fuzzy_match_addr_field(addr(c("3333 Burnet Ave", "3333 Foofy Ave")), addr(c("0000 Main Street", "0000 Burnet Avenue")), "street_name")
 }

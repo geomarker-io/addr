@@ -11,6 +11,7 @@ test_that("get_tiger_street_ranges() works", {
 })
 
 test_that("addr_match_tiger_street_ranges() works", {
+
   addr_match_tiger_street_ranges(as_addr(c("224 Woolper Ave", "3333 Burnet Ave", "33333 Burnet Ave", "609 Walnut St", "609 Weknut Street")),
     street_only_match = "none"
   ) |>

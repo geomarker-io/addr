@@ -2,31 +2,25 @@
 % Please edit documentation in R/addr_match.R
 \name{addr_match}
 \alias{addr_match}
-\alias{addr_match_street_name_and_number}
-\alias{addr_match_street}
+\alias{addr_match_line_one}
 \title{matching addr vectors}
 \usage{
 addr_match(
   x,
   ref_addr,
-  match_street_name = c("osa_lt_1", "exact"),
-  match_street_type = c("exact", "none"),
-  simplify = TRUE
+  max_dist_street_number = 0,
+  max_dist_street_name = 1,
+  max_dist_street_type = 0,
+  simplify = FALSE
 )
 
-addr_match_street_name_and_number(
+addr_match_line_one(
   x,
   ref_addr,
-  match_street_name = c("osa_lt_1", "exact"),
-  match_street_type = c("exact", "none"),
-  simplify = TRUE
-)
-
-addr_match_street(
-  x,
-  ref_addr,
-  match_street_name = c("osa_lt_1", "exact"),
-  match_street_type = c("exact", "none")
+  max_dist_street_number = 0,
+  max_dist_street_name = 1,
+  max_dist_street_type = 0,
+  simplify = FALSE
 )
 }
 \arguments{
@@ -34,28 +28,28 @@ addr_match_street(
 
 \item{ref_addr}{an addr vector to search for matches in}
 
-\item{match_street_name}{method for determining string match of street name:
-"osa_lt_1" requires an optimized string distance less than 1; "exact" requires an exact match}
+\item{max_dist_street_number}{maximum OSA distance to consider a match for the addr street_number;
+set to NULL to disregard street number}
 
-\item{match_street_type}{method for determining string match of street type:
-"exact" requires an exact match; "none" ignores street types}
+\item{max_dist_street_name}{maximum OSA distance to consider a match for the addr street_name}
+
+\item{max_dist_street_type}{maximum OSA distance to consider a match for the addr street_type}
 
 \item{simplify}{logical; randomly select one addr from multi-matches and return an
 addr() vector instead of a list? (empty addr vectors and NULL values are converted
 to NA)}
 }
 \value{
-for \code{addr_match()} and \code{addr_match_street_name_number()},
-a named list of possible addr matches for each addr in \code{x}
-
-for addr_match_street, a list of possible addr matches for each addr in \code{x} (as \code{ref_addr} indices)
+a named list of possible addr matches for each addr in \code{x};
+a list value of NULL means the zip code was not matched and
+a list value of a zero-length addr vector means the zip code was matched,
+but the street number, name, and type were not matched
 }
 \description{
-For an addr vector, the string distances are calculated between a reference addr vector (\code{ref_addr}).
-A list of matching reference addr vectors less than or equal to the specified
-\href{https://en.wikipedia.org/wiki/Damerau\%E2\%80\%93Levenshtein_distance#Optimal_string_alignment_distance}{optimal string alignment}
-distances are returned.
-See \code{stringdist::stringdist-metrics} for more details on string metrics and the optimal string alignment (\code{osa}) method.
+Optimized String Alignment (OSA) distances are used to
+choose a set of matching reference addr with flexible, field-specific thresholds.
+See \code{fuzzy_match()}/\code{fuzzy_match_addr_field()} for more details.
+addr vectors are matched in groups by five digit ZIP codes.
 }
 \examples{
 addr(c("3333 Burnet Ave Cincinnati OH 45229", "5130 RAPID RUN RD CINCINNATI OHIO 45238")) |>
@@ -68,4 +62,7 @@ addr(c("3333 Burnet Ave Cincinnati OH 45229", "5130 RAPID RUN RD CINCINNATI OHIO
   dplyr::left_join(cagis_addr(), by = c("ca" = "cagis_addr")) |>
   tidyr::unnest(cols = c(cagis_addr_data)) |>
   dplyr::select(-ca, -cagis_address)
+addr_match_line_one(addr(c("3333 Burnet Ave", "3333 Foofy Ave")),
+                    addr(c("Main Street", "Burnet Avenue")),
+                    max_dist_street_number = NULL)
 }

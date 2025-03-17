@@ -1,3 +1,5 @@
+#' fuzzy match
+#' 
 #' fuzzy match strings in x to y using optimized string alignment (ignoring capitalization)
 #' @param x character vector to match
 #' @param y character vector to match to
@@ -16,9 +18,10 @@ fuzzy_match <- function(x, y, osa_max_dist = 1, ties = c("first", "random", "all
   the_dist <- stringdist::stringdistmatrix(tolower(x), tolower(y), method = "osa")
   min_dist_matches <- apply(the_dist,
     MARGIN = 1,
-    FUN = \(.) which(min(.) <= osa_max_dist & . == min(.)),
+    FUN = \(.) which(min(., na.rm = TRUE) <= osa_max_dist & . == min(., na.rm = TRUE)),
     simplify = FALSE
-  )
+  ) |>
+    suppressWarnings()
   out <- purrr::modify_if(min_dist_matches, \(.) length(.) == 0, \(.) NA)
 
   if (ties == "random") {
@@ -36,11 +39,18 @@ fuzzy_match <- function(x, y, osa_max_dist = 1, ties = c("first", "random", "all
 #' @param y_addr addr vector to match to
 #' @param addr_field character name of `addr()` field to match on
 #' @rdname fuzzy_match
+#' @examples
+#' fuzzy_match_addr_field(addr(c("3333 Burnet Ave", "3333 Foofy Ave")), addr(c("0000 Main Street", "0000 Burnet Avenue")), "street_name")
 fuzzy_match_addr_field <- function(x_addr, y_addr, addr_field, osa_max_dist = 0, ties = "all") {
   if (!inherits(x_addr, "addr")) rlang::abort("x_addr must be an addr object")
   if (!inherits(y_addr, "addr")) rlang::abort("y_addr must be an addr object")
   rlang::check_required(addr_field)
   addr_field <- rlang::arg_match(addr_field, vctrs::fields(x_addr))
+  fuzzy_match(vctrs::field(x_addr, "street_name"),
+    vctrs::field(y_addr, "street_name"),
+    osa_max_dist = 0,
+    ties = "all"
+  )
   out <-
     purrr::map(list(x_addr, y_addr), \(.x) as.character(vctrs::field(.x, addr_field))) |>
     purrr::list_modify(osa_max_dist = osa_max_dist, ties = ties) |>

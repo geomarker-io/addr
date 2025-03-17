@@ -1,54 +1,3 @@
-test_that("addr_match_street() works", {
-  addr_match_street(
-    addr(c("224 Woolper Ave Cincinnati OH 45220", "123 Nain Street Cincinnati OH 45123", "3333 Burnet Ave Cincinnati OH 45219")),
-    addr(c("Woolper Ave", "Main Street", "Burnet Ave", "Bulnet Ave"))
-  ) |>
-    expect_identical(list(1L, 2L, 3L))
-
-  addr_match_street(
-    addr(c("224 Woolper Ave Cincinnati OH 45220", "123 Nain Street Cincinnati OH 45123", "3333 Burnet Ave Cincinnati OH 45219")),
-    addr(c("Woolper Ave", "Main Street", "Burnet Ave", "Bulnet Ave")),
-    match_street_name = "exact"
-  ) |>
-    expect_identical(list(1L, integer(0), 3L))
-
-  addr_match_street(
-    addr(c("224 Woolper St Cincinnati OH 45220", "123 Nain Street Cincinnati OH 45123", "3333 Burnet Ave Cincinnati OH 45219")),
-    addr(c("Woolper Ave", "Main Street", "Burnet Ave", "Bulnet Ave")),
-    match_street_type = "none"
-  ) |>
-    expect_identical(list(1L, 2L, 3L))
-
-  addr_match_street(
-    addr(c("224 Woolper Ave Cincinnati OH 45220", "123 Nain Street Cincinnati OH 45123", "3333 Burnet Ave Cincinnati OH 45219")),
-    addr(c("Woolper Ave", "Main Street", "Nain Street", "Burnet Ave", "Bulnet Ave"))
-  ) |>
-    expect_identical(list(1L, 3L, 4L))
-
-  addr_match_street(
-    addr(c("224 Woolper Ave Cincinnati OH 45220", "123 Nain Street Cincinnati OH 45123", "3333 Burnet Ave Cincinnati OH 45219")),
-    addr(c("Woolper Ave", "Main Street", "Burnet Ave", "Bulnet Ave")),
-    match_street_name = "exact"
-  ) |>
-    expect_identical(list(1L, integer(0), 3L))
-})
-
-test_that("addr_match_street_name_and_number works", {
-  as_addr(c(
-    "222 E Central Parkway Foofyville SJ 00000",
-    "222 East Central Parkway",
-    "221 E Central Parkway Somewhere OS 00000",
-    "222 East Central Cincinnati"
-  )) |>
-    addr_match_street_name_and_number(as_addr(c("222 E CENTRAL PKWY", "221 E CENTRAL PKWY", "222 CENTRAL PKWY", "222 E CENTRAL PKWY")),
-                                      simplify = FALSE) |>
-    sapply(length) |>
-    expect_identical(c(
-      `222 E Central Parkway Foofyville SJ 00000` = 2L, `222 E Central Parkway` = 2L,
-      `221 E Central Parkway Somewhere OS 00000` = 1L, `222 E Central Cincinnati` = 0L
-    ))
-})
-
 test_that("addr_match works", {
 
   addr_match(
@@ -57,7 +6,8 @@ test_that("addr_match works", {
       "222 East Central Parkway Cincinnati OH 45000",
       "222 East Central Pkwy Cincinnati OH 45000"
     )),
-    addr("222 E CENTRAL PKWY CINCINNATI OH 45000")
+    addr("222 E CENTRAL PKWY CINCINNATI OH 45000"),
+    simplify = TRUE
   ) |>
     unique() |>
     expect_equal(addr("222 E CENTRAL PKWY CINCINNATI OH 45000"))
@@ -67,8 +17,7 @@ test_that("addr_match works", {
       "14 E 14th street cincinnati oh 45000", "14 east 14th street cincinnati oh 45000", "14 W 14th street cincinnati oh 45000",
       "3333 Burnet Ave cincinnati oh 45000"
     )),
-    addr(c("14 E 14TH STREET CINCINNATI OH 45000", "14 W 14TH STREET CINCINNATI OH 45000")),
-    simplify = FALSE
+    addr(c("14 E 14TH STREET CINCINNATI OH 45000", "14 W 14TH STREET CINCINNATI OH 45000"))
   ) |>
     expect_equal(
       list(`14 E 14th Street Cincinnati OH 45000` = structure(list(
@@ -123,7 +72,7 @@ test_that("addr_match with cagis works", {
     "117 E 12TH ST CINCINNATI, OH 45202" # Greater Cinti Coalition for The Homeless
   )
 
-  cagis_matches <- addr_match(as_addr(my_addresses), cagis_addr()$cagis_addr, simplify = FALSE)
+  cagis_matches <- addr_match(as_addr(my_addresses), cagis_addr()$cagis_addr)
 
   sapply(cagis_matches, length) |>
     expect_equal(

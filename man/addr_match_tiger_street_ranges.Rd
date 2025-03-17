@@ -8,6 +8,8 @@ addr_match_tiger_street_ranges(
   x,
   county = "39061",
   year = "2022",
+  max_dist_street_name = 1,
+  max_dist_street_type = 0,
   street_only_match = c("none", "all", "closest"),
   summarize = c("none", "union", "centroid")
 )
@@ -44,8 +46,10 @@ addr_match_tiger_street_ranges(my_addr, county = "39061", street_only_match = "a
 
 addr_match_tiger_street_ranges(my_addr, county = "39061", summarize = "centroid")
 
-addr_match_tiger_street_ranges(my_addr, county = "39061",
-                               street_only_match = "closest", summarize = "centroid") |>
+addr_match_tiger_street_ranges(my_addr,
+  county = "39061",
+  street_only_match = "closest", summarize = "centroid"
+) |>
   dplyr::bind_rows() |>
   dplyr::mutate(census_bg_id = s2_join_tiger_bg(s2::as_s2_cell(s2_geography)))
 }

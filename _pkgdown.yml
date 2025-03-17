@@ -1,4 +1,4 @@
-url: https://cole-brokamp.github.io/addr/
+url: https://geomarker.io/addr/
 template:
   bootstrap: 5
   bslib:
@@ -19,10 +19,12 @@ reference:
   - title: matching addr
     contents:
     - addr_match
-    - addr_match_tiger_street_ranges
+    - addr_match_line_one
+    - fuzzy_match
   - title: geocoding addr
     contents:
     - addr_match_geocode
+    - addr_match_tiger_street_ranges
     - s2_join_tiger_bg
   - title: address text
     contents:
