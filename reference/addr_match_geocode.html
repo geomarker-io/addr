@@ -25,7 +25,7 @@ none: unmatched using all previous approaches; return missing s2 cell identifier
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,7 +33,8 @@ none: unmatched using all previous approaches; return missing s2 cell identifier
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/addr.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/cole-brokamp/addr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -119,9 +120,11 @@ precision of 'street' &amp; score &gt; 0.55):</p><table class="table table"><tr>
 <span class="r-in"><span>  <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map_vec</a></span><span class="op">(</span><span class="fu">purrr</span><span class="fu">::</span><span class="va"><a href="https://purrr.tidyverse.org/reference/pluck.html" class="external-link">pluck</a></span>, <span class="st">"cagis_s2"</span>, .default <span class="op">=</span> <span class="cn">NA</span>, .ptype <span class="op">=</span> <span class="fu">s2</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/s2/reference/s2_cell.html" class="external-link">s2_cell</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">addr_match_geocode</span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="voter_addresses.html">voter_addresses</a></span><span class="op">(</span><span class="op">)</span>, <span class="fl">100</span><span class="op">)</span>, ref_s2 <span class="op">=</span> <span class="va">cagis_s2</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> matching addresses in 10/36 ZIP codes [1.1s elapsed] </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> matching addresses in 24/36 ZIP codes [4.5s elapsed] </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> matching addresses in 36/36 ZIP codes [6.9s elapsed] </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> matching addresses in 9/36 ZIP codes [1.9s elapsed] </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> matching addresses in 18/36 ZIP codes [4.9s elapsed] </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> matching addresses in 24/36 ZIP codes [7.6s elapsed] </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> matching addresses in 33/36 ZIP codes [10.8s elapsed] </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> matching addresses in 36/36 ZIP codes [11.6s elapsed] </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 100 × 3</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                                 addr s2             match_method</span>

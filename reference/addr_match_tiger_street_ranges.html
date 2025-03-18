@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -15,7 +15,8 @@
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/addr.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/cole-brokamp/addr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -42,6 +43,8 @@
 <span>  <span class="va">x</span>,</span>
 <span>  county <span class="op">=</span> <span class="st">"39061"</span>,</span>
 <span>  year <span class="op">=</span> <span class="st">"2022"</span>,</span>
+<span>  max_dist_street_name <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  max_dist_street_type <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  street_only_match <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"all"</span>, <span class="st">"closest"</span><span class="op">)</span>,</span>
 <span>  summarize <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"union"</span>, <span class="st">"centroid"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -61,6 +64,14 @@
 
 <dt id="arg-year">year<a class="anchor" aria-label="anchor" href="#arg-year"></a></dt>
 <dd><p>year of tigris product</p></dd>
+
+
+<dt id="arg-max-dist-street-name">max_dist_street_name<a class="anchor" aria-label="anchor" href="#arg-max-dist-street-name"></a></dt>
+<dd><p>maximum OSA distance to consider a match for the addr street_name</p></dd>
+
+
+<dt id="arg-max-dist-street-type">max_dist_street_type<a class="anchor" aria-label="anchor" href="#arg-max-dist-street-type"></a></dt>
+<dd><p>maximum OSA distance to consider a match for the addr street_type</p></dd>
 
 
 <dt id="arg-street-only-match">street_only_match<a class="anchor" aria-label="anchor" href="#arg-street-only-match"></a></dt>
@@ -160,8 +171,10 @@ for the purposes of matching tiger street range names (e.g., <code>1234 {tiger_s
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> 103926906-103936642 POINT (-84.4775955 39.1885963)   600   699</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="fu">addr_match_tiger_street_ranges</span><span class="op">(</span><span class="va">my_addr</span>, county <span class="op">=</span> <span class="st">"39061"</span>,</span></span>
-<span class="r-in"><span>                               street_only_match <span class="op">=</span> <span class="st">"closest"</span>, summarize <span class="op">=</span> <span class="st">"centroid"</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span><span class="fu">addr_match_tiger_street_ranges</span><span class="op">(</span><span class="va">my_addr</span>,</span></span>
+<span class="r-in"><span>  county <span class="op">=</span> <span class="st">"39061"</span>,</span></span>
+<span class="r-in"><span>  street_only_match <span class="op">=</span> <span class="st">"closest"</span>, summarize <span class="op">=</span> <span class="st">"centroid"</span></span></span>
+<span class="r-in"><span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>census_bg_id <span class="op">=</span> <span class="fu"><a href="s2_join_tiger_bg.html">s2_join_tiger_bg</a></span><span class="op">(</span><span class="fu">s2</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/s2/reference/s2_cell.html" class="external-link">as_s2_cell</a></span><span class="op">(</span><span class="va">s2_geography</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 4 × 5</span></span>

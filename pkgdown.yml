@@ -1,8 +1,9 @@
 pandoc: 3.1.11
 pkgdown: 2.1.1
 pkgdown_sha: ~
-articles: {}
-last_built: 2025-01-10T14:43Z
+articles:
+  addr: addr.html
+last_built: 2025-03-18T13:27Z
 urls:
-  reference: https://cole-brokamp.github.io/addr/reference
-  article: https://cole-brokamp.github.io/addr/articles
+  reference: https://geomarker.io/addr/reference
+  article: https://geomarker.io/addr/articles

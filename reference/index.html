@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -15,7 +15,8 @@
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/addr.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/cole-brokamp/addr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -60,16 +61,16 @@
 
       <dl><dt>
 
-          <code><a href="addr_match.html">addr_match()</a></code> <code><a href="addr_match.html">addr_match_street_name_and_number()</a></code> <code><a href="addr_match.html">addr_match_street()</a></code>
+          <code><a href="addr_match.html">addr_match()</a></code> <code><a href="addr_match.html">addr_match_line_one()</a></code>
 
         </dt>
         <dd>matching addr vectors</dd>
       </dl><dl><dt>
 
-          <code><a href="addr_match_tiger_street_ranges.html">addr_match_tiger_street_ranges()</a></code>
+          <code><a href="fuzzy_match.html">fuzzy_match()</a></code> <code><a href="fuzzy_match.html">fuzzy_match_addr_field()</a></code>
 
         </dt>
-        <dd>Match an addr vector to TIGER street ranges</dd>
+        <dd>fuzzy match</dd>
       </dl></div><div class="section level2">
       <h2 id="geocoding-addr">geocoding addr<a class="anchor" aria-label="anchor" href="#geocoding-addr"></a></h2>
 
@@ -87,6 +88,12 @@
 
         </dt>
         <dd>Geocode addr vectors</dd>
+      </dl><dl><dt>
+
+          <code><a href="addr_match_tiger_street_ranges.html">addr_match_tiger_street_ranges()</a></code>
+
+        </dt>
+        <dd>Match an addr vector to TIGER street ranges</dd>
       </dl><dl><dt>
 
           <code><a href="s2_join_tiger_bg.html">s2_join_tiger_bg()</a></code>
@@ -173,7 +180,7 @@
           <code><a href="cagis_addr.html">cagis_addr()</a></code>
 
         </dt>
-        <dd>CAGIS Addresses</dd>
+        <dd>CAGIS Addresses (Q4 2024)</dd>
       </dl><dl><dt>
 
           <code><a href="voter_addresses.html">voter_addresses()</a></code>
