@@ -58,8 +58,9 @@ addr_match_geocode <- function(x,
   x_addr_ref_match <-
     addr_match(x_addr,
       ref_addr,
-      stringdist_match = "osa_lt_1",
-      match_street_type = TRUE,
+      max_dist_street_number = 0,
+      max_dist_street_name = 1,
+      max_dist_street_type = 0,
       simplify = TRUE
     )
 
@@ -69,7 +70,7 @@ addr_match_geocode <- function(x,
     ref_s2[x_addr_ref_match_which] |>
     stats::setNames(x_addr)
 
-  x_addr_ref_no_match_which <- is.na(x_s2)
+  x_addr_ref_no_match_which <- which(is.na(x_s2))
 
   t_matches <-
     addr_match_tiger_street_ranges(

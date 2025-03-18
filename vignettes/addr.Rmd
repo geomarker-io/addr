@@ -1,50 +1,20 @@
 ---
-output: github_document
+title: "addr"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{addr}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
-
-<!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-",
-  out.width = "100%"
+  comment = "#>"
 )
 ```
 
-# addr
-
-<!-- badges: start -->
-[![CRAN status](https://www.r-pkg.org/badges/version/addr)](https://CRAN.R-project.org/package=addr)
-[![R-CMD-check](https://github.com/cole-brokamp/addr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/cole-brokamp/addr/actions/workflows/R-CMD-check.yaml)
-[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
-[![r-universe](https://geomarker-io.r-universe.dev/badges/addr)](https://geomarker-io.r-universe.dev/addr)
-<!-- badges: end -->
-
-Addresses that were not validated at the time of collection are often heterogenously formatted, making them difficult to directly compare. 
-The goal of addr is to clean, parse, standardize, and match messy, real-world addresses in R to use for data linkages.
-
-## Installation
-
-Install the latest stable release of addr from [R-universe](https://r-universe.dev) with:
-
-``` r
-install.packages("addr", repos = c("https://geomarker-io.r-universe.dev", "https://cloud.r-project.org"))
-```
-
-Or, install the development version of addr from [GitHub](https://github.com/) with:
-
-``` r
-# install.packages("pak")
-pak::pak("cole-brokamp/addr")
-```
-
-Installing addr from GitHub requires a working [Rust](https://www.rust-lang.org/learn/get-started) toolchain; install one using [rustup](https://www.rust-lang.org/tools/install).
-
-## Using
-
-### addr vectors in R
+## addr vectors in R
 
 The `addr` package provides the `addr` R object, which stores standardized address tags, but acts like a usual vector in R:
 
@@ -70,7 +40,7 @@ addr(c("3333 Burnet Ave Cincinnati OH 45229", "202 Riva Ridge Ct Cincinnati OH 4
   as.character()
 ```
 
-### addr matching
+## addr matching
 
 List all of the potentially matching `addr`s in a reference set of `addr`s with `addr_match()`. The code below matches input addresses to the reference set of all addresses in Hamilton County, OH included in the package:
 
@@ -86,7 +56,7 @@ Use the matched addr vector to merge in address-specific data in the included `c
 
 ```{r}
 addr(c("3333 Burnet Ave Cincinnati OH 45229", "5130 RAPID RUN RD CINCINNATI OHIO 45238")) |>
-  addr_match(cagis_addr()$cagis_addr) |>
+  addr_match(cagis_addr()$cagis_addr, simplify = TRUE) |>
   tibble::enframe(name = "input_addr", value = "ca") |>
   dplyr::left_join(cagis_addr(), by = c("ca" = "cagis_addr"))
 ```

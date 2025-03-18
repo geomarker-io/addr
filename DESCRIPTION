@@ -1,6 +1,6 @@
 Package: addr
 Title: Clean, Parse, Harmonize, Match, and Geocode Messy Real-World Addresses
-Version: 0.6.0
+Version: 0.6.0.9000
 Authors@R: 
     c(person("Cole", "Brokamp", email = "cole@colebrokamp.com", role = c("aut", "cre")),
       person("Erika", "Manning", role = c("aut")))
@@ -15,7 +15,9 @@ Suggests:
     testthat (>= 3.0.0),
     sf,
     s2,
-    tidyr
+    tidyr,
+    knitr,
+    rmarkdown
 Imports: 
     purrr,
     cli,
@@ -36,3 +38,4 @@ Config/testthat/start-first: addr_match*, s2_join_tiger_bg
 Depends: 
     R (>= 3.5.0)
 Config/rextendr/version: 0.3.1
+VignetteBuilder: knitr
