@@ -93,13 +93,15 @@ addr_match_tiger_street_ranges <- function(x,
       max_dist_street_name = max_dist_street_name,
       max_dist_street_type = max_dist_street_type
     ) |>
-    purrr::map(~ d_tiger[[as.character(purrr::pluck(.x, 1, .default = NULL))]])
-
+    purrr::map(as.character)
+  
   no_match_street <- which(purrr::map_int(street_matches, length) == 0)
   ia[no_match_street] <- NA
   ia <- stats::na.omit(ia)
   street_matches[no_match_street] <- NULL
   stopifnot(length(ia) == length(street_matches))
+
+  street_matches <- purrr::map(street_matches, ~ d_tiger[[.x]])
 
   output <-
     purrr::map2(

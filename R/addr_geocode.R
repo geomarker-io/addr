@@ -70,7 +70,7 @@ addr_match_geocode <- function(x,
     ref_s2[x_addr_ref_match_which] |>
     stats::setNames(x_addr)
 
-  x_addr_ref_no_match_which <- is.na(x_s2)
+  x_addr_ref_no_match_which <- which(is.na(x_s2))
 
   t_matches <-
     addr_match_tiger_street_ranges(
