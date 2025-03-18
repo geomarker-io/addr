@@ -1,6 +1,6 @@
 Package: addr
 Title: Clean, Parse, Harmonize, Match, and Geocode Messy Real-World Addresses
-Version: 0.6.0
+Version: 0.6.0.9000
 Authors@R: 
     c(person("Cole", "Brokamp", email = "cole@colebrokamp.com", role = c("aut", "cre")),
       person("Erika", "Manning", role = c("aut")))
