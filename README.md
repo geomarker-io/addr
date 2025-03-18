@@ -35,4 +35,6 @@ Installing addr from GitHub requires a working
 [Rust](https://www.rust-lang.org/learn/get-started) toolchain; install
 one using [rustup](https://www.rust-lang.org/tools/install).
 
-## Getting Started
+## Using
+	
+See the package website to Get Started: https://geomarker.io/addr

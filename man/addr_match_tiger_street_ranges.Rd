@@ -21,6 +21,10 @@ addr_match_tiger_street_ranges(
 
 \item{year}{year of tigris product}
 
+\item{max_dist_street_name}{maximum OSA distance to consider a match for the addr street_name}
+
+\item{max_dist_street_type}{maximum OSA distance to consider a match for the addr street_type}
+
 \item{street_only_match}{for addresses that match a TIGER street name, but have street numbers that don't
 intersect with ranges of potential street numbers, return \code{"none"}, \code{"all"}, or the \code{"closest"} range geographies}
 

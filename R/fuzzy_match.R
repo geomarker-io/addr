@@ -39,8 +39,11 @@ fuzzy_match <- function(x, y, osa_max_dist = 1, ties = c("first", "random", "all
 #' @param y_addr addr vector to match to
 #' @param addr_field character name of `addr()` field to match on
 #' @rdname fuzzy_match
+#' @export
 #' @examples
-#' fuzzy_match_addr_field(addr(c("3333 Burnet Ave", "3333 Foofy Ave")), addr(c("0000 Main Street", "0000 Burnet Avenue")), "street_name")
+#' fuzzy_match_addr_field(addr(c("3333 Burnet Ave", "3333 Foofy Ave")),
+#'                        addr(c("0000 Main Street", "0000 Burnet Avenue")),
+#'                        "street_name")
 fuzzy_match_addr_field <- function(x_addr, y_addr, addr_field, osa_max_dist = 0, ties = "all") {
   if (!inherits(x_addr, "addr")) rlang::abort("x_addr must be an addr object")
   if (!inherits(y_addr, "addr")) rlang::abort("y_addr must be an addr object")

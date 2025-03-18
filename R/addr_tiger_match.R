@@ -46,6 +46,8 @@ get_tiger_street_ranges <- function(county, year = "2022") {
 #' @param x an addr vector to match
 #' @param county character string of county identifier
 #' @param year year of tigris product
+#' @param max_dist_street_name maximum OSA distance to consider a match for the addr street_name
+#' @param max_dist_street_type maximum OSA distance to consider a match for the addr street_type
 #' @param street_only_match for addresses that match a TIGER street name, but have street numbers that don't
 #' intersect with ranges of potential street numbers, return `"none"`, `"all"`, or the `"closest"` range geographies
 #' @param summarize optionally summarize matched street ranges as their union or centroid
