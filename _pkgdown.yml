@@ -16,6 +16,7 @@ reference:
   - title: addr vector
     contents:
     - addr
+    - addr_hash
   - title: matching addr
     contents:
     - addr_match
