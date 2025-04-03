@@ -32,7 +32,8 @@ respect to the changing exposures associated with each address.
 }
 \examples{
 impute_date_ranges(c("2024-01-01", "2024-03-17", "2024-09-21"),
-                  start_early = 30, end_late = 60)
+  start_early = 30, end_late = 60
+)
 
 # use within a data.frame with multiple individuals
 tibble::tribble(

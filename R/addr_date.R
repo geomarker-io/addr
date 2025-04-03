@@ -1,4 +1,3 @@
-
 #' Impute date ranges from a chronological sequence of dates
 #'
 #' Imputed date ranges are calculated as the midpoints between the
@@ -18,7 +17,8 @@
 #' @export
 #' @examples
 #' impute_date_ranges(c("2024-01-01", "2024-03-17", "2024-09-21"),
-#'                   start_early = 30, end_late = 60)
+#'   start_early = 30, end_late = 60
+#' )
 #'
 #' # use within a data.frame with multiple individuals
 #' tibble::tribble(
@@ -39,9 +39,12 @@ impute_date_ranges <- function(x, start_early = 0, end_late = 0) {
   x <- as.Date(x)
   start_early <- as.integer(start_early)
   end_late <- as.integer(end_late)
-  if (!identical(x, sort(x))) rlang::abort("date vectors must be ordered chronologically")
-
-  # TODO special case where x is length 1 (or 0??)
+  if (!identical(x, sort(x))) {
+    rlang::abort("date vectors must be ordered chronologically")
+  }
+  if (length(x) == 1) {
+    return(x)
+  }
 
   i_start <- x + ((dplyr::lag(x) - x) / 2)
   i_start[1] <- x[1] - start_early
