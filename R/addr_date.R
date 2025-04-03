@@ -43,7 +43,7 @@ impute_date_ranges <- function(x, start_early = 0, end_late = 0) {
     rlang::abort("date vectors must be ordered chronologically")
   }
   if (length(x) == 1) {
-    return(x)
+    return(list("start" = x - start_early, "end" = x + end_late))
   }
 
   i_start <- x + ((dplyr::lag(x) - x) / 2)

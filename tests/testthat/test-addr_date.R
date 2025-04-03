@@ -17,6 +17,19 @@ test_that("imputing date ranges works", {
         end = as.Date(c("2024-02-08", "2024-06-19", "2024-11-20"))
       )
     )
+
+  impute_date_ranges("2024-06-02") |>
+    expect_equal(list(
+      start = as.Date("2024-06-02"),
+      end = as.Date("2024-06-02")
+    ))
+
+  impute_date_ranges("2024-06-02", start_early = 14, end_late = 22) |>
+    expect_equal(list(
+      start = as.Date("2024-06-02") - 14,
+      end = as.Date("2024-06-02") + 22
+    ))
+
 })
 
 test_that("impute date ranges works with grouped df", {
