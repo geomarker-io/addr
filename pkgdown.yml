@@ -3,7 +3,7 @@ pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   addr: addr.html
-last_built: 2025-03-18T13:27Z
+last_built: 2025-04-02T23:58Z
 urls:
   reference: https://geomarker.io/addr/reference
   article: https://geomarker.io/addr/articles
