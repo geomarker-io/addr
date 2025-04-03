@@ -74,7 +74,7 @@ Because the addresses are possibly located on more than one street range geograp
 addr(c("3333 Burnet Ave Cincinnati OH 45229", "5130 RAPID RUN RD CINCINNATI OHIO 45238")) |>
   addr_match_tiger_street_ranges(county = "39061", summarize = "centroid") |>
   dplyr::bind_rows() |>
-  dplyr::mutate(census_bg_id = s2_join_tiger_bg(s2::as_s2_cell(s2_geography)))
+  dplyr::mutate(census_bg_id = s2_join_tiger_bg(s2::as_s2_cell(s2_geography), year = "2020"))
 ```
 
 The above process is conducted, with default matching arguments, in the function `addr_match_geocode`, which requires a vector of reference s2 cell locations:  **As of now, this process only works with the `cagis_s2` available as below and for matching within Hamilton County, OH (36061) using 2022 TIGER street range files**

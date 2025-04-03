@@ -7,8 +7,9 @@
 #' @returns character vector of matched census block group identifiers
 #' @export
 #' @examples
+#' s2_join_tiger_bg(x = s2::as_s2_cell(c("8841b39a7c46e25f", "8841a45555555555")))
 #' s2_join_tiger_bg(x = s2::as_s2_cell(c("8841b39a7c46e25f", "8841a45555555555")), year = "2023")
-s2_join_tiger_bg <- function(x, year = as.character(2013:2023)) {
+s2_join_tiger_bg <- function(x, year = as.character(2024:2013)) {
   rlang::check_installed("sf", "read TIGER/Line census block group geographies")
   rlang::check_installed("s2", "s2 geometry calculations")
   if (!inherits(x, "s2_cell")) stop("x must be a s2_cell vector", call. = FALSE)
