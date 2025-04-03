@@ -56,24 +56,3 @@ impute_date_ranges <- function(x, start_early = 0, end_late = 0) {
 
   return(out)
 }
-
-
-
-
-## d_geomarker_imputed_dates <-
-##   d_geomarker |>
-##   group_by(PAT_MRN_ID) |>
-##   filter(n() > 1) |>
-##   arrange(EFF_START_DATE, .by_group = TRUE) |>
-##   ungroup() |>
-##   mutate(
-##     imputed_start = c(
-##       min(EFF_START_DATE) - start_early,
-##       (EFF_START_DATE + (lag(EFF_START_DATE) - EFF_START_DATE) / 2)[-1]
-##     ),
-##     imputed_end = c(
-##       lead(imputed_start)[-n()],
-##       max(EFF_START_DATE) + end_late
-##     ),
-##     .by = "PAT_MRN_ID"
-##   )
