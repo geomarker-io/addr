@@ -18,7 +18,8 @@ Suggests:
     tidyr,
     knitr,
     rmarkdown,
-    digest
+    digest,
+    withr
 Imports: 
     purrr,
     cli,
