@@ -17,6 +17,8 @@ See \code{inst/make_cagis_addr.R} for source code to create data, including filt
 cell towers (\code{CTW}), vacant or commercial lots (\code{LOT}), and other miscellaneous non-residential addresses (\code{MIS}, \code{RR}, \code{TBA})
 \item s2 cell is derived from LONGITUDE and LATITUDE fields in CAGIS address database
 }
+
+This export is not the latest version of CAGIS address data, but that can be installed with \code{codec::cincy_addr_geo()}
 }
 \description{
 CAGIS Addresses (Q4 2024)

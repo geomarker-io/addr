@@ -7,8 +7,10 @@
 #' @returns character vector of matched census block group identifiers
 #' @export
 #' @examples
+#' options(timeout = 360) # TIGER FTP can be slow
+#' s2_join_tiger_bg(x = s2::as_s2_cell(c("8841b39a7c46e25f", "8841a45555555555")))
 #' s2_join_tiger_bg(x = s2::as_s2_cell(c("8841b39a7c46e25f", "8841a45555555555")), year = "2023")
-s2_join_tiger_bg <- function(x, year = as.character(2013:2023)) {
+s2_join_tiger_bg <- function(x, year = as.character(2024:2013)) {
   rlang::check_installed("sf", "read TIGER/Line census block group geographies")
   rlang::check_installed("s2", "s2 geometry calculations")
   if (!inherits(x, "s2_cell")) stop("x must be a s2_cell vector", call. = FALSE)
@@ -37,8 +39,11 @@ s2_join_tiger_bg <- function(x, year = as.character(2013:2023)) {
 #' @param state census FIPS state identifier
 #' @param year vintage of TIGER/Line block group geography files
 #' @returns a tibble with `GEOID` and `s2_geography` columns
+#' @details Files are downloaded using `utils::download.file()`, so use `options()`
+#' to change the download method or timeout
 #' @export
 #' @examples
+#' options(timeout = 360) # TIGER FTP can be slow
 #' get_tiger_block_groups(state = "39", year = "2022")
 get_tiger_block_groups <- function(state, year) {
   dest <- file.path(tools::R_user_dir("addr", "cache"), glue::glue("tl_{year}_{state}_bg.zip"))
@@ -63,10 +68,14 @@ get_tiger_block_groups <- function(state, year) {
 
 #' get s2_geography for census states
 #' @param year vintage of TIGER/Line block group geography files
+#' @details Files are downloaded using `utils::download.file()`, so use `options()`
+#' to change the download method or timeout
 #' @export
 #' @returns a tibble with `GEOID` and `s2_geography` columns
 #' @examples
+#' options(timeout = 360) # TIGER FTP can be slow
 #' tiger_states(year = "2022")
+#' tiger_states(year = "2020")
 tiger_states <- function(year) {
   dest <- file.path(tools::R_user_dir("addr", "cache"), glue::glue("tl_{year}_us_state.zip"))
   dir.create(dirname(dest), showWarnings = FALSE)
