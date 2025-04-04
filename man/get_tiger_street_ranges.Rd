@@ -18,6 +18,10 @@ a list of tibbles, one for each street name, with \code{TLID}, \code{s2_geograph
 Downloaded files are cached in \code{tools::R_user_dir("addr", "cache")}.
 Street ranges with missing minimum or maximum address numbers are excluded.
 }
+\details{
+Files are downloaded using \code{utils::download.file()}, so use \code{options()}
+to change the download method or timeout
+}
 \examples{
 options(timeout = 360) # TIGER FTP can be slow
 Sys.setenv("R_USER_CACHE_DIR" = tempfile())

@@ -17,6 +17,10 @@ a tibble with \code{GEOID} and \code{s2_geography} columns
 \description{
 get s2_geography for census block groups
 }
+\details{
+Files are downloaded using \code{utils::download.file()}, so use \code{options()}
+to change the download method or timeout
+}
 \examples{
 options(timeout = 360) # TIGER FTP can be slow
 get_tiger_block_groups(state = "39", year = "2022")

@@ -39,6 +39,8 @@ s2_join_tiger_bg <- function(x, year = as.character(2024:2013)) {
 #' @param state census FIPS state identifier
 #' @param year vintage of TIGER/Line block group geography files
 #' @returns a tibble with `GEOID` and `s2_geography` columns
+#' @details Files are downloaded using `utils::download.file()`, so use `options()`
+#' to change the download method or timeout
 #' @export
 #' @examples
 #' options(timeout = 360) # TIGER FTP can be slow
@@ -66,6 +68,8 @@ get_tiger_block_groups <- function(state, year) {
 
 #' get s2_geography for census states
 #' @param year vintage of TIGER/Line block group geography files
+#' @details Files are downloaded using `utils::download.file()`, so use `options()`
+#' to change the download method or timeout
 #' @export
 #' @returns a tibble with `GEOID` and `s2_geography` columns
 #' @examples

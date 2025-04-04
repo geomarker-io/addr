@@ -2,6 +2,8 @@
 #'
 #' Downloaded files are cached in `tools::R_user_dir("addr", "cache")`.
 #' Street ranges with missing minimum or maximum address numbers are excluded.
+#' @details Files are downloaded using `utils::download.file()`, so use `options()`
+#' to change the download method or timeout
 #' @param county character string of county identifier
 #' @param year year of tigris product
 #' @returns a list of tibbles, one for each street name, with `TLID`, `s2_geography`, `from`, and `to` columns
