@@ -9,6 +9,8 @@
 #' - omit addresses with `ADDRTYPE`s that are milemarkers (`MM`), parks (`PAR`), infrastructure projects (`PRJ`),
 #'   cell towers (`CTW`), vacant or commercial lots (`LOT`), and other miscellaneous non-residential addresses (`MIS`, `RR`, `TBA`)
 #' - s2 cell is derived from LONGITUDE and LATITUDE fields in CAGIS address database
+#'
+#' This export is not the latest version of CAGIS address data, but that can be installed with `codec::cincy_addr_geo()`
 #' @export
 #' @examples
 #' cagis_addr()
