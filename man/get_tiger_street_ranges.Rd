@@ -19,6 +19,7 @@ Downloaded files are cached in \code{tools::R_user_dir("addr", "cache")}.
 Street ranges with missing minimum or maximum address numbers are excluded.
 }
 \examples{
+options(timeout = 360) # TIGER FTP can be slow
 Sys.setenv("R_USER_CACHE_DIR" = tempfile())
 get_tiger_street_ranges("39061")[1001:1004]
 }

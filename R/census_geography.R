@@ -71,6 +71,7 @@ get_tiger_block_groups <- function(state, year) {
 #' @examples
 #' options(timeout = 360) # TIGER FTP can be slow
 #' tiger_states(year = "2022")
+#' tiger_states(year = "2020")
 tiger_states <- function(year) {
   dest <- file.path(tools::R_user_dir("addr", "cache"), glue::glue("tl_{year}_us_state.zip"))
   dir.create(dirname(dest), showWarnings = FALSE)
