@@ -73,9 +73,6 @@ tiger_states <- function(year) {
 #' files are saved to the R user cache directory;
 #' see `?tools::R_user_dir()` to change this
 #' @param x filename relative to https://www2.census.gove/geo/tiger/
-#' @examples
-#' Sys.setenv("R_USER_CACHE_DIR" = tempdir())
-#' tiger_download("TIGER2022/ADDRFEAT/tl_2022_39061_addrfeat.zip")
 tiger_download <- function(x) {
   tiger_url <- paste0("https://www2.census.gov/geo/tiger/", x)
   dest <- file.path(tools::R_user_dir("addr", "cache"), x)

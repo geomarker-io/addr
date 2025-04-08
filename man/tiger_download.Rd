@@ -16,7 +16,3 @@ download tiger files
 files are saved to the R user cache directory;
 see \code{?tools::R_user_dir()} to change this
 }
-\examples{
-Sys.setenv("R_USER_CACHE_DIR" = tempdir())
-tiger_download("TIGER2022/ADDRFEAT/tl_2022_39061_addrfeat.zip")
-}
