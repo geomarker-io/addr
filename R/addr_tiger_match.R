@@ -14,12 +14,7 @@
 #' get_tiger_street_ranges("39061")[1001:1004]
 get_tiger_street_ranges <- function(county, year = "2022") {
   stopifnot(year == "2022")
-  dl_url <- glue::glue("https://www2.census.gov/geo/tiger/TIGER2022/ADDRFEAT/tl_2022_{county}_addrfeat.zip")
-  dest_path <- fs::path(tools::R_user_dir("addr", "cache"), glue::glue("tl_2022_{county}_addrfeat.zip"))
-  fs::dir_create(fs::path_dir(dest_path))
-  if (!fs::file_exists(dest_path)) {
-    utils::download.file(dl_url, dest_path)
-  }
+  dest_path <- tiger_download(glue::glue("TIGER2022/ADDRFEAT/tl_2022_{county}_addrfeat.zip"))
   sf::st_read(
     dsn = paste0("/vsizip/", dest_path),
     query = "SELECT TLID, FULLNAME, LFROMHN, LTOHN, RFROMHN, RTOHN FROM tl_2022_39061_addrfeat",

@@ -15,12 +15,3 @@ a tibble with \code{GEOID} and \code{s2_geography} columns
 \description{
 get s2_geography for census states
 }
-\details{
-Files are downloaded using \code{utils::download.file()}, so use \code{options()}
-to change the download method or timeout
-}
-\examples{
-options(timeout = 360) # TIGER FTP can be slow
-tiger_states(year = "2022")
-tiger_states(year = "2020")
-}

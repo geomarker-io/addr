@@ -7,7 +7,6 @@
 #' @returns character vector of matched census block group identifiers
 #' @export
 #' @examples
-#' options(timeout = 360) # TIGER FTP can be slow
 #' s2_join_tiger_bg(x = s2::as_s2_cell(c("8841b39a7c46e25f", "8841a45555555555")))
 #' s2_join_tiger_bg(x = s2::as_s2_cell(c("8841b39a7c46e25f", "8841a45555555555")), year = "2023")
 s2_join_tiger_bg <- function(x, year = as.character(2024:2013)) {
@@ -23,7 +22,7 @@ s2_join_tiger_bg <- function(x, year = as.character(2024:2013)) {
   states <- tiger_states(year)
   the_states <- states[s2::s2_closest_feature(x_s2_geo, states$s2_geography), "GEOID", drop = TRUE]
   state_bgs <-
-    lapply(unique(the_states), get_tiger_block_groups, year = year) |>
+    lapply(unique(the_states), tiger_block_groups, year = year) |>
     stats::setNames(unique(the_states))
   the_s2s <- split(x_s2_geo, the_states)
   out <-
@@ -39,21 +38,8 @@ s2_join_tiger_bg <- function(x, year = as.character(2024:2013)) {
 #' @param state census FIPS state identifier
 #' @param year vintage of TIGER/Line block group geography files
 #' @returns a tibble with `GEOID` and `s2_geography` columns
-#' @details Files are downloaded using `utils::download.file()`, so use `options()`
-#' to change the download method or timeout
-#' @export
-#' @examples
-#' options(timeout = 360) # TIGER FTP can be slow
-#' get_tiger_block_groups(state = "39", year = "2022")
-get_tiger_block_groups <- function(state, year) {
-  dest <- file.path(tools::R_user_dir("addr", "cache"), glue::glue("tl_{year}_{state}_bg.zip"))
-  dir.create(dirname(dest), showWarnings = FALSE)
-  if (!file.exists(dest)) {
-    utils::download.file(
-      url = glue::glue("https://www2.census.gov/geo/tiger/TIGER{year}/BG/tl_{year}_{state}_bg.zip"),
-      destfile = dest
-    )
-  }
+tiger_block_groups <- function(state, year) {
+  dest <- tiger_download(glue::glue("TIGER{year}/BG/tl_{year}_{state}_bg.zip"))
   out <-
     sf::st_read(
       paste0("/vsizip/", dest),
@@ -68,23 +54,9 @@ get_tiger_block_groups <- function(state, year) {
 
 #' get s2_geography for census states
 #' @param year vintage of TIGER/Line block group geography files
-#' @details Files are downloaded using `utils::download.file()`, so use `options()`
-#' to change the download method or timeout
-#' @export
 #' @returns a tibble with `GEOID` and `s2_geography` columns
-#' @examples
-#' options(timeout = 360) # TIGER FTP can be slow
-#' tiger_states(year = "2022")
-#' tiger_states(year = "2020")
 tiger_states <- function(year) {
-  dest <- file.path(tools::R_user_dir("addr", "cache"), glue::glue("tl_{year}_us_state.zip"))
-  dir.create(dirname(dest), showWarnings = FALSE)
-  if (!file.exists(dest)) {
-    utils::download.file(
-      url = glue::glue("https://www2.census.gov/geo/tiger/TIGER{year}/STATE/tl_{year}_us_state.zip"),
-      destfile = dest
-    )
-  }
+  dest <- tiger_download(glue::glue("TIGER{year}/STATE/tl_{year}_us_state.zip"))
   out <-
     sf::st_read(
       paste0("/vsizip/", dest),
@@ -95,4 +67,34 @@ tiger_states <- function(year) {
   out$s2_geography <- s2::as_s2_geography(out$geometry)
   out <- sf::st_drop_geometry(out)
   return(out)
+}
+
+#' download tiger files
+#' files are saved to the R user cache directory;
+#' see `?tools::R_user_dir()` to change this
+#' @param x filename relative to https://www2.census.gove/geo/tiger/
+#' @examples
+#' Sys.setenv("R_USER_CACHE_DIR" = tempdir())
+#' tiger_download("TIGER2022/ADDRFEAT/tl_2022_39061_addrfeat.zip")
+tiger_download <- function(x) {
+  tiger_url <- paste0("https://www2.census.gov/geo/tiger/", x)
+  dest <- file.path(tools::R_user_dir("addr", "cache"), x)
+  dir.create(dirname(dest), showWarnings = FALSE, recursive = TRUE)
+
+  if (!file.exists(dest)) {
+    message("downloading ", tiger_url)
+    message("to ", dest)
+    system2(
+      "curl",
+      c(
+        "-L",
+        tiger_url,
+        "-H 'Host: www2.census.gov'",
+        "-H 'User-Agent: addr package for R (https://geomarker.io/addr)'",
+        "-H 'Sec-GPC: 1'",
+        paste("-o", dest)
+      )
+    )
+  }
+  return(dest)
 }

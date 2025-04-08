@@ -13,6 +13,7 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 options(timeout = 360)
+Sys.setenv("R_USER_CACHE_DIR" = tempfile())
 ```
 
 ## addr vectors in R
