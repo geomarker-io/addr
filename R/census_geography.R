@@ -8,7 +8,6 @@
 #' @export
 #' @examples
 #' s2_join_tiger_bg(x = s2::as_s2_cell(c("8841b39a7c46e25f", "8841a45555555555")))
-#' s2_join_tiger_bg(x = s2::as_s2_cell(c("8841b39a7c46e25f", "8841a45555555555")), year = "2023")
 s2_join_tiger_bg <- function(x, year = as.character(2024:2013)) {
   rlang::check_installed("sf", "read TIGER/Line census block group geographies")
   rlang::check_installed("s2", "s2 geometry calculations")
@@ -38,6 +37,7 @@ s2_join_tiger_bg <- function(x, year = as.character(2024:2013)) {
 #' @param state census FIPS state identifier
 #' @param year vintage of TIGER/Line block group geography files
 #' @returns a tibble with `GEOID` and `s2_geography` columns
+#' @keywords internal
 tiger_block_groups <- function(state, year) {
   dest <- tiger_download(glue::glue("TIGER{year}/BG/tl_{year}_{state}_bg.zip"))
   out <-
@@ -55,6 +55,7 @@ tiger_block_groups <- function(state, year) {
 #' get s2_geography for census states
 #' @param year vintage of TIGER/Line block group geography files
 #' @returns a tibble with `GEOID` and `s2_geography` columns
+#' @keywords internal
 tiger_states <- function(year) {
   dest <- tiger_download(glue::glue("TIGER{year}/STATE/tl_{year}_us_state.zip"))
   out <-
@@ -73,6 +74,7 @@ tiger_states <- function(year) {
 #' files are saved to the R user cache directory;
 #' see `?tools::R_user_dir()` to change this
 #' @param x filename relative to https://www2.census.gov/geo/tiger/
+#' @keywords internal
 tiger_download <- function(x) {
   tiger_url <- paste0("https://www2.census.gov/geo/tiger/", x)
   dest <- file.path(tools::R_user_dir("addr", "cache"), x)

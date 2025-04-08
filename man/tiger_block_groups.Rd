@@ -17,3 +17,4 @@ a tibble with \code{GEOID} and \code{s2_geography} columns
 \description{
 get s2_geography for census block groups
 }
+\keyword{internal}

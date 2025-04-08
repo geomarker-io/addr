@@ -17,7 +17,4 @@ a list of tibbles, one for each street name, with \code{TLID}, \code{s2_geograph
 \description{
 Street ranges with missing minimum or maximum address numbers are excluded.
 }
-\examples{
-Sys.setenv("R_USER_CACHE_DIR" = tempfile())
-get_tiger_street_ranges("39061")[1001:1004]
-}
+\keyword{internal}

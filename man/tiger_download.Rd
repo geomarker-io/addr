@@ -9,10 +9,11 @@ see \code{?tools::R_user_dir()} to change this}
 tiger_download(x)
 }
 \arguments{
-\item{x}{filename relative to https://www2.census.gove/geo/tiger/}
+\item{x}{filename relative to https://www2.census.gov/geo/tiger/}
 }
 \description{
 download tiger files
 files are saved to the R user cache directory;
 see \code{?tools::R_user_dir()} to change this
 }
+\keyword{internal}
