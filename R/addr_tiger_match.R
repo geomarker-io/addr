@@ -1,15 +1,11 @@
 #' Get tigris street range geography files from census.gov
 #'
-#' Downloaded files are cached in `tools::R_user_dir("addr", "cache")`.
 #' Street ranges with missing minimum or maximum address numbers are excluded.
-#' @details Files are downloaded using `utils::download.file()`, so use `options()`
-#' to change the download method or timeout
 #' @param county character string of county identifier
 #' @param year year of tigris product
 #' @returns a list of tibbles, one for each street name, with `TLID`, `s2_geography`, `from`, and `to` columns
 #' @export
 #' @examples
-#' options(timeout = 360) # TIGER FTP can be slow
 #' Sys.setenv("R_USER_CACHE_DIR" = tempfile())
 #' get_tiger_street_ranges("39061")[1001:1004]
 get_tiger_street_ranges <- function(county, year = "2022") {
@@ -58,7 +54,6 @@ get_tiger_street_ranges <- function(county, year = "2022") {
 #' To best parse street names and types, this function appends dummy address components just
 #' for the purposes of matching tiger street range names (e.g., `1234 {tiger_street_name} Anytown AB 00000`)
 #' @examples
-#' options(timeout = 360) # TIGER FTP can be slow
 #' my_addr <- as_addr(c("224 Woolper Ave", "3333 Burnet Ave", "33333 Burnet Ave", "609 Walnut St"))
 #'
 #' addr_match_tiger_street_ranges(my_addr, county = "39061", street_only_match = "all")

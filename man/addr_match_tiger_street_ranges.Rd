@@ -44,7 +44,6 @@ To best parse street names and types, this function appends dummy address compon
 for the purposes of matching tiger street range names (e.g., \verb{1234 \{tiger_street_name\} Anytown AB 00000})
 }
 \examples{
-options(timeout = 360) # TIGER FTP can be slow
 my_addr <- as_addr(c("224 Woolper Ave", "3333 Burnet Ave", "33333 Burnet Ave", "609 Walnut St"))
 
 addr_match_tiger_street_ranges(my_addr, county = "39061", street_only_match = "all")
