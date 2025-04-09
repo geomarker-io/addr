@@ -6,7 +6,6 @@ test_that("can download files from tiger", {
   ##   -H "Sec-GPC: 1" \
   ##   -o tl_2022_39061_addrfeat.zip
 
-  skip_if(testthat:::on_ci() && Sys.info()[["sysname"]] == "Linux", "Skipping test on CI on Linux")
   withr::local_envvar(list("R_USER_CACHE_DIR" = tempdir()))
   dl_file <- tiger_download("TIGER2022/ADDRFEAT/tl_2022_39061_addrfeat.zip")
 

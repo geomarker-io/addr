@@ -1,5 +1,4 @@
 test_that("addr_match_tiger_street_ranges() works", {
-  skip_if(testthat:::on_ci() && Sys.info()[["sysname"]] == "Linux", "Skipping test on CI on Linux")
   withr::local_envvar(list("R_USER_CACHE_DIR" = tempdir()))
   addr_match_tiger_street_ranges(as_addr(c("224 Woolper Ave", "3333 Burnet Ave", "33333 Burnet Ave", "609 Walnut St", "609 Weknut Street")),
     street_only_match = "none"
