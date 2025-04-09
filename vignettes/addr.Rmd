@@ -62,12 +62,3 @@ addr(c("3333 Burnet Ave Cincinnati OH 45229", "5130 RAPID RUN RD CINCINNATI OHIO
   tibble::enframe(name = "input_addr", value = "ca") |>
   dplyr::left_join(cagis_addr(), by = c("ca" = "cagis_addr"))
 ```
-
-## addr matching to TIGER street ranges
-
-If exact matching fails, match to TIGER street range files from the US census for a specific county:
-
-```{r}
-addr(c("3333 Burnet Ave Cincinnati OH 45229", "5130 RAPID RUN RD CINCINNATI OHIO 45238")) |>
-  addr_match_tiger_street_ranges(county = "39061", year = "2022", summarize = "centroid")
-```

@@ -20,5 +20,4 @@ the US Census \href{https://www.census.gov/geographies/mapping-files/time-series
 }
 \examples{
 s2_join_tiger_bg(x = s2::as_s2_cell(c("8841b39a7c46e25f", "8841a45555555555")))
-s2_join_tiger_bg(x = s2::as_s2_cell(c("8841b39a7c46e25f", "8841a45555555555")), year = "2023")
 }
