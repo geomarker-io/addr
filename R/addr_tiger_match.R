@@ -39,7 +39,7 @@ addr_match_tiger_street_ranges <- function(x,
   street_only_match <- rlang::arg_match(street_only_match)
   summarize <- rlang::arg_match(summarize)
   ia <- unique(x)
-  d_tiger <- get_tiger_street_ranges(county = county, year = year)
+  d_tiger <- tiger_street_ranges(county = county, year = year)
   tiger_addr <- as_addr(glue::glue("1234 {names(d_tiger)} Anytown AB 00000"))
   names(d_tiger) <- as.character(tiger_addr)
 
@@ -91,41 +91,6 @@ addr_match_tiger_street_ranges <- function(x,
     out <- purrr::map(out, \(.) summarize_street_range_tibble(., method = summarize), .progress = "summarizing street ranges")
   }
   return(out)
-}
-
-#' Get tigris street range geography files from census.gov
-#'
-#' Street ranges with missing minimum or maximum address numbers are excluded.
-#' @param county character string of county identifier
-#' @param year year of tigris product
-#' @returns a list of tibbles, one for each street name, with `TLID`, `s2_geography`, `from`, and `to` columns
-#' @keywords internal
-get_tiger_street_ranges <- function(county, year = "2022") {
-  stopifnot(year == "2022")
-  dest_path <- tiger_download(glue::glue("TIGER2022/ADDRFEAT/tl_2022_{county}_addrfeat.zip"))
-  sf::st_read(
-    dsn = paste0("/vsizip/", dest_path),
-    query = "SELECT TLID, FULLNAME, LFROMHN, LTOHN, RFROMHN, RTOHN FROM tl_2022_39061_addrfeat",
-    quiet = TRUE, stringsAsFactors = FALSE, as_tibble = TRUE
-  ) |>
-    dplyr::mutate(
-      dplyr::across(dplyr::ends_with("HN"), as.numeric),
-      TLID = as.character(TLID),
-      s2_geography = s2::as_s2_geography(geometry)
-    ) |>
-    sf::st_drop_geometry() |>
-    dplyr::rowwise() |>
-    dplyr::mutate(
-      from = min(LFROMHN, LTOHN, RFROMHN, RTOHN, na.rm = TRUE),
-      to = max(LFROMHN, LTOHN, RFROMHN, RTOHN, na.rm = TRUE),
-      .keep = "unused"
-    ) |>
-    dplyr::filter(from < Inf & to > -Inf) |>
-    suppressWarnings() |>
-    dplyr::ungroup() |>
-    dplyr::nest_by(FULLNAME, .key = "data") |>
-    dplyr::ungroup() |>
-    tibble::deframe()
 }
 
 summarize_street_range_tibble <- function(x, method = c("union", "centroid")) {
