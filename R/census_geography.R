@@ -4,6 +4,9 @@
 #' the US Census [TIGER/Line shapefiles](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html)
 #' @param x s2_cell vector
 #' @param year vintage of TIGER/Line block group geography files
+#' @details TIGER geography files are saved to the R user cache directory for the addr package. This allows
+#' R sessions to reuse previously downloaded files. See `?tools::R_user_dir()` to change where TIGER geography
+#' files are saved.
 #' @returns character vector of matched census block group identifiers
 #' @export
 #' @examples

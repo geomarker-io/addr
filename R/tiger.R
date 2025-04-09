@@ -1,7 +1,5 @@
 #' download tiger files
-#' files are saved to the R user cache directory;
-#' see `?tools::R_user_dir()` to change this
-#' @param x filename relative to https://www2.census.gov/geo/tiger/
+#' @param x filename relative to ftp://ftp2.census.gov/geo/tiger/
 #' @keywords internal
 tiger_download <- function(x) {
   tiger_url <- paste0("ftp://ftp2.census.gov/geo/tiger/", x)

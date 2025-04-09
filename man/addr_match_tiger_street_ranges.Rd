@@ -41,7 +41,11 @@ Match an addr vector to TIGER street ranges
 }
 \details{
 To best parse street names and types, this function appends dummy address components just
-for the purposes of matching tiger street range names (e.g., \verb{1234 \{tiger_street_name\} Anytown AB 00000})
+for the purposes of matching tiger street range names (e.g., \verb{1234 \{tiger_street_name\} Anytown AB 00000}).
+
+TIGER street range files are saved to the R user cache directory for the addr package. This allows
+R sessions to reuse previously downloaded files. See \code{?tools::R_user_dir()} to change where TIGER street range
+files are saved.
 }
 \examples{
 my_addr <- as_addr(c("224 Woolper Ave", "3333 Burnet Ave", "33333 Burnet Ave", "609 Walnut St"))

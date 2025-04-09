@@ -2,18 +2,14 @@
 % Please edit documentation in R/tiger.R
 \name{tiger_download}
 \alias{tiger_download}
-\title{download tiger files
-files are saved to the R user cache directory;
-see \code{?tools::R_user_dir()} to change this}
+\title{download tiger files}
 \usage{
 tiger_download(x)
 }
 \arguments{
-\item{x}{filename relative to https://www2.census.gov/geo/tiger/}
+\item{x}{filename relative to ftp://ftp2.census.gov/geo/tiger/}
 }
 \description{
 download tiger files
-files are saved to the R user cache directory;
-see \code{?tools::R_user_dir()} to change this
 }
 \keyword{internal}
