@@ -15,6 +15,8 @@ test_that("can download files from tiger", {
 })
 
 test_that("get_tiger_street_ranges() works", {
+  skip_if(testthat:::on_ci() && Sys.info()[["sysname"]] == "Linux", "Skipping test on CI on Linux")
+  withr::local_envvar(list("R_USER_CACHE_DIR" = tempdir()))
   d <- get_tiger_street_ranges(county = "39061", year = "2022")
   expect_identical(length(d), 9267L)
   expect_identical(names(d[[1]]), c("TLID", "s2_geography", "from", "to"))
@@ -25,6 +27,8 @@ test_that("get_tiger_street_ranges() works", {
 })
 
 test_that("addr_match_tiger_street_ranges() works", {
+  skip_if(testthat:::on_ci() && Sys.info()[["sysname"]] == "Linux", "Skipping test on CI on Linux")
+  withr::local_envvar(list("R_USER_CACHE_DIR" = tempdir()))
   addr_match_tiger_street_ranges(as_addr(c("224 Woolper Ave", "3333 Burnet Ave", "33333 Burnet Ave", "609 Walnut St", "609 Weknut Street")),
     street_only_match = "none"
   ) |>
