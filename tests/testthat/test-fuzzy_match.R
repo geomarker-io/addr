@@ -79,15 +79,4 @@ test_that("fuzzy_match_addr_field works", {
   ) |>
     expect_identical(c(1L, 1L, 1L, NA))
 
-  # TODO ..... y????
-  d_tiger <- get_tiger_street_ranges(county = "39061", year = "2022")
-  d_tiger_addr <- as_addr(glue::glue("1234 {names(d_tiger)} Anytown AB 00000"))
-
-  as_addr(c("224 Woolper Ave", "3333 Burnet Ave", "33333 Burnet Ave", "609 Walnut St", "609 Weknut Street")) |>
-    fuzzy_match_addr_field(d_tiger_addr, addr_field = "street_name")
-
-  as_addr(c("224 Woolper Ave", "3333 Burnet Ave", "33333 Burnet Ave", "609 Walnut St", "609 Weknut Street")) |>
-    fuzzy_match_addr_field(as_addr(c("alameda st", "adams street", "woolper avenue")), addr_field = "street_name")
-    
-
 })

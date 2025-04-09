@@ -4,7 +4,7 @@
 \alias{s2_join_tiger_bg}
 \title{Tiger Block Groups}
 \usage{
-s2_join_tiger_bg(x, year = as.character(2013:2023))
+s2_join_tiger_bg(x, year = as.character(2024:2013))
 }
 \arguments{
 \item{x}{s2_cell vector}
@@ -18,6 +18,11 @@ character vector of matched census block group identifiers
 Get the identifier of the closest census block group based on the intersection of the s2 cell locations with the
 the US Census \href{https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html}{TIGER/Line shapefiles}
 }
+\details{
+TIGER geography files are saved to the R user cache directory for the addr package. This allows
+R sessions to reuse previously downloaded files. See \code{?tools::R_user_dir()} to change where TIGER geography
+files are saved.
+}
 \examples{
-s2_join_tiger_bg(x = s2::as_s2_cell(c("8841b39a7c46e25f", "8841a45555555555")), year = "2023")
+s2_join_tiger_bg(x = s2::as_s2_cell(c("8841b39a7c46e25f", "8841a45555555555")))
 }

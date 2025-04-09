@@ -17,6 +17,7 @@ reference:
     contents:
     - addr
     - addr_hash
+    - impute_date_ranges
   - title: matching addr
     contents:
     - addr_match
@@ -33,11 +34,6 @@ reference:
     - expand_post_type
     - addr_tag
     - usaddress_tag
-  - title: get census geography data
-    contents:
-    - get_tiger_block_groups
-    - get_tiger_street_ranges
-    - tiger_states
   - title: example address data
     contents:
     - cagis_addr

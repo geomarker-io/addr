@@ -1,5 +1,4 @@
 test_that("addr_match_geocode() works", {
-  skip_if(testthat:::on_ci() && Sys.info()[["sysname"]] == "Linux", "Skipping test on CI on Linux")
   cagis_s2 <-
     cagis_addr()$cagis_addr_data |>
     purrr::modify_if(\(.) length(.) > 0 && nrow(.) > 1, dplyr::slice_sample, n = 1) |>

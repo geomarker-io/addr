@@ -12,6 +12,8 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+options(timeout = 360)
+Sys.setenv("R_USER_CACHE_DIR" = tempfile())
 ```
 
 ## addr vectors in R
@@ -59,37 +61,4 @@ addr(c("3333 Burnet Ave Cincinnati OH 45229", "5130 RAPID RUN RD CINCINNATI OHIO
   addr_match(cagis_addr()$cagis_addr, simplify = TRUE) |>
   tibble::enframe(name = "input_addr", value = "ca") |>
   dplyr::left_join(cagis_addr(), by = c("ca" = "cagis_addr"))
-```
-
-If exact matching fails, use matching to TIGER street range files from the US census:
-
-```{r}
-addr(c("3333 Burnet Ave Cincinnati OH 45229", "5130 RAPID RUN RD CINCINNATI OHIO 45238")) |>
-  addr_match_tiger_street_ranges()
-```
-
-Because the addresses are possibly located on more than one street range geography, use the `summarize` argument to return the centroid of each set of matched street ranges and then add TIGER/Line census block group identifers via geospatial intersection:
-
-```{r}
-addr(c("3333 Burnet Ave Cincinnati OH 45229", "5130 RAPID RUN RD CINCINNATI OHIO 45238")) |>
-  addr_match_tiger_street_ranges(county = "39061", summarize = "centroid") |>
-  dplyr::bind_rows() |>
-  dplyr::mutate(census_bg_id = s2_join_tiger_bg(s2::as_s2_cell(s2_geography)))
-```
-
-The above process is conducted, with default matching arguments, in the function `addr_match_geocode`, which requires a vector of reference s2 cell locations:  **As of now, this process only works with the `cagis_s2` available as below and for matching within Hamilton County, OH (36061) using 2022 TIGER street range files**
-
-```{r}
-
-# select one s2 cell at random from addresses with more than one parcel identifier and coordinates
-cagis_s2 <-
-   cagis_addr()$cagis_addr_data |>
-   purrr::modify_if(\(.) length(.) > 0 && nrow(.) > 1, dplyr::slice_sample, n = 1) |>
-   purrr::map_vec(purrr::pluck, "cagis_s2", .default = NA, .ptype = s2::s2_cell())
-   
-addr_match_geocode(x = voter_addresses()[1040:1100], 
-                   ref_addr = cagis_addr()$cagis_addr,
-				   ref_s2 = cagis_s2,
-				   county = "39061",
-				   year = "2022")
 ```
