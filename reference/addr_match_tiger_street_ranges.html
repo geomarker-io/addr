@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -93,7 +93,10 @@ there was no range containing the street number</p>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>To best parse street names and types, this function appends dummy address components just
-for the purposes of matching tiger street range names (e.g., <code>1234 {tiger_street_name} Anytown AB 00000</code>)</p>
+for the purposes of matching tiger street range names (e.g., <code>1234 {tiger_street_name} Anytown AB 00000</code>).</p>
+<p>TIGER street range files are saved to the R user cache directory for the addr package. This allows
+R sessions to reuse previously downloaded files. See <code>?tools::R_user_dir()</code> to change where TIGER street range
+files are saved.</p>
     </div>
 
     <div class="section level2">
