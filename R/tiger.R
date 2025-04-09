@@ -7,24 +7,11 @@ tiger_download <- function(x) {
   dir.create(dirname(dest), showWarnings = FALSE, recursive = TRUE)
 
   if (!file.exists(dest)) {
-    utils::download.file(tiger_url, dest)
+    tf <- tempfile()
+    utils::download.file(tiger_url, tf)
+    file.copy(tf, dest)
   }
 
-  ## if (!file.exists(dest)) {
-  ##   message("downloading ", tiger_url)
-  ##   message("to ", dest)
-  ##   system2(
-  ##     "curl",
-  ##     c(
-  ##       "-L",
-  ##       tiger_url,
-  ##       "-H 'Host: www2.census.gov'",
-  ##       "-H 'User-Agent: addr package for R (https://geomarker.io/addr)'",
-  ##       "-H 'Sec-GPC: 1'",
-  ##       paste("-o", dest)
-  ##     )
-  ##   )
-  ##
   return(dest)
 }
 
