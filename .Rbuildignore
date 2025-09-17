@@ -7,3 +7,5 @@
 ^docs$
 ^pkgdown$
 ^inst\.csv$
+^NAD_r19.gdb
+^NAD_r19.zip

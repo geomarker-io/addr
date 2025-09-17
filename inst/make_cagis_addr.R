@@ -1,6 +1,9 @@
 devtools::load_all()
 library(dplyr, warn.conflicts = FALSE)
-options(timeout = max(2500, getOption("timeout")), download.file.method = "libcurl")
+options(
+  timeout = max(2500, getOption("timeout")),
+  download.file.method = "libcurl"
+)
 
 install_cagis_data <- function(cagis_data_url) {
   cagis_gdb_name <- tools::file_path_sans_ext(basename(cagis_data_url))
@@ -20,13 +23,17 @@ install_cagis_data <- function(cagis_data_url) {
 #   cell towers (`CTW`), vacant or commercial lots (`LOT`), and other miscellaneous non-residential addresses (`MIS`, `RR`, `TBA`)
 # - s2 cell derived from LONGITUDE and LATITUDE fields in CAGIS address database
 cagis_addr <-
-  install_cagis_data("https://www.cagis.org/Opendata/Quarterly_GIS_DATA/CAGISOpenDataQ4_2024.gdb.zip") |>
+  install_cagis_data(
+    "https://www.cagis.org/Opendata/Quarterly_GIS_DATA/CAGISOpenDataQ4_2024.gdb.zip"
+  ) |>
   sf::st_read(layer = "Addresses") |>
   sf::st_drop_geometry() |>
   tibble::as_tibble() |>
   filter(STATUS %in% c("ASSIGNED", "USING")) |>
   filter(ORPHANFLG == "N") |>
-  filter(!ADDRTYPE %in% c("MM", "PAR", "PRJ", "CTW", "LOT", "MIS", "RR", "TBA")) |>
+  filter(
+    !ADDRTYPE %in% c("MM", "PAR", "PRJ", "CTW", "LOT", "MIS", "RR", "TBA")
+  ) |>
   transmute(
     cagis_address = FULLMAILADR,
     cagis_addr = addr(cagis_address),

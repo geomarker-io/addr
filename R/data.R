@@ -1,3 +1,22 @@
+#' National Address Database for Hamilton County, OH
+#'
+#' The U.S. Department of Transportation partners with address programs from state,
+#' local, and tribal governments to compile their authoritative data into a database.
+#' Find more information here: https://www.transportation.gov/gis/national-address-database
+#' @return Tibble of addresses from the National Address Database with columns for
+#' addr, the unique id, coordinate placement method, parcel identifier, source,
+#' and s2_geography.
+#' @details created with `inst/make_NAD_addr.R`
+#' @export
+#' @examples
+#' nad_addr()
+#' x <- addr_match(as_addr("224 Woopler Ave Cinti Oh 45220"), nad_addr()$nad_addr, simplify = TRUE)
+#' x_which_nad <- which(nad_addr()$nad_addr == x)
+#' nad_addr()[x_which_nad, ]
+nad_addr <- function() {
+  readRDS(fs::path_package("addr", "NAD_OH_Hamilton.rds"))
+}
+
 #' CAGIS Addresses (Q4 2024)
 #'
 #' @returns An example tibble created from the CAGIS addresses with a pre-calculated, unique `cagis_addr` vector column.
