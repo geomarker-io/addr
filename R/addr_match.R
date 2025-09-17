@@ -25,12 +25,14 @@
 #'   tidyr::unnest(cols = c(cagis_addr_data)) |>
 #'   dplyr::select(-ca, -cagis_address)
 #' @export
-addr_match <- function(x,
-                       ref_addr,
-                       max_dist_street_number = 0,
-                       max_dist_street_name = 1,
-                       max_dist_street_type = 0,
-                       simplify = FALSE) {
+addr_match <- function(
+  x,
+  ref_addr,
+  max_dist_street_number = 0,
+  max_dist_street_name = 1,
+  max_dist_street_type = 0,
+  simplify = FALSE
+) {
   ia <- stats::na.omit(unique(as_addr(x)))
   ra <- unique(as_addr(ref_addr))
 
@@ -47,17 +49,21 @@ addr_match <- function(x,
     purrr::discard(\(.) any(is.na(.$ia), is.na(.$ra)))
 
   matches <-
-    purrr::map(zip_list, \(.x) addr_match_line_one(
-      .x$ia, .x$ra,
-      max_dist_street_number = max_dist_street_number,
-      max_dist_street_name = max_dist_street_name,
-      max_dist_street_type = max_dist_street_type,
-      simplify = FALSE
-    ),
-    .progress = list(
-      clear = FALSE,
-      format = "matching addresses in {cli::pb_current}/{cli::pb_total} ZIP codes [{cli::pb_elapsed} elapsed] "
-    )
+    purrr::map(
+      zip_list,
+      \(.x)
+        addr_match_line_one(
+          .x$ia,
+          .x$ra,
+          max_dist_street_number = max_dist_street_number,
+          max_dist_street_name = max_dist_street_name,
+          max_dist_street_type = max_dist_street_type,
+          simplify = FALSE
+        ),
+      .progress = list(
+        clear = FALSE,
+        format = "matching addresses in {cli::pb_current}/{cli::pb_total} ZIP codes [{cli::pb_elapsed} elapsed] "
+      )
     ) |>
     purrr::list_flatten(name_spec = "{inner}")
 
@@ -87,17 +93,35 @@ addr_match <- function(x,
 #' addr_match_line_one(addr(c("3333 Burnet Ave", "3333 Foofy Ave")),
 #'                     addr(c("Main Street", "Burnet Avenue")),
 #'                     max_dist_street_number = NULL)
-addr_match_line_one <- function(x, ref_addr,
-                                max_dist_street_number = 0,
-                                max_dist_street_name = 1,
-                                max_dist_street_type = 0,
-                                simplify = FALSE) {
+addr_match_line_one <- function(
+  x,
+  ref_addr,
+  max_dist_street_number = 0,
+  max_dist_street_name = 1,
+  max_dist_street_type = 0,
+  simplify = FALSE
+) {
   matches <- list()
   if (!is.null(max_dist_street_number)) {
-    matches$street_number <- fuzzy_match_addr_field(x, ref_addr, "street_number", max_dist_street_number)
+    matches$street_number <- fuzzy_match_addr_field(
+      x,
+      ref_addr,
+      "street_number",
+      max_dist_street_number
+    )
   }
-  matches$street_name <- fuzzy_match_addr_field(x, ref_addr, "street_name", max_dist_street_name)
-  matches$street_type <- fuzzy_match_addr_field(x, ref_addr, "street_type", max_dist_street_type)
+  matches$street_name <- fuzzy_match_addr_field(
+    x,
+    ref_addr,
+    "street_name",
+    max_dist_street_name
+  )
+  matches$street_type <- fuzzy_match_addr_field(
+    x,
+    ref_addr,
+    "street_type",
+    max_dist_street_type
+  )
 
   out <-
     purrr::reduce(matches, \(.x, .y) purrr::map2(.x, .y, intersect)) |>

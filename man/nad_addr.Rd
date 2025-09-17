@@ -21,4 +21,7 @@ created with \code{inst/make_NAD_addr.R}
 }
 \examples{
 nad_addr()
+x <- addr_match(as_addr("224 Woopler Ave Cinti Oh 45220"), nad_addr()$nad_addr, simplify = TRUE)
+x_which_nad <- which(nad_addr()$nad_addr == x)
+nad_addr()[x_which_nad, ]
 }
