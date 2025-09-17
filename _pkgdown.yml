@@ -2,11 +2,11 @@ url: https://geomarker.io/addr/
 template:
   bootstrap: 5
   bslib:
-    bg: '#FFFFFF'
-    fg: '#396175'
-    primary: '#C28273'
-    info: '#EACEC5'
-    warning: '#E49865'
+    bg: "#FFFFFF"
+    fg: "#396175"
+    primary: "#C28273"
+    info: "#EACEC5"
+    warning: "#E49865"
     grid-gutter-width: 0.0rem
     border-radius: 0.5rem
     btn-border-radius: 0.25rem
@@ -15,28 +15,28 @@ template:
 reference:
   - title: addr vector
     contents:
-    - addr
-    - addr_hash
-    - impute_date_ranges
+      - addr
+      - addr_hash
+      - impute_date_ranges
   - title: matching addr
     contents:
-    - addr_match
-    - addr_match_line_one
-    - fuzzy_match
+      - addr_match
+      - addr_match_line_one
+      - fuzzy_match
   - title: geocoding addr
     contents:
-    - addr_match_geocode
-    - addr_match_tiger_street_ranges
-    - s2_join_tiger_bg
+      - addr_match_geocode
+      - addr_match_tiger_street_ranges
+      - s2_join_tiger_bg
   - title: address text
     contents:
-    - clean_address_text
-    - expand_post_type
-    - addr_tag
-    - usaddress_tag
+      - clean_address_text
+      - expand_post_type
+      - addr_tag
+      - usaddress_tag
   - title: example address data
     contents:
-    - cagis_addr
-    - voter_addresses
-    - elh_data
-
+      - cagis_addr
+      - voter_addresses
+      - elh_data
+      - nad_addr
