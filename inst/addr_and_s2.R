@@ -4,8 +4,17 @@ library(dplyr, warn.conflicts = FALSE)
 
 cagis_s2 <-
   cagis_addr()$cagis_addr_data |>
-  purrr::modify_if(\(.) length(.) > 0 && nrow(.) > 1, dplyr::slice_sample, n = 1) |>
-  purrr::map_vec(purrr::pluck, "cagis_s2", .default = NA, .ptype = s2::s2_cell())
+  purrr::modify_if(
+    \(.) length(.) > 0 && nrow(.) > 1,
+    dplyr::slice_sample,
+    n = 1
+  ) |>
+  purrr::map_vec(
+    purrr::pluck,
+    "cagis_s2",
+    .default = NA,
+    .ptype = s2::s2_cell()
+  )
 
 d <- addr_match_geocode(
   x = sample(voter_addresses(), 500),
@@ -22,7 +31,11 @@ d <- d |>
   mutate(
     s2_fine_grid = s2_cell_parent(s2, 14),
     s2_coarse_grid = s2_cell_parent(s2, 13),
-    across(c(s2_fine_grid, s2_coarse_grid), as.character, .names = "{.col}_char")
+    across(
+      c(s2_fine_grid, s2_coarse_grid),
+      as.character,
+      .names = "{.col}_char"
+    )
   )
 
 # median cell side length in m
@@ -36,9 +49,9 @@ median(s2_cell_area_approx(d$s2_coarse_grid)) / 1000000
 d$geometry <- sf::st_as_sfc(s2::s2_cell_center(d$s2))
 
 bg <-
-  get_tiger_block_groups("39", "2022") |>
-  dplyr::filter(substr(GEOID, 1, 5) == "39061") |>
-  dplyr::mutate(geometry = sf::st_as_sfc(s2_geography))
+  codec::cincy_census_geo("bg", "2020") |>
+  sf::st_as_sf(sf_column_name = "s2_geography") |>
+  dplyr::filter(substr(geoid, 1, 5) == "39061")
 
 ## s2_plot(bg$s2_geography, border = codec::codec_colors("grey blue"), col = codec::codec_colors("white"))
 ## s2::s2_plot(s2_cell_to_lnglat(d$s2), add = TRUE, col = codec::codec_colors("darkish blue"), pch = 19)
@@ -47,12 +60,12 @@ library(rdeck)
 
 rdeck(
   map_style = "mapbox://styles/brokamrc/cm2jtbccr007801pebyz0hk43",
-  initial_bounds = sf::st_bbox(bg$geometry)
+  initial_bounds = sf::st_bbox(bg$s2_geography)
 ) |>
   add_polygon_layer(
     data = bg,
     name = "block groups",
-    get_polygon = geometry,
+    get_polygon = s2_geography,
     opacity = 0.7,
     filled = FALSE,
     stroked = TRUE,
@@ -61,26 +74,28 @@ rdeck(
     visible = TRUE,
     visibility_toggle = TRUE,
     pickable = FALSE
-  ) |>
-  add_s2_layer(
-    data = d,
-    name = "S2 geometry level 13 (~ 1 sq km)",
-    get_s2_token = s2_coarse_grid_char,
-    opacity = 0.2,
-    get_fill_color = codec::codec_colors("light blue")
-  ) |>
-  add_s2_layer(
-    data = d,
-    name = "S2 geometry level 14 (~ 0.25 sq km)",
-    get_s2_token = s2_fine_grid_char,
-    opacity = 0.2,
-    get_fill_color = codec::codec_colors("orange")
-  ) |>
-  add_scatterplot_layer(
-    name = "S2 geometry cell center",
-    data = d,
-    opacity = 1,
-    get_radius = 34,
-    get_position = geometry,
-    get_fill_color = codec::codec_colors("red"),
   )
+
+# |>
+# add_s2_layer(
+#   data = d,
+#   name = "S2 geometry level 13 (~ 1 sq km)",
+#   get_s2_token = s2_coarse_grid_char,
+#   opacity = 0.2,
+#   get_fill_color = codec::codec_colors("light blue")
+# ) |>
+# add_s2_layer(
+#   data = d,
+#   name = "S2 geometry level 14 (~ 0.25 sq km)",
+#   get_s2_token = s2_fine_grid_char,
+#   opacity = 0.2,
+#   get_fill_color = codec::codec_colors("orange")
+# ) |>
+# add_scatterplot_layer(
+#   name = "S2 geometry cell center",
+#   data = d,
+#   opacity = 1,
+#   get_radius = 34,
+#   get_position = geometry,
+#   get_fill_color = codec::codec_colors("red"),
+# )
