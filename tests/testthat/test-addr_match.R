@@ -1,5 +1,4 @@
 test_that("addr_match works", {
-
   addr_match(
     addr(c(
       "222 E Central Parkway Cincinnati OH 45000",
@@ -14,43 +13,84 @@ test_that("addr_match works", {
 
   addr_match(
     addr(c(
-      "14 E 14th street cincinnati oh 45000", "14 east 14th street cincinnati oh 45000", "14 W 14th street cincinnati oh 45000",
+      "14 E 14th street cincinnati oh 45000",
+      "14 east 14th street cincinnati oh 45000",
+      "14 W 14th street cincinnati oh 45000",
       "3333 Burnet Ave cincinnati oh 45000"
     )),
-    addr(c("14 E 14TH STREET CINCINNATI OH 45000", "14 W 14TH STREET CINCINNATI OH 45000"))
+    addr(c(
+      "14 E 14TH STREET CINCINNATI OH 45000",
+      "14 W 14TH STREET CINCINNATI OH 45000"
+    ))
   ) |>
     expect_equal(
-      list(`14 E 14th Street Cincinnati OH 45000` = structure(list(
-        street_number = 14, street_name = "e 14th", street_type = "street",
-        city = "cincinnati", state = "oh", zip_code = "45000"
-      ), class = c(
-        "addr",
-        "vctrs_rcrd", "vctrs_vctr"
-      )), `14 E 14th Street Cincinnati OH 45000` = structure(list(
-        street_number = 14, street_name = "e 14th", street_type = "street",
-        city = "cincinnati", state = "oh", zip_code = "45000"
-      ), class = c(
-        "addr",
-        "vctrs_rcrd", "vctrs_vctr"
-      )), `14 W 14th Street Cincinnati OH 45000` = structure(list(
-        street_number = 14, street_name = "w 14th", street_type = "street",
-        city = "cincinnati", state = "oh", zip_code = "45000"
-      ), class = c(
-        "addr",
-        "vctrs_rcrd", "vctrs_vctr"
-      )), `3333 Burnet Avenue Cincinnati OH 45000` = structure(list(
-        street_number = numeric(0), street_name = character(0), street_type = character(0),
-        city = character(0), state = character(0), zip_code = character(0)
-      ), class = c(
-        "addr",
-        "vctrs_rcrd", "vctrs_vctr"
-      )))
+      list(
+        `14 E 14th Street Cincinnati OH 45000` = structure(
+          list(
+            street_number = 14,
+            street_name = "e 14th",
+            street_type = "street",
+            city = "cincinnati",
+            state = "oh",
+            zip_code = "45000"
+          ),
+          class = c(
+            "addr",
+            "vctrs_rcrd",
+            "vctrs_vctr"
+          )
+        ),
+        `14 E 14th Street Cincinnati OH 45000` = structure(
+          list(
+            street_number = 14,
+            street_name = "e 14th",
+            street_type = "street",
+            city = "cincinnati",
+            state = "oh",
+            zip_code = "45000"
+          ),
+          class = c(
+            "addr",
+            "vctrs_rcrd",
+            "vctrs_vctr"
+          )
+        ),
+        `14 W 14th Street Cincinnati OH 45000` = structure(
+          list(
+            street_number = 14,
+            street_name = "w 14th",
+            street_type = "street",
+            city = "cincinnati",
+            state = "oh",
+            zip_code = "45000"
+          ),
+          class = c(
+            "addr",
+            "vctrs_rcrd",
+            "vctrs_vctr"
+          )
+        ),
+        `3333 Burnet Avenue Cincinnati OH 45000` = structure(
+          list(
+            street_number = numeric(0),
+            street_name = character(0),
+            street_type = character(0),
+            city = character(0),
+            state = character(0),
+            zip_code = character(0)
+          ),
+          class = c(
+            "addr",
+            "vctrs_rcrd",
+            "vctrs_vctr"
+          )
+        )
+      )
     )
 })
 
 
-test_that("addr_match with cagis works", {
-
+test_that("addr_match with cagis from codec works", {
   my_addresses <- c(
     "781 GREENWOOD AVE APT 1 CINCINNATI OHIO 45229",
     "781 GREENWOOD AV CINCINNATI OHIO 45229",
@@ -72,7 +112,10 @@ test_that("addr_match with cagis works", {
     "117 E 12TH ST CINCINNATI, OH 45202" # Greater Cinti Coalition for The Homeless
   )
 
-  cagis_matches <- addr_match(as_addr(my_addresses), cagis_addr()$cagis_addr)
+  cagis_matches <- addr_match(
+    as_addr(my_addresses),
+    codec::cincy_addr_geo()$cagis_address
+  )
 
   sapply(cagis_matches, length) |>
     expect_equal(
@@ -100,40 +143,144 @@ test_that("addr_match with cagis works", {
 
   expect_identical(cagis_matches[[16]], NULL)
 
-  dd <- addr_match(as_addr(my_addresses), cagis_addr()$cagis_addr, simplify = TRUE)
+  dd <- addr_match(
+    as_addr(my_addresses),
+    codec::cincy_addr_geo()$cagis_address,
+    simplify = TRUE
+  )
 
   which(is.na(dd)) |>
     expect_identical(c(5L, 8L, 10L, 15L, 16L))
   expect_identical(
     dd,
-    structure(list(street_number = c(
-      781, 781, 515, 1540, NA, 3333,
-      806, NA, 5130, NA, 2583, 7839, 222, 222, NA, NA, 31, 117
-    ), street_name = c(
-      "greenwood",
-      "greenwood", "forest", "dudley", NA, "burnet", "blair", NA, "rapid run",
-      NA, "riverside", "dawn", "e central", "e central", NA, NA, "highridge",
-      "e 12th"
-    ), street_type = c(
-      "avenue", "avenue", "avenue", "walk",
-      NA, "avenue", "avenue", NA, "road", NA, "drive", "road", "parkway",
-      "parkway", NA, NA, "drive", "street"
-    ), city = c(
-      "cincinnati",
-      "cincinnati", "cincinnati", "cincinnati", NA, "cincinnati", "cincinnati",
-      NA, "delhi township", NA, "cincinnati", "cincinnati", "cincinnati",
-      "cincinnati", NA, NA, "loveland", "cincinnati"
-    ), state = c(
-      "oh",
-      "oh", "oh", "oh", NA, "oh", "oh", NA, "oh", NA, "oh", "oh", "oh",
-      "oh", NA, NA, "oh", "oh"
-    ), zip_code = c(
-      "45229", "45229", "45229",
-      "45214", NA, "45229", "45229", NA, "45238", NA, "45202", "45237",
-      "45202", "45202", NA, NA, "45140", "45202"
-    )), class = c(
-      "addr",
-      "vctrs_rcrd", "vctrs_vctr"
-    ))
+    structure(
+      list(
+        street_number = c(
+          781,
+          781,
+          515,
+          1540,
+          NA,
+          3333,
+          806,
+          NA,
+          5130,
+          NA,
+          2583,
+          7839,
+          222,
+          222,
+          NA,
+          NA,
+          31,
+          117
+        ),
+        street_name = c(
+          "greenwood",
+          "greenwood",
+          "forest",
+          "dudley",
+          NA,
+          "burnet",
+          "blair",
+          NA,
+          "rapid run",
+          NA,
+          "riverside",
+          "dawn",
+          "e central",
+          "e central",
+          NA,
+          NA,
+          "highridge",
+          "e 12th"
+        ),
+        street_type = c(
+          "avenue",
+          "avenue",
+          "avenue",
+          "walk",
+          NA,
+          "avenue",
+          "avenue",
+          NA,
+          "road",
+          NA,
+          "drive",
+          "road",
+          "parkway",
+          "parkway",
+          NA,
+          NA,
+          "drive",
+          "street"
+        ),
+        city = c(
+          "cincinnati",
+          "cincinnati",
+          "cincinnati",
+          "cincinnati",
+          NA,
+          "cincinnati",
+          "cincinnati",
+          NA,
+          "delhi township",
+          NA,
+          "cincinnati",
+          "cincinnati",
+          "cincinnati",
+          "cincinnati",
+          NA,
+          NA,
+          "loveland",
+          "cincinnati"
+        ),
+        state = c(
+          "oh",
+          "oh",
+          "oh",
+          "oh",
+          NA,
+          "oh",
+          "oh",
+          NA,
+          "oh",
+          NA,
+          "oh",
+          "oh",
+          "oh",
+          "oh",
+          NA,
+          NA,
+          "oh",
+          "oh"
+        ),
+        zip_code = c(
+          "45229",
+          "45229",
+          "45229",
+          "45214",
+          NA,
+          "45229",
+          "45229",
+          NA,
+          "45238",
+          NA,
+          "45202",
+          "45237",
+          "45202",
+          "45202",
+          NA,
+          NA,
+          "45140",
+          "45202"
+        )
+      ),
+      class = c(
+        "addr",
+        "vctrs_rcrd",
+        "vctrs_vctr"
+      )
+    )
   )
 })

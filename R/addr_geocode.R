@@ -3,7 +3,7 @@
 #' Addresses are attempted to be matched to reference geographies using different methods
 #' associated with decreasing levels of precision in the order listed below.
 #' Each method generates matched s2 cell identifiers differently
-#' and is recorded in the `match_method` column of the returned tibble:  
+#' and is recorded in the `match_method` column of the returned tibble:
 #' 1. `ref_addr`: reference s2 cell from direct match to reference address
 #' 2. `tiger_range`: centroid of street-matched TIGER address ranges containing street number
 #' 3. `tiger_street`: centroid of street-matched TIGER address ranges closest to the street number
@@ -43,20 +43,21 @@
 #' |TRUE     |FALSE    |   2730|19.6, 28.6, 41.2, 94.8, 571.8                |1.2%  |
 #' @examples
 #' set.seed(1)
-#' cagis_s2 <-
-#'   cagis_addr()$cagis_addr_data |>
-#'   purrr::modify_if(\(.) length(.) > 0 && nrow(.) > 1, dplyr::slice_sample, n = 1) |>
-#'   purrr::map_vec(purrr::pluck, "cagis_s2", .default = NA, .ptype = s2::s2_cell())
-#' addr_match_geocode(x = sample(voter_addresses(), 100), ref_s2 = cagis_s2) |>
-#'   print(n = 100)
-addr_match_geocode <- function(x,
-                               ref_addr = cagis_addr()$cagis_addr,
-                               ref_s2,
-                               county = "39061",
-                               year = "2022") {
+#' addr_match_geocode(sample(voter_addresses(), 10),
+#'                    codec::cincy_addr_geo()$cagis_address,
+#'                    ref_s2 = codec::cincy_addr_geo()$cagis_s2)
+addr_match_geocode <- function(
+  x,
+  ref_addr,
+  ref_s2,
+  county = "39061",
+  year = "2022"
+) {
   x_addr <- as_addr(x)
+  ref_addr <- as_addr(ref_addr)
   x_addr_ref_match <-
-    addr_match(x_addr,
+    addr_match(
+      x_addr,
       ref_addr,
       max_dist_street_number = 0,
       max_dist_street_name = 1,
@@ -114,7 +115,10 @@ addr_match_geocode <- function(x,
     tibble::tibble(
       addr = x_addr,
       s2 = x_s2,
-      match_method = factor(x_mm, levels = c("ref_addr", "tiger_range", "tiger_street", "none"))
+      match_method = factor(
+        x_mm,
+        levels = c("ref_addr", "tiger_range", "tiger_street", "none")
+      )
     )
 
   return(out)

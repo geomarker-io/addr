@@ -4,13 +4,7 @@
 \alias{addr_match_geocode}
 \title{Geocode addr vectors}
 \usage{
-addr_match_geocode(
-  x,
-  ref_addr = cagis_addr()$cagis_addr,
-  ref_s2,
-  county = "39061",
-  year = "2022"
-)
+addr_match_geocode(x, ref_addr, ref_s2, county = "39061", year = "2022")
 }
 \arguments{
 \item{x}{an addr vector (or character vector of address strings) to geocode}
@@ -64,10 +58,7 @@ Among those that were geocoded by both, 97.7\% were geocoded to the same census 
 }
 \examples{
 set.seed(1)
-cagis_s2 <-
-  cagis_addr()$cagis_addr_data |>
-  purrr::modify_if(\(.) length(.) > 0 && nrow(.) > 1, dplyr::slice_sample, n = 1) |>
-  purrr::map_vec(purrr::pluck, "cagis_s2", .default = NA, .ptype = s2::s2_cell())
-addr_match_geocode(x = sample(voter_addresses(), 100), ref_s2 = cagis_s2) |>
-  print(n = 100)
+addr_match_geocode(sample(voter_addresses(), 10),
+                   as_addr(codec::cincy_addr_geo()$cagis_address),
+                   ref_s2 = codec::cincy_addr_geo()$cagis_s2)
 }
