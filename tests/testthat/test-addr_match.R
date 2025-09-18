@@ -141,7 +141,7 @@ test_that("addr_match with cagis from codec works", {
       )
     )
 
-  expect_identical(cagis_matches[[16]], NULL)
+  expect_identical(cagis_matches[[16]], addr())
 
   dd <- addr_match(
     as_addr(my_addresses),
