@@ -59,6 +59,6 @@ Among those that were geocoded by both, 97.7\% were geocoded to the same census 
 \examples{
 set.seed(1)
 addr_match_geocode(sample(voter_addresses(), 10),
-                   as_addr(codec::cincy_addr_geo()$cagis_address),
+                   codec::cincy_addr_geo()$cagis_address,
                    ref_s2 = codec::cincy_addr_geo()$cagis_s2)
 }

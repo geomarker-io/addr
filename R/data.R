@@ -3,10 +3,11 @@
 #' The U.S. Department of Transportation partners with address programs from state,
 #' local, and tribal governments to compile their authoritative data into a database.
 #' Find more information here: https://www.transportation.gov/gis/national-address-database
-#' @return Tibble of addresses from the National Address Database with columns for
-#' addr, the unique id, coordinate placement method, parcel identifier, source,
+#' @return Tibble of addresses from the National Address Database with columns for the concatenated address,
+#' the tagged/parsed addr, the unique id, coordinate placement method, parcel identifier, source,
 #' and s2_geography.
-#' @details created with `inst/make_NAD_addr.R`
+#' @details created with `inst/make_NAD_addr.R`; address components are pasted together and parsed/tagged with
+#' `as_addr()`; duplicated addresses are removed and only the first NAD UUID is retained
 #' @export
 #' @examples
 #' nad_addr()
