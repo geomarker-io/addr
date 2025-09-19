@@ -3,10 +3,11 @@
 #' The U.S. Department of Transportation partners with address programs from state,
 #' local, and tribal governments to compile their authoritative data into a database.
 #' Find more information here: https://www.transportation.gov/gis/national-address-database
-#' @return Tibble of addresses from the National Address Database with columns for
-#' addr, the unique id, coordinate placement method, parcel identifier, source,
+#' @return Tibble of addresses from the National Address Database with columns for the concatenated address,
+#' the tagged/parsed addr, the unique id, coordinate placement method, parcel identifier, source,
 #' and s2_geography.
-#' @details created with `inst/make_NAD_addr.R`
+#' @details created with `inst/make_NAD_addr.R`; address components are pasted together and parsed/tagged with
+#' `as_addr()`; duplicated addresses are removed and only the first NAD UUID is retained
 #' @export
 #' @examples
 #' nad_addr()
@@ -15,26 +16,6 @@
 #' nad_addr()[x_which_nad, ]
 nad_addr <- function() {
   readRDS(fs::path_package("addr", "NAD_OH_Hamilton.rds"))
-}
-
-#' CAGIS Addresses (Q4 2024)
-#'
-#' @returns An example tibble created from the CAGIS addresses with a pre-calculated, unique `cagis_addr` vector column.
-#' The `cagis_addr_data` column is a list of tibbles because one CAGIS address can correspond to multiple
-#' parcel identifiers and address-level data (place, type, s2, etc.).
-#' See `inst/make_cagis_addr.R` for source code to create data, including filtering criteria:
-#'
-#' - use only addresses that have `STATUS` of `ASSIGNED` or `USING` and are not orphaned (`ORPHANFLG == "N"`)
-#' - omit addresses with `ADDRTYPE`s that are milemarkers (`MM`), parks (`PAR`), infrastructure projects (`PRJ`),
-#'   cell towers (`CTW`), vacant or commercial lots (`LOT`), and other miscellaneous non-residential addresses (`MIS`, `RR`, `TBA`)
-#' - s2 cell is derived from LONGITUDE and LATITUDE fields in CAGIS address database
-#'
-#' This export is not the latest version of CAGIS address data, but that can be installed with `codec::cincy_addr_geo()`
-#' @export
-#' @examples
-#' cagis_addr()
-cagis_addr <- function() {
-  readRDS(fs::path_package("addr", "cagis_addr.rds"))
 }
 
 #' Example real-world addresses

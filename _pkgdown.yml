@@ -36,7 +36,6 @@ reference:
       - usaddress_tag
   - title: example address data
     contents:
-      - cagis_addr
       - voter_addresses
       - elh_data
       - nad_addr

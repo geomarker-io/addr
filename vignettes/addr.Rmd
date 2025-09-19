@@ -44,21 +44,13 @@ addr(c("3333 Burnet Ave Cincinnati OH 45229", "202 Riva Ridge Ct Cincinnati OH 4
 
 ## addr matching
 
-List all of the potentially matching `addr`s in a reference set of `addr`s with `addr_match()`. The code below matches input addresses to the reference set of all addresses in Hamilton County, OH included in the package:
+List all of the potentially matching `addr`s in a reference set of `addr`s with `addr_match()`.
+The code below matches input addresses to addresses in the National Address Database subset for Hamilton County, OH included in the package (see `?nad_addr`):
 
 ```{r}
 addr(c("3333 Burnet Ave Cincinnati OH 45229", 
     "5130 RAPID RUN RD CINCINNATI OHIO 45238",
     "5131 RAPID RUN RD CINCINNATI OHIO 45238"
 )) |>
-  addr_match(cagis_addr()$cagis_addr)
-```
-
-Use the matched addr vector to merge in address-specific data in the included `cagis_addr` object.
-
-```{r}
-addr(c("3333 Burnet Ave Cincinnati OH 45229", "5130 RAPID RUN RD CINCINNATI OHIO 45238")) |>
-  addr_match(cagis_addr()$cagis_addr, simplify = TRUE) |>
-  tibble::enframe(name = "input_addr", value = "ca") |>
-  dplyr::left_join(cagis_addr(), by = c("ca" = "cagis_addr"))
+  addr_match(nad_addr()$nad_addr)
 ```
