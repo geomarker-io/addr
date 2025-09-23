@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9002</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0.9003</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -92,34 +92,23 @@ other functions. To inspect or use them directly:</p>
 </h2>
 <p>List all of the potentially matching <code>addr</code>s in a
 reference set of <code>addr</code>s with <code><a href="../reference/addr_match.html">addr_match()</a></code>. The
-code below matches input addresses to the reference set of all addresses
-in Hamilton County, OH included in the package:</p>
+code below matches input addresses to addresses in the National Address
+Database subset for Hamilton County, OH included in the package (see
+<code><a href="../reference/nad_addr.html">?nad_addr</a></code>):</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/addr.html">addr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"3333 Burnet Ave Cincinnati OH 45229"</span>, </span>
 <span>    <span class="st">"5130 RAPID RUN RD CINCINNATI OHIO 45238"</span>,</span>
 <span>    <span class="st">"5131 RAPID RUN RD CINCINNATI OHIO 45238"</span></span>
 <span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/addr_match.html">addr_match</a></span><span class="op">(</span><span class="fu"><a href="../reference/cagis_addr.html">cagis_addr</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">cagis_addr</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="../reference/addr_match.html">addr_match</a></span><span class="op">(</span><span class="fu"><a href="../reference/nad_addr.html">nad_addr</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">nad_addr</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $`3333 Burnet Avenue Cincinnati OH 45229`</span></span>
 <span><span class="co">#&gt; <span style="color: #BB00BB; font-weight: bold;">3333</span> <span style="color: #BB0000; text-decoration: underline;">Burnet</span> <span style="color: #BB0000; font-weight: 100;">Avenue</span> <span style="color: #555555; text-decoration: underline;">Cincinnati</span> <span style="color: #555555; font-style: italic;">OH</span> <span style="color: #0000BB; text-decoration: underline;">45229</span> </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $`5130 Rapid Run Road Cincinnati OHIO 45238`</span></span>
-<span><span class="co">#&gt; <span style="color: #BB00BB; font-weight: bold;">5130</span> <span style="color: #BB0000; text-decoration: underline;">Rapid Run</span> <span style="color: #BB0000; font-weight: 100;">Road</span> <span style="color: #555555; text-decoration: underline;">Delhi Township</span> <span style="color: #555555; font-style: italic;">OH</span> <span style="color: #0000BB; text-decoration: underline;">45238</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BB00BB; font-weight: bold;">5130</span> <span style="color: #BB0000; text-decoration: underline;">Rapid Run</span> <span style="color: #BB0000; font-weight: 100;">Road</span> <span style="color: #555555; text-decoration: underline;">Cincinnati</span> <span style="color: #555555; font-style: italic;">OH</span> <span style="color: #0000BB; text-decoration: underline;">45238</span> </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $`5131 Rapid Run Road Cincinnati OHIO 45238`</span></span>
 <span><span class="co">#&gt; </span></span></code></pre></div>
-<p>Use the matched addr vector to merge in address-specific data in the
-included <code>cagis_addr</code> object.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/addr.html">addr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"3333 Burnet Ave Cincinnati OH 45229"</span>, <span class="st">"5130 RAPID RUN RD CINCINNATI OHIO 45238"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/addr_match.html">addr_match</a></span><span class="op">(</span><span class="fu"><a href="../reference/cagis_addr.html">cagis_addr</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">cagis_addr</span>, simplify <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/enframe.html" class="external-link">enframe</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"input_addr"</span>, value <span class="op">=</span> <span class="st">"ca"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="fu"><a href="../reference/cagis_addr.html">cagis_addr</a></span><span class="op">(</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ca"</span> <span class="op">=</span> <span class="st">"cagis_addr"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 3</span></span></span>
-<span><span class="co">#&gt;   input_addr                                          ca    cagis_addr_data</span></span>
-<span><span class="co">#&gt;        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>                                      <span style="color: #949494; font-style: italic;">&lt;addr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;list&lt;tibble[,6]&gt;&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>          1      <span style="color: #BB00BB; font-weight: bold;">3333</span> <span style="color: #BB0000; text-decoration: underline;">Burnet</span> <span style="color: #BB0000; font-weight: 100;">Avenue</span> <span style="color: #555555; text-decoration: underline;">Cincinnati</span> <span style="color: #555555; font-style: italic;">OH</span> <span style="color: #0000BB; text-decoration: underline;">45229</span>            <span style="color: #949494;">[1 × 6]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>          2 <span style="color: #BB00BB; font-weight: bold;">5130</span> <span style="color: #BB0000; text-decoration: underline;">Rapid Run</span> <span style="color: #BB0000; font-weight: 100;">Road</span> <span style="color: #555555; text-decoration: underline;">Delhi Township</span> <span style="color: #555555; font-style: italic;">OH</span> <span style="color: #0000BB; text-decoration: underline;">45238</span>            <span style="color: #949494;">[1 × 6]</span></span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
