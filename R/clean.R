@@ -16,6 +16,6 @@ clean_address_text <- function(.x) {
   .x |>
     stringr::str_replace_all(stringr::fixed("\\"), "") |>
     stringr::str_replace_all(stringr::fixed("\""), "") |>
-    stringr::str_replace_all("[^a-zA-Z0-9- ]", "") |>
+    stringr::str_replace_all("[^a-zA-Z0-9-# ]", "") |>
     stringr::str_squish()
 }

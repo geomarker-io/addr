@@ -1,6 +1,6 @@
 Package: addr
 Title: Clean, Parse, Harmonize, Match, and Geocode Messy Real-World Addresses
-Version: 0.6.0.9002
+Version: 0.6.0.9003
 Authors@R: 
     c(person("Cole", "Brokamp", email = "cole@colebrokamp.com", role = c("aut", "cre")),
       person("Erika", "Manning", role = c("aut")))
@@ -19,7 +19,8 @@ Suggests:
     knitr,
     rmarkdown,
     digest,
-    withr
+    withr,
+    codec (>= 3.0.0),
 Imports: 
     purrr,
     cli,
@@ -41,3 +42,6 @@ Depends:
     R (>= 3.5.0)
 Config/rextendr/version: 0.3.1
 VignetteBuilder: knitr
+Remotes:
+   geomarker-io/codec
+

@@ -7,8 +7,8 @@
 nad_addr()
 }
 \value{
-Tibble of addresses from the National Address Database with columns for
-addr, the unique id, coordinate placement method, parcel identifier, source,
+Tibble of addresses from the National Address Database with columns for the concatenated address,
+the tagged/parsed addr, the unique id, coordinate placement method, parcel identifier, source,
 and s2_geography.
 }
 \description{
@@ -17,7 +17,8 @@ local, and tribal governments to compile their authoritative data into a databas
 Find more information here: https://www.transportation.gov/gis/national-address-database
 }
 \details{
-created with \code{inst/make_NAD_addr.R}
+created with \code{inst/make_NAD_addr.R}; address components are pasted together and parsed/tagged with
+\code{as_addr()}; duplicated addresses are removed and only the first NAD UUID is retained
 }
 \examples{
 nad_addr()

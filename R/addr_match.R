@@ -15,15 +15,7 @@
 #' but the street number, name, and type were not matched
 #' @examples
 #' addr(c("3333 Burnet Ave Cincinnati OH 45229", "5130 RAPID RUN RD CINCINNATI OHIO 45238")) |>
-#'   addr_match(cagis_addr()$cagis_addr)
-#'
-#' addr(c("3333 Burnet Ave Cincinnati OH 45229", "5130 RAPID RUN RD CINCINNATI OHIO 45238")) |>
-#'   addr_match(cagis_addr()$cagis_addr, simplify = FALSE) |>
-#'   tibble::enframe(name = "input_addr", value = "ca") |>
-#'   dplyr::mutate(ca = purrr::list_c(ca)) |>
-#'   dplyr::left_join(cagis_addr(), by = c("ca" = "cagis_addr")) |>
-#'   tidyr::unnest(cols = c(cagis_addr_data)) |>
-#'   dplyr::select(-ca, -cagis_address)
+#'   addr_match(nad_addr()$nad_addr)
 #' @export
 addr_match <- function(
   x,

@@ -1,4 +1,5 @@
 library(sf)
+devtools::load_all()
 
 nad_release <- "NAD_r19"
 
@@ -51,32 +52,42 @@ the_query <- glue::glue(
 
 rnad <- sf::st_read(dsn = nad_local_dsn, query = the_query)
 
-paste_na_omit <- function(..., sep = "") {
+paste0_na_omit <- function(...) {
   args <- lapply(list(...), as.character)
   if (!length(args)) return(character())
   lens <- vapply(args, length, integer(1))
   stopifnot("inputs are same length" = length(unique(lens)) == 1L)
-  newargs <- lapply(args, \(x) ifelse(is.na(x), "", x))
-  do.call(paste0, newargs)
+  newargs <- lapply(args, \(x) ifelse(is.na(x), "", paste0(" ", x)))
+  out <- do.call(paste0, newargs)
+  # remove leading space
+  sub("^ ", "", out)
 }
 
-nad_county_addr <-
-  addr:::new_addr(
-    street_number = as.numeric(rnad$Add_Number),
-    street_name = paste_na_omit(
-      rnad$St_PreMod,
-      rnad$St_PreTyp,
-      rnad$St_PreSep,
-      rnad$St_Name
-    ),
-    street_type = paste_na_omit(rnad$St_PosTyp, rnad$St_PosDir, rnad$St_PosMod),
-    city = rnad$Post_City,
-    state = rnad$State,
-    zip_code = rnad$Zip_Code
+# paste components into address and parse/tag with addr
+
+nad_address <- with(
+  rnad,
+  paste_na_omit(
+    AddNum_Pre,
+    Add_Number,
+    AddNum_Suf,
+    St_PreMod,
+    St_PreTyp,
+    St_PreSep,
+    St_Name,
+    St_PosTyp,
+    St_PosDir,
+    St_PosMod,
+    SubAddress,
+    Post_City,
+    State,
+    Zip_Code
   )
+)
 
 out <- tibble::tibble(
-  nad_addr = nad_county_addr,
+  nad_address = nad_address,
+  nad_addr = as_addr(nad_address),
   nad_uuid = rnad$UUID,
   nad_placement = rnad$Placement,
   nad_parcel_id = rnad$Parcel_ID,
@@ -85,6 +96,20 @@ out <- tibble::tibble(
   nad_lon = rnad$Longitude
 )
 
-out
+# there are multiple addresses per nad_uuid (at least for Hamilton County, OH)
+# remove these before saving
 
-saveRDS(out, glue::glue("inst/NAD_{ the_state }_{ the_county }.rds"))
+message(
+  "Found ",
+  sum(duplicated(out$nad_address)),
+  " duplicated addresses in the NAD",
+  " for ",
+  the_county,
+  ", ",
+  the_state,
+  ".",
+  "\nUsing the first occurrence of each one."
+)
+
+out[-which(duplicated(out$nad_address)), ] |>
+  saveRDS(glue::glue("inst/NAD_{ the_state }_{ the_county }.rds"))
