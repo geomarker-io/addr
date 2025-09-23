@@ -13,7 +13,7 @@ nad_cloud_dsn <- glue::glue(
   .sep = "/"
 )
 
-nad_local_dsn <- "NAD_r19.gdb"
+nad_local_dsn <- "~/Downloads/NAD_r19.gdb"
 
 # https://www.transportation.gov/sites/dot.gov/files/2023-07/NAD_Schema_202304.pdf
 nad_fields <- c(
@@ -44,7 +44,8 @@ nad_fields <- c(
 )
 
 the_state <- "OH"
-the_county <- "Hamilton"
+# the_county <- "Hamilton"
+the_county <- "Franklin"
 
 the_query <- glue::glue(
   "SELECT { paste(nad_fields, collapse = ', ') } FROM NAD WHERE State = '{ the_state }' AND County = '{ the_county }'"
@@ -67,7 +68,7 @@ paste0_na_omit <- function(...) {
 
 nad_address <- with(
   rnad,
-  paste_na_omit(
+  paste0_na_omit(
     AddNum_Pre,
     Add_Number,
     AddNum_Suf,

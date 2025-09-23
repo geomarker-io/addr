@@ -2,9 +2,12 @@
 % Please edit documentation in R/data.R
 \name{nad_addr}
 \alias{nad_addr}
-\title{National Address Database for Hamilton County, OH}
+\title{National Address Database for select counties}
 \usage{
-nad_addr()
+nad_addr(state_county = c("OH_Hamilton", "OH_Franklin"))
+}
+\arguments{
+\item{state_county;}{prespecified state county combinations that are precalculated and included in the package}
 }
 \value{
 Tibble of addresses from the National Address Database with columns for the concatenated address,
@@ -25,4 +28,5 @@ nad_addr()
 x <- addr_match(as_addr("224 Woopler Ave Cinti Oh 45220"), nad_addr()$nad_addr, simplify = TRUE)
 x_which_nad <- which(nad_addr()$nad_addr == x)
 nad_addr()[x_which_nad, ]
+nad_addr("OH_Franklin")
 }
