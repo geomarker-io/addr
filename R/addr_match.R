@@ -7,8 +7,8 @@
 #' @param x an addr vector to match
 #' @param ref_addr an addr vector to search for matches in
 #' @param simplify logical; randomly select one addr from multi-matches and return an
-#' addr() vector instead of a list? (empty addr vectors and NULL values are converted
-#' to NA)
+#' addr() vector instead of a list? This specific case generates a warning; empty addr
+#' vectors and NULL values are converted to missing values
 #' @returns a named list of possible addr matches for each addr in `x`;
 #' a list value of NULL means the zip code was not matched and
 #' a list value of a zero-length addr vector means the zip code was matched,
@@ -43,7 +43,7 @@ addr_match <- function(
   matches <-
     purrr::map(
       zip_list,
-      \(.x)
+      \(.x) {
         addr_match_line_one(
           .x$ia,
           .x$ra,
@@ -51,7 +51,8 @@ addr_match <- function(
           max_dist_street_name = max_dist_street_name,
           max_dist_street_type = max_dist_street_type,
           simplify = FALSE
-        ),
+        )
+      },
       .progress = list(
         clear = FALSE,
         format = "matching addresses in {cli::pb_current}/{cli::pb_total} ZIP codes [{cli::pb_elapsed} elapsed] "
@@ -63,6 +64,10 @@ addr_match <- function(
   names(out) <- as.character(x)
 
   if (simplify) {
+    n_multimatches <- sum(sapply(out, length) > 1)
+    if (n_multimatches > 0) {
+      warning(n_multimatches, " multimatches being reduced to a single match")
+    }
     out <-
       out |>
       purrr::modify_if(\(.) length(.) > 1, sample, size = 1) |>
@@ -122,6 +127,10 @@ addr_match_line_one <- function(
     purrr::set_names(x)
 
   if (simplify) {
+    n_multimatches <- sum(sapply(out, length) > 1)
+    if (n_multimatches > 0) {
+      warning(n_multimatches, " multimatches being reduced to a single match")
+    }
     out <-
       out |>
       purrr::modify_if(\(.x) length(.x) > 1, sample, size = 1) |>
