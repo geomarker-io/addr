@@ -36,8 +36,8 @@ set to NULL to disregard street number}
 \item{max_dist_street_type}{maximum OSA distance to consider a match for the addr street_type}
 
 \item{simplify}{logical; randomly select one addr from multi-matches and return an
-addr() vector instead of a list? (empty addr vectors and NULL values are converted
-to NA)}
+addr() vector instead of a list? This specific case generates a warning; empty addr
+vectors and NULL values are converted to missing values}
 }
 \value{
 a named list of possible addr matches for each addr in \code{x};
