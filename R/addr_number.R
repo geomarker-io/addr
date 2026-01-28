@@ -10,9 +10,9 @@ addr_number <- S7::new_class(
     suffix = S7::class_character
   ),
   constructor = function(
-    prefix = character(0),
-    digits = character(0),
-    suffix = character(0)
+    prefix = NA_character_,
+    digits = NA_character_,
+    suffix = NA_character_
   ) {
     fields <- recycle_fields(
       list(prefix = prefix, digits = digits, suffix = suffix),
