@@ -32,7 +32,7 @@ reference:
     contents:
       - clean_address_text
       - expand_post_type
-      - addr_tag
+      - tag_usaddress
       - usaddress_tag
   - title: example address data
     contents:
