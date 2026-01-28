@@ -1,8 +1,8 @@
 test_that("addr_place() maps state and formats", {
   place <- addr_place(
-    name = c("Cincinnati", "Columbus"),
-    state = c("Ohio", "OH"),
-    zipcode = c("45220", "43215")
+    name = c("Washington", "San Juan"),
+    state = c("District of Columbia", "Puerto Rico"),
+    zipcode = c("20001", "00901")
   )
 
   expect_true(inherits(place, "addr_place"))
@@ -10,9 +10,9 @@ test_that("addr_place() maps state and formats", {
     as.data.frame(place),
     structure(
       list(
-        place_name = c("Cincinnati", "Columbus"),
-        place_state = c("OH", "OH"),
-        place_zipcode = c("45220", "43215")
+        place_name = c("Washington", "San Juan"),
+        place_state = c("DC", "PR"),
+        place_zipcode = c("20001", "00901")
       ),
       class = "data.frame",
       row.names = c(NA, -2L)
@@ -20,7 +20,7 @@ test_that("addr_place() maps state and formats", {
   )
   expect_equal(
     format(place),
-    c("Cincinnati OH 45220", "Columbus OH 43215")
+    c("Washington DC 20001", "San Juan PR 00901")
   )
 })
 

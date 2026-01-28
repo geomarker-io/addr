@@ -4,7 +4,7 @@ test_that("addr_street() maps components and formats", {
     premodifier = "Old",
     pretype = c("US", "I-"),
     name = c("Main", "75"),
-    posttype = c("Avenue", ""),
+    posttype = c("Avnue", "Blvrd"),
     postdirectional = c("West", "E")
   )
 
@@ -17,7 +17,7 @@ test_that("addr_street() maps components and formats", {
         street_premodifier = c("Old", "Old"),
         street_pretype = c("US Hwy", "I-"),
         street_name = c("Main", "75"),
-        street_posttype = c("Ave", ""),
+        street_posttype = c("Ave", "Blvd"),
         street_postdirectional = c("W", "E")
       ),
       class = "data.frame",
@@ -26,7 +26,7 @@ test_that("addr_street() maps components and formats", {
   )
   expect_equal(
     format(street),
-    c("N Old US Hwy Main Ave W", "S Old I- 75 E")
+    c("N Old US Hwy Main Ave W", "S Old I- 75 Blvd E")
   )
 })
 
