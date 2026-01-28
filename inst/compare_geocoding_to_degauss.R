@@ -34,11 +34,14 @@ degauss_s2 <-
       score = readr::col_double()
     )
   ) |>
-  mutate(geocoded = {
-    precision == "range" & score > 0.7
-  } | {
-    precision == "street" & score > 0.55
-  })
+  mutate(
+    geocoded = {
+      precision == "range" & score > 0.7
+    } |
+      {
+        precision == "street" & score > 0.55
+      }
+  )
 
 degauss_s2[!degauss_s2$geocoded, "lat"] <- NA
 degauss_s2[!degauss_s2$geocoded, "lon"] <- NA
@@ -54,7 +57,10 @@ degauss_s2 <-
 # doing this instead of a left_join because when some addr objects with missing address numbers
 # are converted to character, they are no longer unique
 d <-
-  dplyr::bind_cols(arrange(addr_s2, addr), degauss_s2 = arrange(degauss_s2, addr)$degauss_s2) |>
+  dplyr::bind_cols(
+    arrange(addr_s2, addr),
+    degauss_s2 = arrange(degauss_s2, addr)$degauss_s2
+  ) |>
   mutate(
     addr_bg = s2_join_tiger_bg(addr_s2, year = "2020"),
     degauss_bg = s2_join_tiger_bg(degauss_s2, year = "2020"),
@@ -97,8 +103,12 @@ d |>
     across(
       c(s2_dist),
       list(
-        "ptiles (5th, 25th, 50th, 75th, 95th)" =
-          \(.) paste(round(quantile(., probs = c(0.05, 0.25, 0.5, 0.75, 0.95)), 1), collapse = ", ")
+        "ptiles (5th, 25th, 50th, 75th, 95th)" = \(.) {
+          paste(
+            round(quantile(., probs = c(0.05, 0.25, 0.5, 0.75, 0.95)), 1),
+            collapse = ", "
+          )
+        }
       )
     ),
     .by = c(ct_agree, bg_agree)

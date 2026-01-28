@@ -1,6 +1,13 @@
 test_that("addr_match_tiger_street_ranges() works", {
   withr::local_envvar(list("R_USER_CACHE_DIR" = tempdir()))
-  addr_match_tiger_street_ranges(as_addr(c("224 Woolper Ave", "3333 Burnet Ave", "33333 Burnet Ave", "609 Walnut St", "609 Weknut Street")),
+  addr_match_tiger_street_ranges(
+    as_addr(c(
+      "224 Woolper Ave",
+      "3333 Burnet Ave",
+      "33333 Burnet Ave",
+      "609 Walnut St",
+      "609 Weknut Street"
+    )),
     street_only_match = "none"
   ) |>
     purrr::map(nrow) |>
@@ -12,7 +19,13 @@ test_that("addr_match_tiger_street_ranges() works", {
       `609 Weknut Street` = NULL
     ))
 
-  addr_match_tiger_street_ranges(as_addr(c("224 Woolper Ave", "3333 Burnet Ave", "33333 Burnet Ave", "609 Walnut St")),
+  addr_match_tiger_street_ranges(
+    as_addr(c(
+      "224 Woolper Ave",
+      "3333 Burnet Ave",
+      "33333 Burnet Ave",
+      "609 Walnut St"
+    )),
     street_only_match = "all"
   ) |>
     purrr::map(nrow) |>
@@ -23,7 +36,13 @@ test_that("addr_match_tiger_street_ranges() works", {
       `609 Walnut Street` = 2L
     ))
 
-  addr_match_tiger_street_ranges(as_addr(c("224 Woolper Ave", "3333 Burnet Ave", "33333 Burnet Ave", "609 Walnut St")),
+  addr_match_tiger_street_ranges(
+    as_addr(c(
+      "224 Woolper Ave",
+      "3333 Burnet Ave",
+      "33333 Burnet Ave",
+      "609 Walnut St"
+    )),
     street_only_match = "closest"
   ) |>
     purrr::map(nrow) |>

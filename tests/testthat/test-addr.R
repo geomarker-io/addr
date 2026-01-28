@@ -8,17 +8,33 @@ test_that("addr() works", {
   )) |>
     expect_s3_class("addr") |>
     as.data.frame() |>
-    expect_equal(structure(list(
-      street_number = c(290, 200, 3333, 111, 202),
-      street_name = c("ludlow", "w 14th", "burnet", "state route 32", "riva ridge"),
-      street_type = c("avenue", "street", "avenue", NA, "court"),
-      city = c("cincinnati", "cincinnati", "cincinnati", "cincinnati", "cincinnati"),
-      state = c("oh", "oh", "oh", "oh", "oh"),
-      zip_code = c("45220", "45222", "45219", "45912", "45140")
-    ), class = "data.frame", row.names = c(
-      NA,
-      -5L
-    )))
+    expect_equal(structure(
+      list(
+        street_number = c(290, 200, 3333, 111, 202),
+        street_name = c(
+          "ludlow",
+          "w 14th",
+          "burnet",
+          "state route 32",
+          "riva ridge"
+        ),
+        street_type = c("avenue", "street", "avenue", NA, "court"),
+        city = c(
+          "cincinnati",
+          "cincinnati",
+          "cincinnati",
+          "cincinnati",
+          "cincinnati"
+        ),
+        state = c("oh", "oh", "oh", "oh", "oh"),
+        zip_code = c("45220", "45222", "45219", "45912", "45140")
+      ),
+      class = "data.frame",
+      row.names = c(
+        NA,
+        -5L
+      )
+    ))
 })
 
 test_that("as_addr() works", {
@@ -33,17 +49,53 @@ test_that("as_addr() works", {
   )) |>
     expect_s3_class("addr") |>
     as.data.frame() |>
-    expect_equal(structure(list(
-      street_number = c(290, 290, 290, 200, 3333, 111, 202),
-      street_name = c("ludlow", "ludlow", "ludlow", "w 14th", "burnet", "state route 32", "riva ridge"),
-      street_type = c("avenue", "avenue", "avenue", "street", "avenue", NA, "court"),
-      city = c("cincinnati", "cincinnati", "cincinnati", "cincinnati", "cincinnati", "cincinnati", "cincinnati"),
-      state = c("oh", "oh", "oh", "oh", "oh", "oh", "oh"),
-      zip_code = c("45220", "45220", "45220", "45222", "45219", "45912", "45140")
-    ), class = "data.frame", row.names = c(
-      NA,
-      -7L
-    )))
+    expect_equal(structure(
+      list(
+        street_number = c(290, 290, 290, 200, 3333, 111, 202),
+        street_name = c(
+          "ludlow",
+          "ludlow",
+          "ludlow",
+          "w 14th",
+          "burnet",
+          "state route 32",
+          "riva ridge"
+        ),
+        street_type = c(
+          "avenue",
+          "avenue",
+          "avenue",
+          "street",
+          "avenue",
+          NA,
+          "court"
+        ),
+        city = c(
+          "cincinnati",
+          "cincinnati",
+          "cincinnati",
+          "cincinnati",
+          "cincinnati",
+          "cincinnati",
+          "cincinnati"
+        ),
+        state = c("oh", "oh", "oh", "oh", "oh", "oh", "oh"),
+        zip_code = c(
+          "45220",
+          "45220",
+          "45220",
+          "45222",
+          "45219",
+          "45912",
+          "45140"
+        )
+      ),
+      class = "data.frame",
+      row.names = c(
+        NA,
+        -7L
+      )
+    ))
 })
 
 test_that("addr can cast to character", {
@@ -69,7 +121,6 @@ test_that("addr can cast to character", {
 })
 
 test_that("addr abbreviates cardinal directions", {
-
   addr(c(
     "222 east Central Parkway Cincinnati OH 45000",
     "222 East Central Parkway Cincinnati OH 45000",
@@ -79,7 +130,6 @@ test_that("addr abbreviates cardinal directions", {
   )) |>
     as.character() |>
     expect_equal(rep("222 E Central Parkway Cincinnati OH 45000", 5))
-
 })
 
 test_that("addr deals with non-numeric street number address", {

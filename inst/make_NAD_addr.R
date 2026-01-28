@@ -54,7 +54,9 @@ rnad <- sf::st_read(dsn = nad_local_dsn, query = the_query)
 
 paste0_na_omit <- function(...) {
   args <- lapply(list(...), as.character)
-  if (!length(args)) return(character())
+  if (!length(args)) {
+    return(character())
+  }
   lens <- vapply(args, length, integer(1))
   stopifnot("inputs are same length" = length(unique(lens)) == 1L)
   newargs <- lapply(args, \(x) ifelse(is.na(x), "", paste0(" ", x)))
