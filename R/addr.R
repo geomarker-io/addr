@@ -91,10 +91,11 @@ addr <- S7::new_class(
     street = addr_street,
     place = addr_place
   ),
-  constructor = function(number, street, place) {
-    if (missing(number) || missing(street) || missing(place)) {
-      stop("addr requires number, street, and place", call. = FALSE)
-    }
+  constructor = function(
+    number = addr_number(),
+    street = addr_street(),
+    place = addr_place()
+  ) {
     len_number <- addr_component_length(number, c("prefix", "digits", "suffix"))
     len_street <- addr_component_length(
       street,

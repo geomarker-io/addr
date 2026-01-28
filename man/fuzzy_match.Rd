@@ -3,16 +3,18 @@
 \name{fuzzy_match}
 \alias{fuzzy_match}
 \alias{fuzzy_match_addr_field}
-\title{fuzzy match}
+\title{Fuzzy match}
 \usage{
-fuzzy_match(x, y, osa_max_dist = 1, ties = c("first", "random", "all"))
+fuzzy_match(x, y, osa_max_dist = 1)
 
 fuzzy_match_addr_field(
-  x_addr,
-  y_addr,
-  addr_field,
-  osa_max_dist = 0,
-  ties = "all"
+  x,
+  y,
+  addr_field = c("number_prefix", "number_digits", "number_suffix",
+    "street_predirectional", "street_premodifier", "street_pretype", "street_name",
+    "street_posttype", "street_postdirectional", "place_name", "place_state",
+    "place_zipcode"),
+  osa_max_dist = 0
 )
 }
 \arguments{
@@ -22,27 +24,26 @@ fuzzy_match_addr_field(
 
 \item{osa_max_dist}{maximum OSA distance to consider a match}
 
-\item{ties}{if multiple strings in \code{y} are tied for the minimum osa distances with a string in \code{x},
-then specify "first" or "random" as a tiebreaker}
+\item{addr_field}{character name of \code{addr()} field to match on}
 
 \item{x_addr}{addr vector to match}
 
 \item{y_addr}{addr vector to match to}
-
-\item{addr_field}{character name of \code{addr()} field to match on}
 }
 \value{
-an integer vector representing the position of the best matching string in \code{y} for each string in \code{x};
-when \code{ties} is "all", a list of integer vectors is returned instead
+a list of integer vectors representing the position of the best
+matching string(s) in \code{y} for each string in \code{x}
 }
 \description{
-fuzzy match strings in x to y using optimized string alignment (ignoring capitalization)
+Fuzzy match strings in x to y using optimized string alignment
+(ignoring capitalization).
 }
 \details{
-\code{fuzzy_match_addr_field} is a helper to match addr vectors using fuzzy_match on a specific field
+If multiple strings in \code{y} are tied for the minimum osa distances with a
+string in \code{x}, then all of their indices are included in the return value.
 }
 \examples{
-fuzzy_match_addr_field(addr(c("3333 Burnet Ave", "3333 Foofy Ave")),
-                       addr(c("0000 Main Street", "0000 Burnet Avenue")),
-                       "street_name")
+fuzzy_match_addr_field(as_addr(c("123 Main St.", "3333 Burnet Ave", "3333 Foofy Ave")),
+                       as_addr(c("0000 Main Street", "0000 Burnet Avenue", "222 Burnet Ave")),
+                       addr_field = "street_name")
 }

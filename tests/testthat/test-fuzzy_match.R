@@ -34,7 +34,7 @@ test_that("fuzzy_match works", {
   )
 
   expect_identical(
-    the_names[fuzzy_match(my_names, the_names)],
+    the_names[vapply(fuzzy_match(my_names, the_names), \(.) .[1], integer(1))],
     c(
       "Piney",
       "Pine",
@@ -48,17 +48,18 @@ test_that("fuzzy_match works", {
   )
 
   expect_identical(
-    the_names[fuzzy_match(my_names, the_names, 0)],
+    the_names[vapply(
+      fuzzy_match(my_names, the_names, 0),
+      FUN = \(.) .[1],
+      integer(1)
+    )],
     c(NA, "Pine", NA, "Sunset", NA, "Riverbend", NA, NA)
   )
 
-  fuzzy_match(my_names, the_names, 1, ties = "random") |>
-    expect_length(length(my_names))
-
-  fuzzy_match(my_names, the_names, 1, ties = "all") |>
+  fuzzy_match(my_names, the_names, 1) |>
     expect_identical(list(1:2, 2L, NA, 16L, 4L, 17L, NA, 6L))
 
-  fuzzy_match(my_names, the_names, 2, ties = "all") |>
+  fuzzy_match(my_names, the_names, 2) |>
     lapply(\(.x) the_names[.x]) |>
     expect_identical(list(
       c("Piney", "Pine"),
@@ -76,13 +77,13 @@ test_that("fuzzy_match works", {
     c("woolper", "burnet", "burnet", "walnut", "weknut"),
     c(NA, "adams", "woolper")
   ) |>
-    expect_identical(c(3L, NA, NA, NA, NA))
+    expect_identical(list(3L, NA, NA, NA, NA))
 
   fuzzy_match(
     c(NA, "adams", "woolper"),
     c("woolper", "burnet", "burnet", "walnut", "weknut")
   ) |>
-    expect_identical(c(NA, NA, 1L))
+    expect_identical(list(NA, NA, 1L))
 })
 
 test_that("fuzzy_match_addr_field works", {
@@ -99,9 +100,14 @@ test_that("fuzzy_match_addr_field works", {
       "222 CENTRAL PKWY",
       "222 E CENTRAL PKWY"
     )),
-    addr_field = "street_name"
+    addr_field = "street_predirectional"
   ) |>
-    expect_identical(list(c(1L, 2L, 4L), c(1L, 2L, 4L), c(1L, 2L, 4L), NA))
+    expect_identical(list(
+      c(1L, 2L, 4L),
+      c(1L, 2L, 4L),
+      c(1L, 2L, 4L),
+      c(1L, 2L, 4L)
+    ))
 
   fuzzy_match_addr_field(
     as_addr(c(
@@ -116,7 +122,7 @@ test_that("fuzzy_match_addr_field works", {
       "222 CENTRAL PKWY",
       "222 E CENTRAL PKWY"
     )),
-    addr_field = "street_number"
+    addr_field = "number_digits"
   ) |>
     expect_identical(list(c(1L, 3L, 4L), c(1L, 3L, 4L), c(2L), c(1L, 3L, 4L)))
 
@@ -133,8 +139,7 @@ test_that("fuzzy_match_addr_field works", {
       "222 CENTRAL PKWY",
       "222 E CENTRAL PKWY"
     )),
-    addr_field = "street_type",
-    ties = "first"
+    addr_field = "street_posttype"
   ) |>
-    expect_identical(c(1L, 1L, 1L, NA))
+    expect_identical(list(1:4, 1:4, 1:4, NA))
 })

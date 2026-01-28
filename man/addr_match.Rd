@@ -3,7 +3,7 @@
 \name{addr_match}
 \alias{addr_match}
 \alias{addr_match_line_one}
-\title{matching addr vectors}
+\title{matching addr objects}
 \usage{
 addr_match(
   x,
@@ -35,9 +35,8 @@ set to NULL to disregard street number}
 
 \item{max_dist_street_type}{maximum OSA distance to consider a match for the addr street_type}
 
-\item{simplify}{logical; randomly select one addr from multi-matches and return an
-addr() vector instead of a list? This specific case generates a warning; empty addr
-vectors and NULL values are converted to missing values}
+\item{simplify}{logical; choose the first addr from multi-matches and return an
+integer vector instead of a list of integer vectors?}
 }
 \value{
 a named list of possible addr matches for each addr in \code{x};
@@ -54,7 +53,8 @@ addr vectors are matched in groups by five digit ZIP codes.
 \examples{
 addr(c("3333 Burnet Ave Cincinnati OH 45229", "5130 RAPID RUN RD CINCINNATI OHIO 45238")) |>
   addr_match(nad_addr()$nad_addr)
-addr_match_line_one(addr(c("3333 Burnet Ave", "3333 Foofy Ave")),
-                    addr(c("Main Street", "Burnet Avenue")),
-                    max_dist_street_number = NULL)
+addr_match_line_one(as_addr(c("3333 Burnet Ave", "3333 Foofy Ave")),
+                    as_addr(c("Main Street", "Burnet Avenue", "Burnet Way")),
+                    max_dist_street_number = NULL,
+                    simplify = TRUE)
 }

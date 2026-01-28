@@ -1,19 +1,19 @@
-#' fuzzy match
+#' Fuzzy match
 #'
-#' fuzzy match strings in x to y using optimized string alignment (ignoring capitalization)
+#' Fuzzy match strings in x to y using optimized string alignment
+#' (ignoring capitalization).
+#'
+#' If multiple strings in `y` are tied for the minimum osa distances with a
+#' string in `x`, then all of their indices are included in the return value.
 #' @param x character vector to match
 #' @param y character vector to match to
 #' @param osa_max_dist maximum OSA distance to consider a match
-#' @param ties if multiple strings in `y` are tied for the minimum osa distances with a string in `x`,
-#' then specify "first" or "random" as a tiebreaker
-#' @return an integer vector representing the position of the best matching string in `y` for each string in `x`;
-#' when `ties` is "all", a list of integer vectors is returned instead
-#' @details `fuzzy_match_addr_field` is a helper to match addr vectors using fuzzy_match on a specific field
+#' @return a list of integer vectors representing the position of the best
+#' matching string(s) in `y` for each string in `x`
 fuzzy_match <- function(
   x,
   y,
-  osa_max_dist = 1,
-  ties = c("first", "random", "all")
+  osa_max_dist = 1
 ) {
   if (!rlang::is_character(x)) {
     rlang::abort("x must be a character")
@@ -24,7 +24,6 @@ fuzzy_match <- function(
   if (!rlang::is_bare_numeric(osa_max_dist)) {
     rlang::abort("osa_max_dist must be a numeric")
   }
-  ties <- rlang::arg_match(ties)
 
   the_dist <- stringdist::stringdistmatrix(
     tolower(x),
@@ -42,16 +41,6 @@ fuzzy_match <- function(
     suppressWarnings()
   out <- purrr::modify_if(min_dist_matches, \(.) length(.) == 0, \(.) NA)
 
-  if (ties == "random") {
-    out <- purrr::modify_if(out, \(.) length(.) > 1, sample, size = 1)
-  }
-  if (ties == "first") {
-    out <- purrr::modify_if(out, \(.) length(.) > 1, \(tmp) tmp[1])
-  }
-  if (ties %in% c("random", "first")) {
-    out <- purrr::list_c(out, ptype = integer(1))
-  }
-
   return(out)
 }
 
@@ -61,29 +50,38 @@ fuzzy_match <- function(
 #' @rdname fuzzy_match
 #' @export
 #' @examples
-#' fuzzy_match_addr_field(addr(c("3333 Burnet Ave", "3333 Foofy Ave")),
-#'                        addr(c("0000 Main Street", "0000 Burnet Avenue")),
-#'                        "street_name")
+#' fuzzy_match_addr_field(as_addr(c("123 Main St.", "3333 Burnet Ave", "3333 Foofy Ave")),
+#'                        as_addr(c("0000 Main Street", "0000 Burnet Avenue", "222 Burnet Ave")),
+#'                        addr_field = "street_name")
 fuzzy_match_addr_field <- function(
-  x_addr,
-  y_addr,
-  addr_field,
-  osa_max_dist = 0,
-  ties = "all"
+  x,
+  y,
+  addr_field = c(
+    "number_prefix",
+    "number_digits",
+    "number_suffix",
+    "street_predirectional",
+    "street_premodifier",
+    "street_pretype",
+    "street_name",
+    "street_posttype",
+    "street_postdirectional",
+    "place_name",
+    "place_state",
+    "place_zipcode"
+  ),
+  osa_max_dist = 0
 ) {
-  if (!inherits(x_addr, "addr")) {
-    rlang::abort("x_addr must be an addr object")
-  }
-  if (!inherits(y_addr, "addr")) {
-    rlang::abort("y_addr must be an addr object")
-  }
-  rlang::check_required(addr_field)
-  addr_field <- rlang::arg_match(addr_field, vctrs::fields(x_addr))
-  out <-
-    purrr::map(list(x_addr, y_addr), \(.x) {
-      as.character(vctrs::field(.x, addr_field))
-    }) |>
-    purrr::list_modify(osa_max_dist = osa_max_dist, ties = ties) |>
-    do.call(fuzzy_match, args = _)
-  return(out)
+  stopifnot(
+    "x must be an addr object" = inherits(x, "addr"),
+    "y must be an addr object" = inherits(y, "addr")
+  )
+  addr_field <- strsplit(match.arg(addr_field), "_", fixed = TRUE)[[1]]
+  x_field <- S7::prop(S7::prop(x, addr_field[1]), addr_field[2])
+  y_field <- S7::prop(S7::prop(y, addr_field[1]), addr_field[2])
+  fuzzy_match(
+    x_field,
+    y_field,
+    osa_max_dist = osa_max_dist
+  )
 }

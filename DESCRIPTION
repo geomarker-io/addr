@@ -44,7 +44,6 @@ VignetteBuilder: knitr
 Remotes:
    geomarker-io/codec
 Collate: 
-    'addr-package.R'
     'addr_place.R'
     'addr_street.R'
     'addr_number.R'
