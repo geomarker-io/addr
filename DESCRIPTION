@@ -52,7 +52,6 @@ Collate:
     'addr_helpers.R'
     'addr.R'
     'addr_geocode.R'
-    'addr_hash.R'
     'addr_match.R'
     'addr_tiger_match.R'
     'as_addr.R'
