@@ -1,9 +1,9 @@
-#' download tiger files
+#' download tiger files to the R user's data directory for the addr package
 #' @param x filename relative to ftp://ftp2.census.gov/geo/tiger/
 #' @keywords internal
 tiger_download <- function(x) {
   tiger_url <- paste0("ftp://ftp2.census.gov/geo/tiger/", x)
-  dest <- file.path(tools::R_user_dir("addr", "cache"), x)
+  dest <- file.path(tools::R_user_dir("addr", "data"), x)
   dir.create(dirname(dest), showWarnings = FALSE, recursive = TRUE)
 
   if (!file.exists(dest)) {
@@ -54,35 +54,48 @@ tiger_states <- function(year) {
 
 #' Get s2_geography for tiger street ranges
 #'
-#' Street ranges with missing minimum or maximum address numbers are excluded.
+#' TIGER address features (i.e. street address ranges) are downloaded
 #' @param county character string of county identifier
 #' @param year year of tigris product
 #' @returns a list of tibbles, one for each street name, with `TLID`, `s2_geography`, `from`, and `to` columns
 #' @keywords internal
-tiger_street_ranges <- function(county, year = "2022") {
-  stopifnot(year == "2022")
-  dest_path <- tiger_download(glue::glue("TIGER2022/ADDRFEAT/tl_2022_{county}_addrfeat.zip"))
-  sf::st_read(
-    dsn = paste0("/vsizip/", dest_path),
-    query = "SELECT TLID, FULLNAME, LFROMHN, LTOHN, RFROMHN, RTOHN FROM tl_2022_39061_addrfeat",
-    quiet = TRUE, stringsAsFactors = FALSE, as_tibble = TRUE
-  ) |>
-    dplyr::mutate(
-      dplyr::across(dplyr::ends_with("HN"), as.numeric),
-      TLID = as.character(TLID),
-      s2_geography = s2::as_s2_geography(geometry)
+tiger_addr_feat <- function(county, year) {
+  tiger_download(sprintf(
+    "TIGER%s/ADDRFEAT/tl_%s_%s_addrfeat.zip",
+    year,
+    year,
+    county
+  )) |>
+    paste0("/vsizip/", file_path = _) |>
+    sf::st_read(
+      dsn = _,
+      query = "SELECT LINEARID, FULLNAME, ZIPL, ZIPR, LFROMHN, LTOHN, RFROMHN, RTOHN, PARITYL, PARITYR, OFFSETL, OFFSETR FROM tl_2022_39061_addrfeat",
+      quiet = TRUE,
+      stringsAsFactors = FALSE,
+      as_tibble = TRUE
     ) |>
-    sf::st_drop_geometry() |>
-    dplyr::rowwise() |>
-    dplyr::mutate(
-      from = min(LFROMHN, LTOHN, RFROMHN, RTOHN, na.rm = TRUE),
-      to = max(LFROMHN, LTOHN, RFROMHN, RTOHN, na.rm = TRUE),
-      .keep = "unused"
+    dplyr::rename(
+      FROMHNL = LFROMHN,
+      TOHNL = LTOHN,
+      FROMHNR = RFROMHN,
+      TOHNR = RTOHN
     ) |>
-    dplyr::filter(from < Inf & to > -Inf) |>
-    suppressWarnings() |>
-    dplyr::ungroup() |>
-    dplyr::nest_by(FULLNAME, .key = "data") |>
-    dplyr::ungroup() |>
-    tibble::deframe()
+    tidyr::pivot_longer(
+      cols = c(
+        ZIPL,
+        ZIPR,
+        FROMHNL,
+        TOHNL,
+        FROMHNR,
+        TOHNR,
+        PARITYL,
+        PARITYR,
+        OFFSETL,
+        OFFSETR
+      ),
+      names_to = c(".value", "side"),
+      names_pattern = "(ZIP|FROMHN|TOHN|PARITY|OFFSET)(L|R)"
+    ) |>
+    na.omit() |>
+    dplyr::mutate(dplyr::across(c(ZIP, FROMHN, TOHN), to_int))
 }
