@@ -1,3 +1,10 @@
+as_norm_char <- function(x) tolower(trimws(as.character(x)))
+
+to_int <- function(x) {
+  suppressWarnings(as.integer(stringr::str_remove(x, "[^0-9.-]")))
+}
+
+
 is_zip5 <- function(x) {
   is.character(x) && length(x) == 1 && grepl("^[0-9]{5}$", x)
 }
