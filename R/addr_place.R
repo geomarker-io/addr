@@ -39,7 +39,9 @@ addr_place <- S7::new_class(
     if (!is.null(len_msg)) {
       return(len_msg)
     }
-    bad <- !is.na(self@zipcode) & !grepl("^[0-9]{5}$", self@zipcode)
+    bad <- !is.na(self@zipcode) &
+      self@zipcode != "" &
+      !grepl("^[0-9]{5}$", self@zipcode)
     if (any(bad)) {
       "@zipcode must be exactly five numeric digits"
     }

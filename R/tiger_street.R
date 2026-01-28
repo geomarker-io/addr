@@ -141,6 +141,12 @@ map_street_name_post_type <- function(x) {
   vapply(
     x_norm,
     function(val) {
+      if (is.na(val)) {
+        return(NA_character_)
+      }
+      if (val == "") {
+        return("")
+      }
       hit_type <- match(val, type_norm)
       if (!is.na(hit_type)) {
         return(type_names[hit_type])
@@ -176,6 +182,12 @@ map_street_name_pre_type <- function(x) {
   vapply(
     x_norm,
     function(val) {
+      if (is.na(val)) {
+        return(NA_character_)
+      }
+      if (val == "") {
+        return("")
+      }
       hit_type <- match(val, type_norm)
       if (!is.na(hit_type)) {
         return(type_names[hit_type])
@@ -211,6 +223,12 @@ map_direction <- function(x) {
   vapply(
     x_norm,
     function(val) {
+      if (is.na(val)) {
+        return(NA_character_)
+      }
+      if (val == "") {
+        return("")
+      }
       hit_dir <- match(val, dir_norm)
       if (!is.na(hit_dir)) {
         return(dir_names[hit_dir])

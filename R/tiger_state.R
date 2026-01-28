@@ -66,6 +66,7 @@ map_state_to_abbrev <- function(x) {
   name <- as_norm_char(unlist(valid_states, use.names = FALSE))
 
   out <- rep(NA_character_, length(x_in))
+  out[x_in == ""] <- ""
   hit_name <- match(x_in, name)
   hit_abb <- match(x_in, abb)
 

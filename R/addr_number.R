@@ -34,7 +34,9 @@ addr_number <- S7::new_class(
     if (!is.null(len_msg)) {
       return(len_msg)
     }
-    bad <- !is.na(self@digits) & !grepl("^[0-9]+$", self@digits)
+    bad <- !is.na(self@digits) &
+      self@digits != "" &
+      !grepl("^[0-9]+$", self@digits)
     if (any(bad)) {
       "@digits must contain only numeric characters"
     }
