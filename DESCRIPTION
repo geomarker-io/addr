@@ -58,7 +58,6 @@ Collate:
     'census_geography.R'
     'clean.R'
     'data.R'
-    'expand_street_type.R'
     'extendr-wrappers.R'
     'fuzzy_match.R'
     'impute_date_range.R'
