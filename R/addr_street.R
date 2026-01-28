@@ -1,6 +1,11 @@
 #' Address street class
 #'
+#' `addr_street()` objects contain fields for "StreetNamePreDirectional",
+#' "StreetNamePreModifier", "StreetNamePreType", "StreetName",
+#' "StreetNamePostType", and "StreetNamePostDirectional"
 #' @export
+#' @examples
+#' addr_street(name = "Burnet", posttype = "Ave")
 addr_street <- S7::new_class(
   "addr_street",
   package = NULL,
@@ -13,12 +18,12 @@ addr_street <- S7::new_class(
     postdirectional = S7::class_character
   ),
   constructor = function(
-    predirectional = character(0),
-    premodifier = character(0),
-    pretype = character(0),
-    name = character(0),
-    posttype = character(0),
-    postdirectional = character(0),
+    predirectional = NA_character_,
+    premodifier = NA_character_,
+    pretype = NA_character_,
+    name = NA_character_,
+    posttype = NA_character_,
+    postdirectional = NA_character_,
     map_posttype = TRUE,
     map_directional = TRUE,
     map_pretype = TRUE
