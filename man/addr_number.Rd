@@ -10,9 +10,22 @@ addr_number(
   suffix = NA_character_
 )
 }
+\arguments{
+\item{prefix}{(often fractional) appears before digits}
+
+\item{digits}{primary street number for the address}
+
+\item{suffix}{(often letter/part) attached after digits}
+}
+\value{
+a addr_number object
+}
 \description{
 \code{addr_number()} objects contain fields for "AddressNumberPrefix",
 "AddressNumber", and "AddressNumberSuffix".
+Each must be a character vector of at least length one
+(including missing values); length one fields will be
+recycled to match the length of other fields.
 }
 \examples{
 addr_number(digits = "290")
