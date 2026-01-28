@@ -2,7 +2,7 @@
 % Please edit documentation in R/tiger.R
 \name{tiger_download}
 \alias{tiger_download}
-\title{download tiger files}
+\title{download tiger files to the R user's data directory for the addr package}
 \usage{
 tiger_download(x)
 }
@@ -10,6 +10,6 @@ tiger_download(x)
 \item{x}{filename relative to ftp://ftp2.census.gov/geo/tiger/}
 }
 \description{
-download tiger files
+download tiger files to the R user's data directory for the addr package
 }
 \keyword{internal}
