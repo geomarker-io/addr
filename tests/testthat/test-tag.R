@@ -47,3 +47,23 @@ test_that("addr_tag works", {
       )
     )
 })
+
+test_that("addr_tag includes extended labels", {
+  tags <- addr_tag(c(
+    "A 123 Main St E Cincinnati OH 45220",
+    "#123 A Main St E Cincinnati OH 45220",
+    "200 W Old US 50 Ave Cincinnati OH 45220"
+  ))
+
+  expect_true("AddressNumberPrefix" %in% names(tags[[1]]))
+  expect_true("StreetNamePostDirectional" %in% names(tags[[1]]))
+  expect_true("StreetNamePostType" %in% names(tags[[1]]))
+
+  expect_true("AddressNumberSuffix" %in% names(tags[[2]]))
+  expect_true("StreetNamePostDirectional" %in% names(tags[[2]]))
+  expect_true("StreetNamePostType" %in% names(tags[[2]]))
+
+  expect_true("StreetNamePreDirectional" %in% names(tags[[3]]))
+  expect_true("StreetNamePreModifier" %in% names(tags[[3]]))
+  expect_true("StreetNamePreType" %in% names(tags[[3]]))
+})
