@@ -11,9 +11,9 @@ addr_place <- S7::new_class(
     zipcode = S7::class_character
   ),
   constructor = function(
-    name = character(0),
-    state = character(0),
-    zipcode = character(0),
+    name = NA_character_,
+    state = NA_character_,
+    zipcode = NA_character_,
     map_state = TRUE
   ) {
     if (isTRUE(map_state)) {
