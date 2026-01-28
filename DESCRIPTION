@@ -55,6 +55,7 @@ Collate:
     'addr_hash.R'
     'addr_match.R'
     'addr_tiger_match.R'
+    'as_addr.R'
     'census_geography.R'
     'clean.R'
     'data.R'

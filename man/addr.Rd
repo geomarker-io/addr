@@ -6,6 +6,13 @@
 \usage{
 addr(number, street, place)
 }
+\arguments{
+\item{number}{a addr_number object}
+
+\item{street}{a addr_street_object}
+
+\item{place}{a addr_street_object}
+}
 \description{
 \code{addr()} combines \code{addr_number()}, \code{addr_street()}, and \code{addr_place()} into a
 single address object. The structures for \code{addr()} and the \code{addr_} classes are

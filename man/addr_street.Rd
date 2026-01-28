@@ -16,10 +16,36 @@ addr_street(
   map_pretype = TRUE
 )
 }
+\arguments{
+\item{predirectional}{direction before name}
+
+\item{premodifier}{descriptive modifier before name}
+
+\item{pretype}{type/classification before name}
+
+\item{name}{core street name (excluding type/directionals)}
+
+\item{posttype}{type/classification after name}
+
+\item{postdirectional}{direction after name}
+
+\item{map_posttype}{logical; map posttype to abbreviations?}
+
+\item{map_directional}{logical; map pre- and post-directional
+to abbreviations?}
+
+\item{map_pretype}{logical; map pretype to abbreviations?}
+}
+\value{
+a addr_street object
+}
 \description{
 \code{addr_street()} objects contain fields for "StreetNamePreDirectional",
 "StreetNamePreModifier", "StreetNamePreType", "StreetName",
 "StreetNamePostType", and "StreetNamePostDirectional"
+Each must be a character vector of at least length one
+(including missing values); length one fields will be
+recycled to match the length of other fields.
 }
 \examples{
 addr_street(name = "Burnet", posttype = "Ave")

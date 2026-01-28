@@ -3,6 +3,20 @@
 #' `addr_street()` objects contain fields for "StreetNamePreDirectional",
 #' "StreetNamePreModifier", "StreetNamePreType", "StreetName",
 #' "StreetNamePostType", and "StreetNamePostDirectional"
+#' Each must be a character vector of at least length one
+#' (including missing values); length one fields will be
+#' recycled to match the length of other fields.
+#' @param predirectional direction before name
+#' @param premodifier descriptive modifier before name
+#' @param pretype type/classification before name
+#' @param name core street name (excluding type/directionals)
+#' @param posttype type/classification after name
+#' @param postdirectional direction after name
+#' @param map_posttype logical; map posttype to abbreviations?
+#' @param map_directional logical; map pre- and post-directional
+#' to abbreviations?
+#' @param map_pretype logical; map pretype to abbreviations?
+#' @return a addr_street object
 #' @export
 #' @examples
 #' addr_street(name = "Burnet", posttype = "Ave")

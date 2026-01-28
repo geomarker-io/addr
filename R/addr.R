@@ -7,6 +7,9 @@
 #' addresses.
 #'
 #' @include addr_helpers.R addr_number.R addr_street.R addr_place.R
+#' @param number a addr_number object
+#' @param street a addr_street_object
+#' @param place a addr_street_object
 #' @export
 #' @examples
 #' addr(

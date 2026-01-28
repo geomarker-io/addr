@@ -11,9 +11,22 @@ addr_place(
   map_state = TRUE
 )
 }
+\arguments{
+\item{name}{city, town, or municipality name}
+
+\item{state}{state or territory abbreviation}
+
+\item{map_state}{logical; map state to abbreviations?}
+}
+\value{
+a addr_place object
+}
 \description{
 \code{addr_place()} objects contain fields for "PlaceName", "StateName",
 and "ZipCode".
+Each must be a character vector of at least length one
+(including missing values); length one fields will be
+recycled to match the length of other fields.
 }
 \examples{
 addr_place(name = "Cincinnati", state = "OH", zipcode = "45220")
