@@ -33,7 +33,7 @@ addr_number(
   suffix = NA_character_
 )
 
-addr(number, street, place)
+addr(number = addr_number(), street = addr_street(), place = addr_place())
 }
 \arguments{
 \item{name}{city, town, or municipality name}

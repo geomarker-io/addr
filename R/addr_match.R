@@ -1,4 +1,4 @@
-#' matching addr vectors
+#' matching addr objects
 #'
 #' Optimized String Alignment (OSA) distances are used to
 #' choose a set of matching reference addr with flexible, field-specific thresholds.
@@ -6,9 +6,8 @@
 #' addr vectors are matched in groups by five digit ZIP codes.
 #' @param x an addr vector to match
 #' @param ref_addr an addr vector to search for matches in
-#' @param simplify logical; randomly select one addr from multi-matches and return an
-#' addr() vector instead of a list? This specific case generates a warning; empty addr
-#' vectors and NULL values are converted to missing values
+#' @param simplify logical; choose the first addr from multi-matches and return an
+#' integer vector instead of a list of integer vectors?
 #' @returns a named list of possible addr matches for each addr in `x`;
 #' a list value of NULL means the zip code was not matched and
 #' a list value of a zero-length addr vector means the zip code was matched,
@@ -87,9 +86,10 @@ addr_match <- function(
 #' @rdname addr_match
 #' @export
 #' @examples
-#' addr_match_line_one(addr(c("3333 Burnet Ave", "3333 Foofy Ave")),
-#'                     addr(c("Main Street", "Burnet Avenue")),
-#'                     max_dist_street_number = NULL)
+#' addr_match_line_one(as_addr(c("3333 Burnet Ave", "3333 Foofy Ave")),
+#'                     as_addr(c("Main Street", "Burnet Avenue", "Burnet Way")),
+#'                     max_dist_street_number = NULL,
+#'                     simplify = TRUE)
 addr_match_line_one <- function(
   x,
   ref_addr,
@@ -103,7 +103,7 @@ addr_match_line_one <- function(
     matches$street_number <- fuzzy_match_addr_field(
       x,
       ref_addr,
-      "street_number",
+      "number_digits",
       max_dist_street_number
     )
   }
@@ -116,26 +116,21 @@ addr_match_line_one <- function(
   matches$street_type <- fuzzy_match_addr_field(
     x,
     ref_addr,
-    "street_type",
+    "street_posttype",
     max_dist_street_type
   )
 
-  out <-
-    purrr::reduce(matches, \(.x, .y) purrr::map2(.x, .y, intersect)) |>
-    purrr::modify_if(\(.x) all(is.na(.x)), \(.x) NULL) |>
-    purrr::map(\(.x) ref_addr[.x]) |>
-    purrr::set_names(x)
+  out <- do.call(
+    Map,
+    c(list(function(...) Reduce(intersect, list(...))), matches)
+  )
 
   if (simplify) {
     n_multimatches <- sum(sapply(out, length) > 1)
     if (n_multimatches > 0) {
-      warning(n_multimatches, " multimatches being reduced to a single match")
+      warning(n_multimatches, " multimatches being reduced to first match")
     }
-    out <-
-      out |>
-      purrr::modify_if(\(.x) length(.x) > 1, sample, size = 1) |>
-      purrr::modify_if(\(.x) length(.x) == 0, \(.x) NA) |>
-      purrr::list_c(ptype = addr())
+    out <- lapply(out, `[`, 1)
   }
   return(out)
 }
