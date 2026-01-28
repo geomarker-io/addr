@@ -2,13 +2,10 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{usaddress_tag}
 \alias{usaddress_tag}
-\title{Return list of lists of address tags to R.}
+\title{run usaddress::parse on a vector of strings}
 \usage{
-usaddress_tag(input)
-}
-\arguments{
-\item{input}{character string of addresses}
+usaddress_tag(x)
 }
 \description{
-Return list of lists of address tags to R.
+run usaddress::parse on a vector of strings
 }

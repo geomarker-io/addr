@@ -1,14 +1,20 @@
 use extendr_api::prelude::*;
 
-/// Return list of lists of address tags to R.
-/// @param input character string of addresses
+/// run usaddress::parse on a vector of strings
 #[extendr]
-fn usaddress_tag(input: Vec<String>) -> Robj {
-    let ta: Vec<_> = input
-	.iter().map(|x| usaddress::parse(x).unwrap())
-	.map(|x| Pairlist::from_pairs(x))
-	.collect();
-    return r!(List::from_values(ta))
+fn usaddress_tag(x: Vec<String>) -> Robj {
+    let ta: Vec<_> = x
+        .iter()
+        .map(|x| usaddress::parse(x).unwrap())
+        .map(|pairs| {
+            let (tokens, tags): (Vec<String>, Vec<String>) =
+                pairs.into_iter().map(|(token, tag)| (token, tag)).unzip();
+            let mut v = Strings::from_values(tokens);
+            v.set_names(tags).unwrap();
+            v.into_robj()
+        })
+        .collect();
+    return r!(List::from_values(ta));
 }
 
 // Macro to generate exports.

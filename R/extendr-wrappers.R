@@ -10,9 +10,8 @@
 #' @useDynLib addr, .registration = TRUE
 NULL
 
-#' Return list of lists of address tags to R.
-#' @param input character string of addresses
-usaddress_tag <- function(input) .Call(wrap__usaddress_tag, input)
+#' run usaddress::parse on a vector of strings
+usaddress_tag <- function(x) .Call(wrap__usaddress_tag, x)
 
 
 # nolint end

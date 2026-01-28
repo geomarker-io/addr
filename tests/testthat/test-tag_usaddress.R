@@ -1,5 +1,5 @@
 test_that("addr_tag works", {
-  addr_tag(c(
+  tag_usaddress(c(
     "290 Ludlow Avenue Apt #2 Cincinnati OH 45220",
     "200 W 14th Street Cincinnati OH 45222",
     "3333 Burnet Ave Cincinnati OH 45219",
@@ -49,7 +49,7 @@ test_that("addr_tag works", {
 })
 
 test_that("addr_tag includes extended labels", {
-  tags <- addr_tag(c(
+  tags <- tag_usaddress(c(
     "A 123 Main St E Cincinnati OH 45220",
     "#123 A Main St E Cincinnati OH 45220",
     "200 W Old US 50 Ave Cincinnati OH 45220"
