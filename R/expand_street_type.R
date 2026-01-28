@@ -38,7 +38,12 @@ expand_post_type <- function(x) {
       "trail" = c("tr", "tl"),
       "way" = c("wy")
     ) |>
-    purrr::imap(\(.x, .i) stats::setNames(c(tolower(.i), as.character(.x)), rep(.i, times = length(.x) + 1))) |>
+    purrr::imap(\(.x, .i) {
+      stats::setNames(
+        c(tolower(.i), as.character(.x)),
+        rep(.i, times = length(.x) + 1)
+      )
+    }) |>
     purrr::flatten()
   out <- names(lookup[match(x, lookup)])
   # replace unmatched with original input

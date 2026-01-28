@@ -14,7 +14,9 @@
 s2_join_tiger_bg <- function(x, year = as.character(2024:2013)) {
   rlang::check_installed("sf", "read TIGER/Line census block group geographies")
   rlang::check_installed("s2", "s2 geometry calculations")
-  if (!inherits(x, "s2_cell")) stop("x must be a s2_cell vector", call. = FALSE)
+  if (!inherits(x, "s2_cell")) {
+    stop("x must be a s2_cell vector", call. = FALSE)
+  }
   year <- rlang::arg_match(year)
   x_s2_geo <-
     unique(stats::na.omit(x)) |>
@@ -22,18 +24,24 @@ s2_join_tiger_bg <- function(x, year = as.character(2024:2013)) {
     s2::as_s2_geography()
   names(x_s2_geo) <- as.character(unique(stats::na.omit(x)))
   states <- tiger_states(year)
-  the_states <- states[s2::s2_closest_feature(x_s2_geo, states$s2_geography), "GEOID", drop = TRUE]
+  the_states <- states[
+    s2::s2_closest_feature(x_s2_geo, states$s2_geography),
+    "GEOID",
+    drop = TRUE
+  ]
   state_bgs <-
     lapply(unique(the_states), tiger_block_groups, year = year) |>
     stats::setNames(unique(the_states))
   the_s2s <- split(x_s2_geo, the_states)
   out <-
     purrr::imap(the_s2s, \(x, i) {
-      state_bgs[[i]][s2::s2_closest_feature(x, state_bgs[[i]]$s2_geography), "GEOID", drop = TRUE]
+      state_bgs[[i]][
+        s2::s2_closest_feature(x, state_bgs[[i]]$s2_geography),
+        "GEOID",
+        drop = TRUE
+      ]
     }) |>
     unlist() |>
     stats::setNames(unlist(purrr::map(the_s2s, names)))
   return(stats::setNames(out[as.character(x)], NULL))
 }
-
-

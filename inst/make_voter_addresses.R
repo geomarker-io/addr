@@ -4,23 +4,27 @@ library(readr)
 # might have to update the date in the url to get the download to work
 rd <- read_csv(
   "https://votehamiltoncountyohio.gov/download.php?file=VoterListExport-20240912-no.csv",
-  col_types =
-    cols_only(
-      AddressPreDirectional = col_character(),
-      AddressNumber = col_double(),
-      AddressStreet = col_character(),
-      AddressSuffix = col_character(),
-      CityName = col_character(),
-      AddressZip = col_character(),
-    )
+  col_types = cols_only(
+    AddressPreDirectional = col_character(),
+    AddressNumber = col_double(),
+    AddressStreet = col_character(),
+    AddressSuffix = col_character(),
+    CityName = col_character(),
+    AddressZip = col_character(),
+  )
 )
 
 d <-
   rd |>
   dplyr::mutate(
     voter_address = paste(
-      AddressPreDirectional, AddressNumber, AddressStreet,
-      AddressSuffix, CityName, "OH", AddressZip
+      AddressPreDirectional,
+      AddressNumber,
+      AddressStreet,
+      AddressSuffix,
+      CityName,
+      "OH",
+      AddressZip
     ),
     .keep = "unused"
   )

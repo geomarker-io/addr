@@ -1,5 +1,5 @@
 #' Tag components of an address string
-#' 
+#'
 #' The address components are tagged using a [rust port](https://github.com/boydjohnson/usaddress-rs) of
 #' [usaddress](https://github.com/datamade/usaddress).
 #' Component names are based upon the [United States Thoroughfare,
@@ -44,7 +44,9 @@
 #' @examples
 #' addr_tag(c("290 Ludlow Avenue Apt #2 Cincinnati OH 45220", "3333 Burnet Ave Cincinnati OH 45219"))
 addr_tag <- function(x, clean_address_text = TRUE) {
-  if (clean_address_text) x <- clean_address_text(x)
+  if (clean_address_text) {
+    x <- clean_address_text(x)
+  }
   tags <- usaddress_tag(x)
   lapply(tags, \(.) stats::setNames(names(.), .))
 }

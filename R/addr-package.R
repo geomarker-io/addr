@@ -4,4 +4,3 @@
 #' @keywords internal
 #' @name addr-vctrs
 NULL
-
