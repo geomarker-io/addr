@@ -1,7 +1,11 @@
 #' Address place class
 #'
+#' `addr_place()` objects contain fields for "PlaceName", "StateName",
+#' and "ZipCode".
 #' @include tiger_state.R
 #' @export
+#' @examples
+#' addr_place(name = "Cincinnati", state = "OH", zipcode = "45220")
 addr_place <- S7::new_class(
   "addr_place",
   package = NULL,

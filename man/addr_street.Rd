@@ -5,17 +5,22 @@
 \title{Address street class}
 \usage{
 addr_street(
-  predirectional = character(0),
-  premodifier = character(0),
-  pretype = character(0),
-  name = character(0),
-  posttype = character(0),
-  postdirectional = character(0),
+  predirectional = NA_character_,
+  premodifier = NA_character_,
+  pretype = NA_character_,
+  name = NA_character_,
+  posttype = NA_character_,
+  postdirectional = NA_character_,
   map_posttype = TRUE,
   map_directional = TRUE,
   map_pretype = TRUE
 )
 }
 \description{
-Address street class
+\code{addr_street()} objects contain fields for "StreetNamePreDirectional",
+"StreetNamePreModifier", "StreetNamePreType", "StreetName",
+"StreetNamePostType", and "StreetNamePostDirectional"
+}
+\examples{
+addr_street(name = "Burnet", posttype = "Ave")
 }

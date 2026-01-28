@@ -5,11 +5,16 @@
 \title{Address number class}
 \usage{
 addr_number(
-  prefix = character(0),
-  digits = character(0),
-  suffix = character(0)
+  prefix = NA_character_,
+  digits = NA_character_,
+  suffix = NA_character_
 )
 }
 \description{
-Address number class
+\code{addr_number()} objects contain fields for "AddressNumberPrefix",
+"AddressNumber", and "AddressNumberSuffix".
+}
+\examples{
+addr_number(digits = "290")
+addr_number(prefix = "N", digits = "290", suffix = "A")
 }

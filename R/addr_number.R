@@ -1,6 +1,11 @@
 #' Address number class
 #'
+#' `addr_number()` objects contain fields for "AddressNumberPrefix",
+#' "AddressNumber", and "AddressNumberSuffix".
 #' @export
+#' @examples
+#' addr_number(digits = "290")
+#' addr_number(prefix = "N", digits = "290", suffix = "A")
 addr_number <- S7::new_class(
   "addr_number",
   package = NULL,

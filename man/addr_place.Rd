@@ -5,12 +5,16 @@
 \title{Address place class}
 \usage{
 addr_place(
-  name = character(0),
-  state = character(0),
-  zipcode = character(0),
+  name = NA_character_,
+  state = NA_character_,
+  zipcode = NA_character_,
   map_state = TRUE
 )
 }
 \description{
-Address place class
+\code{addr_place()} objects contain fields for "PlaceName", "StateName",
+and "ZipCode".
+}
+\examples{
+addr_place(name = "Cincinnati", state = "OH", zipcode = "45220")
 }

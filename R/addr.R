@@ -1,7 +1,45 @@
 #' Address class
 #'
+#' `addr()` combines `addr_number()`, `addr_street()`, and `addr_place()` into a
+#' single address object. The structures for `addr()` and the `addr_` classes are
+#' derived as a subset of the United States Thoroughfare, Landmark, and Postal
+#' Address Data Standard that is relevant for residential thoroughfare
+#' addresses.
+#'
 #' @include addr_helpers.R addr_number.R addr_street.R addr_place.R
 #' @export
+#' @examples
+#' addr(
+#'   addr_number(digits = "290"),
+#'   addr_street(name = "Burnet", posttype = "Ave"),
+#'   addr_place(name = "Cincinnati", state = "OH", zipcode = "45229")
+#' )
+#' addr(
+#'   addr_number(digits = "200"),
+#'   addr_street(
+#'     predirectional = "west",
+#'     premodifier = "Old",
+#'     pretype = "US",
+#'     name = "50",
+#'     posttype = "avenue",
+#'     postdirectional = "east",
+#'     map_directional = TRUE,
+#'     map_pretype = TRUE,
+#'     map_posttype = TRUE
+#'   ),
+#'   addr_place(name = "Cincinnati", state = "ohio", zipcode = "45220")
+#' )
+#'
+#' # addr_* objects are recycled and omitted fields are missing
+#' addr(
+#'   addr_number(digits = c("290", "200", "3333", "111")),
+#'   addr_street(
+#'     name = c("Burnet", "Main", "Ludlow", "State Route 32"),
+#'     posttype = c("Ave", "St", "Ave", NA_character_)
+#'   ),
+#'   addr_place(name = "Cincinnati", state = "OH")
+#' )|>
+#'   str()
 addr <- S7::new_class(
   "addr",
   package = NULL,
