@@ -4,10 +4,13 @@
 \alias{tag_usaddress}
 \title{Tag US addresses}
 \usage{
-tag_usaddress(x = NA_character_)
+tag_usaddress(x = NA_character_, clean = TRUE)
 }
 \arguments{
 \item{x}{character string of addresses}
+
+\item{clean}{logical; clean address text with clean_address_text()
+before tagging?}
 }
 \value{
 a list of vectors of named address tags

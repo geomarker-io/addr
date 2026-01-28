@@ -18,6 +18,7 @@ s2_join_tiger_bg <- function(x, year = as.character(2024:2013)) {
     stop("x must be a s2_cell vector", call. = FALSE)
   }
   year <- rlang::arg_match(year)
+  # TODO enforce leaf level s2 cells for this function
   x_s2_geo <-
     unique(stats::na.omit(x)) |>
     s2::s2_cell_to_lnglat() |>

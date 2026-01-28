@@ -1,14 +1,14 @@
 #' Coerce to addr
 #'
-#' `as_addr()` converts character vectors or data frames into `addr()` objects.
-#' The structures for `addr()` and the `addr_` classes are derived as a subset
-#' of the United States Thoroughfare, Landmark, and Postal Address Data Standard
-#' that is relevant for residential thoroughfare addresses.
+#' `as_addr()` converts other objects into `addr()` objects.
+#' See `?addr` for more details on its structure.
 #' @section Methods implemented for:
-#' - `character`: will be cleaned, tagged, normalized; all `map_*` arguments
-#' are passed onto `addr_street()` or `addr_place()`
+#' - `character`: will be cleaned (if `clean = TRUE`) with `clean_address_text()`
+#' and then tagged using `usaddress_tag()`; tags are normalized to abbreviations
+#' by passing all `map_*` arguments to `addr_street()` or `addr_place()`
 #' - `data.frame`: must have columns named according to fields in
-#' `addr_number()`, `addr_street()`, or `addr_place()`
+#' `addr_number()`, `addr_street()`, or `addr_place()`; also passes
+#' the `map_*` arguments to `addr_street()` and `addr_place()`
 #' - `addr`: returned as-is
 #' @param x object to coerce to an addr
 #' @param ... additional arguments passed to methods
@@ -35,12 +35,13 @@ S7::method(as_addr, addr) <- function(x, ...) x
 S7::method(as_addr, S7::class_character) <- function(
   x,
   ...,
+  clean = TRUE,
   map_state = TRUE,
   map_posttype = TRUE,
   map_directional = TRUE,
   map_pretype = TRUE
 ) {
-  tags <- tag_usaddress(x)
+  tags <- tag_usaddress(x, clean = clean)
 
   extract_tag <- function(tag_vec, label, collapse = " ") {
     if (length(tag_vec) == 1L && is.na(tag_vec)) {

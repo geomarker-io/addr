@@ -1,18 +1,5 @@
-#' Address place class
-#'
-#' `addr_place()` objects contain fields for "PlaceName", "StateName",
-#' and "ZipCode".
-#' Each must be a character vector of at least length one
-#' (including missing values); length one fields will be
-#' recycled to match the length of other fields.
-#' @param name city, town, or municipality name
-#' @param state state or territory abbreviation
-#' @param map_state logical; map state to abbreviations?
-#' @include tiger_state.R
-#' @return a addr_place object
+#' @rdname addr
 #' @export
-#' @examples
-#' addr_place(name = "Cincinnati", state = "OH", zipcode = "45220")
 addr_place <- S7::new_class(
   "addr_place",
   package = NULL,
