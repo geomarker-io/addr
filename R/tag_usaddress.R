@@ -34,14 +34,19 @@
 #' Find more information about the definitions at <https://www.fgdc.gov/schemas/address/>
 #'
 #' @param x character string of addresses
+#' @param clean logical; clean address text with clean_address_text()
+#' before tagging?
 #' @return a list of vectors of named address tags
 #' @export
 #' @examples
 #' tag_usaddress(c("290 Ludlow Avenue Apt 2 Cincinnati OH 45220",
 #'                 "3333 Burnet Ave Cincinnati Ohio 45219",
 #'                 NA, ""))
-tag_usaddress <- function(x = NA_character_) {
+tag_usaddress <- function(x = NA_character_, clean = TRUE) {
   stopifnot("x must be a character vector" = typeof(x) == "character")
+  if (clean) {
+    x <- clean_address_text(x)
+  }
   ux <- unique(na.omit(x))
   if (all(is.na(ux))) {
     return(as.list(rep(

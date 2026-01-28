@@ -1,22 +1,63 @@
-#' Address class
+#' addr classes
 #'
 #' `addr()` combines `addr_number()`, `addr_street()`, and `addr_place()` into a
 #' single address object. The structures for `addr()` and the `addr_` classes are
 #' derived as a subset of the United States Thoroughfare, Landmark, and Postal
 #' Address Data Standard that is relevant for residential thoroughfare
-#' addresses.
+#' addresses:
+#' - `addr_number()` objects contain fields for "AddressNumberPrefix",
+#' "AddressNumber", and "AddressNumberSuffix".
+#' - `addr_street()` objects contain fields for "StreetNamePreDirectional",
+#' "StreetNamePreModifier", "StreetNamePreType", "StreetName",
+#' "StreetNamePostType", and "StreetNamePostDirectional".
+#' - `addr_place()` objects contain fields for "PlaceName", "StateName",
+#' and "ZipCode".
+#'
+#' All field values must must be a character vector of at least length one
+#' (including missing values); length one fields will be
+#' recycled to match the length of other fields.
 #'
 #' @include addr_helpers.R addr_number.R addr_street.R addr_place.R
-#' @param number a addr_number object
-#' @param street a addr_street_object
-#' @param place a addr_street_object
+#' @param prefix (often fractional) appears before digits
+#' @param digits primary street number for the address
+#' @param suffix (often letter/part) attached after digits
+#' @param predirectional direction before name
+#' @param premodifier descriptive modifier before name
+#' @param pretype type/classification before name
+#' @param name core street name (excluding type/directionals)
+#' @param posttype type/classification after name
+#' @param postdirectional direction after name
+#' @param name city, town, or municipality name
+#' @param state state or territory abbreviation
+#' @param map_posttype logical; map posttype to abbreviations?
+#' @param map_directional logical; map pre- and post-directional
+#' to abbreviations?
+#' @param map_pretype logical; map pretype to abbreviations?
+#' @param map_state logical; map state to abbreviations?
+#' @param number an addr_number object
+#' @param street an addr_street_object
+#' @param place an addr_street_object
+#' @returns An addr, addr_number, addr_street, or addr_place object
 #' @export
 #' @examples
+#' # define a new address number object
+#' addr_number(digits = "290")
+#' addr_number(prefix = "N", digits = "290", suffix = "A")
+#'
+#' # define a new address street object
+#' addr_street(name = "Burnet", posttype = "Ave")
+#'
+#' # define a new address place object
+#' addr_place(name = "Cincinnati", state = "OH", zipcode = "45220")
+#'
+#' # define a new addr object
 #' addr(
 #'   addr_number(digits = "290"),
 #'   addr_street(name = "Burnet", posttype = "Ave"),
 #'   addr_place(name = "Cincinnati", state = "OH", zipcode = "45229")
 #' )
+#'
+#' # define a more complicated addr object
 #' addr(
 #'   addr_number(digits = "200"),
 #'   addr_street(
@@ -41,8 +82,7 @@
 #'     posttype = c("Ave", "St", "Ave", NA_character_)
 #'   ),
 #'   addr_place(name = "Cincinnati", state = "OH")
-#' )|>
-#'   str()
+#' )
 addr <- S7::new_class(
   "addr",
   package = NULL,

@@ -1,18 +1,5 @@
-#' Address number class
-#'
-#' `addr_number()` objects contain fields for "AddressNumberPrefix",
-#' "AddressNumber", and "AddressNumberSuffix".
-#' Each must be a character vector of at least length one
-#' (including missing values); length one fields will be
-#' recycled to match the length of other fields.
-#' @param prefix (often fractional) appears before digits
-#' @param digits primary street number for the address
-#' @param suffix (often letter/part) attached after digits
-#' @returns a addr_number object
+#' @rdname addr
 #' @export
-#' @examples
-#' addr_number(digits = "290")
-#' addr_number(prefix = "N", digits = "290", suffix = "A")
 addr_number <- S7::new_class(
   "addr_number",
   package = NULL,

@@ -12,18 +12,18 @@ as_addr(x, ...)
 \item{...}{additional arguments passed to methods}
 }
 \description{
-\code{as_addr()} converts character vectors or data frames into \code{addr()} objects.
-The structures for \code{addr()} and the \code{addr_} classes are derived as a subset
-of the United States Thoroughfare, Landmark, and Postal Address Data Standard
-that is relevant for residential thoroughfare addresses.
+\code{as_addr()} converts other objects into \code{addr()} objects.
+See \code{?addr} for more details on its structure.
 }
 \section{Methods implemented for}{
 
 \itemize{
-\item \code{character}: will be cleaned, tagged, normalized; all \verb{map_*} arguments
-are passed onto \code{addr_street()} or \code{addr_place()}
+\item \code{character}: will be cleaned (if \code{clean = TRUE}) with \code{clean_address_text()}
+and then tagged using \code{usaddress_tag()}; tags are normalized to abbreviations
+by passing all \verb{map_*} arguments to \code{addr_street()} or \code{addr_place()}
 \item \code{data.frame}: must have columns named according to fields in
-\code{addr_number()}, \code{addr_street()}, or \code{addr_place()}
+\code{addr_number()}, \code{addr_street()}, or \code{addr_place()}; also passes
+the \verb{map_*} arguments to \code{addr_street()} and \code{addr_place()}
 \item \code{addr}: returned as-is
 }
 }
