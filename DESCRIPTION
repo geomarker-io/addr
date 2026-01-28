@@ -30,8 +30,8 @@ Imports:
     fs,
     tibble,
     rlang,
-    vctrs,
     methods,
+    S7,
     stringdist,
     zeallot
 SystemRequirements: Cargo (Rust's package manager), rustc
@@ -44,4 +44,27 @@ Config/rextendr/version: 0.3.1
 VignetteBuilder: knitr
 Remotes:
    geomarker-io/codec
-
+Collate: 
+    'addr-package.R'
+    'tiger_state.R'
+    'addr_place.R'
+    'addr_street.R'
+    'addr_number.R'
+    'addr_helpers.R'
+    'addr.R'
+    'addr_geocode.R'
+    'addr_hash.R'
+    'addr_match.R'
+    'addr_tiger_match.R'
+    'census_geography.R'
+    'clean.R'
+    'data.R'
+    'expand_street_type.R'
+    'extendr-wrappers.R'
+    'fuzzy_match.R'
+    'impute_date_range.R'
+    'tag.R'
+    'tiger.R'
+    'tiger_geocode.R'
+    'tiger_street.R'
+    'utils-zeallot.R'
