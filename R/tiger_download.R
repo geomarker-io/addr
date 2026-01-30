@@ -15,6 +15,10 @@ tiger_download <- function(x) {
   return(dest)
 }
 
+# TODO refactor tests so that these functions return preinstalled data so no actual downloads are triggered
+
+# TODO write small tests to tiger_download, but only run on local checks -- or check a very, very small census file?? (like in geomarker??)
+
 #' get s2_geography for census block groups
 #' @param state census FIPS state identifier
 #' @param year vintage of TIGER/Line block group geography files

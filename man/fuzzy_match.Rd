@@ -2,20 +2,9 @@
 % Please edit documentation in R/fuzzy_match.R
 \name{fuzzy_match}
 \alias{fuzzy_match}
-\alias{fuzzy_match_addr_field}
 \title{Fuzzy match}
 \usage{
 fuzzy_match(x, y, osa_max_dist = 1)
-
-fuzzy_match_addr_field(
-  x,
-  y,
-  addr_field = c("number_prefix", "number_digits", "number_suffix",
-    "street_predirectional", "street_premodifier", "street_pretype", "street_name",
-    "street_posttype", "street_postdirectional", "place_name", "place_state",
-    "place_zipcode"),
-  osa_max_dist = 0
-)
 }
 \arguments{
 \item{x}{character vector to match}
@@ -23,12 +12,6 @@ fuzzy_match_addr_field(
 \item{y}{character vector to match to}
 
 \item{osa_max_dist}{maximum OSA distance to consider a match}
-
-\item{addr_field}{character name of \code{addr()} field to match on}
-
-\item{x_addr}{addr vector to match}
-
-\item{y_addr}{addr vector to match to}
 }
 \value{
 a list of integer vectors representing the position of the best
@@ -43,7 +26,12 @@ If multiple strings in \code{y} are tied for the minimum osa distances with a
 string in \code{x}, then all of their indices are included in the return value.
 }
 \examples{
-fuzzy_match_addr_field(as_addr(c("123 Main St.", "3333 Burnet Ave", "3333 Foofy Ave")),
-                       as_addr(c("0000 Main Street", "0000 Burnet Avenue", "222 Burnet Ave")),
-                       addr_field = "street_name")
+my_names <-
+  c("Pinye", "Pine", "Oalck", "Sunset", "Riverbend", "Greenfild")
+the_names <-
+  c("Piney", "Pine", "Oak", "Cheshire", "Greenfield", "Maple", "Elm")
+matches <- fuzzy_match(my_names, the_names)
+matches
+
+lapply(matches, \(i) the_names[i])
 }
