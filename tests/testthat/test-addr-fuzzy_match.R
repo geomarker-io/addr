@@ -57,7 +57,7 @@ test_that("fuzzy_match works", {
   )
 
   fuzzy_match(my_names, the_names, 1) |>
-    expect_identical(list(1:2, 2L, NA, 16L, 4L, 17L, NA, 6L))
+    expect_identical(list(1:2, 2L, integer(0), 16L, 4L, 17L, integer(0), 6L))
 
   fuzzy_match(my_names, the_names, 2) |>
     lapply(\(.x) the_names[.x]) |>
@@ -72,18 +72,20 @@ test_that("fuzzy_match works", {
       "Greenfield"
     ))
 
-  # deals with NA
-  fuzzy_match(
-    c("woolper", "burnet", "burnet", "walnut", "weknut"),
-    c(NA, "adams", "woolper")
-  ) |>
-    expect_identical(list(3L, NA, NA, NA, NA))
+  # y cannot contain NA
+  expect_error(
+    fuzzy_match(
+      c("woolper", "burnet", "burnet", "walnut", "weknut"),
+      c(NA, "adams", "woolper")
+    ),
+    "y must not contain NA"
+  )
 
   fuzzy_match(
     c(NA, "adams", "woolper"),
     c("woolper", "burnet", "burnet", "walnut", "weknut")
   ) |>
-    expect_identical(list(NA, NA, 1L))
+    expect_identical(list(NA, integer(0), 1L))
 })
 
 test_that("fuzzy_match_addr_field works", {
@@ -141,5 +143,49 @@ test_that("fuzzy_match_addr_field works", {
     )),
     addr_field = "street_posttype"
   ) |>
-    expect_identical(list(1:4, 1:4, 1:4, NA))
+    expect_identical(list(1:4, 1:4, 1:4, integer(0)))
+})
+
+test_that("addr_fuzzy_match applies defaults and supports partial overrides", {
+  x <- as_addr(c(
+    "123 Main St Cincinnati OH 45202",
+    "456 Oak Ave Dayton OH 45402"
+  ))
+  y <- as_addr(c(
+    "123 Mani St Cincinnati OH 45202",
+    "456 Oak Avenue Dayton OH 45402"
+  ))
+
+  addr_fuzzy_match(x, y) |>
+    expect_identical(list(1L, 2L))
+
+  addr_fuzzy_match(x, y, addr_fields = c("street_name" = 0)) |>
+    expect_identical(list(integer(0), 2L))
+})
+
+test_that("addr_fuzzy_match validates addr_fields", {
+  expect_error(
+    addr_fuzzy_match_resolve_max_dist(c(foo = 1)),
+    "Allowed fields are"
+  )
+  expect_error(
+    addr_fuzzy_match_resolve_max_dist(c(1, 2)),
+    "Allowed fields are"
+  )
+})
+
+test_that("addr_fuzzy_match returns matches with multiple candidates", {
+  x <- as_addr(c(
+    "10 River Rd Columbus OH 43085",
+    "20 Lakeview Dr Columbus OH 43085",
+    "3333 Burnet Ave Cincinnati OH 45219",
+    NA
+  ))
+  y <- as_addr(c(
+    "10 River Road Columbus OH 43085",
+    "10 River Rd Columbus OH 43085",
+    "20 Lake View Drive Columbus OH 43085"
+  ))
+  addr_fuzzy_match(x, y) |>
+    expect_identical(list(c(1L, 2L), 3L, integer(0), NA))
 })

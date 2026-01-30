@@ -1,31 +1,35 @@
 #' matching addr objects
 #'
 #' Optimized String Alignment (OSA) distances are used to
-#' choose a set of matching reference addr with flexible, field-specific thresholds.
+#' choose a set of matching reference addr with flexible, address
+#' tag-specific thresholds.
 #' See `fuzzy_match()`/`fuzzy_match_addr_field()` for more details.
 #' addr vectors are matched in groups by five digit ZIP codes.
 #' @param x an addr vector to match
-#' @param ref_addr an addr vector to search for matches in
-#' @param simplify logical; choose the first addr from multi-matches and return an
-#' integer vector instead of a list of integer vectors?
+#' @param y an addr vector to search for matches in
 #' @returns a named list of possible addr matches for each addr in `x`;
 #' a list value of NULL means the zip code was not matched and
 #' a list value of a zero-length addr vector means the zip code was matched,
 #' but the street number, name, and type were not matched
 #' @examples
-#' addr(c("3333 Burnet Ave Cincinnati OH 45229", "5130 RAPID RUN RD CINCINNATI OHIO 45238")) |>
+#' addr(c("3333 Burnet Ave Cincinnati OH 45229",
+#'        "5130 RAPID RUN RD CINCINNATI OHIO 45238")) |>
 #'   addr_match(nad_addr()$nad_addr)
 #' @export
 addr_match <- function(
   x,
-  ref_addr,
+  y,
   max_dist_street_number = 0,
   max_dist_street_name = 1,
   max_dist_street_type = 0,
   simplify = FALSE
 ) {
+  stopifnot(
+    "x must be an addr object" = inherits(x, "addr"),
+    "y must be an addr object" = inherits(y, "addr"),
+  )
   ia <- stats::na.omit(unique(as_addr(x)))
-  ra <- unique(as_addr(ref_addr))
+  ra <- unique(as_addr(y))
 
   ia_zip_list <- split(ia, vctrs::field(ia, "zip_code"))
 
@@ -38,6 +42,8 @@ addr_match <- function(
   zip_list <-
     purrr::transpose(list(ia = ia_zip_list, ra = ra_zip_list)) |>
     purrr::discard(\(.) any(is.na(.$ia), is.na(.$ra)))
+
+  browser()
 
   matches <-
     purrr::map(
@@ -79,46 +85,70 @@ addr_match <- function(
 
 #' match addr vectors based on street number, name, and type
 #'
-#' @param max_dist_street_number maximum OSA distance to consider a match for the addr street_number;
-#' set to NULL to disregard street number
-#' @param max_dist_street_name maximum OSA distance to consider a match for the addr street_name
-#' @param max_dist_street_type maximum OSA distance to consider a match for the addr street_type
+#' @param max_dist_street_number maximum OSA distance to consider a match for
+#' the addr street_number
+#' @param max_dist_street_name maximum OSA distance to consider a match for
+#' the addr street_name
+#' @param max_dist_street_type maximum OSA distance to consider a match for
+#' the addr street_type
+#' @param simplify logical; choose the first addr from multi-matches
+#' and return an integer vector instead of a list of integer vectors?
 #' @rdname addr_match
 #' @export
 #' @examples
 #' addr_match_line_one(as_addr(c("3333 Burnet Ave", "3333 Foofy Ave")),
 #'                     as_addr(c("Main Street", "Burnet Avenue", "Burnet Way")),
-#'                     max_dist_street_number = NULL,
-#'                     simplify = TRUE)
+#'                     max_dist_street_number = Inf,
+#'                     max_dist_street_type = Inf,
+#'                     simplify = FALSE)
 addr_match_line_one <- function(
   x,
-  ref_addr,
+  y,
+  tag_max_distances = c(
+    "number_digits" = 0,
+    "street_predirectional" = 0,
+    "street_premodifier" = 0,
+    "street_name" = 1,
+    "street_posttype" = 0,
+    "street_postdirectional" = 0
+  ),
   max_dist_street_number = 0,
   max_dist_street_name = 1,
   max_dist_street_type = 0,
   simplify = FALSE
 ) {
+  stopifnot(
+    "max_dist_street_number must be numeric" = is.numeric(
+      max_dist_street_number
+    ),
+    "max_dist_street_name must be numeric" = is.numeric(max_dist_street_name),
+    "max_dist_street_type must be numeric" = is.numeric(max_dist_street_type),
+    "simplify must be logical" = typeof(simplify) == "logical",
+    "simplify must be length one" = length(simplify) == 1,
+    "simplify must not be missing" = !is.na(simplify)
+  )
   matches <- list()
-  if (!is.null(max_dist_street_number)) {
-    matches$street_number <- fuzzy_match_addr_field(
+  matches$street_number <-
+    fuzzy_match_addr_field(
       x,
-      ref_addr,
+      y,
       "number_digits",
       max_dist_street_number
     )
-  }
-  matches$street_name <- fuzzy_match_addr_field(
-    x,
-    ref_addr,
-    "street_name",
-    max_dist_street_name
-  )
-  matches$street_type <- fuzzy_match_addr_field(
-    x,
-    ref_addr,
-    "street_posttype",
-    max_dist_street_type
-  )
+  matches$street_name <-
+    fuzzy_match_addr_field(
+      x,
+      y,
+      "street_name",
+      max_dist_street_name
+    )
+  matches$street_type <-
+    fuzzy_match_addr_field(
+      x,
+      y,
+      "street_posttype",
+      max_dist_street_type
+    )
 
   out <- do.call(
     Map,
@@ -130,9 +160,7 @@ addr_match_line_one <- function(
     if (n_multimatches > 0) {
       warning(n_multimatches, " multimatches being reduced to first match")
     }
-    out <- lapply(out, `[`, 1)
+    out <- vapply(out, \(.) .[1], integer(1))
   }
   return(out)
 }
-
-utils::globalVariables(c("ia_zips", "ra_zips"))
