@@ -2,7 +2,6 @@
 % Please edit documentation in R/addr_match.R
 \name{addr_match}
 \alias{addr_match}
-\alias{addr_match_line_one}
 \title{matching addr objects}
 \usage{
 addr_match(
@@ -13,34 +12,11 @@ addr_match(
   max_dist_street_type = 0,
   simplify = FALSE
 )
-
-addr_match_line_one(
-  x,
-  y,
-  tag_max_distances = c(number_digits = 0, street_predirectional = 0, street_premodifier
-    = 0, street_name = 1, street_posttype = 0, street_postdirectional = 0),
-  max_dist_street_number = 0,
-  max_dist_street_name = 1,
-  max_dist_street_type = 0,
-  simplify = FALSE
-)
 }
 \arguments{
 \item{x}{an addr vector to match}
 
 \item{y}{an addr vector to search for matches in}
-
-\item{max_dist_street_number}{maximum OSA distance to consider a match for
-the addr street_number}
-
-\item{max_dist_street_name}{maximum OSA distance to consider a match for
-the addr street_name}
-
-\item{max_dist_street_type}{maximum OSA distance to consider a match for
-the addr street_type}
-
-\item{simplify}{logical; choose the first addr from multi-matches
-and return an integer vector instead of a list of integer vectors?}
 }
 \value{
 a named list of possible addr matches for each addr in \code{x};
@@ -59,9 +35,4 @@ addr vectors are matched in groups by five digit ZIP codes.
 addr(c("3333 Burnet Ave Cincinnati OH 45229",
        "5130 RAPID RUN RD CINCINNATI OHIO 45238")) |>
   addr_match(nad_addr()$nad_addr)
-addr_match_line_one(as_addr(c("3333 Burnet Ave", "3333 Foofy Ave")),
-                    as_addr(c("Main Street", "Burnet Avenue", "Burnet Way")),
-                    max_dist_street_number = Inf,
-                    max_dist_street_type = Inf,
-                    simplify = FALSE)
 }

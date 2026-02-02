@@ -64,7 +64,7 @@ fuzzy_match <- function(x, y, osa_max_dist = 1) {
   return(out)
 }
 
-#' Fuzzy match addr objects
+#' Fuzzy match addr objects using field-specific string distances
 #'
 #' @description
 #' `addr_fuzzy_match()` matches two addr vectors using multiple address tags
@@ -94,8 +94,6 @@ fuzzy_match <- function(x, y, osa_max_dist = 1) {
 #'   \item place_state: 0
 #'   \item place_zipcode: 0
 #' }
-#' @return a list of integer vectors, one for each address in x,
-#' that contain the indices of y that are a match
 #' @return a list of integer vectors representing the position of the best
 #' matching address(es) in `y` for each address in `x`
 #' @export
@@ -105,6 +103,14 @@ fuzzy_match <- function(x, y, osa_max_dist = 1) {
 #'   as_addr(c("0000 Main Street", "0000 Burnet Avenue", "222 Burnet Ave")),
 #'   addr_fields = c("number_digits" = Inf, "street_name" = 1)
 #' )
+#'
+#' # only match on 'line one' portion of address
+#' addr_fuzzy_match(as_addr(c("3333 Burnet Ave", "3333 Foofy Ave")),
+#'                     as_addr(c("333 Foofy Avenue", "3333 Burnet Avenue", "3333 Burnet Way")),
+#'                     addr_fields = c(
+#'                       place_name = Inf,
+#'                       place_state = Inf,
+#'                       place_zipcode = Inf))
 addr_fuzzy_match <- function(
   x,
   y,
@@ -127,10 +133,11 @@ addr_fuzzy_match <- function(
 }
 
 
-#' Fuzzy match addresses
-#' @param addr_field character name of `addr()` field to match on
+#' Fuzzy match addr objects on one field
+#'
+#' @param addr_field character name of single addr field to match on
 #' @param osa_max_dist maximum optimized string alignment distance
-#' used as threshold for matching
+#' used as threshold for matching on single addr field
 #' @rdname addr_fuzzy_match
 #' @export
 #' @examples

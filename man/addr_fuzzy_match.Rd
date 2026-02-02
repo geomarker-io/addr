@@ -3,7 +3,7 @@
 \name{addr_fuzzy_match}
 \alias{addr_fuzzy_match}
 \alias{fuzzy_match_addr_field}
-\title{Fuzzy match addr objects}
+\title{Fuzzy match addr objects using field-specific string distances}
 \usage{
 addr_fuzzy_match(x, y, addr_fields = NULL)
 
@@ -25,15 +25,12 @@ fuzzy_match_addr_field(
 \item{addr_fields}{a named vector of osa_max_distances; if max distances
 for each addr tag field is not present a default will be used (see details).}
 
-\item{addr_field}{character name of \code{addr()} field to match on}
+\item{addr_field}{character name of single addr field to match on}
 
 \item{osa_max_dist}{maximum optimized string alignment distance
-used as threshold for matching}
+used as threshold for matching on single addr field}
 }
 \value{
-a list of integer vectors, one for each address in x,
-that contain the indices of y that are a match
-
 a list of integer vectors representing the position of the best
 matching address(es) in \code{y} for each address in \code{x}
 }
@@ -69,6 +66,14 @@ addr_fuzzy_match(
   as_addr(c("0000 Main Street", "0000 Burnet Avenue", "222 Burnet Ave")),
   addr_fields = c("number_digits" = Inf, "street_name" = 1)
 )
+
+# only match on 'line one' portion of address
+addr_fuzzy_match(as_addr(c("3333 Burnet Ave", "3333 Foofy Ave")),
+                    as_addr(c("333 Foofy Avenue", "3333 Burnet Avenue", "3333 Burnet Way")),
+                    addr_fields = c(
+                      place_name = Inf,
+                      place_state = Inf,
+                      place_zipcode = Inf))
 
 fuzzy_match_addr_field(
   as_addr(c("123 Main St.", "3333 Burnet Ave", "3333 Foofy Ave")),
