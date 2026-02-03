@@ -43,16 +43,13 @@
 #'                 "3333 Burnet Ave Cincinnati Ohio 45219",
 #'                 NA, ""))
 tag_usaddress <- function(x = NA_character_, clean = TRUE) {
-  stopifnot("x must be a character vector" = typeof(x) == "character")
+  stopifnot("x must be a character vector" = is.character(x))
   if (clean) {
     x <- clean_address_text(x)
   }
   ux <- unique(na.omit(x))
-  if (all(is.na(ux))) {
-    return(as.list(rep(
-      structure(character(0), names = character(0)),
-      times = length(x)
-    )))
+  if (length(ux) == 0L) {
+    return(as.list(rep(NA, times = length(x))))
   }
   tags <- usaddress_tag(ux)
   out <- tags[match(x, ux)]

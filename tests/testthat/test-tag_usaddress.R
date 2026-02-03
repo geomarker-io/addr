@@ -67,3 +67,9 @@ test_that("addr_tag includes extended labels", {
   expect_true("StreetNamePreModifier" %in% names(tags[[3]]))
   expect_true("StreetNamePreType" %in% names(tags[[3]]))
 })
+
+test_that("tag_usaddress preserves NA inputs", {
+  tags <- tag_usaddress(c(NA_character_, "290 Ludlow Avenue Apt #2 Cincinnati OH 45220"))
+  expect_true(is.na(tags[[1]]))
+  expect_true(length(tags[[2]]) > 0)
+})
