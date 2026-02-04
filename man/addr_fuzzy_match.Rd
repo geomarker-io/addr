@@ -35,7 +35,7 @@ a list of integer vectors representing the position of the best
 matching address(es) in \code{y} for each address in \code{x}
 }
 \description{
-\code{addr_fuzzy_match()} matches two addr vectors using multiple address tags
+\code{addr_fuzzy_match()} matches two addr vectors using more than one address tag
 
 \code{fuzzy_match_addr_field()} matches two addr vectors using a single address
 tag
