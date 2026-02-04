@@ -40,6 +40,8 @@ addr(number = addr_number(), street = addr_street(), place = addr_place())
 
 \item{state}{state or territory abbreviation}
 
+\item{zipcode}{five digit ZIP code}
+
 \item{map_state}{logical; map state to abbreviations?}
 
 \item{predirectional}{direction before name}

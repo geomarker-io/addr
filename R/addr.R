@@ -29,6 +29,7 @@
 #' @param postdirectional direction after name
 #' @param name city, town, or municipality name
 #' @param state state or territory abbreviation
+#' @param zipcode five digit ZIP code
 #' @param map_posttype logical; map posttype to abbreviations?
 #' @param map_directional logical; map pre- and post-directional
 #' to abbreviations?
@@ -247,3 +248,5 @@ S7::method(format, addr) <- function(x, ...) {
 S7::method(print, addr) <- function(x, ...) {
   print_addr_vector(format(x, ...))
 }
+
+# TODO implement length methods for all addr_ objects
