@@ -67,7 +67,7 @@ fuzzy_match <- function(x, y, osa_max_dist = 1) {
 #' Fuzzy match addr objects using field-specific string distances
 #'
 #' @description
-#' `addr_fuzzy_match()` matches two addr vectors using multiple address tags
+#' `addr_fuzzy_match()` matches two addr vectors using more than one address tag
 #'
 #' `fuzzy_match_addr_field()` matches two addr vectors using a single address
 #' tag
