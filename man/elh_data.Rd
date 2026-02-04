@@ -2,7 +2,7 @@
 % Please edit documentation in R/data.R
 \name{elh_data}
 \alias{elh_data}
-\title{Example real-world data with line-one-only addresses}
+\title{Example line-one addresses}
 \usage{
 elh_data()
 }

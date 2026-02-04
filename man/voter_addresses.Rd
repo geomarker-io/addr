@@ -2,7 +2,7 @@
 % Please edit documentation in R/data.R
 \name{voter_addresses}
 \alias{voter_addresses}
-\title{Example real-world addresses}
+\title{Example addresses}
 \usage{
 voter_addresses()
 }
