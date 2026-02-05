@@ -1,4 +1,4 @@
-#' matching addr vectors
+#' matching addr objects
 #'
 #' Optimized String Alignment (OSA) distances are used to
 #' choose a set of matching reference addr with flexible, address

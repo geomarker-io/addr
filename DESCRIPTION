@@ -49,6 +49,7 @@ Collate:
     'addr_helpers.R'
     'addr.R'
     'addr_match.R'
+    'addr_part.R'
     'addr_tiger_match.R'
     'addr_vctrs.R'
     'as_addr.R'
