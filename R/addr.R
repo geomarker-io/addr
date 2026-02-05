@@ -209,6 +209,10 @@ S7::method(as.character, addr) <- function(x, ...) {
   format(x)
 }
 
+S7::method(as.list, addr) <- function(x, ...) {
+  lapply(seq_len(length(x)), function(i) x[i])
+}
+
 S7::method(length, addr) <- function(x, ...) {
   length(x@street)
 }

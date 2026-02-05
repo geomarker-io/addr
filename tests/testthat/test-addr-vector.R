@@ -51,3 +51,33 @@ test_that("unique, [, and length works for addr and addr_* vectors", {
     c("1 Main St Cincinnati OH 45220", "2 Elm St Cincinnati OH 45220")
   )
 })
+
+test_that("addr works as a tibble and data.frame column", {
+  x <- addr(
+    addr_number(digits = c("1", "2")),
+    addr_street(
+      name = c("Main", "Elm"),
+      posttype = "St",
+      map_posttype = FALSE,
+      map_pretype = FALSE,
+      map_directional = FALSE
+    ),
+    addr_place(
+      name = "Cincinnati",
+      state = "OH",
+      zipcode = "45220",
+      map_state = FALSE
+    )
+  )
+
+  tbl <- tibble::tibble(address = x)
+  expect_equal(ncol(tbl), 1L)
+  expect_true(inherits(tbl$address, "addr"))
+  expect_equal(format(tbl$address), format(x))
+
+  df <- data.frame(address = I(x))
+  expect_equal(ncol(df), 1L)
+  expect_true(inherits(df$address, "AsIs"))
+  expect_true(inherits(df$address, "addr"))
+  expect_equal(length(df$address), length(x))
+})
