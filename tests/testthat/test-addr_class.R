@@ -44,45 +44,53 @@ test_that("addr() combines components and formats", {
   expect_equal(format(out), "N10A N Main St W Cincinnati OH 45220")
 })
 
-test_that("addr() preserves empty strings", {
-  number <- addr_number(prefix = "", digits = "", suffix = "")
-  street <- addr_street(
-    predirectional = "",
-    premodifier = "",
-    pretype = "",
-    name = "",
-    posttype = "",
-    postdirectional = "",
-    map_directional = FALSE,
-    map_posttype = FALSE,
-    map_pretype = FALSE
+test_that("addr() formatting works well with vector-like addr", {
+  out <- addr(
+    addr_number(digits = as.character(101:109)),
+    addr_street(name = "Main", posttype = "Ave"),
+    addr_place("Cincinnati", "OH", "45219")
   )
-  place <- addr_place(name = "", state = "", zipcode = "")
+  format(out) |>
+    expect_identical(
+      c(
+        "101 Main Ave Cincinnati OH 45219",
+        "102 Main Ave Cincinnati OH 45219",
+        "103 Main Ave Cincinnati OH 45219",
+        "104 Main Ave Cincinnati OH 45219",
+        "105 Main Ave Cincinnati OH 45219",
+        "106 Main Ave Cincinnati OH 45219",
+        "107 Main Ave Cincinnati OH 45219",
+        "108 Main Ave Cincinnati OH 45219",
+        "109 Main Ave Cincinnati OH 45219"
+      )
+    )
+})
 
-  out <- addr(number, street, place)
+test_that("addr() preserves empty strings", {
+  out <- as_addr(c("123 Cincinnati OH 45219", ""))
 
   expect_equal(
     as.data.frame(out),
     structure(
       list(
-        number_prefix = "",
-        number_digits = "",
-        number_suffix = "",
-        street_predirectional = "",
-        street_premodifier = "",
-        street_pretype = "",
-        street_name = "",
-        street_posttype = "",
-        street_postdirectional = "",
-        place_name = "",
-        place_state = "",
-        place_zipcode = ""
+        number_prefix = c("", ""),
+        number_digits = c("123", ""),
+        number_suffix = c("", ""),
+        street_predirectional = c("", ""),
+        street_premodifier = c("", ""),
+        street_pretype = c("", ""),
+        street_name = c("", ""),
+        street_posttype = c("", ""),
+        street_postdirectional = c("", ""),
+        place_name = c("Cincinnati", ""),
+        place_state = c("OH", ""),
+        place_zipcode = c("45219", "")
       ),
       class = "data.frame",
-      row.names = c(NA, -1L)
+      row.names = c(NA, -2L)
     )
   )
-  expect_equal(format(out), "")
+  expect_equal(format(out), c("123 Cincinnati OH 45219", ""))
 })
 
 test_that("addr() rejects mismatched component lengths", {

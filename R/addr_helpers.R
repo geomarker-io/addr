@@ -71,19 +71,11 @@ check_recyclable_lengths <- function(self, field_names, class_name) {
   NULL
 }
 
-recycle_addr_component <- function(x, field_names, target, ctor) {
-  # todo can remove the field_names arg?
-  fields <- lapply(S7::props(fields), function(v) {
-    if (length(v) == 1L) rep(v, target) else v
-  })
-  do.call(ctor, fields)
-}
-
-print_addr_vector <- function(x) {
-  if (length(x) == 0L) {
-    cat("\n")
-    return(invisible(x))
-  }
-  cat(paste(x, collapse = ", "), sep = "\n")
-  invisible(x)
-}
+# print_addr_vector <- function(x) {
+#   if (length(x) == 0L) {
+#     cat("\n")
+#     return(invisible(x))
+#   }
+#   cat(paste(x, collapse = ", "), sep = "\n")
+#   invisible(x)
+# }

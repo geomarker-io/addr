@@ -96,9 +96,6 @@ addr <- S7::new_class(
     street = addr_street(),
     place = addr_place()
   ) {
-    # if (missing(street) && missing(place) && is.character(number)) {
-    #   return(as_addr(number))
-    # }
     lens <- c(
       number = length(number@digits),
       street = length(street@name),
@@ -132,35 +129,22 @@ addr <- S7::new_class(
       )
     }
     if (lens[["number"]] == 1L && target > 1L) {
-      number <- recycle_addr_component(
-        number,
-        c("prefix", "digits", "suffix"),
-        target,
-        addr_number
-      )
+      number <-
+        S7::props(number) |>
+        lapply(rep, target) |>
+        do.call(addr_number, args = _)
     }
     if (lens[["street"]] == 1L && target > 1L) {
-      street <- recycle_addr_component(
-        street,
-        c(
-          "predirectional",
-          "premodifier",
-          "pretype",
-          "name",
-          "posttype",
-          "postdirectional"
-        ),
-        target,
-        addr_street
-      )
+      street <-
+        S7::props(street) |>
+        lapply(rep, target) |>
+        do.call(addr_street, args = _)
     }
     if (lens[["place"]] == 1L && target > 1L) {
-      place <- recycle_addr_component(
-        place,
-        c("name", "state", "zipcode"),
-        target,
-        addr_place
-      )
+      place <-
+        S7::props(place) |>
+        lapply(rep, target) |>
+        do.call(addr_place, args = _)
     }
     S7::new_object(
       S7::S7_object(),
@@ -200,7 +184,7 @@ addr <- S7::new_class(
 
 #' @method as.data.frame addr
 #' @export
-as.data.frame.addr <- function(x, ...) {
+S7::method(as.data.frame, addr) <- function(x, ...) {
   number_df <- as.data.frame(x@number)
   street_df <- as.data.frame(x@street)
   place_df <- as.data.frame(x@place)
@@ -213,19 +197,17 @@ as.data.frame.addr <- function(x, ...) {
 }
 
 S7::method(format, addr) <- function(x, ...) {
-  format_addr_tokens(
-    format(x@number),
-    format(x@street),
-    format(x@place)
-  )
-}
-
-S7::method(print, addr) <- function(x, ...) {
-  print_addr_vector(format(x, ...))
+  parts <- vapply(S7::props(x), format, character(length(x)))
+  if (is.null(nrow(parts))) {
+    parts <- t(as.matrix(parts))
+  }
+  out <- apply(parts, 1, paste, collapse = " ", simplify = TRUE)
+  gsub(" +", " ", trimws(out))
 }
 
 S7::method(length, addr) <- function(x, ...) {
-  length(addr@street)
+  length(x@street)
 }
 
-# S7::method(unique, addr) <- function(x, ...) {}
+# S7::method(unique, addr) <- function(x, ...) {
+# }
