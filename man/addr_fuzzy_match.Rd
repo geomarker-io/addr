@@ -3,7 +3,7 @@
 \name{addr_fuzzy_match}
 \alias{addr_fuzzy_match}
 \alias{fuzzy_match_addr_field}
-\title{Fuzzy match addr objects using field-specific string distances}
+\title{Fuzzy match addr vectors using field-specific string distances}
 \usage{
 addr_fuzzy_match(x, y, addr_fields = NULL)
 
@@ -18,9 +18,9 @@ fuzzy_match_addr_field(
 )
 }
 \arguments{
-\item{x}{addr object to match}
+\item{x}{addr vector to match}
 
-\item{y}{addr object to match to}
+\item{y}{addr vector to match to}
 
 \item{addr_fields}{a named vector of osa_max_distances; if max distances
 for each addr tag field is not present a default will be used (see details).}

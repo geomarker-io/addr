@@ -1,6 +1,6 @@
 #' Coerce to addr
 #'
-#' `as_addr()` converts other objects into `addr()` objects.
+#' `as_addr()` converts other objects into `addr()` vectors.
 #' See `?addr` for more details on its structure.
 #' @section Methods implemented for:
 #' - `character`: will be cleaned (if `clean = TRUE`) with `clean_address_text()`
@@ -10,7 +10,7 @@
 #' `addr_number()`, `addr_street()`, or `addr_place()`; also passes
 #' the `map_*` arguments to `addr_street()` and `addr_place()`
 #' - `addr`: returned as-is
-#' @param x object to coerce to an addr
+#' @param x object to coerce to an addr vector
 #' @param ... additional arguments passed to methods
 #' @export
 #' @examples

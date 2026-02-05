@@ -1,16 +1,16 @@
 #' addr classes
 #'
 #' `addr()` combines `addr_number()`, `addr_street()`, and `addr_place()` into a
-#' single address object. The structures for `addr()` and the `addr_` classes are
+#' single addr vector. The structures for `addr()` and the `addr_` classes are
 #' derived as a subset of the United States Thoroughfare, Landmark, and Postal
 #' Address Data Standard that is relevant for residential thoroughfare
 #' addresses:
-#' - `addr_number()` objects contain fields for "AddressNumberPrefix",
+#' - `addr_number()` vectors contain fields for "AddressNumberPrefix",
 #' "AddressNumber", and "AddressNumberSuffix".
-#' - `addr_street()` objects contain fields for "StreetNamePreDirectional",
+#' - `addr_street()` vectors contain fields for "StreetNamePreDirectional",
 #' "StreetNamePreModifier", "StreetNamePreType", "StreetName",
 #' "StreetNamePostType", and "StreetNamePostDirectional".
-#' - `addr_place()` objects contain fields for "PlaceName", "StateName",
+#' - `addr_place()` vectors contain fields for "PlaceName", "StateName",
 #' and "ZipCode".
 #'
 #' All field values must must be a character vector of at least length one
@@ -35,30 +35,30 @@
 #' to abbreviations?
 #' @param map_pretype logical; map pretype to abbreviations?
 #' @param map_state logical; map state to abbreviations?
-#' @param number an addr_number object
-#' @param street an addr_street_object
-#' @param place an addr_street_object
-#' @returns An addr, addr_number, addr_street, or addr_place object
+#' @param number an addr_number vector
+#' @param street an addr_street vector
+#' @param place an addr_place vector
+#' @returns An addr, addr_number, addr_street, or addr_place vector
 #' @export
 #' @examples
-#' # define a new address number object
+#' # define a new addr_number vector
 #' addr_number(digits = "290")
 #' addr_number(prefix = "N", digits = "290", suffix = "A")
 #'
-#' # define a new address street object
+#' # define a new addr_street vector
 #' addr_street(name = "Burnet", posttype = "Ave")
 #'
-#' # define a new address place object
+#' # define a new addr_place vector
 #' addr_place(name = "Cincinnati", state = "OH", zipcode = "45220")
 #'
-#' # define a new addr object
+#' # define a new addr vector
 #' addr(
 #'   addr_number(digits = "290"),
 #'   addr_street(name = "Burnet", posttype = "Ave"),
 #'   addr_place(name = "Cincinnati", state = "OH", zipcode = "45229")
 #' )
 #'
-#' # define a more complicated addr object
+#' # define a more complicated addr vector
 #' addr(
 #'   addr_number(digits = "200"),
 #'   addr_street(
@@ -75,7 +75,7 @@
 #'   addr_place(name = "Cincinnati", state = "ohio", zipcode = "45220")
 #' )
 #'
-#' # addr_* objects are recycled and omitted fields are missing
+#' # addr_* vectors are recycled and omitted fields are missing
 #' addr(
 #'   addr_number(digits = c("290", "200", "3333", "111")),
 #'   addr_street(
@@ -97,23 +97,14 @@ addr <- S7::new_class(
     street = addr_street(),
     place = addr_place()
   ) {
-    len_number <- addr_component_length(number, c("prefix", "digits", "suffix"))
-    len_street <- addr_component_length(
-      street,
-      c(
-        "predirectional",
-        "premodifier",
-        "pretype",
-        "name",
-        "posttype",
-        "postdirectional"
-      )
+    if (missing(street) && missing(place) && is.character(number)) {
+      return(as_addr(number))
+    }
+    lens <- c(
+      number = length(number@digits),
+      street = length(street@name),
+      place = length(place@zipcode)
     )
-    len_place <- addr_component_length(
-      place,
-      c("name", "state", "zipcode")
-    )
-    lens <- c(number = len_number, street = len_street, place = len_place)
     target <- max(lens, 0L)
     if (target == 0L) {
       return(S7::new_object(
@@ -141,7 +132,7 @@ addr <- S7::new_class(
         call. = FALSE
       )
     }
-    if (len_number == 1L && target > 1L) {
+    if (lens[["number"]] == 1L && target > 1L) {
       number <- recycle_addr_component(
         number,
         c("prefix", "digits", "suffix"),
@@ -149,7 +140,7 @@ addr <- S7::new_class(
         addr_number
       )
     }
-    if (len_street == 1L && target > 1L) {
+    if (lens[["street"]] == 1L && target > 1L) {
       street <- recycle_addr_component(
         street,
         c(
@@ -164,7 +155,7 @@ addr <- S7::new_class(
         addr_street
       )
     }
-    if (len_place == 1L && target > 1L) {
+    if (lens[["place"]] == 1L && target > 1L) {
       place <- recycle_addr_component(
         place,
         c("name", "state", "zipcode"),
@@ -180,26 +171,11 @@ addr <- S7::new_class(
     )
   },
   validator = function(self) {
-    len_number <- addr_component_length(
-      self@number,
-      c("prefix", "digits", "suffix")
+    lens <- c(
+      number = length(self@number@digits),
+      street = length(self@street@name),
+      place = length(self@place@zipcode)
     )
-    len_street <- addr_component_length(
-      self@street,
-      c(
-        "predirectional",
-        "premodifier",
-        "pretype",
-        "name",
-        "posttype",
-        "postdirectional"
-      )
-    )
-    len_place <- addr_component_length(
-      self@place,
-      c("name", "state", "zipcode")
-    )
-    lens <- c(number = len_number, street = len_street, place = len_place)
     target <- max(lens, 0L)
     if (target == 0L) {
       return(NULL)
@@ -248,5 +224,3 @@ S7::method(format, addr) <- function(x, ...) {
 S7::method(print, addr) <- function(x, ...) {
   print_addr_vector(format(x, ...))
 }
-
-# TODO implement length methods for all addr_ objects

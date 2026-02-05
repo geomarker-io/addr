@@ -67,28 +67,28 @@ to abbreviations?}
 
 \item{suffix}{(often letter/part) attached after digits}
 
-\item{number}{an addr_number object}
+\item{number}{an addr_number vector}
 
-\item{street}{an addr_street_object}
+\item{street}{an addr_street vector}
 
-\item{place}{an addr_street_object}
+\item{place}{an addr_place vector}
 }
 \value{
-An addr, addr_number, addr_street, or addr_place object
+An addr, addr_number, addr_street, or addr_place vector
 }
 \description{
 \code{addr()} combines \code{addr_number()}, \code{addr_street()}, and \code{addr_place()} into a
-single address object. The structures for \code{addr()} and the \code{addr_} classes are
+single addr vector. The structures for \code{addr()} and the \code{addr_} classes are
 derived as a subset of the United States Thoroughfare, Landmark, and Postal
 Address Data Standard that is relevant for residential thoroughfare
 addresses:
 \itemize{
-\item \code{addr_number()} objects contain fields for "AddressNumberPrefix",
+\item \code{addr_number()} vectors contain fields for "AddressNumberPrefix",
 "AddressNumber", and "AddressNumberSuffix".
-\item \code{addr_street()} objects contain fields for "StreetNamePreDirectional",
+\item \code{addr_street()} vectors contain fields for "StreetNamePreDirectional",
 "StreetNamePreModifier", "StreetNamePreType", "StreetName",
 "StreetNamePostType", and "StreetNamePostDirectional".
-\item \code{addr_place()} objects contain fields for "PlaceName", "StateName",
+\item \code{addr_place()} vectors contain fields for "PlaceName", "StateName",
 and "ZipCode".
 }
 }
@@ -98,24 +98,24 @@ All field values must must be a character vector of at least length one
 recycled to match the length of other fields.
 }
 \examples{
-# define a new address number object
+# define a new addr_number vector
 addr_number(digits = "290")
 addr_number(prefix = "N", digits = "290", suffix = "A")
 
-# define a new address street object
+# define a new addr_street vector
 addr_street(name = "Burnet", posttype = "Ave")
 
-# define a new address place object
+# define a new addr_place vector
 addr_place(name = "Cincinnati", state = "OH", zipcode = "45220")
 
-# define a new addr object
+# define a new addr vector
 addr(
   addr_number(digits = "290"),
   addr_street(name = "Burnet", posttype = "Ave"),
   addr_place(name = "Cincinnati", state = "OH", zipcode = "45229")
 )
 
-# define a more complicated addr object
+# define a more complicated addr vector
 addr(
   addr_number(digits = "200"),
   addr_street(
@@ -132,7 +132,7 @@ addr(
   addr_place(name = "Cincinnati", state = "ohio", zipcode = "45220")
 )
 
-# addr_* objects are recycled and omitted fields are missing
+# addr_* vectors are recycled and omitted fields are missing
 addr(
   addr_number(digits = c("290", "200", "3333", "111")),
   addr_street(

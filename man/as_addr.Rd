@@ -7,12 +7,12 @@
 as_addr(x, ...)
 }
 \arguments{
-\item{x}{object to coerce to an addr}
+\item{x}{object to coerce to an addr vector}
 
 \item{...}{additional arguments passed to methods}
 }
 \description{
-\code{as_addr()} converts other objects into \code{addr()} objects.
+\code{as_addr()} converts other objects into \code{addr()} vectors.
 See \code{?addr} for more details on its structure.
 }
 \section{Methods implemented for}{
