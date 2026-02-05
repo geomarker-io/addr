@@ -4,8 +4,7 @@ test_that("addr_number() recycles fields and formats", {
     digits = c("10", "20"),
     suffix = c("A", "")
   )
-
-  expect_true(inherits(num, "addr_number"))
+  expect_s3_class(num, c("addr_number", "addr_part", "S7_object"))
   expect_equal(
     as.data.frame(num),
     structure(
@@ -37,7 +36,6 @@ test_that("addr_number() preserves empty strings", {
     digits = "",
     suffix = ""
   )
-
   expect_equal(
     as.data.frame(num),
     structure(

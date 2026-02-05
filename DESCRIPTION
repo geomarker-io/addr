@@ -43,13 +43,10 @@ VignetteBuilder: knitr
 Remotes:
    geomarker-io/codec
 Collate: 
-    'addr_place.R'
-    'addr_street.R'
-    'addr_number.R'
-    'addr_helpers.R'
-    'addr.R'
-    'addr_match.R'
     'addr_part.R'
+    'addr.R'
+    'addr_helpers.R'
+    'addr_match.R'
     'addr_tiger_match.R'
     'addr_vctrs.R'
     'as_addr.R'

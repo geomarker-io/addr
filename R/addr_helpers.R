@@ -79,44 +79,6 @@ recycle_addr_component <- function(x, field_names, target, ctor) {
   do.call(ctor, fields)
 }
 
-format_addr_tokens <- function(...) {
-  parts <- list(...)
-  lens <- vapply(parts, length, integer(1))
-  target <- max(lens, 0L)
-  if (target == 0L) {
-    return(character(0))
-  }
-  parts <- lapply(parts, function(x) if (length(x) == 1L) rep(x, target) else x)
-  vapply(
-    seq_len(target),
-    function(i) {
-      vals <- vapply(parts, function(x) x[[i]], character(1))
-      vals <- vals[!is.na(vals) & vals != ""]
-      if (length(vals) == 0L) "" else paste(vals, collapse = " ")
-    },
-    character(1)
-  )
-}
-
-format_addr_number_tokens <- function(prefix, digits, suffix) {
-  parts <- list(prefix = prefix, digits = digits, suffix = suffix)
-  lens <- vapply(parts, length, integer(1))
-  target <- max(lens, 0L)
-  if (target == 0L) {
-    return(character(0))
-  }
-  parts <- lapply(parts, function(x) if (length(x) == 1L) rep(x, target) else x)
-  vapply(
-    seq_len(target),
-    function(i) {
-      vals <- vapply(parts, function(x) x[[i]], character(1))
-      vals <- vals[!is.na(vals) & vals != ""]
-      if (length(vals) == 0L) "" else paste(vals, collapse = "")
-    },
-    character(1)
-  )
-}
-
 print_addr_vector <- function(x) {
   if (length(x) == 0L) {
     cat("\n")
