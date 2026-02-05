@@ -1,10 +1,58 @@
-addr_part <- S7::new_class("addr_part", abstract = TRUE)
+addr_part <- S7::new_class("addr_part", package = NULL)
+
+S7::method(as.data.frame, addr_part) <- function(x, ...) {
+  out <- as.data.frame(S7::props(x))
+  names(out) <- sprintf("%s_%s", which_addr_part(x), names(out))
+  out
+}
+
+S7::method(as.character, addr_part) <- function(x, ...) {
+  format(x)
+}
+
+S7::method(`[`, addr_part) <- function(x, i, ...) {
+  if (missing(i)) {
+    return(x)
+  }
+  cnstr <- get(paste0("addr_", which_addr_part(x)))
+  do.call(cnstr, lapply(S7::props(x), \(.) .[i]))
+}
+
+S7::method(format, addr_part) <- function(x, ...) {
+  parts <- S7::props(x)
+  lens <- vapply(parts, length, integer(1))
+  target <- max(lens, 0L)
+  if (target == 0L) {
+    return(character(0))
+  }
+  parts <- lapply(parts, function(x) if (length(x) == 1L) rep(x, target) else x)
+  cllps <- ifelse(which_addr_part(x) == "number", "", " ")
+  vapply(
+    seq_len(target),
+    function(i) {
+      vals <- vapply(parts, function(x) x[[i]], character(1))
+      vals <- vals[!is.na(vals) & vals != ""]
+      if (length(vals) == 0L) "" else paste(vals, collapse = cllps)
+    },
+    character(1)
+  )
+}
+
+S7::method(length, addr_part) <- function(x, ...) {
+  length(S7::props(x)[[1]])
+}
+
+S7::method(unique, addr_part) <- function(x, ...) {
+  x[!duplicated(as.character(x))]
+}
+
 
 #' @rdname addr
 #' @export
 addr_number <- S7::new_class(
   "addr_number",
   package = NULL,
+  parent = addr_part,
   properties = list(
     prefix = S7::class_character,
     digits = S7::class_character,
@@ -20,7 +68,7 @@ addr_number <- S7::new_class(
       "addr_number"
     )
     S7::new_object(
-      addr_part,
+      .parent = addr_part,
       prefix = fields$prefix,
       digits = fields$digits,
       suffix = fields$suffix
@@ -49,6 +97,7 @@ addr_number <- S7::new_class(
 addr_street <- S7::new_class(
   "addr_street",
   package = NULL,
+  parent = addr_part,
   properties = list(
     predirectional = S7::class_character,
     premodifier = S7::class_character,
@@ -90,7 +139,7 @@ addr_street <- S7::new_class(
       "addr_street"
     )
     S7::new_object(
-      addr_part,
+      .parent = addr_part,
       predirectional = fields$predirectional,
       premodifier = fields$premodifier,
       pretype = fields$pretype,
@@ -120,6 +169,7 @@ addr_street <- S7::new_class(
 addr_place <- S7::new_class(
   "addr_place",
   package = NULL,
+  parent = addr_part,
   properties = list(
     name = S7::class_character,
     state = S7::class_character,
@@ -162,3 +212,8 @@ addr_place <- S7::new_class(
     }
   }
 )
+
+which_addr_part <- S7::new_generic("which_addr_part", "x")
+S7::method(which_addr_part, addr_number) <- function(x) "number"
+S7::method(which_addr_part, addr_street) <- function(x) "street"
+S7::method(which_addr_part, addr_place) <- function(x) "place"

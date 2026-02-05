@@ -2,7 +2,7 @@
 % Please edit documentation in R/addr_match.R
 \name{addr_match}
 \alias{addr_match}
-\title{matching addr vectors}
+\title{matching addr objects}
 \usage{
 addr_match(
   x,
