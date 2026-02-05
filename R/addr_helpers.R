@@ -71,20 +71,9 @@ check_recyclable_lengths <- function(self, field_names, class_name) {
   NULL
 }
 
-addr_component_length <- function(x, field_names) {
-  length(S7::prop(x, field_names[[1]]))
-}
-
-addr_component_fields <- function(x, field_names) {
-  stats::setNames(
-    lapply(field_names, function(nm) S7::prop(x, nm)),
-    field_names
-  )
-}
-
 recycle_addr_component <- function(x, field_names, target, ctor) {
-  fields <- addr_component_fields(x, field_names)
-  fields <- lapply(fields, function(v) {
+  # todo can remove the field_names arg?
+  fields <- lapply(S7::props(fields), function(v) {
     if (length(v) == 1L) rep(v, target) else v
   })
   do.call(ctor, fields)

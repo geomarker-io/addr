@@ -17,7 +17,6 @@
 #' (including missing values); length one fields will be
 #' recycled to match the length of other fields.
 #'
-#' @include addr_helpers.R addr_number.R addr_street.R addr_place.R
 #' @param prefix (often fractional) appears before digits
 #' @param digits primary street number for the address
 #' @param suffix (often letter/part) attached after digits
@@ -97,9 +96,9 @@ addr <- S7::new_class(
     street = addr_street(),
     place = addr_place()
   ) {
-    if (missing(street) && missing(place) && is.character(number)) {
-      return(as_addr(number))
-    }
+    # if (missing(street) && missing(place) && is.character(number)) {
+    #   return(as_addr(number))
+    # }
     lens <- c(
       number = length(number@digits),
       street = length(street@name),
@@ -224,3 +223,9 @@ S7::method(format, addr) <- function(x, ...) {
 S7::method(print, addr) <- function(x, ...) {
   print_addr_vector(format(x, ...))
 }
+
+S7::method(length, addr) <- function(x, ...) {
+  length(addr@street)
+}
+
+# S7::method(unique, addr) <- function(x, ...) {}
