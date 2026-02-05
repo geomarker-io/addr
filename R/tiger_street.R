@@ -247,5 +247,3 @@ map_direction <- function(x) {
     USE.NAMES = FALSE
   )
 }
-
-#' map_street_name_post_type(c("ln", "st", "avenue", "ave", "av", "point", "terrace"))

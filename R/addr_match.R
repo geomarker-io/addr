@@ -1,4 +1,4 @@
-#' matching addr objects
+#' matching addr vectors
 #'
 #' Optimized String Alignment (OSA) distances are used to
 #' choose a set of matching reference addr with flexible, address
@@ -42,8 +42,6 @@ addr_match <- function(
   zip_list <-
     purrr::transpose(list(ia = ia_zip_list, ra = ra_zip_list)) |>
     purrr::discard(\(.) any(is.na(.$ia), is.na(.$ra)))
-
-  browser()
 
   matches <-
     purrr::map(

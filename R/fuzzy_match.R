@@ -64,7 +64,7 @@ fuzzy_match <- function(x, y, osa_max_dist = 1) {
   return(out)
 }
 
-#' Fuzzy match addr objects using field-specific string distances
+#' Fuzzy match addr vectors using field-specific string distances
 #'
 #' @description
 #' `addr_fuzzy_match()` matches two addr vectors using more than one address tag
@@ -74,8 +74,8 @@ fuzzy_match <- function(x, y, osa_max_dist = 1) {
 #'
 #' Distances between address tags are defined using optimized string alignment;
 #' see `fuzzy_match()` and `stringdist::stringdist()` for more details.
-#' @param x addr object to match
-#' @param y addr object to match to
+#' @param x addr vector to match
+#' @param y addr vector to match to
 #' @param addr_fields a named vector of osa_max_distances; if max distances
 #' for each addr tag field is not present a default will be used (see details).
 #' @details
@@ -133,7 +133,7 @@ addr_fuzzy_match <- function(
 }
 
 
-#' Fuzzy match addr objects on one field
+#' Fuzzy match addr vectors on one field
 #'
 #' @param addr_field character name of single addr field to match on
 #' @param osa_max_dist maximum optimized string alignment distance
