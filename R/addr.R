@@ -205,9 +205,21 @@ S7::method(format, addr) <- function(x, ...) {
   gsub(" +", " ", trimws(out))
 }
 
+S7::method(as.character, addr) <- function(x, ...) {
+  format(x)
+}
+
 S7::method(length, addr) <- function(x, ...) {
   length(x@street)
 }
 
-# S7::method(unique, addr) <- function(x, ...) {
-# }
+S7::method(`[`, addr) <- function(x, i, ...) {
+  if (missing(i)) {
+    return(x)
+  }
+  do.call(addr, lapply(S7::props(x), `[`, i, ...))
+}
+
+S7::method(unique, addr) <- function(x, ...) {
+  x[!duplicated(as.character(x))]
+}
