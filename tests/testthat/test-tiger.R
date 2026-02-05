@@ -18,7 +18,7 @@ test_that("can download files from tiger", {
     expect_identical(4L)
 })
 
-test_that("tiger_street_ranges() works", {
+test_that("tiger_addr_feat() works", {
   withr::local_envvar(list("R_USER_DATA_DIR" = tempdir()))
   d <- tiger_addr_feat(county = "39061", year = "2024")
   expect_s3_class(d, c("sf", "tbl_df", "tbl", "data.frame"))

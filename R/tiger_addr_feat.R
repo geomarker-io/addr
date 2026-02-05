@@ -52,20 +52,20 @@ tiger_addr_feat <- function(county, year) {
     ) |>
     tidyr::pivot_longer(
       cols = c(
-        .data$ZIPL,
-        .data$ZIPR,
-        .data$FROMHNL,
-        .data$TOHNL,
-        .data$FROMHNR,
-        .data$TOHNR,
-        .data$PARITYL,
-        .data$PARITYR,
-        .data$OFFSETL,
-        .data$OFFSETR
+        ZIPL,
+        ZIPR,
+        FROMHNL,
+        TOHNL,
+        FROMHNR,
+        TOHNR,
+        PARITYL,
+        PARITYR,
+        OFFSETL,
+        OFFSETR
       ),
       names_to = c(".value", "side"),
       names_pattern = "(ZIP|FROMHN|TOHN|PARITY|OFFSET)(L|R)"
     ) |>
     na.omit() |>
-    dplyr::mutate(dplyr::across(c(.data$ZIP, .data$FROMHN, .data$TOHN), to_int))
+    dplyr::mutate(dplyr::across(c(ZIP, FROMHN, TOHN), to_int))
 }

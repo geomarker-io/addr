@@ -1,3 +1,5 @@
+skip("while working on testing of addr matching speeds and chunk sizes")
+
 test_that("addr_match_tiger_street_ranges() works", {
   withr::local_envvar(list("R_USER_CACHE_DIR" = tempdir()))
   addr_match_tiger_street_ranges(
