@@ -181,6 +181,15 @@ fuzzy_match_addr_field <- function(
   addr_field <- strsplit(match.arg(addr_field), "_", fixed = TRUE)[[1]]
   x_field <- S7::prop(S7::prop(x, addr_field[1]), addr_field[2])
   y_field <- S7::prop(S7::prop(y, addr_field[1]), addr_field[2])
+  if (any(is.na(y_field))) {
+    stop(
+      sprintf(
+        "addr_fuzzy_match: y field '%s' contains NA; see ?as_addr",
+        paste(addr_field, collapse = "_")
+      ),
+      call. = FALSE
+    )
+  }
   fuzzy_match(
     x_field,
     y_field,
