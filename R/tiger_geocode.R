@@ -1,3 +1,8 @@
+#' Geocode using TIGER address features
+#'
+#' if multiple in range and parity matches, then choose best based on smallest width of ranges
+#' if ties with the same widths, then choose the range with the closest midpoint
+#' @export
 geocode_tiger <- function(x, county, year, offset = 0) {
   x_street_number <- to_int(vctrs::field(x, "street_number"))
   x_street_name <- paste(
@@ -16,8 +21,6 @@ narrow_county_ranges <- function(street_name, tiger_addr_feat) {
   street_name_post_type <- "Ave"
 }
 
-#' if multiple in range and parity matches, then choose best based on smallest width of ranges
-#' if ties with the same widths, then choose the range with the closest midpoint
 find_best_range <- function(street_number, candidate_ranges) {
   sn <- to_int(street_number)
   sn_par <- if (sn %% 2 == 0) "E" else "O"

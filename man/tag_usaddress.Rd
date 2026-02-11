@@ -19,38 +19,19 @@ a list of vectors of named address tags
 Addresses are tagged using the usaddress conditional random field
 in a \href{https://github.com/boydjohnson/usaddress-rs}{rust port} of
 \href{https://github.com/datamade/usaddress}{usaddress}.
-Possible address labels include:
-\itemize{
-\item \code{AddressNumberPrefix}
-\item \code{AddressNumberSuffix}
-\item \code{AddressNumber}
-\item \code{BuildingName}
-\item \code{CornerOf}
-\item \code{IntersectionSeparator}
-\item \code{LandmarkName}
-\item \code{NotAddress}
-\item \code{OccupancyIdentifier}
-\item \code{OccupancyType}
-\item \code{PlaceName}
-\item \code{Recipient}
-\item \code{StateName}
-\item \code{StreetNamePostDirectional}
-\item \code{StreetNamePostType}
-\item \code{StreetNamePreDirectional}
-\item \code{StreetNamePreModifier}
-\item \code{StreetNamePreType}
-\item \code{StreetName}
-\item \code{SubaddressIdentifier}
-\item \code{SubaddressType}
-\item \code{USPSBoxGroupID}
-\item \code{USPSBoxGroupType}
-\item \code{USPSBoxID}
-\item \code{USPSBoxType}
-\item \code{ZipCode}
-}
+Possible address labels include: \code{AddressNumberPrefix},
+\code{AddressNumberSuffix}, \code{AddressNumber}, \code{BuildingName},
+\code{CornerOf}, \code{IntersectionSeparator}, \code{LandmarkName},
+\code{NotAddress}, \code{OccupancyIdentifier}, \code{OccupancyType},
+\code{PlaceName}, \code{Recipient}, \code{StateName}, \code{StreetNamePostDirectional},
+\code{StreetNamePostType}, \code{StreetNamePreDirectional}, \code{StreetNamePreModifier},
+\code{StreetNamePreType}, \code{StreetName}, \code{SubaddressIdentifier}, \code{SubaddressType}
+\code{USPSBoxGroupID}, \code{USPSBoxGroupType}, \code{USPSBoxID}, \code{USPSBoxType},
+or \code{ZipCode}.
 }
 \details{
-Find more information about the definitions at \url{https://www.fgdc.gov/schemas/address/}
+Find more information about the definitions at
+\url{https://www.fgdc.gov/schemas/address/}
 }
 \examples{
 tag_usaddress(c("290 Ludlow Avenue Apt 2 Cincinnati OH 45220",

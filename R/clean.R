@@ -1,7 +1,7 @@
 #' clean address text
 #'
 #' remove excess whitespace; keep only letters, numbers, and `-`
-#' @param .x a vector of address character strings
+#' @param x a vector of address character strings
 #' @return a vector of cleaned addresses
 #' @export
 #' @examples
@@ -12,8 +12,8 @@
 #'   "3333 Burnet Ave Cincinnati OH 45219",
 #'   "33_33 Burnet Ave. Cincinnati OH 45219"
 #' ))
-clean_address_text <- function(.x) {
-  .x |>
+clean_address_text <- function(x) {
+  x |>
     stringr::str_replace_all(stringr::fixed("\\"), "") |>
     stringr::str_replace_all(stringr::fixed("\""), "") |>
     stringr::str_replace_all("[^a-zA-Z0-9-# ]", "") |>

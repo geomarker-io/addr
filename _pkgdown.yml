@@ -13,29 +13,30 @@ template:
     code_font:
       google: Source Code Pro
 reference:
-  - title: addr vector
+  - title: addr vectors
     contents:
       - addr
-      - addr_hash
-      - impute_date_ranges
-  - title: matching addr
-    contents:
-      - addr_match
-      - addr_match_line_one
-      - fuzzy_match
-  - title: geocoding addr
-    contents:
-      - addr_match_geocode
-      - addr_match_tiger_street_ranges
-      - s2_join_tiger_bg
-  - title: address text
-    contents:
-      - clean_address_text
-      - expand_post_type
+      - as_addr
       - tag_usaddress
       - usaddress_tag
-  - title: example address data
+  - title: Matching Addresses
     contents:
+      - addr_match
+      - fuzzy_match
+      - addr_fuzzy_match
+  - title: Geocoding Addresses
+    contents:
+      - addr_match_tiger_street_ranges
+      - geocode_tiger
+      - tiger_addr_feat
+  - title: National Address Database
+    contents:
+      - nad_read
+      - nad_download
+      - nad_example_data
+  - title: Helpers and Examples
+    contents:
+      - clean_address_text
+      - impute_date_ranges
       - voter_addresses
       - elh_data
-      - nad_addr

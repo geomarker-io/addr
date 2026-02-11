@@ -17,7 +17,9 @@ fn empty_tagged_tokens() -> Robj {
     v.into_robj()
 }
 
-/// run usaddress::parse on a vector of strings
+/// Run usaddress::parse in Rust on a character vector in R
+///
+/// Use `tag_usaddress()` instead of this function directly.
 #[extendr]
 fn usaddress_tag(x: Vec<String>) -> Robj {
     let ta: Vec<_> = x
