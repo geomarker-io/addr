@@ -1,3 +1,6 @@
+#' @include addr_helpers.R
+NULL
+
 addr_part <- S7::new_class("addr_part", package = NULL)
 
 S7::method(as.data.frame, addr_part) <- function(x, ...) {

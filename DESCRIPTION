@@ -43,15 +43,14 @@ VignetteBuilder: knitr
 Remotes:
    geomarker-io/codec
 Collate: 
+    'addr_helpers.R'
     'addr_part.R'
     'addr.R'
-    'addr_helpers.R'
+    'addr_join.R'
     'addr_match.R'
-    'addr_tiger_match.R'
     'addr_tag_maps.R'
+    'addr_tiger_match.R'
     'addr_vectors.R'
-    'tiger_geocode.R'
-    'tiger_addr_feat.R'
     'as_addr.R'
     'clean.R'
     'data.R'
@@ -60,3 +59,5 @@ Collate:
     'impute_date_range.R'
     'nad.R'
     'tag_usaddress.R'
+    'tiger_addr_feat.R'
+    'tiger_geocode.R'
