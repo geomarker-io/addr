@@ -28,11 +28,11 @@ but the street number, name, and type were not matched
 Optimized String Alignment (OSA) distances are used to
 choose a set of matching reference addr with flexible, address
 tag-specific thresholds.
-See \code{fuzzy_match()}/\code{fuzzy_match_addr_field()} for more details.
+See \code{?addr_fuzzy_match} for more details.
 addr vectors are matched in groups by five digit ZIP codes.
 }
 \examples{
 addr(c("3333 Burnet Ave Cincinnati OH 45229",
        "5130 RAPID RUN RD CINCINNATI OHIO 45238")) |>
-  addr_match(nad_addr()$nad_addr)
+  addr_match(nad_example_data())
 }

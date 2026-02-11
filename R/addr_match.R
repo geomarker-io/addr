@@ -3,7 +3,7 @@
 #' Optimized String Alignment (OSA) distances are used to
 #' choose a set of matching reference addr with flexible, address
 #' tag-specific thresholds.
-#' See `fuzzy_match()`/`fuzzy_match_addr_field()` for more details.
+#' See `?addr_fuzzy_match` for more details.
 #' addr vectors are matched in groups by five digit ZIP codes.
 #' @param x an addr vector to match
 #' @param y an addr vector to search for matches in
@@ -14,7 +14,7 @@
 #' @examples
 #' addr(c("3333 Burnet Ave Cincinnati OH 45229",
 #'        "5130 RAPID RUN RD CINCINNATI OHIO 45238")) |>
-#'   addr_match(nad_addr()$nad_addr)
+#'   addr_match(nad_example_data())
 #' @export
 addr_match <- function(
   x,

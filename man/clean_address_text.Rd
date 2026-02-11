@@ -4,10 +4,10 @@
 \alias{clean_address_text}
 \title{clean address text}
 \usage{
-clean_address_text(.x)
+clean_address_text(x)
 }
 \arguments{
-\item{.x}{a vector of address character strings}
+\item{x}{a vector of address character strings}
 }
 \value{
 a vector of cleaned addresses

@@ -10,6 +10,7 @@
 #' @param osa_max_dist maximum OSA distance to consider a match
 #' @return a list of integer vectors representing the position of the best
 #' matching string(s) in `y` for each string in `x`
+#' @export
 #' @examples
 #' my_names <-
 #'   c("Pinye", "Pine", "Oalck", "Sunset", "Riverbend", "Greenfild")
