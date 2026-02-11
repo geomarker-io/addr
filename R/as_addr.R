@@ -1,3 +1,6 @@
+#' @include addr_part.R addr.R
+NULL
+
 #' Coerce to addr
 #'
 #' `as_addr()` converts other objects into `addr()` vectors.

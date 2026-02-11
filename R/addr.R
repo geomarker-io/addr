@@ -1,3 +1,6 @@
+#' @include addr_part.R
+NULL
+
 #' addr classes
 #'
 #' `addr()` combines `addr_number()`, `addr_street()`, and `addr_place()` into a
