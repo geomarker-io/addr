@@ -1,3 +1,16 @@
+#' Example National Address Database addresses
+#'
+#' An example of the data returned using `nad_read()` for
+#' Hamilton County, Ohio.  See `?nad_read` for more information about
+#' the National Address Database.
+#' @returns a tibble with 349,407 rows and 7 columns
+#' @export
+#' @examples
+#' nad_example_data()
+nad_example_data <- function() {
+  readRDS(fs::path_package("addr", "nad_39061.rds"))
+}
+
 #' Example addresses
 #'
 #' The voter_addresses data was generated as an example character vector of real-world addresses.
