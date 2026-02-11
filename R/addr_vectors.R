@@ -43,3 +43,13 @@ vec_ptype_full.addr <- function(x, ...) {
 vec_ptype_abbr.addr <- function(x, ...) {
   "addr"
 }
+
+#' @export
+vec_size.addr <- function(x, ...) {
+  length(x)
+}
+
+#' @export
+vec_size.addr_part <- function(x, ...) {
+  length(x)
+}
