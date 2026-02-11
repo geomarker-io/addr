@@ -38,6 +38,7 @@ valid_street_name_post_types <- list(
   Park = "Park",
   Pass = "Pass",
   Path = "Path",
+  Pike = "Pike",
   Pkwy = "Parkway",
   Pl = "Place",
   Plz = "Plaza",
