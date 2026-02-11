@@ -39,39 +39,37 @@ nad_read <- function(county, state) {
     "UUID",
     "Latitude",
     "Longitude",
-    "Placement",
-    "ParcelSrc",
     "Parcel_ID",
-    "NAD_Source",
-    "DateUpdate"
+    "DateUpdate",
+    "Addr_Type"
   )
   the_query <- glue::glue(
     "SELECT { paste(nad_fields, collapse = ', ') } FROM NAD WHERE State = '{ state }' AND County = '{ county }'"
   )
   rnad <- sf::st_read(dsn = nad_download(), query = the_query)
-  # rnad_addr <-
-  with(rnad, {
-    addr(
-      addr_number(
-        prefix = AddNum_Pre,
-        digits = as.character(Add_Number),
-        suffix = AddNum_Suf
-      ),
-      addr_street(
-        predirectional = St_PreDir,
-        premodifier = St_PreMod,
-        pretype = St_PreTyp,
-        name = St_Name,
-        posttype = St_PosTyp,
-        postdirectional = St_PosDir
-      ),
-      addr_place(name = Post_City, state = State, zip = Zip_Code)
-    )
-  })
+  rnad_addr <-
+    with(rnad, {
+      addr(
+        addr_number(
+          prefix = AddNum_Pre,
+          digits = as.character(Add_Number),
+          suffix = AddNum_Suf
+        ),
+        addr_street(
+          predirectional = St_PreDir,
+          premodifier = St_PreMod,
+          pretype = St_PreTyp,
+          name = St_Name,
+          posttype = St_PosTyp,
+          postdirectional = St_PosDir
+        ),
+        addr_place(name = Post_City, state = State, zip = Zip_Code)
+      )
+    })
   rnad_s2 <- s2::as_s2_cell(s2::s2_lnglat(rnad$Longitude, rnad$Latitude))
-  # TODO remove duplicates (on sub address) ??
   out <- tibble::tibble(
-    # nad_addr = rnad_addr,
+    nad_addr = rnad_addr,
+    subaddress = rnad$SubAddress,
     uuid = rnad$UUID,
     date_update = as.Date(rnad$DateUpdate),
     s2 = rnad_s2,
