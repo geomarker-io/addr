@@ -30,7 +30,6 @@ Imports:
     fs,
     tibble,
     vctrs,
-    rlang,
     methods,
     S7,
     stringdist
