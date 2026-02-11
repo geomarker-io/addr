@@ -14,6 +14,10 @@
 #' The NAD is downloaded as the latest release from the transportation.gov data portal:
 #' <https://data.transportation.gov/dataset/National-Address-Database-NAD-File-Geodatabase/yw36-suxr/about_data>
 #' For the original schema, see <https://www.transportation.gov/sites/dot.gov/files/2023-07/NAD_Schema_202304.pdf>
+#'
+#' The NAD does not distinguish between empty and missing address components.
+#' When reading into R, all missing address components are replaced with an empty
+#' string (`""`) *except* for address number (digits), street name, and ZIP code.
 #' @export
 #' @examples
 #' \dontrun{
@@ -47,23 +51,30 @@ nad_read <- function(county, state) {
     "SELECT { paste(nad_fields, collapse = ', ') } FROM NAD WHERE State = '{ state }' AND County = '{ county }'"
   )
   rnad <- sf::st_read(dsn = nad_download(), query = the_query)
+  # TODO make sure this is returning empty character strings, not NA
+  # is it like that in the gdb ???
+  na_to_empty <- \(x) ifelse(is.na(x), "", x)
   rnad_addr <-
     with(rnad, {
       addr(
         addr_number(
-          prefix = AddNum_Pre,
+          prefix = na_to_empty(AddNum_Pre),
           digits = as.character(Add_Number),
-          suffix = AddNum_Suf
+          suffix = na_to_empty(AddNum_Suf)
         ),
         addr_street(
-          predirectional = St_PreDir,
-          premodifier = St_PreMod,
-          pretype = St_PreTyp,
+          predirectional = na_to_empty(St_PreDir),
+          premodifier = na_to_empty(St_PreMod),
+          pretype = na_to_empty(St_PreTyp),
           name = St_Name,
-          posttype = St_PosTyp,
-          postdirectional = St_PosDir
+          posttype = na_to_empty(St_PosTyp),
+          postdirectional = na_to_empty(St_PosDir)
         ),
-        addr_place(name = Post_City, state = State, zip = Zip_Code)
+        addr_place(
+          name = na_to_empty(Post_City),
+          state = na_to_empty(State),
+          zip = Zip_Code
+        )
       )
     })
   rnad_s2 <- s2::as_s2_cell(s2::s2_lnglat(rnad$Longitude, rnad$Latitude))
