@@ -51,8 +51,6 @@ nad_read <- function(county, state) {
     "SELECT { paste(nad_fields, collapse = ', ') } FROM NAD WHERE State = '{ state }' AND County = '{ county }'"
   )
   rnad <- sf::st_read(dsn = nad_download(), query = the_query)
-  # TODO make sure this is returning empty character strings, not NA
-  # is it like that in the gdb ???
   na_to_empty <- \(x) ifelse(is.na(x), "", x)
   rnad_addr <-
     with(rnad, {
