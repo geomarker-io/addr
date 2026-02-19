@@ -1,7 +1,11 @@
 test_that("map_street_name_post_type maps variants and preserves blanks", {
-  expect_equal(
-    map_street_name_post_type(c("Avenue", "Avnue", "Blvrd", "", NA, "Woop")),
-    c("Ave", "Ave", "Blvd", "", NA, NA)
+  map_street_name_post_type(c("foofy", "st", "lane")) |>
+    expect_warning("foofy")
+  suppressWarnings(
+    expect_equal(
+      map_street_name_post_type(c("Avenue", "Avnue", "Blvrd", "", NA, "Woop")),
+      c("Ave", "Ave", "Blvd", "", NA, NA)
+    )
   )
 })
 
