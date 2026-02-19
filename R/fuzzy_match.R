@@ -117,6 +117,14 @@ addr_fuzzy_match <- function(
   y,
   addr_fields = NULL
 ) {
+  stopifnot(
+    "x must be an addr vector" = inherits(x, "addr"),
+    "y must be an addr vector" = inherits(y, "addr"),
+    "y must have length > 0" = length(y) > 0
+  )
+  if (length(x) == 0) {
+    return(list(integer(0)))
+  }
   addr_fields <- addr_fuzzy_match_resolve_max_dist(addr_fields)
   matches <- mapply(
     fuzzy_match_addr_field,

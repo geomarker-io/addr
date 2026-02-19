@@ -21,7 +21,7 @@ reference:
       - usaddress_tag
   - title: Matching Addresses
     contents:
-      - addr_match
+      - addr_left_join
       - fuzzy_match
       - addr_fuzzy_match
   - title: Geocoding Addresses
