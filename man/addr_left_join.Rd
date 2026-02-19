@@ -4,7 +4,7 @@
 \alias{addr_left_join}
 \title{Left join two data frames using fuzzy addr matching}
 \usage{
-addr_left_join(x, y, by = "addr", ..., suffix = c(".x", ".y"))
+addr_left_join(x, y, by = "addr", addr_fields = NULL, suffix = c(".x", ".y"))
 }
 \arguments{
 \item{x, y}{data frames or tibbles with an addr column}
@@ -12,7 +12,8 @@ addr_left_join(x, y, by = "addr", ..., suffix = c(".x", ".y"))
 \item{by}{addr column name in \code{x} (and \code{y} if the same);
 or a length-2 character vector of \code{c(x_col, y_col)}}
 
-\item{...}{additional arguments passed to \code{addr_fuzzy_match}}
+\item{addr_fields}{a named vector of osa_max_distances; if max distances
+for each addr tag field is not present a default will be used (see details).}
 
 \item{suffix}{character vector of length 2 used to suffix duplicate columns}
 }
@@ -23,6 +24,22 @@ a data frame with left-join semantics
 This is a convenience wrapper around the addr fuzzy matching helpers that
 returns a left-join style result. The addr columns are matched by index and
 rows are expanded for one-to-many or many-to-many matches.
+}
+\details{
+addr_left_join works by matching addresses grouped by ZIP codes, so specified
+osa_max_distances for any place fields are ignored
+Defaults for \code{addr_fields}:
+\itemize{
+\item number_prefix: 0
+\item number_digits: 0
+\item number_suffix: 0
+\item street_predirectional: 0
+\item street_premodifier: 0
+\item street_pretype: 0
+\item street_name: 1
+\item street_posttype: 0
+\item street_postdirectional: 0
+}
 }
 \examples{
 my_addr <-

@@ -33,7 +33,7 @@
 #'                  addr = as_addr(address),
 #'                  id = sprintf("id_%04d", seq_len(1000)))
 #' the_addr <- nad_example_data()
-#' tmp <- addr_left_join(my_addr, the_addr, c("addr", "nad_addr"))
+#' addr_left_join(my_addr, the_addr, c("addr", "nad_addr"))
 addr_left_join <- function(
   x,
   y,
@@ -99,6 +99,7 @@ addr_left_join <- function(
 
   x_zips <- unique(x_addr@place@zipcode)
   y_zips <- unique(y_addr@place@zipcode)
+  x_idx_no_zip <- which(x_addr@place@zipcode %in% x_zips[!x_zips %in% y_zips])
 
   message(
     sum(x_zips %in% y_zips),
@@ -108,6 +109,12 @@ addr_left_join <- function(
     length(y_zips),
     " unique ZIP codes in y"
   )
+  if (length(x_idx_no_zip) > 0) {
+    message(
+      length(x_idx_no_zip),
+      " addr in x will not have ZIP code-based matching candidates"
+    )
+  }
 
   af <- addr_fuzzy_match_resolve_max_dist(addr_fields)
   af["place_name"] <- Inf
@@ -162,6 +169,10 @@ addr_left_join <- function(
   x_idx <- unlist(lapply(by_zip, \(.) .$x)) |>
     rep(times = lengths(y_idx))
 
+  # add non-zip matched back in
+  x_idx <- c(x_idx, x_idx_no_zip)
+  y_idx <- c(y_idx, list(rep(NA_integer_, length(x_idx_no_zip))))
+
   x_out <- x[x_idx, , drop = FALSE]
   y_out <- y[unlist(y_idx), , drop = FALSE]
 
@@ -172,6 +183,8 @@ addr_left_join <- function(
     names(y_out)[match(common, names(y_out))] <- paste0(common, suffix[2])
   }
   names(y_out)[match(y_by, names(y_out))] <- paste0(y_by, suffix[2])
+
+  # TODO reorder to match the input rows to x
 
   vctrs::vec_cbind(x_out, y_out)
 }
