@@ -16,34 +16,31 @@ pivot_addrfeat_sides <- function(x) {
   side_cols <- c(
     "ZIPL",
     "ZIPR",
-    "FROMHNL",
-    "TOHNL",
-    "FROMHNR",
-    "TOHNR",
+    "LFROMHN",
+    "LTOHN",
+    "RFROMHN",
+    "RTOHN",
     "PARITYL",
     "PARITYR",
     "OFFSETL",
     "OFFSETR"
   )
   base_cols <- setdiff(names(x), side_cols)
-
   left <- x[base_cols]
   left$side <- "L"
   left$ZIP <- x$ZIPL
-  left$FROMHN <- x$FROMHNL
-  left$TOHN <- x$TOHNL
+  left$FROMHN <- x$LFROMHN
+  left$TOHN <- x$LTOHN
   left$PARITY <- x$PARITYL
   left$OFFSET <- x$OFFSETL
-
   right <- x[base_cols]
   right$side <- "R"
   right$ZIP <- x$ZIPR
-  right$FROMHN <- x$FROMHNR
-  right$TOHN <- x$TOHNR
+  right$FROMHN <- x$RFROMHN
+  right$TOHN <- x$RTOHN
   right$PARITY <- x$PARITYR
   right$OFFSET <- x$OFFSETR
-
-  dplyr::bind_rows(left, right)
+  rbind(left, right)
 }
 
 #' Get s2_geography for tiger street ranges
@@ -58,7 +55,7 @@ pivot_addrfeat_sides <- function(x) {
 #'   tiger_addr_feat("39061", "2024")
 #' }
 tiger_addr_feat <- function(county, year) {
-  tiger_download(sprintf(
+  rd <- tiger_download(sprintf(
     "TIGER%s/ADDRFEAT/tl_%s_%s_addrfeat.zip",
     year,
     year,
@@ -75,16 +72,14 @@ tiger_addr_feat <- function(county, year) {
       quiet = TRUE,
       stringsAsFactors = FALSE,
       as_tibble = TRUE
-    ) |>
-    dplyr::rename(
-      FROMHNL = .data$LFROMHN,
-      TOHNL = .data$LTOHN,
-      FROMHNR = .data$RFROMHN,
-      TOHNR = .data$RTOHN
-    ) |>
-    pivot_addrfeat_sides() |>
-    stats::na.omit() |>
-    dplyr::mutate(dplyr::across(c(.data$ZIP, .data$FROMHN, .data$TOHN), to_int))
-}
+    )
 
-utils::globalVariables(".data")
+  out <- pivot_addrfeat_sides(rd) |>
+    stats::na.omit()
+
+  out$ZIP <- to_int(out$ZIP)
+  out$FROMHN <- to_int(out$ZIP)
+  out$TOHN <- to_int(out$TOHN)
+
+  out
+}
