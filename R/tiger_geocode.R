@@ -1,9 +1,15 @@
 #' Geocode using TIGER address features
 #'
-#' if multiple in range and parity matches, then choose best based on smallest width of ranges
-#' if ties with the same widths, then choose the range with the closest midpoint
+#' @param x an addr vector
+#' @inheritParams tiger_addr_feat
+#' @param offset number of meters to offset geocode from street line
+#' @returns a s2_geography vector of geocoded point locations
+#' @details
+#' If a street number-name has multiple in range and parity matches, then the best match
+#' is chosen based on the smallest width of ranges and then on the range with the closest midpoint
 #' @export
 geocode_tiger <- function(x, county, year, offset = 0) {
+  stopifnot("x must be an addr vector" = inherits(x, "addr"))
   x_street_number <- to_int(vctrs::field(x, "street_number"))
   x_street_name <- paste(
     vctrs::field(x, "street_name"),

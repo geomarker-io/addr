@@ -55,6 +55,7 @@ pivot_addrfeat_sides <- function(x) {
 #'   tiger_addr_feat("39061", "2024")
 #' }
 tiger_addr_feat <- function(county, year) {
+  # TODO validate county and year args
   rd <- tiger_download(sprintf(
     "TIGER%s/ADDRFEAT/tl_%s_%s_addrfeat.zip",
     year,
