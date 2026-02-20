@@ -22,7 +22,6 @@ Suggests:
 Imports: 
     purrr,
     stringr,
-    tidyr,
     dplyr,
     glue,
     fs,
