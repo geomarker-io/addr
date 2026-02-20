@@ -69,7 +69,11 @@ find_best_range <- function(street_number, candidate_ranges) {
 impute_range_point <- function(street_number, best_range_match, offset = 0L) {
   rng_frac <- max(
     0,
-    min(1, with(best_range_match, (street_number - FROMHN) / (TOHN - FROMHN)))
+    min(
+      1,
+      (street_number - best_range_match$FROMHN) /
+        (best_range_match$TOHN - best_range_match$FROMHN)
+    )
   )
   rng_point <- s2::s2_interpolate_normalized(
     best_range_match$geometry,
