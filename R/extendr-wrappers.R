@@ -10,7 +10,10 @@
 #' @useDynLib addr, .registration = TRUE
 NULL
 
-#' run usaddress::parse on a vector of strings
+#' Run usaddress::parse in Rust on a character vector in R
+#'
+#' Use `tag_usaddress()` instead of this function directly.
+#' @keywords internal
 usaddress_tag <- function(x) .Call(wrap__usaddress_tag, x)
 
 
