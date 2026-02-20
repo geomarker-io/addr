@@ -15,22 +15,19 @@ Suggests:
     testthat (>= 3.0.0),
     sf,
     s2,
-    tidyr,
-    knitr,
     rmarkdown,
     digest,
     withr,
     codec (>= 3.0.0),
 Imports: 
     purrr,
-    cli,
     stringr,
+    tidyr,
     dplyr,
     glue,
     fs,
     tibble,
     vctrs,
-    methods,
     S7,
     stringdist
 SystemRequirements: Cargo (Rust's package manager), rustc
@@ -38,7 +35,6 @@ Config/testthat/edition: 3
 Depends: 
     R (>= 3.5.0)
 Config/rextendr/version: 0.4.2
-VignetteBuilder: knitr
 Remotes:
    geomarker-io/codec
 Collate: 
@@ -47,7 +43,6 @@ Collate:
     'addr.R'
     'addr_join.R'
     'addr_tag_maps.R'
-    'addr_tiger_match.R'
     'addr_vectors.R'
     'as_addr.R'
     'clean.R'

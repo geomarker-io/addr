@@ -66,6 +66,6 @@ tiger_addr_feat <- function(county, year) {
       names_to = c(".value", "side"),
       names_pattern = "(ZIP|FROMHN|TOHN|PARITY|OFFSET)(L|R)"
     ) |>
-    na.omit() |>
+    stats::na.omit() |>
     dplyr::mutate(dplyr::across(c(ZIP, FROMHN, TOHN), to_int))
 }

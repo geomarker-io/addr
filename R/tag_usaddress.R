@@ -30,7 +30,7 @@ tag_usaddress <- function(x = NA_character_, clean = TRUE) {
   if (clean) {
     x <- clean_address_text(x)
   }
-  ux <- unique(na.omit(x))
+  ux <- unique(stats::na.omit(x))
   if (length(ux) == 0L) {
     return(as.list(rep(NA, times = length(x))))
   }
