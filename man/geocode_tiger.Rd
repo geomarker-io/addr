@@ -6,7 +6,22 @@
 \usage{
 geocode_tiger(x, county, year, offset = 0)
 }
+\arguments{
+\item{x}{an addr vector}
+
+\item{county}{character string of county identifier}
+
+\item{year}{year of tigris product}
+
+\item{offset}{number of meters to offset geocode from street line}
+}
+\value{
+a s2_geography vector of geocoded point locations
+}
 \description{
-if multiple in range and parity matches, then choose best based on smallest width of ranges
-if ties with the same widths, then choose the range with the closest midpoint
+Geocode using TIGER address features
+}
+\details{
+If a street number-name has multiple in range and parity matches, then the best match
+is chosen based on the smallest width of ranges and then on the range with the closest midpoint
 }
