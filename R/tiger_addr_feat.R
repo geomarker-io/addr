@@ -12,7 +12,39 @@ tiger_download <- function(x) {
   return(dest)
 }
 
-# TODO refactor tests so that these functions return preinstalled data so no actual downloads are triggered
+pivot_addrfeat_sides <- function(x) {
+  side_cols <- c(
+    "ZIPL",
+    "ZIPR",
+    "FROMHNL",
+    "TOHNL",
+    "FROMHNR",
+    "TOHNR",
+    "PARITYL",
+    "PARITYR",
+    "OFFSETL",
+    "OFFSETR"
+  )
+  base_cols <- setdiff(names(x), side_cols)
+
+  left <- x[base_cols]
+  left$side <- "L"
+  left$ZIP <- x$ZIPL
+  left$FROMHN <- x$FROMHNL
+  left$TOHN <- x$TOHNL
+  left$PARITY <- x$PARITYL
+  left$OFFSET <- x$OFFSETL
+
+  right <- x[base_cols]
+  right$side <- "R"
+  right$ZIP <- x$ZIPR
+  right$FROMHN <- x$FROMHNR
+  right$TOHN <- x$TOHNR
+  right$PARITY <- x$PARITYR
+  right$OFFSET <- x$OFFSETR
+
+  dplyr::bind_rows(left, right)
+}
 
 #' Get s2_geography for tiger street ranges
 #'
@@ -50,22 +82,7 @@ tiger_addr_feat <- function(county, year) {
       FROMHNR = RFROMHN,
       TOHNR = RTOHN
     ) |>
-    tidyr::pivot_longer(
-      cols = c(
-        ZIPL,
-        ZIPR,
-        FROMHNL,
-        TOHNL,
-        FROMHNR,
-        TOHNR,
-        PARITYL,
-        PARITYR,
-        OFFSETL,
-        OFFSETR
-      ),
-      names_to = c(".value", "side"),
-      names_pattern = "(ZIP|FROMHN|TOHN|PARITY|OFFSET)(L|R)"
-    ) |>
+    pivot_addrfeat_sides() |>
     stats::na.omit() |>
     dplyr::mutate(dplyr::across(c(ZIP, FROMHN, TOHN), to_int))
 }
