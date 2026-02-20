@@ -185,8 +185,7 @@ addr <- S7::new_class(
   }
 )
 
-#' @method as.data.frame addr
-#' @export
+#' @exportS3Method as.data.frame addr
 S7::method(as.data.frame, addr) <- function(x, ...) {
   number_df <- as.data.frame(x@number)
   street_df <- as.data.frame(x@street)
