@@ -7,26 +7,23 @@ template:
     primary: "#C28273"
     info: "#EACEC5"
     warning: "#E49865"
-    grid-gutter-width: 0.0rem
-    border-radius: 0.5rem
-    btn-border-radius: 0.25rem
+    grid-gutter-width: 0.1rem
+    border-radius: 0.2rem
+    btn-border-radius: 0.2rem
     code_font:
       google: Source Code Pro
 reference:
-  - title: addr vectors
+  - title: addr
     contents:
       - addr
       - as_addr
       - tag_usaddress
-      - usaddress_tag
-  - title: Matching Addresses
+  - title: linking addr
     contents:
       - addr_left_join
-      - fuzzy_match
       - addr_fuzzy_match
-  - title: Geocoding Addresses
+  - title: geocoding addr
     contents:
-      - addr_match_tiger_street_ranges
       - geocode_tiger
       - tiger_addr_feat
   - title: National Address Database
@@ -34,9 +31,10 @@ reference:
       - nad_read
       - nad_download
       - nad_example_data
-  - title: Helpers and Examples
+  - title: helper
     contents:
       - clean_address_text
+      - fuzzy_match
       - impute_date_ranges
       - voter_addresses
       - elh_data
