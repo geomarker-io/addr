@@ -59,3 +59,4 @@ Collate:
     'tag_usaddress.R'
     'tiger_addr_feat.R'
     'tiger_geocode.R'
+    'zzz.R'
