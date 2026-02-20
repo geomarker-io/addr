@@ -2,10 +2,11 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{usaddress_tag}
 \alias{usaddress_tag}
-\title{run usaddress::parse on a vector of strings}
+\title{Run usaddress::parse in Rust on a character vector in R}
 \usage{
 usaddress_tag(x)
 }
 \description{
-run usaddress::parse on a vector of strings
+Use \code{tag_usaddress()} instead of this function directly.
 }
+\keyword{internal}
