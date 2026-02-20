@@ -77,12 +77,14 @@ tiger_addr_feat <- function(county, year) {
       as_tibble = TRUE
     ) |>
     dplyr::rename(
-      FROMHNL = LFROMHN,
-      TOHNL = LTOHN,
-      FROMHNR = RFROMHN,
-      TOHNR = RTOHN
+      FROMHNL = .data$LFROMHN,
+      TOHNL = .data$LTOHN,
+      FROMHNR = .data$RFROMHN,
+      TOHNR = .data$RTOHN
     ) |>
     pivot_addrfeat_sides() |>
     stats::na.omit() |>
-    dplyr::mutate(dplyr::across(c(ZIP, FROMHN, TOHN), to_int))
+    dplyr::mutate(dplyr::across(c(.data$ZIP, .data$FROMHN, .data$TOHN), to_int))
 }
+
+utils::globalVariables(".data")
