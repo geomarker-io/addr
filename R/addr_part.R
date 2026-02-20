@@ -3,7 +3,6 @@ NULL
 
 addr_part <- S7::new_class("addr_part", package = NULL)
 
-#' @exportS3Method as.data.frame addr_part
 S7::method(as.data.frame, addr_part) <- function(x, ...) {
   out <- as.data.frame(S7::props(x))
   names(out) <- sprintf("%s_%s", which_addr_part(x), names(out))
