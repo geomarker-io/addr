@@ -16,13 +16,11 @@ Suggests:
     sf,
     s2,
     rmarkdown,
-    digest,
-    withr,
-    codec (>= 3.0.0),
+    dplyr,
+    withr
 Imports: 
     purrr,
     stringr,
-    dplyr,
     glue,
     fs,
     tibble,
@@ -48,7 +46,6 @@ Collate:
     'data.R'
     'extendr-wrappers.R'
     'fuzzy_match.R'
-    'impute_date_range.R'
     'nad.R'
     'tag_usaddress.R'
     'tiger_addr_feat.R'

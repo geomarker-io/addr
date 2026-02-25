@@ -31,10 +31,9 @@ reference:
       - nad_read
       - nad_download
       - nad_example_data
-  - title: helper
+  - title: example
     contents:
-      - clean_address_text
       - fuzzy_match
-      - impute_date_ranges
+      - clean_address_text
       - voter_addresses
       - elh_data
