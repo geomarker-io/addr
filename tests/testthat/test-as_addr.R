@@ -127,3 +127,12 @@ test_that("as_addr handles NA and empty inputs", {
   empty_addr <- as_addr(character(0))
   expect_equal(nrow(as.data.frame(empty_addr)), 0)
 })
+
+test_that("as_addr tries to fix zipcodes", {
+  as_addr(c(
+    "123 Main Street Anytown IL 34502-2230",
+    "123 Main Street Anytown IL 34502",
+    "67 Main Avenue Anytown PA 83127-0333"
+  )) |>
+    expect_warning("Truncating 2 parsed ZIP codes to the first five digits.")
+})

@@ -127,6 +127,17 @@ S7::method(as_addr, S7::class_character) <- function(
     label = "ZipCode",
     collapse = ""
   )
+  bad_zips <- which(nchar(place_zip) > 5)
+
+  if (length(bad_zips) > 0) {
+    warning(
+      "Truncating ",
+      length(bad_zips),
+      " parsed ZIP codes to the first five digits.",
+      call. = FALSE
+    )
+    place_zip[bad_zips] <- substr(place_zip[bad_zips], 1, 5)
+  }
 
   addr(
     addr_number(prefix = prefix, digits = digits, suffix = suffix),
