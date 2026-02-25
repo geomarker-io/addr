@@ -1,6 +1,6 @@
 #' clean address text
 #'
-#' remove excess whitespace; keep only letters, numbers, and `-`
+#' remove excess whitespace; keep only letters, numbers, `#`, and `-`
 #' @param x a vector of address character strings
 #' @return a vector of cleaned addresses
 #' @export

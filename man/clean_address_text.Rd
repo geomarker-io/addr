@@ -13,7 +13,7 @@ clean_address_text(x)
 a vector of cleaned addresses
 }
 \description{
-remove excess whitespace; keep only letters, numbers, and \code{-}
+remove excess whitespace; keep only letters, numbers, \verb{#}, and \code{-}
 }
 \examples{
 clean_address_text(c(
