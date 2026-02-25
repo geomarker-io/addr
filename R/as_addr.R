@@ -8,7 +8,10 @@ NULL
 #' @section Methods implemented for:
 #' - `character`: will be cleaned (if `clean = TRUE`) with `clean_address_text()`
 #' and then tagged using `usaddress_tag()`; tags are normalized to abbreviations
-#' by passing all `map_*` arguments to `addr_street()` or `addr_place()`
+#' by passing all `map_*` arguments to `addr_street()` or `addr_place()`;
+#' ZIP codes parsed with more than five characters are truncated
+#' with a warning; non-numeric characters in parsed
+#' address number digits will be removed with a warning
 #' - `data.frame`: must have columns named according to fields in
 #' `addr_number()`, `addr_street()`, or `addr_place()`; also passes
 #' the `map_*` arguments to `addr_street()` and `addr_place()`
@@ -127,13 +130,25 @@ S7::method(as_addr, S7::class_character) <- function(
     label = "ZipCode",
     collapse = ""
   )
+
+  bad_digits <- which(!grepl("^[0-9]+$", digits) & !digits == "")
+  if (length(bad_digits) > 0) {
+    warning(
+      "Removing non-numeric characters from parsed address number digits in ",
+      length(bad_digits),
+      " addresses.",
+      call. = FALSE
+    )
+    digits[bad_digits] <- gsub("\\D", "", digits[bad_digits], perl = TRUE)
+  }
+
   bad_zips <- which(nchar(place_zip) > 5)
 
   if (length(bad_zips) > 0) {
     warning(
       "Truncating ",
       length(bad_zips),
-      " parsed ZIP codes to the first five digits.",
+      " parsed ZIP codes to the first five characters.",
       call. = FALSE
     )
     place_zip[bad_zips] <- substr(place_zip[bad_zips], 1, 5)
