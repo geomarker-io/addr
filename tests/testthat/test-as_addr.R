@@ -134,5 +134,22 @@ test_that("as_addr tries to fix zipcodes", {
     "123 Main Street Anytown IL 34502",
     "67 Main Avenue Anytown PA 83127-0333"
   )) |>
-    expect_warning("Truncating 2 parsed ZIP codes to the first five digits.")
+    expect_warning(
+      "Truncating 2 parsed ZIP codes to the first five characters."
+    )
+  as_addr(
+    "1234 Main St Cincinnati OH 45229 Cincinnati OH 45229"
+  ) |>
+    expect_warning("Truncating 1 parsed ZIP codes to the first five characters")
+})
+
+test_that("as_addr deals with some seriously messy addresses", {
+  as_addr(c(
+    "1234Main St Cincinnati OH 45229",
+    "12D Main St Cincinnati OH 45229",
+    "222E CENTRAL PARKWAY CINCINNATI Ohio 45202"
+  )) |>
+    expect_warning(
+      "Removing non-numeric characters from parsed address number digits in 2 addresses"
+    )
 })

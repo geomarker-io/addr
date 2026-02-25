@@ -20,7 +20,10 @@ See \code{?addr} for more details on its structure.
 \itemize{
 \item \code{character}: will be cleaned (if \code{clean = TRUE}) with \code{clean_address_text()}
 and then tagged using \code{usaddress_tag()}; tags are normalized to abbreviations
-by passing all \verb{map_*} arguments to \code{addr_street()} or \code{addr_place()}
+by passing all \verb{map_*} arguments to \code{addr_street()} or \code{addr_place()};
+ZIP codes parsed with more than five characters are truncated
+with a warning; non-numeric characters in parsed
+address number digits will be removed with a warning
 \item \code{data.frame}: must have columns named according to fields in
 \code{addr_number()}, \code{addr_street()}, or \code{addr_place()}; also passes
 the \verb{map_*} arguments to \code{addr_street()} and \code{addr_place()}
