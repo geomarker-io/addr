@@ -16,12 +16,38 @@ geocode_tiger(x, county, year, offset = 0)
 \item{offset}{number of meters to offset geocode from street line}
 }
 \value{
-a s2_geography vector of geocoded point locations
+a s2_geography vector of geocoded point locations;
+an attribute ("geocode_precision") is added as a factor with
+levels \code{range}, \code{street}, or \code{unmatched}.
 }
 \description{
-Geocode using TIGER address features
+geocode_tiger() geocodes addr vectors using TIGER address
+range geometries downloaded from census.gov for a specific county.
+
+The geocoding precision is the level of matching achieved for each address:
+\itemize{
+\item \code{range}: is the most precise; the address matched on street name and
+ZIP code, and the number was within one of the ranges; point locations are
+interpolated from the geometry of the best match using the street number
+\item \code{street}: is less precise; the address matched on street name and ZIP code,
+but the number was \emph{not} within one of the ranges; point locations
+are interpolated as the centroid of all matching range geometries
+\item \code{unmatched}: no precision; the address did not match any street name
+and ZIP code combinations; point locations are \verb{<null feature>} (which is
+equivalent to \code{NA})
+}
 }
 \details{
-If a street number-name has multiple in range and parity matches, then the best match
-is chosen based on the smallest width of ranges and then on the range with the closest midpoint
+If a street number-name has multiple in range and parity matches, then
+the best match is chosen based on the smallest width of ranges and
+then on the range with the closest midpoint.
+}
+\examples{
+voter_geocoded_points <-
+  geocode_tiger(as_addr(voter_addresses()[1:100]),
+                county = "39061", year = "2024", offset = 20)
+
+voter_geocoded_points
+
+table(attr(voter_geocoded_points, "geocode_precision"))
 }

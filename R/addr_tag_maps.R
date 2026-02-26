@@ -216,6 +216,7 @@ valid_street_name_post_types <- list(
 )
 
 valid_street_name_pre_types <- list(
+  "Ave" = c("Ave", "Av", "Avenue"),
   "I-" = c("Interstate Highway", "Interstate", "I", "I-"),
   "US Hwy" = c(
     "US Highway",
