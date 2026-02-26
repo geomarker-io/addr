@@ -56,6 +56,7 @@ pivot_addrfeat_sides <- function(x) {
 #' }
 tiger_addr_feat <- function(county, year) {
   # TODO validate county and year args
+  check_installed("sf", "to read address range shapefiles")
   rd <- tiger_download(sprintf(
     "TIGER%s/ADDRFEAT/tl_%s_%s_addrfeat.zip",
     year,

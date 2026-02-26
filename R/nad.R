@@ -24,6 +24,7 @@
 #'   nad_read("Hamilton", "OH")
 #' }
 nad_read <- function(county, state) {
+  check_installed("sf", "to read from the NAD geodatabase")
   nad_fields <- c(
     "AddNum_Pre",
     "Add_Number",
