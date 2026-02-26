@@ -79,7 +79,7 @@ tiger_addr_feat <- function(county, year) {
     stats::na.omit()
 
   out$ZIP <- to_int(out$ZIP)
-  out$FROMHN <- to_int(out$ZIP)
+  out$FROMHN <- to_int(out$FROMHN)
   out$TOHN <- to_int(out$TOHN)
 
   out
