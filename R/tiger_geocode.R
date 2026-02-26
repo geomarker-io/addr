@@ -117,17 +117,21 @@ geocode_tiger <- function(x, county, year, offset = 0) {
     }) |>
     do.call(c, args = _)
 
-  street_match_centroids <-
-    x_which_matched_ranges[no_in_range] |>
-    lapply(\(.) taf[., ]) |>
-    lapply(`[[`, "geometry") |>
-    lapply(s2::s2_union_agg) |>
-    lapply(s2::s2_centroid) |>
-    do.call(c, args = _)
+  if (length(no_in_range) > 0) {
+    street_match_centroids <-
+      x_which_matched_ranges[no_in_range] |>
+      lapply(\(.) taf[., ]) |>
+      lapply(`[[`, "geometry") |>
+      lapply(s2::s2_union_agg) |>
+      lapply(s2::s2_centroid) |>
+      do.call(c, args = _)
 
-  out[no_in_range] <- street_match_centroids
+    out[no_in_range] <- street_match_centroids
+  }
 
-  out[no_match_street_zip] <- NA_character_
+  if (length(no_match_street_zip) > 0) {
+    out[no_match_street_zip] <- NA_character_
+  }
 
   out_precision <- rep("range", length(x))
   out_precision[no_match_street_zip] <- "unmatched"
