@@ -17,6 +17,8 @@ Suggests:
     s2,
     rmarkdown,
     curl,
+    leaflet,
+    wk,
     dplyr,
     withr
 Imports: 
