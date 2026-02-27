@@ -27,13 +27,24 @@
 #'
 #' @export
 #' @examples
-#' voter_geocoded_points <-
+#' gcd <-
 #'   geocode_tiger(as_addr(voter_addresses()[1:100]),
 #'                 county = "39061", year = "2024", offset = 20)
 #'
-#' voter_geocoded_points
+#' head(gcd)
 #'
-#' table(attr(voter_geocoded_points, "geocode_precision"))
+#' table(attr(gcd, "geocode_precision"))
+#'
+#' # consider addresses matched to street but out of range missing
+#' gcd[attr(gcd, "geocode_precision") == "street"] <- NA_character_
+#'
+#' # convert to s2_cell
+#' s2::as_s2_cell(gcd)
+#'
+#' # create leaflet map
+#' leaflet::leaflet(wk::wk_coords(gcd)) |>
+#'   leaflet::addTiles() |>
+#'   leaflet::addCircleMarkers( lng = ~x, lat = ~y, label = ~ feature_id)
 geocode_tiger <- function(x, county, year, offset = 0) {
   stopifnot("x must be an addr vector" = inherits(x, "addr"))
 
