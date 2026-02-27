@@ -3,10 +3,11 @@ NULL
 
 #' addr classes
 #'
+#' @description
 #' `addr()` combines `addr_number()`, `addr_street()`, and `addr_place()` into a
 #' single addr vector. The structures for `addr()` and the `addr_` classes are
 #' derived as a subset of the United States Thoroughfare, Landmark, and Postal
-#' Address Data Standard that is relevant for residential thoroughfare
+#' Address Data Standard that is relevant for residential, numbered thoroughfare
 #' addresses:
 #' - `addr_number()` vectors contain fields for "AddressNumberPrefix",
 #' "AddressNumber", and "AddressNumberSuffix".
@@ -16,6 +17,26 @@ NULL
 #' - `addr_place()` vectors contain fields for "PlaceName", "StateName",
 #' and "ZipCode".
 #'
+#' ```
+#' <addr>
+#'  @ number: <addr_number> function ()
+#'  .. @ prefix: chr ""
+#'  .. @ digits: chr ""
+#'  .. @ suffix: chr ""
+#'  @ street: <addr_street> function ()
+#'  .. @ predirectional : chr ""
+#'  .. @ premodifier    : chr ""
+#'  .. @ pretype        : chr ""
+#'  .. @ name           : chr ""
+#'  .. @ posttype       : chr ""
+#'  .. @ postdirectional: chr ""
+#'  @ place : <addr_place> function ()
+#'  .. @ name   : chr ""
+#'  .. @ state  : chr ""
+#'  .. @ zipcode: chr ""
+#' ```
+#'
+#' @details
 #' All field values must must be a character vector of at least length one
 #' (including missing values); length one fields will be
 #' recycled to match the length of other fields.
@@ -61,8 +82,9 @@ NULL
 #' )
 #'
 #' # define a more complicated addr vector
+#' # and explicltly specify empty components to avoid NA
 #' addr(
-#'   addr_number(digits = "200"),
+#'   addr_number(prefix = "", digits = "200", suffix = ""),
 #'   addr_street(
 #'     predirectional = "west",
 #'     premodifier = "Old",
