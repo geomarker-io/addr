@@ -79,7 +79,7 @@ An addr, addr_number, addr_street, or addr_place vector
 \code{addr()} combines \code{addr_number()}, \code{addr_street()}, and \code{addr_place()} into a
 single addr vector. The structures for \code{addr()} and the \code{addr_} classes are
 derived as a subset of the United States Thoroughfare, Landmark, and Postal
-Address Data Standard that is relevant for residential thoroughfare
+Address Data Standard that is relevant for residential, numbered thoroughfare
 addresses:
 \itemize{
 \item \code{addr_number()} vectors contain fields for "AddressNumberPrefix",
@@ -90,6 +90,24 @@ addresses:
 \item \code{addr_place()} vectors contain fields for "PlaceName", "StateName",
 and "ZipCode".
 }
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{<addr>
+ @ number: <addr_number> function ()
+ .. @ prefix: chr ""
+ .. @ digits: chr ""
+ .. @ suffix: chr ""
+ @ street: <addr_street> function ()
+ .. @ predirectional : chr ""
+ .. @ premodifier    : chr ""
+ .. @ pretype        : chr ""
+ .. @ name           : chr ""
+ .. @ posttype       : chr ""
+ .. @ postdirectional: chr ""
+ @ place : <addr_place> function ()
+ .. @ name   : chr ""
+ .. @ state  : chr ""
+ .. @ zipcode: chr ""
+}\if{html}{\out{</div>}}
 }
 \details{
 All field values must must be a character vector of at least length one
@@ -115,8 +133,9 @@ addr(
 )
 
 # define a more complicated addr vector
+# and explicltly specify empty components to avoid NA
 addr(
-  addr_number(digits = "200"),
+  addr_number(prefix = "", digits = "200", suffix = ""),
   addr_street(
     predirectional = "west",
     premodifier = "Old",
