@@ -50,6 +50,7 @@ Collate:
     'extendr-wrappers.R'
     'fuzzy_match.R'
     'nad.R'
+    'phonetic_street_key.R'
     'tag_usaddress.R'
     'tiger_addr_feat.R'
     'tiger_geocode.R'

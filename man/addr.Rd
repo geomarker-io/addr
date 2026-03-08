@@ -22,7 +22,8 @@ addr_street(
   postdirectional = NA_character_,
   map_posttype = TRUE,
   map_directional = TRUE,
-  map_pretype = TRUE
+  map_pretype = TRUE,
+  map_ordinal = TRUE
 )
 
 addr_place(
@@ -59,6 +60,8 @@ addr(number = addr_number(), street = addr_street(), place = addr_place())
 to abbreviations?}
 
 \item{map_pretype}{logical; map pretype to abbreviations?}
+
+\item{map_ordinal}{logical; map ordinal street names to abbreviations?}
 
 \item{state}{state or territory abbreviation}
 
@@ -121,6 +124,9 @@ addr_number(prefix = "N", digits = "290", suffix = "A")
 
 # define a new addr_street vector
 addr_street(name = "Burnet", posttype = "Ave")
+
+# street names are automatically mapped to abbreviations
+addr_street(predirectional = "North", name = "Fifth", posttype = "Street")
 
 # define a new addr_place vector
 addr_place(name = "Cincinnati", state = "OH", zipcode = "45220")

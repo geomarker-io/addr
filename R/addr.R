@@ -58,6 +58,7 @@ NULL
 #' to abbreviations?
 #' @param map_pretype logical; map pretype to abbreviations?
 #' @param map_state logical; map state to abbreviations?
+#' @param map_ordinal logical; map ordinal street names to abbreviations?
 #' @param number an addr_number vector
 #' @param street an addr_street vector
 #' @param place an addr_place vector
@@ -70,6 +71,9 @@ NULL
 #'
 #' # define a new addr_street vector
 #' addr_street(name = "Burnet", posttype = "Ave")
+#'
+#' # street names are automatically mapped to abbreviations
+#' addr_street(predirectional = "North", name = "Fifth", posttype = "Street")
 #'
 #' # define a new addr_place vector
 #' addr_place(name = "Cincinnati", state = "OH", zipcode = "45220")

@@ -21,7 +21,7 @@ test_that("as_addr handles character vectors", {
         street_predirectional = "W",
         street_premodifier = "",
         street_pretype = "",
-        street_name = "14th",
+        street_name = "14TH",
         street_posttype = "St",
         street_postdirectional = "",
         place_name = "Cincinnati",
