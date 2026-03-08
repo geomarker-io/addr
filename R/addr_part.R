@@ -118,17 +118,21 @@ addr_street <- S7::new_class(
     postdirectional = NA_character_,
     map_posttype = TRUE,
     map_directional = TRUE,
-    map_pretype = TRUE
+    map_pretype = TRUE,
+    map_ordinal = TRUE
   ) {
-    if (isTRUE(map_posttype)) {
+    if (map_posttype) {
       posttype <- map_street_name_post_type(posttype)
     }
-    if (isTRUE(map_pretype)) {
+    if (map_pretype) {
       pretype <- map_street_name_pre_type(pretype)
     }
-    if (isTRUE(map_directional)) {
+    if (map_directional) {
       predirectional <- map_direction(predirectional)
       postdirectional <- map_direction(postdirectional)
+    }
+    if (map_ordinal) {
+      name <- map_ordinal_street_names(name)
     }
     fields <- recycle_fields(
       list(
