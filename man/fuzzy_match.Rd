@@ -17,7 +17,8 @@ returning all of \code{y} instead of just the best match(es) in 'y`}
 
 \item{prefilter}{method used to prefilter y before computing
 osa distances for fuzzy matching to speed up calculations;
-"none" does nothing, "psk" uses \code{phonetic_street_key()}}
+"none" does nothing, "psk" removes addrs in y that do not have
+a \code{phonetic_street_key()} in x}
 }
 \value{
 a list of integer vectors representing the position of the best
@@ -41,10 +42,13 @@ matches
 
 lapply(matches, \(i) the_names[i])
 
-# larger vectors see a speedup when using
-# phonetic_street_key as a prefilter
-x <- as_addr(voter_addresses()[1:1000])@street@name
+x <- as_addr(voter_addresses()[1:100])@street@name
 y <- unique(nad_example_data()$nad_addr@street@name)
 system.time(fuzzy_match(x, y))
+# larger vectors see a speedup when using
+# phonetic_street_key as a prefilter
+# but may miss potential matches that are within
+# osa_max_dist of each other, but did not have
+# identical phonetic codes (e.g., "woolper" and "woopler")
 system.time(fuzzy_match(x, y, prefilter = "psk"))
 }
