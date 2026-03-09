@@ -59,6 +59,9 @@ Defaults for \code{addr_fields}:
 \item place_state: 0
 \item place_zipcode: 0
 }
+
+When fuzzy matching \code{street_name}, the "phonetic_street_key"
+prefilter is automatically used (see \code{?fuzzy_match}).
 }
 \examples{
 addr_fuzzy_match(

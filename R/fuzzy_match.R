@@ -10,6 +10,9 @@
 #' @param osa_max_dist maximum OSA distance to consider a match;
 #' `Inf` is a special case that avoids computing string distance by
 #' returning all of `y` instead of just the best match(es) in 'y`
+#' @param prefilter method used to prefilter y before computing
+#' osa distances for fuzzy matching to speed up calculations;
+#' "none" does nothing, "psk" uses `phonetic_street_key()`
 #' @return a list of integer vectors representing the position of the best
 #' matching string(s) in `y` for each string in `x`
 #' @export
@@ -22,7 +25,15 @@
 #' matches
 #'
 #' lapply(matches, \(i) the_names[i])
-fuzzy_match <- function(x, y, osa_max_dist = 1) {
+#'
+#' # larger vectors see a speedup when using
+#' # phonetic_street_key as a prefilter
+#' x <- as_addr(voter_addresses()[1:100])@street@name
+#' y <- nad_example_data()$nad_addr@street@name
+#' system.time(fuzzy_match(x, y))
+#' system.time(fuzzy_match(x, y, prefilter = "psk"))
+fuzzy_match <- function(x, y, osa_max_dist = 1, prefilter = c("none", "psk")) {
+  prefilter <- match.arg(prefilter)
   stopifnot(
     "x must be character" = is.character(x),
     "y must be character" = is.character(y),
@@ -45,6 +56,11 @@ fuzzy_match <- function(x, y, osa_max_dist = 1) {
     out <- NULL
     keep <- NULL
   }
+
+  if (prefilter == "psk") {
+    y <- y[phonetic_street_key(y) %in% unique(phonetic_street_key(unique(x)))]
+  }
+
   the_dist <- stringdist::stringdistmatrix(
     tolower(x),
     tolower(y),
@@ -100,6 +116,9 @@ fuzzy_match <- function(x, y, osa_max_dist = 1) {
 #'   \item place_state: 0
 #'   \item place_zipcode: 0
 #' }
+#'
+#' When fuzzy matching `street_name`, the "phonetic_street_key"
+#' prefilter is automatically used (see `?fuzzy_match`).
 #' @return a list of integer vectors representing the position of the best
 #' matching address(es) in `y` for each address in `x`
 #' @export
@@ -191,14 +210,14 @@ fuzzy_match_addr_field <- function(
     "x must be an addr object" = inherits(x, "addr"),
     "y must be an addr object" = inherits(y, "addr")
   )
-  addr_field <- strsplit(match.arg(addr_field), "_", fixed = TRUE)[[1]]
-  x_field <- S7::prop(S7::prop(x, addr_field[1]), addr_field[2])
-  y_field <- S7::prop(S7::prop(y, addr_field[1]), addr_field[2])
+  addr_field12 <- strsplit(match.arg(addr_field), "_", fixed = TRUE)[[1]]
+  x_field <- S7::prop(S7::prop(x, addr_field12[1]), addr_field12[2])
+  y_field <- S7::prop(S7::prop(y, addr_field12[1]), addr_field12[2])
   if (any(is.na(y_field))) {
     stop(
       sprintf(
         "addr_fuzzy_match: y field '%s' contains NA; see ?as_addr",
-        paste(addr_field, collapse = "_")
+        paste(addr_field12, collapse = "_")
       ),
       call. = FALSE
     )
@@ -206,7 +225,8 @@ fuzzy_match_addr_field <- function(
   fuzzy_match(
     x_field,
     y_field,
-    osa_max_dist = osa_max_dist
+    osa_max_dist = osa_max_dist,
+    prefilter = ifelse(addr_field == "street_name", "psk", "none")
   )
 }
 
