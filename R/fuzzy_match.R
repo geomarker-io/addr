@@ -12,7 +12,8 @@
 #' returning all of `y` instead of just the best match(es) in 'y`
 #' @param prefilter method used to prefilter y before computing
 #' osa distances for fuzzy matching to speed up calculations;
-#' "none" does nothing, "psk" uses `phonetic_street_key()`
+#' "none" does nothing, "psk" removes addrs in y that do not have
+#' a `phonetic_street_key()` in x
 #' @return a list of integer vectors representing the position of the best
 #' matching string(s) in `y` for each string in `x`
 #' @export
@@ -26,11 +27,14 @@
 #'
 #' lapply(matches, \(i) the_names[i])
 #'
-#' # larger vectors see a speedup when using
-#' # phonetic_street_key as a prefilter
-#' x <- as_addr(voter_addresses()[1:1000])@street@name
+#' x <- as_addr(voter_addresses()[1:100])@street@name
 #' y <- unique(nad_example_data()$nad_addr@street@name)
 #' system.time(fuzzy_match(x, y))
+#' # larger vectors see a speedup when using
+#' # phonetic_street_key as a prefilter
+#' # but may miss potential matches that are within
+#' # osa_max_dist of each other, but did not have
+#' # identical phonetic codes (e.g., "woolper" and "woopler")
 #' system.time(fuzzy_match(x, y, prefilter = "psk"))
 fuzzy_match <- function(x, y, osa_max_dist = 1, prefilter = c("none", "psk")) {
   prefilter <- match.arg(prefilter)
@@ -57,14 +61,11 @@ fuzzy_match <- function(x, y, osa_max_dist = 1, prefilter = c("none", "psk")) {
     keep <- NULL
   }
 
-  # if (prefilter == "psk") {
-  #   psks <- lapply(list(x = x, y = y), phonetic_street_key)
-  #   chuck <- which(!psks$y %in% unique(psks$x))
-  #   stringdist::stringdistmatrix(psks$x, psks$y)|>
-  #    apply(MARGIN = 1, matrix_row_min_thresh)
-  #   browser()
-  #   y[chuck] <- NA_character_
-  # }
+  if (prefilter == "psk") {
+    psks <- lapply(list(x = x, y = y), phonetic_street_key)
+    chuck <- which(!psks$y %in% unique(psks$x))
+    y[chuck] <- NA_character_
+  }
 
   the_dist <- stringdist::stringdistmatrix(
     tolower(x),
@@ -225,7 +226,8 @@ fuzzy_match_addr_field <- function(
     x_field,
     y_field,
     osa_max_dist = osa_max_dist,
-    prefilter = ifelse(addr_field == "street_name", "psk", "none")
+    prefilter = "none"
+    # prefilter = ifelse(addr_field == "street_name", "psk", "none")
   )
 }
 

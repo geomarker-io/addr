@@ -6,8 +6,9 @@
 #' Ordinal words (e.g., "Eleventh", "Fifth") are
 #' detected and converted automatically.
 #' Each phonetic key is exactly four characters long.
-#' @param x; character vector
+#' @param x character vector
 #' @returns character vector
+#' @export
 #' @examples
 #' c("MEADOWLARK", "TOWNSEND", "IMMACULATE", "7TH", "WERK",
 #'   "PAXTON", "5th", "BURNET", "FIFTH", "CLIFTON") |>

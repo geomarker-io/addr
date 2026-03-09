@@ -7,7 +7,7 @@
 phonetic_street_key(x)
 }
 \arguments{
-\item{x;}{character vector}
+\item{x}{character vector}
 }
 \value{
 character vector
