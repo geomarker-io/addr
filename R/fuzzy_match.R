@@ -7,7 +7,9 @@
 #' string in `x`, then all of their indices are included in the return value.
 #' @param x character vector to match
 #' @param y character vector to match to
-#' @param osa_max_dist maximum OSA distance to consider a match
+#' @param osa_max_dist maximum OSA distance to consider a match;
+#' `Inf` is a special case that avoids computing string distance by
+#' returning all of `y` instead of just the best match(es) in 'y`
 #' @return a list of integer vectors representing the position of the best
 #' matching string(s) in `y` for each string in `x`
 #' @export
@@ -16,7 +18,7 @@
 #'   c("Pinye", "Pine", "Oalck", "Sunset", "Riverbend", "Greenfild")
 #' the_names <-
 #'   c("Piney", "Pine", "Oak", "Cheshire", "Greenfield", "Maple", "Elm")
-#' matches <- fuzzy_match(my_names, the_names)
+#' matches <- fuzzy_match(my_names, the_names, osa_max_dist = 1)
 #' matches
 #'
 #' lapply(matches, \(i) the_names[i])
@@ -29,6 +31,9 @@ fuzzy_match <- function(x, y, osa_max_dist = 1) {
     "osa_max_dist must not be missing" = !is.na(osa_max_dist),
     "y must not contain NA" = !any(is.na(y))
   )
+  if (is.infinite(osa_max_dist)) {
+    return(replicate(length(x), seq_along(y), simplify = FALSE))
+  }
   if (any(is.na(x))) {
     out <- rep(list(NA), length(x))
     keep <- which(!is.na(x))

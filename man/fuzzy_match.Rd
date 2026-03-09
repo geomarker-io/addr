@@ -11,7 +11,9 @@ fuzzy_match(x, y, osa_max_dist = 1)
 
 \item{y}{character vector to match to}
 
-\item{osa_max_dist}{maximum OSA distance to consider a match}
+\item{osa_max_dist}{maximum OSA distance to consider a match;
+\code{Inf} is a special case that avoids computing string distance by
+returning all of \code{y} instead of just the best match(es) in 'y`}
 }
 \value{
 a list of integer vectors representing the position of the best
@@ -30,7 +32,7 @@ my_names <-
   c("Pinye", "Pine", "Oalck", "Sunset", "Riverbend", "Greenfild")
 the_names <-
   c("Piney", "Pine", "Oak", "Cheshire", "Greenfield", "Maple", "Elm")
-matches <- fuzzy_match(my_names, the_names)
+matches <- fuzzy_match(my_names, the_names, osa_max_dist = Inf)
 matches
 
 lapply(matches, \(i) the_names[i])
