@@ -13,3 +13,12 @@ check_installed <- function(pkg, reason = NULL) {
   }
   invisible(TRUE)
 }
+
+matrix_row_min_thresh <- function(x, thresh) {
+  xmin <- min(x, na.rm = TRUE)
+  best <- which(x == xmin)
+  if (length(best) == 0 || xmin > thresh) {
+    return(integer(0))
+  }
+  best
+}

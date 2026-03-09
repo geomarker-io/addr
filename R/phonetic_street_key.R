@@ -2,7 +2,7 @@
 #'
 #' Ordinal street names (e.g., "11TH", "5TH") are encoded as zero-padded numeric
 #' identifiers with a special prefix, while non-ordinal street names are encoded
-#' using a Soundex phonetic code.
+#' using a Soundex phonetic code (see `?stringdist::phonetic`).
 #' Ordinal words (e.g., "Eleventh", "Fifth") are
 #' detected and converted automatically.
 #' Each phonetic key is exactly four characters long.
@@ -23,18 +23,19 @@ phonetic_street_key <- function(x) {
 soundex <- function(x) {
   stopifnot(typeof(x) == "character")
   x <- gsub("[^A-Z]", "", toupper(x))
-  out <-
-    substr(x, 2, nchar(x)) |>
-    chartr(
-      "BFPVCGJKQSXZDTLMNR",
-      "111122222222334556",
-      x = _
-    ) |>
-    gsub("[AEIOUYHW]", "", x = _) |>
-    gsub("(.)\\1+", "\\1", x = _) |>
-    paste0(substr(x, 1, 1), tail = _) |>
-    paste0(code = _, "0000") |>
-    substr(1, 4)
+  out <- stringdist::phonetic(x, method = "soundex", useBytes = FALSE)
+  # out <-
+  #   substr(x, 2, nchar(x)) |>
+  #   chartr(
+  #     "BFPVCGJKQSXZDTLMNR",
+  #     "111122222222334556",
+  #     x = _
+  #   ) |>
+  #   gsub("[AEIOUYHW]", "", x = _) |>
+  #   gsub("(.)\\1+", "\\1", x = _) |>
+  #   paste0(substr(x, 1, 1), tail = _) |>
+  #   paste0(code = _, "0000") |>
+  #   substr(1, 4)
   out[is.na(x)] <- NA
   return(out)
 }

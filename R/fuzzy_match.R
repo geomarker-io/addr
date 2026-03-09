@@ -28,8 +28,8 @@
 #'
 #' # larger vectors see a speedup when using
 #' # phonetic_street_key as a prefilter
-#' x <- as_addr(voter_addresses()[1:100])@street@name
-#' y <- nad_example_data()$nad_addr@street@name
+#' x <- as_addr(voter_addresses()[1:1000])@street@name
+#' y <- unique(nad_example_data()$nad_addr@street@name)
 #' system.time(fuzzy_match(x, y))
 #' system.time(fuzzy_match(x, y, prefilter = "psk"))
 fuzzy_match <- function(x, y, osa_max_dist = 1, prefilter = c("none", "psk")) {
@@ -57,9 +57,14 @@ fuzzy_match <- function(x, y, osa_max_dist = 1, prefilter = c("none", "psk")) {
     keep <- NULL
   }
 
-  if (prefilter == "psk") {
-    y <- y[phonetic_street_key(y) %in% unique(phonetic_street_key(unique(x)))]
-  }
+  # if (prefilter == "psk") {
+  #   psks <- lapply(list(x = x, y = y), phonetic_street_key)
+  #   chuck <- which(!psks$y %in% unique(psks$x))
+  #   stringdist::stringdistmatrix(psks$x, psks$y)|>
+  #    apply(MARGIN = 1, matrix_row_min_thresh)
+  #   browser()
+  #   y[chuck] <- NA_character_
+  # }
 
   the_dist <- stringdist::stringdistmatrix(
     tolower(x),
@@ -69,13 +74,8 @@ fuzzy_match <- function(x, y, osa_max_dist = 1, prefilter = c("none", "psk")) {
   matches <- apply(
     the_dist,
     MARGIN = 1,
-    FUN = \(.) {
-      best <- which(. == min(., na.rm = TRUE))
-      if (length(best) == 0 || min(., na.rm = TRUE) > osa_max_dist) {
-        return(integer(0))
-      }
-      best
-    },
+    FUN = matrix_row_min_thresh,
+    thresh = osa_max_dist,
     simplify = FALSE
   )
   if (!is.null(out)) {
@@ -123,19 +123,18 @@ fuzzy_match <- function(x, y, osa_max_dist = 1, prefilter = c("none", "psk")) {
 #' matching address(es) in `y` for each address in `x`
 #' @export
 #' @examples
-#' addr_fuzzy_match(
-#'   as_addr(c("123 Main St.", "3333 Burnet Ave", "3333 Foofy Ave")),
-#'   as_addr(c("0000 Main Street", "0000 Burnet Avenue", "222 Burnet Ave")),
-#'   addr_fields = c("number_digits" = Inf, "street_name" = 1)
-#' )
+#' x_addr <- as_addr(c("123 Main St.", "333 Burnet Ave", "3333 Foofy Ave"))
+#' y_addr <- as_addr(c("0000 Main Street", "3333 Burnet Avenue", "222 Burnet Ave"))
 #'
-#' # only match on 'line one' portion of address
-#' addr_fuzzy_match(as_addr(c("3333 Burnet Ave", "3333 Foofy Ave")),
-#'                     as_addr(c("333 Foofy Avenue", "3333 Burnet Avenue", "3333 Burnet Way")),
-#'                     addr_fields = c(
-#'                       place_name = Inf,
-#'                       place_state = Inf,
-#'                       place_zipcode = Inf))
+#' # no matches with defaults
+#' addr_fuzzy_match(x_addr, y_addr)
+#'
+#' # match on osa_max_dist of 2 for the address number
+#' addr_fuzzy_match(x_addr, y_addr, addr_fields = c("number_digits" = 2))
+#'
+#' # ignore address number when matching
+#' addr_fuzzy_match(x_addr, y_addr, addr_fields = c("number_digits" = Inf))
+#'
 addr_fuzzy_match <- function(
   x,
   y,

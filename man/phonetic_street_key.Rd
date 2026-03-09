@@ -15,7 +15,7 @@ character vector
 \description{
 Ordinal street names (e.g., "11TH", "5TH") are encoded as zero-padded numeric
 identifiers with a special prefix, while non-ordinal street names are encoded
-using a Soundex phonetic code.
+using a Soundex phonetic code (see \code{?stringdist::phonetic}).
 Ordinal words (e.g., "Eleventh", "Fifth") are
 detected and converted automatically.
 Each phonetic key is exactly four characters long.
