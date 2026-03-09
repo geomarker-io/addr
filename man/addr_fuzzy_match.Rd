@@ -64,19 +64,18 @@ When fuzzy matching \code{street_name}, the "phonetic_street_key"
 prefilter is automatically used (see \code{?fuzzy_match}).
 }
 \examples{
-addr_fuzzy_match(
-  as_addr(c("123 Main St.", "3333 Burnet Ave", "3333 Foofy Ave")),
-  as_addr(c("0000 Main Street", "0000 Burnet Avenue", "222 Burnet Ave")),
-  addr_fields = c("number_digits" = Inf, "street_name" = 1)
-)
+x_addr <- as_addr(c("123 Main St.", "333 Burnet Ave", "3333 Foofy Ave"))
+y_addr <- as_addr(c("0000 Main Street", "3333 Burnet Avenue", "222 Burnet Ave"))
 
-# only match on 'line one' portion of address
-addr_fuzzy_match(as_addr(c("3333 Burnet Ave", "3333 Foofy Ave")),
-                    as_addr(c("333 Foofy Avenue", "3333 Burnet Avenue", "3333 Burnet Way")),
-                    addr_fields = c(
-                      place_name = Inf,
-                      place_state = Inf,
-                      place_zipcode = Inf))
+# no matches with defaults
+addr_fuzzy_match(x_addr, y_addr)
+
+# match on osa_max_dist of 2 for the address number
+addr_fuzzy_match(x_addr, y_addr, addr_fields = c("number_digits" = 2))
+
+# ignore address number when matching
+addr_fuzzy_match(x_addr, y_addr, addr_fields = c("number_digits" = Inf))
+
 
 fuzzy_match_addr_field(
   as_addr(c("123 Main St.", "3333 Burnet Ave", "3333 Foofy Ave")),

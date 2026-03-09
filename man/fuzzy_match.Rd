@@ -43,8 +43,8 @@ lapply(matches, \(i) the_names[i])
 
 # larger vectors see a speedup when using
 # phonetic_street_key as a prefilter
-x <- as_addr(voter_addresses()[1:100])@street@name
-y <- nad_example_data()$nad_addr@street@name
+x <- as_addr(voter_addresses()[1:1000])@street@name
+y <- unique(nad_example_data()$nad_addr@street@name)
 system.time(fuzzy_match(x, y))
 system.time(fuzzy_match(x, y, prefilter = "psk"))
 }
