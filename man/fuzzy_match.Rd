@@ -4,7 +4,7 @@
 \alias{fuzzy_match}
 \title{Fuzzy match}
 \usage{
-fuzzy_match(x, y, osa_max_dist = 1)
+fuzzy_match(x, y, osa_max_dist = 1, prefilter = c("none", "psk"))
 }
 \arguments{
 \item{x}{character vector to match}
@@ -14,6 +14,10 @@ fuzzy_match(x, y, osa_max_dist = 1)
 \item{osa_max_dist}{maximum OSA distance to consider a match;
 \code{Inf} is a special case that avoids computing string distance by
 returning all of \code{y} instead of just the best match(es) in 'y`}
+
+\item{prefilter}{method used to prefilter y before computing
+osa distances for fuzzy matching to speed up calculations;
+"none" does nothing, "psk" uses \code{phonetic_street_key()}}
 }
 \value{
 a list of integer vectors representing the position of the best
@@ -32,8 +36,15 @@ my_names <-
   c("Pinye", "Pine", "Oalck", "Sunset", "Riverbend", "Greenfild")
 the_names <-
   c("Piney", "Pine", "Oak", "Cheshire", "Greenfield", "Maple", "Elm")
-matches <- fuzzy_match(my_names, the_names, osa_max_dist = Inf)
+matches <- fuzzy_match(my_names, the_names, osa_max_dist = 1)
 matches
 
 lapply(matches, \(i) the_names[i])
+
+# larger vectors see a speedup when using
+# phonetic_street_key as a prefilter
+x <- as_addr(voter_addresses()[1:100])@street@name
+y <- nad_example_data()$nad_addr@street@name
+system.time(fuzzy_match(x, y))
+system.time(fuzzy_match(x, y, prefilter = "psk"))
 }
