@@ -33,6 +33,22 @@ test_that("addr_place() validates zipcode", {
     ),
     "@zipcode must be exactly five numeric digits"
   )
+  expect_error(
+    addr_place(
+      name = "Cincinnati",
+      state = "OH",
+      zipcode = c("00021")
+    ),
+    "@zipcode must be exactly five numeric digits"
+  )
+  expect_error(
+    addr_place(
+      name = "Cincinnati",
+      state = "OH",
+      zipcode = c("00000")
+    ),
+    "@zipcode must be exactly five numeric digits"
+  )
 })
 
 test_that("addr_place() preserves empty strings", {
