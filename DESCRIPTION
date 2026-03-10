@@ -42,6 +42,7 @@ Collate:
     'addr_part.R'
     'addr.R'
     'addr_join.R'
+    'addr_part_match.R'
     'addr_tag_maps.R'
     'addr_vectors.R'
     'as_addr.R'
