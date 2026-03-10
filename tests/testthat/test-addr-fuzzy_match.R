@@ -91,9 +91,9 @@ test_that("fuzzy_match works", {
 test_that("fuzzy_match_addr_field works", {
   fuzzy_match_addr_field(
     as_addr(c(
-      "222 E Central Parkway Foofyville SJ 00000",
+      "222 E Central Parkway Foofyville SJ 45000",
       "222 East Central Parkway",
-      "221 E Central Parkway Somewhere OS 00000",
+      "221 E Central Parkway Somewhere OS 45000",
       "222 East Central Cincinnati"
     )),
     as_addr(c(
@@ -113,9 +113,9 @@ test_that("fuzzy_match_addr_field works", {
 
   fuzzy_match_addr_field(
     as_addr(c(
-      "222 E Central Parkway Foofyville SJ 00000",
+      "222 E Central Parkway Foofyville SJ 45000",
       "222 East Central Parkway",
-      "221 E Central Parkway Somewhere OS 00000",
+      "221 E Central Parkway Somewhere OS 45000",
       "222 East Central Cincinnati"
     )),
     as_addr(c(
@@ -130,9 +130,9 @@ test_that("fuzzy_match_addr_field works", {
 
   fuzzy_match_addr_field(
     as_addr(c(
-      "222 E Central Parkway Foofyville SJ 00000",
+      "222 E Central Parkway Foofyville SJ 45000",
       "222 East Central Parkway",
-      "221 E Central Parkway Somewhere OS 00000",
+      "221 E Central Parkway Somewhere OS 45000",
       "222 East Central Cincinnati"
     )),
     as_addr(c(
