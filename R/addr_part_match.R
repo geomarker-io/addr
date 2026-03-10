@@ -1,3 +1,9 @@
+# matching functions all have the same behavior:
+# - return the matched entity (instead of its index value)
+# - all take the inputs x and y
+# - deduplicates computations on repeated components in x and y
+# - match returns the best single result, always returning a vector of matches instead of a list with multiple possible matches
+
 # match addr_number
 # integer distance on digits
 # osa distance on entire object
@@ -6,24 +12,6 @@
 ## match addr_street
 # distance for non-ordinal streets = osa
 # distance for ordinal streets = integer distance (and osa??)
-
-## match addr_place@zipcode
-# 1. exact match
-# 2. candidates with same first 3 digits
-# first digit is broad region: must match exactly
-# 2nd-3rd digits sectional center facility area: must match exactly
-# 4th-5th digits local delivery zone:
-
-# my_addr <-
-#   tibble::tibble(
-#     address = voter_addresses()[1:1000],
-#     addr = as_addr(address),
-#     id = sprintf("id_%04d", seq_len(1000))
-#   )
-# the_addr <- nad_example_data()
-
-# x <- unique(my_addr$addr@place@zipcode)
-# y <- unique(the_addr$nad_addr@place@zipcode)
 
 #' Match ZIP codes
 #'

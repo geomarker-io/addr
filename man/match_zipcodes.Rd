@@ -22,7 +22,8 @@ based on the lowest absolute numeric difference with the ZIP code in x;
 ties are broken by OSA string distances and then preferring the minimum number
 }
 \examples{
-x <- c("45222", "45219", "45219", "45220", "45220", "", NA)
-y <- c("42522", "45200", "45219", "45221", "45223", "45321", "")
-match_zipcodes(x, y)
+match_zipcodes(
+  c("45222", "45219", "45219", "45220", "45220", "", NA),
+  c("42522", "45200", "45219", "45221", "45223", "45321", "")
+)
 }
