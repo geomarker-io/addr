@@ -65,7 +65,7 @@ to abbreviations?}
 
 \item{state}{state or territory abbreviation}
 
-\item{zipcode}{five digit ZIP code}
+\item{zipcode}{ZIP code (must be five digits not starting with "000")}
 
 \item{map_state}{logical; map state to abbreviations?}
 

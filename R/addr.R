@@ -52,7 +52,7 @@ NULL
 #' @param postdirectional direction after name
 #' @param name city, town, or municipality name
 #' @param state state or territory abbreviation
-#' @param zipcode five digit ZIP code
+#' @param zipcode ZIP code (must be five digits not starting with "000")
 #' @param map_posttype logical; map posttype to abbreviations?
 #' @param map_directional logical; map pre- and post-directional
 #' to abbreviations?
