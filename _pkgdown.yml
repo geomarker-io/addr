@@ -18,11 +18,13 @@ reference:
       - addr
       - as_addr
       - tag_usaddress
-  - title: linking addr
+  - title: Linking addr
     contents:
       - addr_left_join
       - addr_fuzzy_match
-  - title: geocoding addr
+      - match_zipcodes
+      - phonetic_street_key
+  - title: Geocoding addr
     contents:
       - geocode_tiger
       - tiger_addr_feat
@@ -31,7 +33,7 @@ reference:
       - nad_read
       - nad_download
       - nad_example_data
-  - title: example
+  - title: Helpers and examples
     contents:
       - fuzzy_match
       - clean_address_text
