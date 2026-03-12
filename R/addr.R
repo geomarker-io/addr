@@ -242,6 +242,10 @@ S7::method(as.list, addr) <- function(x, ...) {
   lapply(seq_len(length(x)), function(i) x[i])
 }
 
+S7::method(is.na, addr) <- function(x, ...) {
+  !complete.cases(as.data.frame(x))
+}
+
 S7::method(length, addr) <- function(x, ...) {
   length(x@street)
 }

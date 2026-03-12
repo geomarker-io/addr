@@ -4,14 +4,97 @@
 # - deduplicates computations on repeated components in x and y
 # - match returns the best single result, always returning a vector of matches instead of a list with multiple possible matches
 
-# match addr_number
-# integer distance on digits
-# osa distance on entire object
-# soundex??
-
 ## match addr_street
 # distance for non-ordinal streets = osa
 # distance for ordinal streets = integer distance (and osa??)
+
+#' Match addr_number vectors
+#'
+#' A single addr_number in y is chosen for each addr_number in x.
+#' If exact matches (using `as.character`) are not found,
+#' possible matches (within thresh OSA distance) are searched for in y.
+#' If multiple matches are present in y, the best one is selected
+#' based on the lowest absolute numeric difference with the @digits in x;
+#' ties are broken by OSA string distances and then preferring the
+#' lowest value sorted in Lexicographic order with digits preceding
+#' alphabetic characters.
+#'
+#' addr_number objects with missing @digits or empty strings
+#' for all of @prefix, @digits, @suffix are not matched and
+#' returned as `addr_number()` instead
+#' @param x,y addr_number vectors to match
+#' @return an addr_number vector, the same length as x, that is the
+#' best match in y for each addr_number code in x; if no best match
+#' is found a missing value is returned (`addr_number()`)
+#' @export
+#' @examples
+#'  x <- addr_number(
+#'    prefix = "",
+#'    digits = as.character(c(1, 10, 228, 11, 22, 22, 22, 10, 99897, NA)),
+#'    suffix = ""
+#'  )
+#'
+#' y <- addr_number(
+#'   prefix = "",
+#'   digits = as.character(c(12, 11, 10, 22)),
+#'   suffix = ""
+#' )
+#'
+#' match_addr_number(x, y)
+#'
+#' match_addr_number(x, y, thresh = 0L)
+match_addr_number <- function(x, y, thresh = 1L) {
+  stopifnot(
+    "x must be an addr_number object" = inherits(x, "addr_number"),
+    "y must be an addr_number object" = inherits(y, "addr_number"),
+    "thresh must be an integer" = typeof(thresh) == "integer"
+  )
+  ux <- unique(x) # also gets rid of empty
+  ux <- ux[!is.na(ux@digits)]
+  uy <- unique(y)
+  lkp <- lapply(
+    seq_along(ux),
+    function(.i) {
+      if (as.character(ux[.i]) %in% as.character(uy)) {
+        return(ux[.i])
+      }
+      if (thresh >= 1) {
+        m <- uy[
+          stringdist::stringdist(
+            as.character(ux[.i]),
+            as.character(uy),
+            method = "osa"
+          ) <=
+            thresh
+        ]
+        if (length(m) == 0) {
+          return(addr_number())
+        }
+        m_sort <-
+          m[order(
+            abs(as.integer(ux[.i]@digits) - as.integer(m@digits)),
+            stringdist::stringdist(
+              as.character(ux[.i]),
+              as.character(m),
+              method = "osa"
+            ),
+            sort(as.character(m))
+          )]
+        return(m_sort[1])
+      }
+      return(addr_number())
+    }
+  )
+  names(lkp) <- as.character(ux)
+  lkp[sapply(lkp, is.na)] <- NULL # remove unmatched
+  out_l <- lkp[as.character(x)]
+  empties <- which(sapply(out_l, is.null))
+  out_l[empties] <- replicate(length(empties), addr_number())
+  out <-
+    do.call(rbind, lapply(out_l, as.data.frame)) |>
+    vec_restore(to = addr_number())
+  return(out)
+}
 
 #' Match ZIP codes
 #'

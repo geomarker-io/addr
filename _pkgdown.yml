@@ -22,6 +22,7 @@ reference:
     contents:
       - addr_left_join
       - addr_fuzzy_match
+      - match_addr_number
       - match_zipcodes
       - phonetic_street_key
   - title: Geocoding addr

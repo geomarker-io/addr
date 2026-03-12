@@ -13,6 +13,10 @@ S7::method(as.character, addr_part) <- function(x, ...) {
   format(x)
 }
 
+S7::method(is.na, addr_part) <- function(x, ...) {
+  !complete.cases(as.data.frame(x))
+}
+
 S7::method(`[`, addr_part) <- function(x, i, ...) {
   if (missing(i)) {
     return(x)
@@ -48,7 +52,6 @@ S7::method(length, addr_part) <- function(x, ...) {
 S7::method(unique, addr_part) <- function(x, ...) {
   x[!duplicated(as.character(x))]
 }
-
 
 #' @rdname addr
 #' @export
