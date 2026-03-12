@@ -1,3 +1,140 @@
+test_that("match_addr_number uses the documented addr_number examples", {
+  x <- addr_number(
+    prefix = "",
+    digits = as.character(c(1, 10, 228, 11, 22, 22, 22, 10, 99897, NA)),
+    suffix = ""
+  )
+  y <- addr_number(
+    prefix = "",
+    digits = as.character(c(12, 11, 10, 22)),
+    suffix = ""
+  )
+
+  expect_equal(
+    as.data.frame(match_addr_number(x, y)),
+    as.data.frame(
+      addr_number(
+        prefix = c(
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          NA_character_,
+          NA_character_
+        ),
+        digits = c(
+          "10",
+          "10",
+          "22",
+          "11",
+          "22",
+          "22",
+          "22",
+          "10",
+          NA_character_,
+          NA_character_
+        ),
+        suffix = c("", "", "", "", "", "", "", "", NA_character_, NA_character_)
+      )
+    )
+  )
+
+  expect_equal(
+    as.data.frame(match_addr_number(x, y, thresh = 0L)),
+    as.data.frame(
+      addr_number(
+        prefix = c(
+          NA_character_,
+          "",
+          NA_character_,
+          "",
+          "",
+          "",
+          "",
+          "",
+          NA_character_,
+          NA_character_
+        ),
+        digits = c(
+          NA_character_,
+          "10",
+          NA_character_,
+          "11",
+          "22",
+          "22",
+          "22",
+          "10",
+          NA_character_,
+          NA_character_
+        ),
+        suffix = c(
+          NA_character_,
+          "",
+          NA_character_,
+          "",
+          "",
+          "",
+          "",
+          "",
+          NA_character_,
+          NA_character_
+        )
+      )
+    )
+  )
+})
+
+test_that("match_addr_number treats NA and empty addr_number values as unmatched", {
+  x <- addr_number(
+    prefix = "",
+    digits = c("", NA_character_, "10", "11"),
+    suffix = ""
+  )
+  y <- addr_number(
+    prefix = "",
+    digits = c("", NA_character_, "12", "11"),
+    suffix = ""
+  )
+
+  out <- match_addr_number(x, y)
+
+  expect_true(is.na(out[1]))
+  expect_true(is.na(out[2]))
+  expect_false(is.na(out[3]))
+  expect_false(is.na(out[4]))
+  expect_equal(
+    as.data.frame(out),
+    as.data.frame(
+      addr_number(
+        prefix = c(NA_character_, NA_character_, "", ""),
+        digits = c(NA_character_, NA_character_, "11", "11"),
+        suffix = c(NA_character_, NA_character_, "", "")
+      )
+    )
+  )
+})
+
+test_that("match_addr_number threshold controls whether borderline matches are returned", {
+  x <- addr_number(prefix = "", digits = c("1", "228", "10"), suffix = "")
+  y <- addr_number(prefix = "", digits = c("10", "22"), suffix = "")
+
+  out_thresh_1 <- match_addr_number(x, y, thresh = 1L)
+  out_thresh_0 <- match_addr_number(x, y, thresh = 0L)
+
+  expect_equal(as.character(out_thresh_1), c("10", "22", "10"))
+  expect_equal(as.character(out_thresh_0), c("", "", "10"))
+  expect_false(is.na(out_thresh_1[1]))
+  expect_true(is.na(out_thresh_0[1]))
+  expect_false(is.na(out_thresh_1[2]))
+  expect_true(is.na(out_thresh_0[2]))
+  expect_false(is.na(out_thresh_1[3]))
+  expect_false(is.na(out_thresh_0[3]))
+})
+
 test_that("zipcode_variant returns known variants", {
   expect_equal(
     zipcode_variant("45220"),
