@@ -10,9 +10,10 @@
 #' @returns character vector
 #' @export
 #' @examples
-#' c("MEADOWLARK", "TOWNSEND", "IMMACULATE", "7TH", "WERK",
-#'   "PAXTON", "5th", "BURNET", "FIFTH", "CLIFTON") |>
-#'   phonetic_street_key()
+#' phonetic_street_key(
+#'   c("MEADOWLARK", "TOWNSEND", "IMMACULATE", "7TH", "WERK",
+#'     "PAXTON", "5th", "BURNET", "FIFTH", "CLIFTON")
+#' )
 phonetic_street_key <- function(x) {
   xm <- map_ordinal_street_names(x)
   xord <- is_ordinal_street_number(xm)
@@ -32,7 +33,7 @@ soundex <- function(x) {
 }
 
 map_ordinal_street_names <- function(x) {
-  stopifnot(typeof(x) == "character")
+  stopifnot("x must be a character vector" = is.character(x))
   x_ord <- is_ordinal_street_number(x)
   x[x_ord] <- toupper(trimws(x[x_ord]))
   xwo <- canonical_ordinal(parse_word_ordinal(x))

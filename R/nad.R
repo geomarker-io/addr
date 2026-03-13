@@ -23,6 +23,9 @@
 #' \dontrun{
 #'   nad_read("Hamilton", "OH")
 #' }
+#'
+#' # example data preloaded for Hamilton County, OH
+#' nad_example_data()
 nad_read <- function(county, state) {
   check_installed("sf", "to read from the NAD geodatabase")
   nad_fields <- c(

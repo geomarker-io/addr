@@ -4,36 +4,49 @@ NULL
 #' addr classes
 #'
 #' @description
-#' `addr()` combines `addr_number()`, `addr_street()`, and `addr_place()` into a
-#' single addr vector. The structures for `addr()` and the `addr_` classes are
+#' The structures for `addr()` and the `addr_` classes are
 #' derived as a subset of the United States Thoroughfare, Landmark, and Postal
 #' Address Data Standard that is relevant for residential, numbered thoroughfare
 #' addresses:
-#' - `addr_number()` vectors contain fields for "AddressNumberPrefix",
-#' "AddressNumber", and "AddressNumberSuffix".
-#' - `addr_street()` vectors contain fields for "StreetNamePreDirectional",
-#' "StreetNamePreModifier", "StreetNamePreType", "StreetName",
-#' "StreetNamePostType", and "StreetNamePostDirectional".
-#' - `addr_place()` vectors contain fields for "PlaceName", "StateName",
-#' and "ZipCode".
+#'
+#' ```
+#'   Address
+#'    ├─ AddressNumber
+#'    │  ├─ AddressNumberPrefix
+#'    │  ├─ AddressNumber
+#'    │  ├─ AddressNumberSuffix
+#'    ├─ StreetName
+#'    │  ├─ StreetNamePreModifier
+#'    │  ├─ StreetNamePreDirectional
+#'    │  ├─ StreetNamePreType
+#'    │  ├─ StreetName
+#'    │  ├─ StreetNamePostType
+#'    │  └─ StreetNamePostDirectional
+#'    └─ Place
+#'       ├─ PlaceName
+#'       ├─ StateName
+#'       └─ ZipCode
+#' ```
+#'`addr()` combines `addr_number()`, `addr_street()`, and `addr_place()` into a
+#' single addr vector:
 #'
 #' ```
 #' <addr>
-#'  @ number: <addr_number> function ()
-#'  .. @ prefix: chr ""
-#'  .. @ digits: chr ""
-#'  .. @ suffix: chr ""
-#'  @ street: <addr_street> function ()
-#'  .. @ predirectional : chr ""
-#'  .. @ premodifier    : chr ""
-#'  .. @ pretype        : chr ""
-#'  .. @ name           : chr ""
-#'  .. @ posttype       : chr ""
-#'  .. @ postdirectional: chr ""
-#'  @ place : <addr_place> function ()
-#'  .. @ name   : chr ""
-#'  .. @ state  : chr ""
-#'  .. @ zipcode: chr ""
+#'  @ number: <addr_number>
+#'  .. @ prefix
+#'  .. @ digits
+#'  .. @ suffix
+#'  @ street: <addr_street>
+#'  .. @ predirectional
+#'  .. @ premodifier
+#'  .. @ pretype
+#'  .. @ name
+#'  .. @ posttype
+#'  .. @ postdirectional
+#'  @ place : <addr_place>
+#'  .. @ name
+#'  .. @ state
+#'  .. @ zipcode
 #' ```
 #'
 #' @details
@@ -50,7 +63,7 @@ NULL
 #' @param name core street name (excluding type/directionals)
 #' @param posttype type/classification after name
 #' @param postdirectional direction after name
-#' @param name city, town, or municipality name
+#' @param name street name or city/town/municipality name
 #' @param state state or territory abbreviation
 #' @param zipcode ZIP code (must be five digits not starting with "000")
 #' @param map_posttype logical; map posttype to abbreviations?

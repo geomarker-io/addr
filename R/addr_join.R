@@ -10,7 +10,7 @@
 #' @param addr_fields a named vector of osa_max_distances; if max distances
 #' for each addr tag field is not present a default will be used (see details).
 #' @details
-#' addr_left_join works by matching addresses grouped by ZIP codes, so specified
+#' addr_fuzzy_left_join works by matching addresses grouped by ZIP codes, so specified
 #' osa_max_distances for any place fields are ignored
 #' Defaults for `addr_fields`:
 #' \itemize{
@@ -33,8 +33,8 @@
 #'                  addr = as_addr(address),
 #'                  id = sprintf("id_%04d", seq_len(1000)))
 #' the_addr <- nad_example_data()
-#' addr_left_join(my_addr, the_addr, c("addr", "nad_addr"))
-addr_left_join <- function(
+#' addr_fuzzy_left_join(my_addr, the_addr, c("addr", "nad_addr"))
+addr_fuzzy_left_join <- function(
   x,
   y,
   by = "addr",

@@ -34,4 +34,7 @@ string (\code{""}) \emph{except} for address number (digits), street name, and Z
 \dontrun{
   nad_read("Hamilton", "OH")
 }
+
+# example data preloaded for Hamilton County, OH
+nad_example_data()
 }

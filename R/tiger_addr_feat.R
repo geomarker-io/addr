@@ -45,15 +45,15 @@ pivot_addrfeat_sides <- function(x) {
 
 #' Get s2_geography for tiger street ranges
 #'
-#' TIGER address features (i.e. street address ranges) are downloaded from the census ftp site
+#' TIGER address features (i.e. street address ranges) are downloaded from
+#' the census.gov FTP site and converted to a "long" format by street side L/R,
+#' which is used with `tiger_geocode()`.
 #' @param county character string of county identifier
-#' @param year year of tigris product
+#' @param year character year of tigris product
 #' @returns a list of tibbles, one for each street name, with `TLID`, `s2_geography`, `from`, and `to` columns
 #' @export
 #' @examples
-#' \dontrun{
-#'   tiger_addr_feat("39061", "2024")
-#' }
+#' tiger_addr_feat("39061", "2024")
 tiger_addr_feat <- function(county, year) {
   # TODO validate county and year args
   check_installed("sf", "to read address range shapefiles")

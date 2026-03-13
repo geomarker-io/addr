@@ -15,13 +15,17 @@ template:
 reference:
   - title: addr
     contents:
-      - addr
       - as_addr
+      - addr
       - tag_usaddress
-  - title: Linking addr
+      - clean_address_text
+  - title: Fuzzy join addr
     contents:
-      - addr_left_join
+      - addr_fuzzy_left_join
       - addr_fuzzy_match
+      - fuzzy_match
+  - title: Match addr
+    contents:
       - match_addr_number
       - match_zipcodes
       - phonetic_street_key
@@ -34,9 +38,7 @@ reference:
       - nad_read
       - nad_download
       - nad_example_data
-  - title: Helpers and examples
+  - title: Examples
     contents:
-      - fuzzy_match
-      - clean_address_text
       - voter_addresses
       - elh_data

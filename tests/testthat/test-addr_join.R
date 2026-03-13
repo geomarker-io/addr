@@ -13,7 +13,7 @@ test_that("addr_join works", {
     id = 1
   )
 
-  out <- addr_left_join(my_addr, the_addr)
+  out <- addr_fuzzy_left_join(my_addr, the_addr)
 
   expect_equal(names(out), c("id.x", "addr", "addr.y", "id.y"))
   expect_equal(nrow(out), 3)
@@ -50,7 +50,7 @@ test_that("addr_match with NAD", {
 
   the_addr <- nad_example_data()
 
-  cagis_matches <- addr_left_join(
+  cagis_matches <- addr_fuzzy_left_join(
     my_addr,
     the_addr,
     by = c("addr", "nad_addr")

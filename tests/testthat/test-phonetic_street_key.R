@@ -105,7 +105,7 @@ test_that("parse_word_ordinal parses supported one- and two-word ordinal strings
 })
 
 test_that("ordinal helpers validate input types", {
-  expect_error(soundex(1), "typeof\\(x\\) == \"character\"")
-  expect_error(map_ordinal_street_names(1), "typeof\\(x\\) == \"character\"")
+  expect_error(soundex(1), "x must be a character vector")
+  expect_error(map_ordinal_street_names(1), "x must be a character vector")
   expect_error(canonical_ordinal(c(1, 2, 3)), "typeof\\(n\\) == \"integer\"")
 })
