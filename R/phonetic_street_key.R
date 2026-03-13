@@ -22,21 +22,11 @@ phonetic_street_key <- function(x) {
 }
 
 soundex <- function(x) {
-  stopifnot(typeof(x) == "character")
+  stopifnot("x must be a character vector" = is.character(x))
   x <- gsub("[^A-Z]", "", toupper(x))
-  out <- stringdist::phonetic(x, method = "soundex", useBytes = FALSE)
-  # out <-
-  #   substr(x, 2, nchar(x)) |>
-  #   chartr(
-  #     "BFPVCGJKQSXZDTLMNR",
-  #     "111122222222334556",
-  #     x = _
-  #   ) |>
-  #   gsub("[AEIOUYHW]", "", x = _) |>
-  #   gsub("(.)\\1+", "\\1", x = _) |>
-  #   paste0(substr(x, 1, 1), tail = _) |>
-  #   paste0(code = _, "0000") |>
-  #   substr(1, 4)
+  ux <- unique(stats::na.omit(x))
+  sdx <- stringdist::phonetic(ux, method = "soundex", useBytes = FALSE)
+  out <- sdx[match(x, ux)]
   out[is.na(x)] <- NA
   return(out)
 }
