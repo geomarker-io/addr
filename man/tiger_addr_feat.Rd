@@ -9,16 +9,16 @@ tiger_addr_feat(county, year)
 \arguments{
 \item{county}{character string of county identifier}
 
-\item{year}{year of tigris product}
+\item{year}{character year of tigris product}
 }
 \value{
 a list of tibbles, one for each street name, with \code{TLID}, \code{s2_geography}, \code{from}, and \code{to} columns
 }
 \description{
-TIGER address features (i.e. street address ranges) are downloaded from the census ftp site
+TIGER address features (i.e. street address ranges) are downloaded from
+the census.gov FTP site and converted to a "long" format by street side L/R,
+which is used with \code{tiger_geocode()}.
 }
 \examples{
-\dontrun{
-  tiger_addr_feat("39061", "2024")
-}
+tiger_addr_feat("39061", "2024")
 }

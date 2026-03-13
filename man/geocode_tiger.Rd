@@ -11,7 +11,7 @@ geocode_tiger(x, county, year, offset = 0)
 
 \item{county}{character string of county identifier}
 
-\item{year}{year of tigris product}
+\item{year}{character year of tigris product}
 
 \item{offset}{number of meters to offset geocode from street line}
 }

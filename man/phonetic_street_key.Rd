@@ -21,7 +21,8 @@ detected and converted automatically.
 Each phonetic key is exactly four characters long.
 }
 \examples{
-c("MEADOWLARK", "TOWNSEND", "IMMACULATE", "7TH", "WERK",
-  "PAXTON", "5th", "BURNET", "FIFTH", "CLIFTON") |>
-  phonetic_street_key()
+phonetic_street_key(
+  c("MEADOWLARK", "TOWNSEND", "IMMACULATE", "7TH", "WERK",
+    "PAXTON", "5th", "BURNET", "FIFTH", "CLIFTON")
+)
 }

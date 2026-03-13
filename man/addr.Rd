@@ -48,7 +48,7 @@ addr(number = addr_number(), street = addr_street(), place = addr_place())
 
 \item{pretype}{type/classification before name}
 
-\item{name}{city, town, or municipality name}
+\item{name}{street name or city/town/municipality name}
 
 \item{posttype}{type/classification after name}
 
@@ -79,37 +79,48 @@ to abbreviations?}
 An addr, addr_number, addr_street, or addr_place vector
 }
 \description{
-\code{addr()} combines \code{addr_number()}, \code{addr_street()}, and \code{addr_place()} into a
-single addr vector. The structures for \code{addr()} and the \code{addr_} classes are
+The structures for \code{addr()} and the \code{addr_} classes are
 derived as a subset of the United States Thoroughfare, Landmark, and Postal
 Address Data Standard that is relevant for residential, numbered thoroughfare
 addresses:
-\itemize{
-\item \code{addr_number()} vectors contain fields for "AddressNumberPrefix",
-"AddressNumber", and "AddressNumberSuffix".
-\item \code{addr_street()} vectors contain fields for "StreetNamePreDirectional",
-"StreetNamePreModifier", "StreetNamePreType", "StreetName",
-"StreetNamePostType", and "StreetNamePostDirectional".
-\item \code{addr_place()} vectors contain fields for "PlaceName", "StateName",
-and "ZipCode".
-}
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{  Address
+   ├─ AddressNumber
+   │  ├─ AddressNumberPrefix
+   │  ├─ AddressNumber
+   │  ├─ AddressNumberSuffix
+   ├─ StreetName
+   │  ├─ StreetNamePreModifier
+   │  ├─ StreetNamePreDirectional
+   │  ├─ StreetNamePreType
+   │  ├─ StreetName
+   │  ├─ StreetNamePostType
+   │  └─ StreetNamePostDirectional
+   └─ Place
+      ├─ PlaceName
+      ├─ StateName
+      └─ ZipCode
+}\if{html}{\out{</div>}}
+
+\code{addr()} combines \code{addr_number()}, \code{addr_street()}, and \code{addr_place()} into a
+single addr vector:
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{<addr>
- @ number: <addr_number> function ()
- .. @ prefix: chr ""
- .. @ digits: chr ""
- .. @ suffix: chr ""
- @ street: <addr_street> function ()
- .. @ predirectional : chr ""
- .. @ premodifier    : chr ""
- .. @ pretype        : chr ""
- .. @ name           : chr ""
- .. @ posttype       : chr ""
- .. @ postdirectional: chr ""
- @ place : <addr_place> function ()
- .. @ name   : chr ""
- .. @ state  : chr ""
- .. @ zipcode: chr ""
+ @ number: <addr_number>
+ .. @ prefix
+ .. @ digits
+ .. @ suffix
+ @ street: <addr_street>
+ .. @ predirectional
+ .. @ premodifier
+ .. @ pretype
+ .. @ name
+ .. @ posttype
+ .. @ postdirectional
+ @ place : <addr_place>
+ .. @ name
+ .. @ state
+ .. @ zipcode
 }\if{html}{\out{</div>}}
 }
 \details{
