@@ -15,14 +15,15 @@
 #' possible matches (within thresh OSA distance) are searched for in y.
 #' If multiple matches are present in y, the best one is selected
 #' based on the lowest absolute numeric difference with the @digits in x;
-#' ties are broken by OSA string distances and then preferring the
-#' lowest value sorted in Lexicographic order with digits preceding
-#' alphabetic characters.
+#' ties are broken by optimized string alignment (OSA) distances
+#' and then preferring the lowest value sorted in Lexicographic
+#' order with digits preceding alphabetic characters.
 #'
 #' addr_number objects with missing @digits or empty strings
 #' for all of @prefix, @digits, @suffix are not matched and
-#' returned as `addr_number()` instead
+#' returned as missing instead
 #' @param x,y addr_number vectors to match
+#' @param osa_max_dist integer maximum OSA distance to consider a match
 #' @return an addr_number vector, the same length as x, that is the
 #' best match in y for each addr_number code in x; if no best match
 #' is found a missing value is returned (`addr_number()`)
@@ -42,12 +43,12 @@
 #'
 #' match_addr_number(x, y)
 #'
-#' match_addr_number(x, y, thresh = 0L)
-match_addr_number <- function(x, y, thresh = 1L) {
+#' match_addr_number(x, y, osa_max_dist = 0L)
+match_addr_number <- function(x, y, osa_max_dist = 1L) {
   stopifnot(
     "x must be an addr_number object" = inherits(x, "addr_number"),
     "y must be an addr_number object" = inherits(y, "addr_number"),
-    "thresh must be an integer" = typeof(thresh) == "integer"
+    "osa_max_dist must be an integer" = typeof(osa_max_dist) == "integer"
   )
   ux <- unique(x) # also gets rid of empty
   ux <- ux[!is.na(ux@digits)]
@@ -58,14 +59,14 @@ match_addr_number <- function(x, y, thresh = 1L) {
       if (as.character(ux[.i]) %in% as.character(uy)) {
         return(ux[.i])
       }
-      if (thresh >= 1) {
+      if (osa_max_dist >= 1) {
         m <- uy[
           stringdist::stringdist(
             as.character(ux[.i]),
             as.character(uy),
             method = "osa"
           ) <=
-            thresh
+            osa_max_dist
         ]
         if (length(m) == 0) {
           return(addr_number())
@@ -99,12 +100,15 @@ match_addr_number <- function(x, y, thresh = 1L) {
 #' Match ZIP codes
 #'
 #' A single ZIP code in y is chosen for each ZIP code
-#' in x. If exact matches are not found, common variants
+#' in x. By default, if exact matches are not found, common variants
 #' of ZIP codes in x are searched for in y.
 #' If multiple variants are present in y, the best one is selected
 #' based on the lowest absolute numeric difference with the ZIP code in x;
-#' ties are broken by OSA string distances and then preferring the minimum number
+#' ties are broken by OSA string distances and then preferring the
+#' minimum number.
 #' @param x,y character vectors of ZIP codes to match
+#' @param zip_variants logical; fuzzy match to common variants of
+#' x in y? (e.g., changing 4th or 5th digit)
 #' @return a character vector, the same length as x, that is the
 #' best match in y for each ZIP code in x
 #' @export
@@ -113,7 +117,13 @@ match_addr_number <- function(x, y, thresh = 1L) {
 #'   c("45222", "45219", "45219", "45220", "45220", "", NA),
 #'   c("42522", "45200", "45219", "45221", "45223", "45321", "")
 #' )
-match_zipcodes <- function(x, y) {
+#'
+#' match_zipcodes(
+#'   c("45222", "45219", "45219", "45220", "45220", "", NA),
+#'   c("42522", "45200", "45219", "45221", "45223", "45321", ""),
+#'   zip_variants = FALSE
+#' )
+match_zipcodes <- function(x, y, zip_variants = TRUE) {
   ux <- unique(addr_place(zipcode = x)@zipcode)
   uy <- unique(addr_place(zipcode = y)@zipcode)
   lkp <- vapply(
@@ -122,17 +132,20 @@ match_zipcodes <- function(x, y) {
       if (xz %in% uy) {
         return(xz)
       }
-      xzv <- zipcode_variant(xz)
-      m <- xzv[xzv %in% uy]
-      if (length(m) == 0) {
-        return(NA_character_)
+      if (zip_variants) {
+        xzv <- zipcode_variant(xz)
+        m <- xzv[xzv %in% uy]
+        if (length(m) == 0) {
+          return(NA_character_)
+        }
+        m <- m[order(
+          abs(as.integer(xz) - as.integer(m)),
+          stringdist::stringdist(xz, m, method = "osa"),
+          as.integer(m)
+        )]
+        return(m[1])
       }
-      m <- m[order(
-        abs(as.integer(xz) - as.integer(m)),
-        stringdist::stringdist(xz, m, method = "osa"),
-        as.integer(m)
-      )]
-      return(m[1])
+      return(NA_character_)
     },
     FUN.VALUE = character(1),
     USE.NAMES = TRUE

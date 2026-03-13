@@ -4,10 +4,12 @@
 \alias{match_addr_number}
 \title{Match addr_number vectors}
 \usage{
-match_addr_number(x, y, thresh = 1L)
+match_addr_number(x, y, osa_max_dist = 1L)
 }
 \arguments{
 \item{x, y}{addr_number vectors to match}
+
+\item{osa_max_dist}{integer maximum OSA distance to consider a match}
 }
 \value{
 an addr_number vector, the same length as x, that is the
@@ -20,14 +22,14 @@ If exact matches (using \code{as.character}) are not found,
 possible matches (within thresh OSA distance) are searched for in y.
 If multiple matches are present in y, the best one is selected
 based on the lowest absolute numeric difference with the @digits in x;
-ties are broken by OSA string distances and then preferring the
-lowest value sorted in Lexicographic order with digits preceding
-alphabetic characters.
+ties are broken by optimized string alignment (OSA) distances
+and then preferring the lowest value sorted in Lexicographic
+order with digits preceding alphabetic characters.
 }
 \details{
 addr_number objects with missing @digits or empty strings
 for all of @prefix, @digits, @suffix are not matched and
-returned as \code{addr_number()} instead
+returned as missing instead
 }
 \examples{
  x <- addr_number(
@@ -44,5 +46,5 @@ y <- addr_number(
 
 match_addr_number(x, y)
 
-match_addr_number(x, y, thresh = 0L)
+match_addr_number(x, y, osa_max_dist = 0L)
 }

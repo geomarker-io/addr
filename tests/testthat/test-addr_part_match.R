@@ -44,7 +44,7 @@ test_that("match_addr_number uses the documented addr_number examples", {
   )
 
   expect_equal(
-    as.data.frame(match_addr_number(x, y, thresh = 0L)),
+    as.data.frame(match_addr_number(x, y, osa_max_dist = 0L)),
     as.data.frame(
       addr_number(
         prefix = c(
@@ -122,8 +122,8 @@ test_that("match_addr_number threshold controls whether borderline matches are r
   x <- addr_number(prefix = "", digits = c("1", "228", "10"), suffix = "")
   y <- addr_number(prefix = "", digits = c("10", "22"), suffix = "")
 
-  out_thresh_1 <- match_addr_number(x, y, thresh = 1L)
-  out_thresh_0 <- match_addr_number(x, y, thresh = 0L)
+  out_thresh_1 <- match_addr_number(x, y, osa_max_dist = 1L)
+  out_thresh_0 <- match_addr_number(x, y, osa_max_dist = 0L)
 
   expect_equal(as.character(out_thresh_1), c("10", "22", "10"))
   expect_equal(as.character(out_thresh_0), c("", "", "10"))
@@ -167,12 +167,30 @@ test_that("zipcode_variant returns known variants", {
 })
 
 test_that("match_zipcodes uses known zipcode examples", {
+  x <- c("45222", "45219", "45219", "45220", "45220", "", NA_character_)
+  y <- c("42522", "45200", "45219", "45221", "45223", "45321", "")
+
   expect_equal(
-    match_zipcodes(
-      c("45222", "45219", "45219", "45220", "45220", "", NA_character_),
-      c("42522", "45200", "45219", "45221", "45223", "45321", "")
-    ),
+    match_zipcodes(x, y),
     c("45221", "45219", "45219", "45221", "45221", NA_character_, NA_character_)
+  )
+
+  expect_equal(
+    match_zipcodes(x, y, zip_variants = TRUE),
+    c("45221", "45219", "45219", "45221", "45221", NA_character_, NA_character_)
+  )
+
+  expect_equal(
+    match_zipcodes(x, y, zip_variants = FALSE),
+    c(
+      NA_character_,
+      "45219",
+      "45219",
+      NA_character_,
+      NA_character_,
+      NA_character_,
+      NA_character_
+    )
   )
 })
 
