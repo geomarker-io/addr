@@ -4,10 +4,13 @@
 \alias{match_zipcodes}
 \title{Match ZIP codes}
 \usage{
-match_zipcodes(x, y)
+match_zipcodes(x, y, zip_variants = TRUE)
 }
 \arguments{
 \item{x, y}{character vectors of ZIP codes to match}
+
+\item{zip_variants}{logical; fuzzy match to common variants of
+x in y? (e.g., changing 4th or 5th digit)}
 }
 \value{
 a character vector, the same length as x, that is the
@@ -15,15 +18,22 @@ best match in y for each ZIP code in x
 }
 \description{
 A single ZIP code in y is chosen for each ZIP code
-in x. If exact matches are not found, common variants
+in x. By default, if exact matches are not found, common variants
 of ZIP codes in x are searched for in y.
 If multiple variants are present in y, the best one is selected
 based on the lowest absolute numeric difference with the ZIP code in x;
-ties are broken by OSA string distances and then preferring the minimum number
+ties are broken by OSA string distances and then preferring the
+minimum number.
 }
 \examples{
 match_zipcodes(
   c("45222", "45219", "45219", "45220", "45220", "", NA),
   c("42522", "45200", "45219", "45221", "45223", "45321", "")
+)
+
+match_zipcodes(
+  c("45222", "45219", "45219", "45220", "45220", "", NA),
+  c("42522", "45200", "45219", "45221", "45223", "45321", ""),
+  zip_variants = FALSE
 )
 }
