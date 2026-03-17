@@ -1,0 +1,67 @@
+# Match addr_number vectors
+
+A single addr_number in y is chosen for each addr_number in x. If exact
+matches (using `as.character`) are not found, possible matches (within
+thresh OSA distance) are searched for in y. If multiple matches are
+present in y, the best one is selected based on the lowest absolute
+numeric difference with the @digits in x; ties are broken by optimized
+string alignment (OSA) distances and then preferring the lowest value
+sorted in Lexicographic order with digits preceding alphabetic
+characters.
+
+## Usage
+
+``` r
+match_addr_number(x, y, osa_max_dist = 1L)
+```
+
+## Arguments
+
+- x, y:
+
+  addr_number vectors to match
+
+- osa_max_dist:
+
+  integer maximum OSA distance to consider a match
+
+## Value
+
+an addr_number vector, the same length as x, that is the best match in y
+for each addr_number code in x; if no best match is found a missing
+value is returned
+([`addr_number()`](https://geomarker.io/addr/reference/addr.md))
+
+## Details
+
+addr_number objects with missing @digits or empty strings for all of
+@prefix, @digits, @suffix are not matched and returned as missing
+instead
+
+## Examples
+
+``` r
+ x <- addr_number(
+   prefix = "",
+   digits = as.character(c(1, 10, 228, 11, 22, 22, 22, 10, 99897, NA)),
+   suffix = ""
+ )
+
+y <- addr_number(
+  prefix = "",
+  digits = as.character(c(12, 11, 10, 22)),
+  suffix = ""
+)
+
+match_addr_number(x, y)
+#> <addr_number> function ()  
+#>  @ prefix: chr [1:10] "" "" "" "" "" "" "" "" NA NA
+#>  @ digits: chr [1:10] "10" "10" "22" "11" "22" "22" "22" "10" NA NA
+#>  @ suffix: chr [1:10] "" "" "" "" "" "" "" "" NA NA
+
+match_addr_number(x, y, osa_max_dist = 0L)
+#> <addr_number> function ()  
+#>  @ prefix: chr [1:10] NA "" NA "" "" "" "" "" NA NA
+#>  @ digits: chr [1:10] NA "10" NA "11" "22" "22" "22" "10" NA NA
+#>  @ suffix: chr [1:10] NA "" NA "" "" "" "" "" NA NA
+```

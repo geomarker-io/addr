@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.11</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,7 +32,6 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="articles/addr.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -52,7 +51,8 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>Addresses that were not validated at the time of collection are often heterogenously formatted, making them difficult to directly compare. The goal of addr is to clean, parse, standardize, and match messy, real-world addresses in R to use for data linkages.</p>
+<!-- badges: end -->
+<p>Addresses that were not validated at the time of collection are often heterogenously formatted, making them difficult to directly compare. The goal of addr is to clean, parse, standardize, and match messy, real-world addresses in R to use for data linkages. addr is built around vctrs-based addr vectors, including the <code><a href="reference/addr.html">addr()</a></code> vector and the <code><a href="reference/addr.html">addr_number()</a></code>, <code><a href="reference/addr.html">addr_street()</a></code>, and <code><a href="reference/addr.html">addr_place()</a></code> subclass vectors.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -68,7 +68,10 @@
 <div class="section level2">
 <h2 id="using">Using<a class="anchor" aria-label="anchor" href="#using"></a>
 </h2>
-<p>See the package website to Get Started: <a href="https://geomarker.io/addr" class="uri">https://geomarker.io/addr</a></p>
+<p>addr vectors behave like standard R vectors: they recycle, subset, and combine with vctrs tooling. You can parse text into an addr vector with <code><a href="reference/as_addr.html">as_addr()</a></code> or build one from its subclass vectors with <code><a href="reference/addr.html">addr()</a></code>.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">addr_vec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/as_addr.html">as_addr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"3333 Burnet Ave Cincinnati OH 45229"</span>,</span>
+<span>                      <span class="st">"5130 Rapid Run Rd Cincinnati OH 45238"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -122,7 +125,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

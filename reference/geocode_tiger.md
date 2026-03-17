@@ -1,0 +1,120 @@
+# Geocode using TIGER address features
+
+geocode_tiger() geocodes addr vectors using TIGER address range
+geometries downloaded from census.gov for a specific county.
+
+The geocoding precision is the level of matching achieved for each
+address:
+
+- `range`: is the most precise; the address matched on street name and
+  ZIP code, and the number was within one of the ranges; point locations
+  are interpolated from the geometry of the best match using the street
+  number
+
+- `street`: is less precise; the address matched on street name and ZIP
+  code, but the number was *not* within one of the ranges; point
+  locations are interpolated as the centroid of all matching range
+  geometries
+
+- `unmatched`: no precision; the address did not match any street name
+  and ZIP code combinations; point locations are `<null feature>` (which
+  is equivalent to `NA`)
+
+## Usage
+
+``` r
+geocode_tiger(x, county, year, offset = 0)
+```
+
+## Arguments
+
+- x:
+
+  an addr vector
+
+- county:
+
+  character string of county identifier
+
+- year:
+
+  character year of tigris product
+
+- offset:
+
+  number of meters to offset geocode from street line
+
+## Value
+
+a s2_geography vector of geocoded point locations; an attribute
+("geocode_precision") is added as a factor with levels `range`,
+`street`, or `unmatched`.
+
+## Details
+
+If a street number-name has multiple in range and parity matches, then
+the best match is chosen based on the smallest width of ranges and then
+on the range with the closest midpoint.
+
+## Examples
+
+``` r
+gcd <-
+  geocode_tiger(as_addr(voter_addresses()[1:100]),
+                county = "39061", year = "2024", offset = 20)
+#> matching 100 addresses to 55922 address ranges in county 39061 (TIGER vintage 2024) ...
+#> Warning: 11 addr in x could not be matched to any street-zipcodes
+#> finding best matched ranges using street number...
+#> Warning: 1 addr in x were matched to a street, but could not be matched to a range
+#> imputing point along matched range...
+
+head(gcd)
+#> <geodesic s2_geography[6] with CRS=OGC:CRS84>
+#> [1] POINT (-84.6109993 39.1404602) POINT (-84.5891071 39.1116154)
+#> [3] POINT (-84.5279112 39.2497598) POINT (-84.5256961 39.1270156)
+#> [5] POINT (-84.3172464 39.0776455) POINT (-84.3824045 39.088258) 
+
+table(attr(gcd, "geocode_precision"))
+#> 
+#>     range unmatched    street 
+#>        88        11         1 
+
+# consider addresses matched to street but out of range missing
+gcd[attr(gcd, "geocode_precision") == "street"] <- NA_character_
+
+# convert to s2_cell
+s2::as_s2_cell(gcd)
+#> <s2_cell[100]>
+#>   [1] 8841ca76b5efbe77 8841b60a0d5e19f5 88404b8c046f8bdd 8841b40ba44f9447
+#>   [5] 8841a90b58dbe54d 8841ae9112bbb0cd 884053f3f6fee25f 8841ad8d8f978ce1
+#>   [9] 88404d08e849910b 88404d1b33e32715 88404b1f222d5069 88404b05997174e7
+#>  [13] 8841b303e0996f01 8841b259c73b173d 88404d59413d123f 88404bdd1899d5f9
+#>  [17] 8841b4cee66afceb 8841b5908d386da1 8841acf822dad861 8841b59a829ebd39
+#>  [21] 8841b672db4c6a39 NA               8841b26737052c6d 88404b1264b22fdf
+#>  [25] 884054a63a68942b 88404de2651a3ca3 8841ca9d5d9af5cd 8841c9db1972956d
+#>  [29] 88404ae535c4e161 8841b248d848c017 88404e8dfad37c71 8841b3fe80d160ef
+#>  [33] 8841b1541d2a216d 8841b3be6c6e8145 88402c527ce786fd 8841b5e337f57d15
+#>  [37] 88404b1311c91a23 NA               8841cd0fd27f4841 8841ad7f5941f239
+#>  [41] 8841aee7ee93b15d 8841ad98d5e440e7 8841adbeffcbcc41 8841ca1539fc6c1b
+#>  [45] 884056418a7fd145 8841a97af382893f 884052d867347865 8841b3d8a5f4624d
+#>  [49] 8841ace88bc1b725 8841b623135a2889 8841b4783ab86801 88405356c064f025
+#>  [53] 8841c9f7d4b6fee5 88404eae1d096a39 8840517490bf206f 88404ad2a7b1b09d
+#>  [57] 88404a363c5fbdef 8841ad7c827f7c67 8841acab01ccb0e3 88404b551494672b
+#>  [61] 8841b5ecdf41b8af NA               8841b62395ba62b9 8841ae910c566cf7
+#>  [65] 8841ca767b596cc3 NA               NA               8841b1597a5ec3eb
+#>  [69] 884053129b312faf 88404c7f269aeb6f 8841c9dab2d3757b 8840355c4a70f931
+#>  [73] 8841ca034277ac9b 8841aec6e225ae1b NA               NA              
+#>  [77] NA               8841ac23d29086ed 8841c97272f18573 88404a90bef927e9
+#>  [81] NA               88403512a1f13121 88402c53baf37d75 88404b2ea8e97e71
+#>  [85] 8841b2f0289231d7 8841ad6b91ca4fe5 NA               88404b39f409668d
+#>  [89] NA               8841ad5bdd7381cd NA               8841b3ede13148d5
+#>  [93] 88404c211ecd713d 8841cb7f088440df 8841ac2abea965c5 8841b393e3bff263
+#>  [97] 8841b5ea771e3919 8841ad8c111bea6f 8841acf3ed338a5b 8841a94cb3910809
+
+# create leaflet map
+leaflet::leaflet(wk::wk_coords(gcd)) |>
+  leaflet::addTiles() |>
+  leaflet::addCircleMarkers( lng = ~x, lat = ~y, label = ~ feature_id)
+
+{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addTiles","args":["https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"attribution":"&copy; <a href=\"https://openstreetmap.org/copyright/\">OpenStreetMap<\/a>,  <a href=\"https://opendatacommons.org/licenses/odbl/\">ODbL<\/a>"}]},{"method":"addCircleMarkers","args":[[39.14046017353078,39.11161537636816,39.24975978150854,39.12701555123706,39.07764546158624,39.0882580036502,39.25090391110983,39.12875870565301,39.22722182422677,39.22060018182071,39.21685691892005,39.227789,39.15426236766152,39.14459557895286,39.20285215375762,39.2670792278216,39.18620834103594,39.14228630101645,39.14560216016655,39.14360482554565,39.10359760001108,39.14188921816389,39.22367844944598,39.1951700588542,39.27093725461408,39.166187,39.08533800833718,39.22532735630629,39.13197457256099,39.2895353723294,39.11162734698526,39.10436588889391,39.13309554226331,39.25689177221307,39.11633702734093,39.22086384887984,39.17059157177809,39.14672182863153,39.07012073168242,39.14030200298486,39.12744408449618,39.13401842858124,39.28633817474412,39.09055988091649,39.19882016849439,39.10825677553233,39.162016,39.08801124490541,39.14104934782776,39.19083684775572,39.1133804189223,39.28497694651092,39.287829,39.19533052134581,39.25739443502395,39.15467189595169,39.18181406714535,39.19374109664198,39.13213413322025,39.08793899302765,39.08838484550269,39.13968055102346,39.10384958824119,39.21588910119278,39.23779730281707,39.08314854922492,39.21426572971424,39.11778469380457,39.07832675415018,39.10806392633884,39.0984110477094,39.22253278269076,39.22785076667447,39.25415751026696,39.19923171428922,39.15823128627677,39.16211082027133,39.20473580061049,39.17369020416699,39.12445396295988,39.27094603946067,39.16017618029554,39.10408505216439,39.13413963137884,39.12943150011205,39.12997609514449,39.14977281784191,39.0864583998663],[-84.61099926451851,-84.58910706357041,-84.52791119374088,-84.52569612241858,-84.31724636211106,-84.38240449368217,-84.35963759597753,-84.42830549026482,-84.4679386638623,-84.47332945463785,-84.56005610815167,-84.55470699999999,-84.48422289735947,-84.4685712431955,-84.44242216843674,-84.54538632545132,-84.5499925707003,-84.59238522827462,-84.38635006317212,-84.59351009228962,-84.58417440028114,-84.4577538010212,-84.54618367329628,-84.35085117650407,-84.45192357281476,-84.60650099999999,-84.61495523990007,-84.57320311168746,-84.47226163875213,-84.4901057926941,-84.51728210142839,-84.51713366659875,-84.49970802705485,-84.81788156372258,-84.59491909485823,-84.54508411969186,-84.74443315477595,-84.433928001808,-84.37610697373533,-84.41983677495638,-84.41449321019515,-84.62537362890751,-84.29633039762518,-84.32037904164913,-84.3974646262549,-84.49532575564027,-84.38468899999999,-84.59723069412559,-84.52410808701161,-84.3582847885269,-84.61910189294532,-84.51617142379192,-84.391728,-84.57448881897193,-84.57093449009469,-84.43302244428077,-84.35689204131505,-84.5236275023419,-84.59288717409279,-84.59928532306954,-84.38264778359337,-84.60831963286213,-84.50863229404257,-84.37717524664239,-84.51988965757876,-84.61650449737024,-84.61261853562193,-84.61521476914936,-84.36830564376592,-84.37797297010793,-84.65782486614181,-84.59445100716201,-84.6282360912286,-84.81848056165659,-84.5583555103052,-84.46773428559167,-84.42072627916478,-84.54811430670176,-84.43250795995574,-84.51064450945977,-84.49751807631608,-84.68694613285723,-84.395245684475,-84.50738708997559,-84.58533149988649,-84.43214368955375,-84.37918950987969,-84.35398668193122],10,null,null,{"interactive":true,"className":"","stroke":true,"color":"#03F","weight":5,"opacity":0.5,"fill":true,"fillColor":"#03F","fillOpacity":0.2},null,null,null,null,["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","63","64","65","68","69","70","71","72","73","74","78","79","80","82","83","84","85","86","88","90","92","93","94","95","96","97","98","99","100"],{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"limits":{"lat":[39.07012073168242,39.2895353723294],"lng":[-84.81848056165659,-84.29633039762518]}},"evals":[],"jsHooks":[]}
+```
