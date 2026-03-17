@@ -77,19 +77,17 @@ addr_fuzzy_left_join(my_addr, the_addr, c("addr", "nad_addr"))
 #> 49 of 49 unique ZIP codes in x matched to one of 60 unique ZIP codes in y
 #> matching by zipcode ■■                                 2% |  ETA:  3m
 #> matching by zipcode ■■■                                6% |  ETA:  2m
-#> matching by zipcode ■■■                                8% |  ETA:  1m
+#> matching by zipcode ■■■■                              10% |  ETA:  1m
 #> matching by zipcode ■■■■■                             14% |  ETA:  1m
 #> matching by zipcode ■■■■■■■                           18% |  ETA:  1m
-#> matching by zipcode ■■■■■■■■                          22% |  ETA:  1m
-#> matching by zipcode ■■■■■■■■■■                        31% |  ETA: 46s
-#> matching by zipcode ■■■■■■■■■■■                       33% |  ETA: 46s
-#> matching by zipcode ■■■■■■■■■■■■■                     41% |  ETA: 38s
-#> matching by zipcode ■■■■■■■■■■■■■■■                   47% |  ETA: 33s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■                 53% |  ETA: 28s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■■               61% |  ETA: 22s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■             67% |  ETA: 18s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■■■           73% |  ETA: 15s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■■■■■■■       88% |  ETA:  6s
+#> matching by zipcode ■■■■■■■■■                         27% |  ETA: 47s
+#> matching by zipcode ■■■■■■■■■■■                       33% |  ETA: 42s
+#> matching by zipcode ■■■■■■■■■■■■■                     41% |  ETA: 34s
+#> matching by zipcode ■■■■■■■■■■■■■■■                   47% |  ETA: 29s
+#> matching by zipcode ■■■■■■■■■■■■■■■■■■                57% |  ETA: 22s
+#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■             67% |  ETA: 15s
+#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■■■■          78% |  ETA: 10s
+#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■     94% |  ETA:  2s
 #> Warning: Multi-matches detected for 23 addr in x;
 #> More than one row of y will be returned once for each matching row in x
 #> # A tibble: 1,796 × 10

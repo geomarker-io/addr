@@ -32,7 +32,7 @@ rows are expanded for one-to-many or many-to-many matches."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Left join two data frames using fuzzy addr matching</h1>
-      <small class="dont-index">Source: <a href="https://github.com/cole-brokamp/addr/blob/main/R/addr_join.R" class="external-link"><code>R/addr_join.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/cole-brokamp/addr/blob/v0.9.11/R/addr_join.R" class="external-link"><code>R/addr_join.R</code></a></small>
       <div class="d-none name"><code>addr_fuzzy_left_join.Rd</code></div>
     </div>
 
@@ -106,19 +106,17 @@ Defaults for <code>addr_fields</code>:</p><ul><li><p>number_prefix: 0</p></li>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> 49 of 49 unique ZIP codes in x matched to one of 60 unique ZIP codes in y</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■                              </span>   2% |  ETA:  3m</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■                             </span>   6% |  ETA:  2m</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■                             </span>   8% |  ETA:  1m</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■                            </span>  10% |  ETA:  1m</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■                           </span>  14% |  ETA:  1m</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■                         </span>  18% |  ETA:  1m</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■                        </span>  22% |  ETA:  1m</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■■■                      </span>  31% |  ETA: 46s</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■■■■                     </span>  33% |  ETA: 46s</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■■■■■■                   </span>  41% |  ETA: 38s</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■■■■■■■■                 </span>  47% |  ETA: 33s</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■               </span>  53% |  ETA: 28s</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■             </span>  61% |  ETA: 22s</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■           </span>  67% |  ETA: 18s</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■         </span>  73% |  ETA: 15s</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■     </span>  88% |  ETA:  6s</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■■                       </span>  27% |  ETA: 47s</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■■■■                     </span>  33% |  ETA: 42s</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■■■■■■                   </span>  41% |  ETA: 34s</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■■■■■■■■                 </span>  47% |  ETA: 29s</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■              </span>  57% |  ETA: 22s</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■           </span>  67% |  ETA: 15s</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■        </span>  78% |  ETA: 10s</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> matching by zipcode <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■   </span>  94% |  ETA:  2s</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Multi-matches detected for 23 addr in x;</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> More than one row of y will be returned once for each matching row in x</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1,796 × 10</span></span>

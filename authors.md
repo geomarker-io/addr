@@ -9,7 +9,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/cole-brokamp/addr/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/cole-brokamp/addr/blob/v0.9.11/DESCRIPTION)
 
 Brokamp C, Manning E (2026). *addr: Clean, Parse, Harmonize, Match, and
 Geocode Messy Real-World Addresses*. R package version 0.9.11,
