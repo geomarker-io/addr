@@ -60,7 +60,7 @@ S7::method(as_addr, S7::class_character) <- function(
     if (length(vals) == 0L) {
       return("")
     }
-    paste(vals, collapse = collapse)
+    paste(unique(vals), collapse = collapse)
   }
 
   prefix <- vapply(

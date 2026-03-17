@@ -128,6 +128,16 @@ test_that("as_addr handles NA and empty inputs", {
   expect_equal(nrow(as.data.frame(empty_addr)), 0)
 })
 
+test_that("as_addr deals with multiples of an address tag", {
+  as_addr(
+    c(
+      "1234 Main St Cincinnati Cincinnati OH 45229",
+      "1234 Main St Clifton Cincinnati OH 45229"
+    )
+  )@place@name |>
+    expect_identical(c("Cincinnati", "Clifton Cincinnati"))
+})
+
 test_that("as_addr tries to fix zipcodes", {
   as_addr(c(
     "123 Main Street Anytown IL 34502-2230",
@@ -138,7 +148,7 @@ test_that("as_addr tries to fix zipcodes", {
       "Truncating 2 parsed ZIP codes to the first five characters."
     )
   as_addr(
-    "1234 Main St Cincinnati OH 45229 Cincinnati OH 45229"
+    "1234 Main St Cincinnati OH 45229 Cincinnati OH 45230"
   ) |>
     expect_warning("Truncating 1 parsed ZIP codes to the first five characters")
 })
