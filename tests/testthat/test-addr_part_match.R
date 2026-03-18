@@ -220,3 +220,63 @@ test_that("match_zipcodes rejects invalid zipcodes", {
     "@zipcode must be exactly five numeric digits"
   )
 })
+
+test_that("match_addr_street works", {
+  my_streets <- addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = c(
+      "Beechview",
+      "Vivian",
+      "Springfield",
+      "Round Bottom",
+      "Pfeiffer",
+      "Beachview",
+      "Vevan",
+      "Srpingfield",
+      "Square Top",
+      "Pfeffer",
+      "Wuhlper",
+      ""
+    ),
+    posttype = c(
+      "Cir",
+      "Pl",
+      "Pike",
+      "Rd",
+      "Rd",
+      "Cir",
+      "Pl",
+      "Pike",
+      "Rd",
+      "Rd",
+      "Ave",
+      ""
+    ),
+    postdirectional = ""
+  )
+  the_streets <- nad_example_data()$nad_addr@street
+  out <- match_addr_street(my_streets, the_streets)
+  expect_identical(
+    out@name,
+    c(
+      "BEECHVIEW",
+      "VIVIAN",
+      "SPRINGFIELD",
+      "ROUND BOTTOM",
+      "PFEIFFER",
+      "BEECHVIEW",
+      "VIVIAN",
+      "SPRINGFIELD",
+      NA,
+      "PFEIFFER",
+      "WOOLPER",
+      NA
+    )
+  )
+  expect_identical(
+    out@posttype,
+    c("Cir", "Pl", "Pike", "Rd", "Rd", "Cir", "Pl", "Pike", NA, "Rd", "Ave", NA)
+  )
+})
