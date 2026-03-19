@@ -1,7 +1,7 @@
 # from USPS Publication 28, Appendix C1
 # https://pe.usps.com/text/pub28/28apc_002.htm
 valid_street_name_post_types <- list(
-  Aly = c("Allee", "Alley", "Ally"),
+  Aly = c("Allee", "Alley", "Ally", "Al"),
   Anx = c("Anex", "Annex", "Annx"),
   Arc = "Arcade",
   Ave = c("Av", "Aven", "Avenu", "Avenue", "Avn", "Avnue"),
@@ -40,7 +40,7 @@ valid_street_name_post_types <- list(
   Cv = "Cove",
   Cvs = "Coves",
   Crk = "Creek",
-  Cres = c("Crescent", "Crsent", "Crsnt"),
+  Cres = c("Crescent", "Crsent", "Crsnt", "Crsc"),
   Crst = "Crest",
   Xing = c("Crossing", "Crssng"),
   Xrd = "Crossroad",
@@ -149,7 +149,7 @@ valid_street_name_post_types <- list(
   Pln = "Plain",
   Plns = "Plains",
   Plz = c("Plaza", "Plza"),
-  Pt = "Point",
+  Pt = c("Point", "Pointe", "Pte"),
   Pts = "Points",
   Prt = "Port",
   Prts = "Ports",
@@ -194,6 +194,7 @@ valid_street_name_post_types <- list(
   Trl = c("Trail", "Trails", "Trls"),
   Trlr = c("Trailer", "Trlrs"),
   Tunl = c("Tunel", "Tunls", "Tunnel", "Tunnels", "Tunnl"),
+  Turn = "Turn",
   Tpke = c("Trnpk", "Turnpike", "Turnpk"),
   Upas = "Underpass",
   Un = "Union",
