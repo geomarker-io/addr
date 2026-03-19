@@ -1,12 +1,158 @@
-# matching functions all have the same behavior:
-# - return the matched entity (instead of its index value)
-# - all take the inputs x and y
-# - deduplicates computations on repeated components in x and y
-# - match returns the best single result, always returning a vector of matches instead of a list with multiple possible matches
+yy <- nad_example_data()$nad_addr@street
 
-## match addr_street
-# distance for non-ordinal streets = osa
-# distance for ordinal streets = integer distance (and osa??)
+match_one_street(
+  x = addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "14th",
+    posttype = "st",
+    postdirectional = ""
+  ),
+  y = yy
+)
+
+match_one_street <- function(x, y, osa_max_dist = 2L) {
+  stopifnot(!is.na(x), length(x) == 1, x@name != "")
+  x_psk <- phonetic_street_key(x@name)
+  y_psk <- phonetic_street_key(y@name)
+  m <- unique(y[y_psk %in% x_psk])
+  # if no psk match within osa dist on name, then search for common phonetic
+  # variants that have names within osa dist
+  m_dist <- stringdist::stringdist(tolower(x@name), tolower(m@name))
+  if (length(m) == 0 || all(m_dist > osa_max_dist)) {
+    z <- strsplit(x_psk, "")[[1]]
+    x_psk_var <- c(
+      x_psk,
+      paste0(z[c(1, 3, 2, 4)], collapse = ""),
+      paste0(z[c(1, 2, 4, 3)], collapse = "")
+    )
+    m <- unique(y[y_psk %in% x_psk_var])
+    m_dist <- stringdist::stringdist(tolower(x@name), tolower(m@name))
+    m <- unique(m[m_dist <= osa_max_dist])
+  }
+  # if no exact nor fuzzy match on psk + street name, return NA
+  if (length(m) == 0) {
+    return(addr::addr_street())
+  }
+  # if present, narrow to matching posttype
+  m_type <- m[m@posttype == x@posttype]
+  if (length(m_type) > 0) {
+    m <- m_type
+  }
+  # if present, narrow to matching predir
+  m_predir <- m[m@predirectional == x@predirectional]
+  if (length(m_predir) > 0) {
+    m <- m_predir
+  }
+
+  browser()
+
+  m_dist <- stringdist::stringdist(
+    tolower(as.character(x)),
+    tolower(as.character(m)),
+    method = "osa"
+  )
+  m <- m[order(m_dist, sort(as.character(m)))]
+  m[1]
+}
+
+#' Match addr_street vectors
+#'
+#' A single addr_street in y is chosen for each addr_street in x.
+#' If exact matches (using `as.character`) are not found,
+#' possible matches are chosen by
+#' fuzzy matching on street name (using phonetic street key and street name)
+#' and exact matching on street type.
+#' Ties are broken by .......... the first for now.
+#'
+#' addr_street objects within missing or empty @name are not matched and
+#' returned as missing instead.
+#' @param x,y addr_street vectors to match
+#' @return an addr_street vector, the same length as x, that is the
+#' best match in y for each addr_street code in x; if no best match
+#' is found a missing value is returned (`addr_street()`)
+#' @export
+#' @examples
+#' my_streets <- addr_street(
+#'    predirectional = "",
+#'    premodifier = "",
+#'    pretype = "",
+#'    name = c("Beechview", "Vivian", "Springfield", "Round Bottom", "Pfeiffer", "Beachview",
+#'             "Vevan", "Srpingfield", "Square Top", "Pfeffer", "Wuhlper", ""),
+#'   posttype = c("Cir", "Pl", "Pike", "Rd", "Rd", "Cir", "Pl", "Pike", "Rd", "Rd", "Ave", ""),
+#'   postdirectional = ""
+#'  )
+#' the_streets <- nad_example_data()$nad_addr@street
+#' match_addr_street(my_streets, the_streets)
+match_addr_street <- function(x, y) {
+  stopifnot(
+    "x must be an addr_street object" = inherits(x, "addr_street"),
+    "y must be an addr_street object" = inherits(y, "addr_street")
+  )
+  ux <- unique(x)
+  ux <- ux[!is.na(ux@name)] # omit matching if missing
+  ux <- ux[!ux@name == ""] # or empty street name
+  uy <- unique(y)
+
+  lkp <- match(
+    tolower(as.character(ux)),
+    tolower(as.character(uy)),
+    incomparables = c("", NA)
+  ) |>
+    as.list()
+
+  if (any(is.na(lkp))) {
+    uy_psk <- phonetic_street_key(uy@name)
+    nomatch <- ux[sapply(lkp, is.na)]
+    nomatch_psk <-
+      uy_psk[
+        match(
+          phonetic_street_key(nomatch@name),
+          uy_psk,
+          incomparables = c("", NA, "0000")
+        )
+      ]
+    # make potential matches based on phonetic and fuzzy OSA distances
+    nomatch_phonetic_matches <- fuzzy_match(
+      nomatch_psk,
+      uy_psk,
+      osa_max_dist = 1
+    )
+    nomatch_fuzzy_matches <- fuzzy_match(
+      nomatch@name,
+      uy@name,
+      osa_max_dist = 2
+    )
+    m <-
+      mapply(
+        union,
+        nomatch_fuzzy_matches,
+        nomatch_phonetic_matches,
+        SIMPLIFY = FALSE
+      )
+    # keep only those matching on street posttype
+    m <- mapply(
+      \(.x, .y) .y[uy[.y]@posttype == .x],
+      .x = nomatch@posttype,
+      .y = m,
+      SIMPLIFY = FALSE,
+      USE.NAMES = FALSE
+    )
+    # take first in multiple matches (prefers fuzzy match)
+    lkp[is.na(lkp)] <- lapply(m, \(.) .[1])
+  }
+
+  names(lkp) <- tolower(as.character(ux))
+  out_l <- lkp[tolower(as.character(x))] |>
+    lapply(\(.) uy[.])
+  empties <- which(is.na(names(out_l)))
+  out_l[empties] <- replicate(length(empties), addr::addr_street())
+  out <-
+    do.call(rbind, lapply(out_l, as.data.frame)) |>
+    vec_restore(to = addr::addr_street())
+  return(out)
+}
 
 #' Match addr_number vectors
 #'
@@ -21,7 +167,7 @@
 #'
 #' addr_number objects with missing @digits or empty strings
 #' for all of @prefix, @digits, @suffix are not matched and
-#' returned as missing instead
+#' returned as missing instead.
 #' @param x,y addr_number vectors to match
 #' @param osa_max_dist integer maximum OSA distance to consider a match
 #' @return an addr_number vector, the same length as x, that is the
@@ -69,7 +215,7 @@ match_addr_number <- function(x, y, osa_max_dist = 1L) {
             osa_max_dist
         ]
         if (length(m) == 0) {
-          return(addr_number())
+          return(addr::addr_number())
         }
         m_sort <-
           m[order(
@@ -83,17 +229,17 @@ match_addr_number <- function(x, y, osa_max_dist = 1L) {
           )]
         return(m_sort[1])
       }
-      return(addr_number())
+      return(addr::addr_number())
     }
   )
   names(lkp) <- as.character(ux)
   lkp[sapply(lkp, is.na)] <- NULL # remove unmatched
   out_l <- lkp[as.character(x)]
   empties <- which(sapply(out_l, is.null))
-  out_l[empties] <- replicate(length(empties), addr_number())
+  out_l[empties] <- replicate(length(empties), addr::addr_number())
   out <-
     do.call(rbind, lapply(out_l, as.data.frame)) |>
-    vec_restore(to = addr_number())
+    vec_restore(to = addr::addr_number())
   return(out)
 }
 
@@ -124,8 +270,8 @@ match_addr_number <- function(x, y, osa_max_dist = 1L) {
 #'   zip_variants = FALSE
 #' )
 match_zipcodes <- function(x, y, zip_variants = TRUE) {
-  ux <- unique(addr_place(zipcode = x)@zipcode)
-  uy <- unique(addr_place(zipcode = y)@zipcode)
+  ux <- unique(addr::addr_place(zipcode = x)@zipcode)
+  uy <- unique(addr::addr_place(zipcode = y)@zipcode)
   lkp <- vapply(
     ux,
     FUN = \(xz) {
@@ -157,7 +303,7 @@ match_zipcodes <- function(x, y, zip_variants = TRUE) {
 
 zipcode_variant <- function(x) {
   stopifnot(typeof(x) == "character", length(x) == 1L)
-  x <- addr_place(zipcode = x)@zipcode
+  x <- addr::addr_place(zipcode = x)@zipcode
   if (is.na(x)) {
     return(NA_character_)
   }

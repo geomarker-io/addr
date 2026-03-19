@@ -29,7 +29,7 @@ order with digits preceding alphabetic characters.
 \details{
 addr_number objects with missing @digits or empty strings
 for all of @prefix, @digits, @suffix are not matched and
-returned as missing instead
+returned as missing instead.
 }
 \examples{
  x <- addr_number(
