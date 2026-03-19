@@ -49,64 +49,55 @@ match_addr_street <- function(x, y) {
   ) |>
     as.list()
 
-  # if (!any(is.na(lkp))) {
-  #   return(uy[lkp])
-  # }
-
-  uy_psk <- phonetic_street_key(uy@name)
-
-  nomatch <- ux[sapply(lkp, is.na)]
-
-  nomatch_psk <-
-    uy_psk[
-      match(
-        phonetic_street_key(nomatch@name),
-        uy_psk,
-        incomparables = c("", NA, "0000")
-      )
-    ]
-
-  # make potential matches based on phonetic and fuzzy OSA distances
-  nomatch_phonetic_matches <- fuzzy_match(nomatch_psk, uy_psk, osa_max_dist = 1)
-  nomatch_fuzzy_matches <- fuzzy_match(
-    nomatch@name,
-    uy@name,
-    osa_max_dist = 2
-  )
-
-  m <-
-    mapply(
-      union,
-      nomatch_fuzzy_matches,
-      nomatch_phonetic_matches,
-      SIMPLIFY = FALSE
+  if (any(is.na(lkp))) {
+    uy_psk <- phonetic_street_key(uy@name)
+    nomatch <- ux[sapply(lkp, is.na)]
+    nomatch_psk <-
+      uy_psk[
+        match(
+          phonetic_street_key(nomatch@name),
+          uy_psk,
+          incomparables = c("", NA, "0000")
+        )
+      ]
+    # make potential matches based on phonetic and fuzzy OSA distances
+    nomatch_phonetic_matches <- fuzzy_match(
+      nomatch_psk,
+      uy_psk,
+      osa_max_dist = 1
     )
-
-  # keep only those matching on street posttype
-  m <- mapply(
-    \(.x, .y) .y[uy[.y]@posttype == .x],
-    .x = nomatch@posttype,
-    .y = m,
-    SIMPLIFY = FALSE,
-    USE.NAMES = FALSE
-  )
-
-  # take first in multiple matches (prefers fuzzy match)
-  lkp[is.na(lkp)] <- lapply(m, \(.) .[1])
+    nomatch_fuzzy_matches <- fuzzy_match(
+      nomatch@name,
+      uy@name,
+      osa_max_dist = 2
+    )
+    m <-
+      mapply(
+        union,
+        nomatch_fuzzy_matches,
+        nomatch_phonetic_matches,
+        SIMPLIFY = FALSE
+      )
+    # keep only those matching on street posttype
+    m <- mapply(
+      \(.x, .y) .y[uy[.y]@posttype == .x],
+      .x = nomatch@posttype,
+      .y = m,
+      SIMPLIFY = FALSE,
+      USE.NAMES = FALSE
+    )
+    # take first in multiple matches (prefers fuzzy match)
+    lkp[is.na(lkp)] <- lapply(m, \(.) .[1])
+  }
 
   names(lkp) <- tolower(as.character(ux))
-
   out_l <- lkp[tolower(as.character(x))] |>
     lapply(\(.) uy[.])
-
   empties <- which(is.na(names(out_l)))
-
   out_l[empties] <- replicate(length(empties), addr_street())
-
   out <-
     do.call(rbind, lapply(out_l, as.data.frame)) |>
     vec_restore(to = addr_street())
-
   return(out)
 }
 

@@ -280,3 +280,18 @@ test_that("match_addr_street works", {
     c("Cir", "Pl", "Pike", "Rd", "Rd", "Cir", "Pl", "Pike", NA, "Rd", "Ave", NA)
   )
 })
+
+# test_that("match_addr_street edge cases for Hamilton County, OH", {
+#   the_streets <- nad_example_data()$nad_addr@street
+#   match_addr_street(
+#     addr_street(
+#       predirectional = "",
+#       premodifier = "",
+#       pretype = "",
+#       name = "Burnett",
+#       posttype = "Ave",
+#       postdirectional = ""
+#     ),
+#     the_streets
+#   )
+# })

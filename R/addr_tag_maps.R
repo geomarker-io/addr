@@ -315,7 +315,7 @@ map_street_name_post_type <- function(x) {
         return(type_names[which(hit_vals)[1]])
       }
       warning(
-        "street name post type parsed but not mapped: ",
+        "street name post type not mapped: ",
         val,
         call. = FALSE
       )
