@@ -48,7 +48,7 @@ as_addr(x, ...)
 
 ``` r
 as_addr(voter_addresses()[1:1000])
-#> Warning: street name post type parsed but not mapped: la
+#> Warning: street name post type not mapped: la
 #> <addr>
 #>  @ number: <addr_number> function ()  
 #>  .. @ prefix: chr [1:1000] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...

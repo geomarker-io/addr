@@ -96,7 +96,7 @@ x <- as_addr(voter_addresses()[1:100])@street@name
 y <- unique(nad_example_data()$nad_addr@street@name)
 system.time(fuzzy_match(x, y))
 #>    user  system elapsed 
-#>   0.602   0.005   0.206 
+#>   0.603   0.005   0.207 
 # larger vectors see a speedup when using
 # phonetic_street_key as a prefilter
 # but may miss potential matches that are within
@@ -104,5 +104,5 @@ system.time(fuzzy_match(x, y))
 # identical phonetic codes (e.g., "woolper" and "woopler")
 system.time(fuzzy_match(x, y, prefilter = "psk"))
 #>    user  system elapsed 
-#>   0.379   0.006   0.167 
+#>   0.378   0.003   0.165 
 ```

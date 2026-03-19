@@ -71,7 +71,7 @@ my_addr <-
   tibble::tibble(address = voter_addresses()[1:1000],
                  addr = as_addr(address),
                  id = sprintf("id_%04d", seq_len(1000)))
-#> Warning: street name post type parsed but not mapped: la
+#> Warning: street name post type not mapped: la
 the_addr <- nad_example_data()
 addr_fuzzy_left_join(my_addr, the_addr, c("addr", "nad_addr"))
 #> 49 of 49 unique ZIP codes in x matched to one of 60 unique ZIP codes in y
@@ -79,15 +79,17 @@ addr_fuzzy_left_join(my_addr, the_addr, c("addr", "nad_addr"))
 #> matching by zipcode ■■■                                6% |  ETA:  2m
 #> matching by zipcode ■■■■                              10% |  ETA:  1m
 #> matching by zipcode ■■■■■                             14% |  ETA:  1m
-#> matching by zipcode ■■■■■■■                           18% |  ETA:  1m
+#> matching by zipcode ■■■■■■■                           20% |  ETA:  1m
 #> matching by zipcode ■■■■■■■■■                         27% |  ETA: 48s
-#> matching by zipcode ■■■■■■■■■■                        31% |  ETA: 45s
-#> matching by zipcode ■■■■■■■■■■■■                      37% |  ETA: 39s
-#> matching by zipcode ■■■■■■■■■■■■■■                    45% |  ETA: 32s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■                55% |  ETA: 23s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■             65% |  ETA: 17s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■■■           73% |  ETA: 13s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■■■■■■■■      90% |  ETA:  4s
+#> matching by zipcode ■■■■■■■■■■■                       33% |  ETA: 45s
+#> matching by zipcode ■■■■■■■■■■■■                      37% |  ETA: 41s
+#> matching by zipcode ■■■■■■■■■■■■■■                    43% |  ETA: 35s
+#> matching by zipcode ■■■■■■■■■■■■■■■■                  49% |  ETA: 31s
+#> matching by zipcode ■■■■■■■■■■■■■■■■■■                57% |  ETA: 24s
+#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■             65% |  ETA: 19s
+#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■■            71% |  ETA: 15s
+#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■■■■■         82% |  ETA:  9s
+#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■     92% |  ETA:  4s
 #> Warning: Multi-matches detected for 23 addr in x;
 #> More than one row of y will be returned once for each matching row in x
 #> # A tibble: 1,796 × 10
