@@ -97,7 +97,11 @@ phonetic_street_key_fuzzy_match <- function(x, y, osa_max_dist = 1) {
 
   x_ordinal <- is_ordinal_phonetic_key(x)
   if (any(!x_ordinal)) {
-    out[!x_ordinal] <- fuzzy_match(x[!x_ordinal], y, osa_max_dist = osa_max_dist)
+    out[!x_ordinal] <- fuzzy_match(
+      x[!x_ordinal],
+      y,
+      osa_max_dist = osa_max_dist
+    )
   }
   if (osa_max_dist < 1 || !any(x_ordinal)) {
     return(out)

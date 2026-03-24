@@ -90,7 +90,9 @@ test_that("ordinal helpers detect, parse, and format ordinal street numbers", {
 test_that("ordinal phonetic key neighbors stay within plausible ordinal candidates", {
   neighbors <- ordinal_phonetic_key_neighbors("#0007")
 
-  expect_true(all(c("#0070", "#0700", "#7000", "#0008", "#0009") %in% neighbors))
+  expect_true(all(
+    c("#0070", "#0700", "#7000", "#0008", "#0009") %in% neighbors
+  ))
   expect_false(any(c("#0077", "#0017") %in% neighbors))
 })
 
