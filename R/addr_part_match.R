@@ -35,13 +35,16 @@ match_addr_street <- function(x, y) {
   ux <- ux[!is.na(ux@name)] # omit matching if missing
   ux <- ux[!ux@name == ""] # or empty street name
   uy <- unique(y)
+  ux_key <- tolower(as.character(ux))
+  uy_key <- tolower(as.character(uy))
+  x_key <- tolower(as.character(x))
+  uy_df <- as.data.frame(uy)
 
   lkp <- match(
-    tolower(as.character(ux)),
-    tolower(as.character(uy)),
+    ux_key,
+    uy_key,
     incomparables = c("", NA)
-  ) |>
-    as.list()
+  )
 
   uy_bucket_key <- ifelse(
     is.na(uy@predirectional) | is.na(uy@posttype),
@@ -55,7 +58,7 @@ match_addr_street <- function(x, y) {
   )
 
   if (any(is.na(lkp))) {
-    nomatch_idx <- which(sapply(lkp, is.na))
+    nomatch_idx <- which(is.na(lkp))
     nomatch <- ux[nomatch_idx]
     nomatch_bucket_key <- ifelse(
       is.na(nomatch@predirectional) | is.na(nomatch@posttype),
@@ -114,16 +117,16 @@ match_addr_street <- function(x, y) {
       )
     }
     # take first in multiple matches (prefers fuzzy match)
-    lkp[nomatch_idx] <- lapply(m, \(.) .[1])
+    lkp[nomatch_idx] <- vapply(
+      m,
+      \(idx) if (length(idx) == 0) NA_integer_ else idx[1],
+      integer(1)
+    )
   }
 
-  names(lkp) <- tolower(as.character(ux))
-  out_l <- lkp[tolower(as.character(x))] |>
-    lapply(\(.) uy[.])
-  empties <- which(is.na(names(out_l)))
-  out_l[empties] <- replicate(length(empties), addr::addr_street())
-  out <-
-    do.call(rbind, lapply(out_l, as.data.frame)) |>
+  names(lkp) <- ux_key
+  out_idx <- unname(lkp[x_key])
+  out <- uy_df[out_idx, , drop = FALSE] |>
     vec_restore(to = addr::addr_street())
   return(out)
 }
