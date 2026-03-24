@@ -43,50 +43,78 @@ match_addr_street <- function(x, y) {
   ) |>
     as.list()
 
-  pskm <- memoise::memoise(phonetic_street_key)
+  uy_bucket_key <- ifelse(
+    is.na(uy@predirectional) | is.na(uy@posttype),
+    NA_character_,
+    paste(uy@predirectional, uy@posttype, sep = "\r")
+  )
+  uy_bucket_idx <- split(
+    seq_along(uy),
+    uy_bucket_key,
+    drop = TRUE
+  )
 
   if (any(is.na(lkp))) {
-    uy_psk <- phonetic_street_key(uy@name)
-    nomatch <- ux[sapply(lkp, is.na)]
-    nomatch_psk <-
-      uy_psk[
-        match(
-          phonetic_street_key(nomatch@name),
-          uy_psk,
-          incomparables = c("", NA, "0000")
-        )
-      ]
-    # make potential matches based on phonetic and fuzzy OSA distances
-    nomatch_phonetic_matches <- fuzzy_match(
-      nomatch_psk,
-      uy_psk,
-      osa_max_dist = 1
+    nomatch_idx <- which(sapply(lkp, is.na))
+    nomatch <- ux[nomatch_idx]
+    nomatch_bucket_key <- ifelse(
+      is.na(nomatch@predirectional) | is.na(nomatch@posttype),
+      NA_character_,
+      paste(nomatch@predirectional, nomatch@posttype, sep = "\r")
     )
-    nomatch_fuzzy_matches <- fuzzy_match(
-      nomatch@name,
-      uy@name,
-      osa_max_dist = 2
-    )
-    m <-
-      mapply(
-        union,
-        nomatch_fuzzy_matches,
-        nomatch_phonetic_matches,
-        SIMPLIFY = FALSE
+    m <- replicate(length(nomatch), integer(0), simplify = FALSE)
+
+    for (bucket_key in unique(stats::na.omit(nomatch_bucket_key))) {
+      bucket_idx <- uy_bucket_idx[[bucket_key]]
+      if (is.null(bucket_idx) || length(bucket_idx) == 0) {
+        next
+      }
+      bucket_nomatch_idx <- which(nomatch_bucket_key == bucket_key)
+      bucket_uy_names <- uy@name[bucket_idx]
+      bucket_uy_psk <- phonetic_street_key(bucket_uy_names)
+
+      bucket_nomatch_names <- nomatch@name[bucket_nomatch_idx]
+      bucket_nomatch_psk <-
+        bucket_uy_psk[
+          match(
+            phonetic_street_key(bucket_nomatch_names),
+            bucket_uy_psk,
+            incomparables = c("", NA, "0000")
+          )
+        ]
+      # make potential matches based on phonetic and fuzzy OSA distances
+      bucket_phonetic_matches <- fuzzy_match(
+        bucket_nomatch_psk,
+        bucket_uy_psk,
+        osa_max_dist = 1
       )
-    # keep only those matching on street posttype and predirectional
-    m <- mapply(
-      \(.xpt, .xpd, .y) {
-        .y[uy[.y]@posttype == .xpt & uy[.y]@predirectional == .xpd]
-      },
-      .xpt = nomatch@posttype,
-      .xpd = nomatch@predirectional,
-      .y = m,
-      SIMPLIFY = FALSE,
-      USE.NAMES = FALSE
-    )
+      bucket_fuzzy_matches <- fuzzy_match(
+        bucket_nomatch_names,
+        bucket_uy_names,
+        osa_max_dist = 2
+      )
+      # Avoid matching one ordinal street number to a different one
+      # just because the exact ordinal is absent from this bucket.
+      bucket_fuzzy_matches[
+        is_ordinal_street_number(bucket_nomatch_names) &
+          is.na(bucket_nomatch_psk)
+      ] <- list(integer(0))
+      bucket_matches <-
+        mapply(
+          union,
+          bucket_fuzzy_matches,
+          bucket_phonetic_matches,
+          SIMPLIFY = FALSE,
+          USE.NAMES = FALSE
+        )
+
+      m[bucket_nomatch_idx] <- lapply(
+        bucket_matches,
+        \(idx) bucket_idx[idx[!is.na(idx)]]
+      )
+    }
     # take first in multiple matches (prefers fuzzy match)
-    lkp[is.na(lkp)] <- lapply(m, \(.) .[1])
+    lkp[nomatch_idx] <- lapply(m, \(.) .[1])
   }
 
   names(lkp) <- tolower(as.character(ux))
