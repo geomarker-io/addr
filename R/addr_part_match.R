@@ -1,69 +1,10 @@
-yy <- nad_example_data()$nad_addr@street
-
-match_one_street(
-  x = addr_street(
-    predirectional = "",
-    premodifier = "",
-    pretype = "",
-    name = "14th",
-    posttype = "st",
-    postdirectional = ""
-  ),
-  y = yy
-)
-
-match_one_street <- function(x, y, osa_max_dist = 2L) {
-  stopifnot(!is.na(x), length(x) == 1, x@name != "")
-  x_psk <- phonetic_street_key(x@name)
-  y_psk <- phonetic_street_key(y@name)
-  m <- unique(y[y_psk %in% x_psk])
-  # if no psk match within osa dist on name, then search for common phonetic
-  # variants that have names within osa dist
-  m_dist <- stringdist::stringdist(tolower(x@name), tolower(m@name))
-  if (length(m) == 0 || all(m_dist > osa_max_dist)) {
-    z <- strsplit(x_psk, "")[[1]]
-    x_psk_var <- c(
-      x_psk,
-      paste0(z[c(1, 3, 2, 4)], collapse = ""),
-      paste0(z[c(1, 2, 4, 3)], collapse = "")
-    )
-    m <- unique(y[y_psk %in% x_psk_var])
-    m_dist <- stringdist::stringdist(tolower(x@name), tolower(m@name))
-    m <- unique(m[m_dist <= osa_max_dist])
-  }
-  # if no exact nor fuzzy match on psk + street name, return NA
-  if (length(m) == 0) {
-    return(addr::addr_street())
-  }
-  # if present, narrow to matching posttype
-  m_type <- m[m@posttype == x@posttype]
-  if (length(m_type) > 0) {
-    m <- m_type
-  }
-  # if present, narrow to matching predir
-  m_predir <- m[m@predirectional == x@predirectional]
-  if (length(m_predir) > 0) {
-    m <- m_predir
-  }
-
-  browser()
-
-  m_dist <- stringdist::stringdist(
-    tolower(as.character(x)),
-    tolower(as.character(m)),
-    method = "osa"
-  )
-  m <- m[order(m_dist, sort(as.character(m)))]
-  m[1]
-}
-
 #' Match addr_street vectors
 #'
 #' A single addr_street in y is chosen for each addr_street in x.
 #' If exact matches (using `as.character`) are not found,
 #' possible matches are chosen by
 #' fuzzy matching on street name (using phonetic street key and street name)
-#' and exact matching on street type.
+#' and exact matching on street type and predirectional.
 #' Ties are broken by .......... the first for now.
 #'
 #' addr_street objects within missing or empty @name are not matched and
@@ -102,6 +43,8 @@ match_addr_street <- function(x, y) {
   ) |>
     as.list()
 
+  pskm <- memoise::memoise(phonetic_street_key)
+
   if (any(is.na(lkp))) {
     uy_psk <- phonetic_street_key(uy@name)
     nomatch <- ux[sapply(lkp, is.na)]
@@ -131,10 +74,13 @@ match_addr_street <- function(x, y) {
         nomatch_phonetic_matches,
         SIMPLIFY = FALSE
       )
-    # keep only those matching on street posttype
+    # keep only those matching on street posttype and predirectional
     m <- mapply(
-      \(.x, .y) .y[uy[.y]@posttype == .x],
-      .x = nomatch@posttype,
+      \(.xpt, .xpd, .y) {
+        .y[uy[.y]@posttype == .xpt & uy[.y]@predirectional == .xpd]
+      },
+      .xpt = nomatch@posttype,
+      .xpd = nomatch@predirectional,
       .y = m,
       SIMPLIFY = FALSE,
       USE.NAMES = FALSE
