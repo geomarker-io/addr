@@ -87,6 +87,22 @@ test_that("ordinal helpers detect, parse, and format ordinal street numbers", {
   )
 })
 
+test_that("ordinal phonetic key neighbors stay within plausible ordinal candidates", {
+  neighbors <- ordinal_phonetic_key_neighbors("#0007")
+
+  expect_true(all(c("#0070", "#0700", "#7000", "#0008", "#0009") %in% neighbors))
+  expect_false(any(c("#0077", "#0017") %in% neighbors))
+})
+
+test_that("phonetic_street_key_fuzzy_match restricts ordinal matches to plausible neighbors", {
+  y <- c("#0070", "#0700", "#7000", "#0008", "#0009", "#0077", "#0017")
+
+  expect_identical(
+    phonetic_street_key_fuzzy_match("#0007", y, osa_max_dist = 1)[[1]],
+    1:5
+  )
+})
+
 test_that("parse_word_ordinal parses supported one- and two-word ordinal strings", {
   expect_identical(
     parse_word_ordinal(c(

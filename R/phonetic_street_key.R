@@ -22,6 +22,103 @@ phonetic_street_key <- function(x) {
   xs
 }
 
+is_ordinal_phonetic_key <- function(x) {
+  grepl("^#[0-9]{4}$", x)
+}
+
+ordinal_phonetic_key_neighbors <- function(x) {
+  stopifnot(typeof(x) == "character", length(x) == 1L)
+  if (is.na(x) || !is_ordinal_phonetic_key(x)) {
+    return(character(0))
+  }
+
+  digits <- sub("^#", "", x)
+  sig <- sub("^0+", "", digits)
+  if (sig == "") {
+    return(character(0))
+  }
+
+  pad_total <- 4L - nchar(sig)
+  shift_keys <- vapply(
+    0L:pad_total,
+    \(left_pad) {
+      paste0(
+        "#",
+        strrep("0", left_pad),
+        sig,
+        strrep("0", pad_total - left_pad)
+      )
+    },
+    character(1)
+  )
+
+  lead_zeros <- nchar(digits) - nchar(sig)
+  trail_zeros <- 4L - lead_zeros - nchar(sig)
+  sig_chars <- strsplit(sig, "", fixed = TRUE)[[1]]
+  subs <- character(0)
+  for (i in seq_along(sig_chars)) {
+    replacement_digits <- as.character(0:9)
+    if (i == 1L) {
+      replacement_digits <- replacement_digits[replacement_digits != "0"]
+    }
+    replacement_digits <- replacement_digits[replacement_digits != sig_chars[i]]
+    for (digit in replacement_digits) {
+      sig_i <- sig_chars
+      sig_i[i] <- digit
+      subs <- c(
+        subs,
+        paste0(
+          "#",
+          strrep("0", lead_zeros),
+          paste0(sig_i, collapse = ""),
+          strrep("0", trail_zeros)
+        )
+      )
+    }
+  }
+
+  setdiff(unique(c(shift_keys, subs)), x)
+}
+
+phonetic_street_key_fuzzy_match <- function(x, y, osa_max_dist = 1) {
+  stopifnot(
+    "x must be character" = is.character(x),
+    "y must be character" = is.character(y),
+    "osa_max_dist must be numeric" = is.numeric(osa_max_dist),
+    "osa_max_dist must be length one" = length(osa_max_dist) == 1,
+    "osa_max_dist must not be missing" = !is.na(osa_max_dist),
+    "y must not contain NA" = !any(is.na(y))
+  )
+
+  out <- replicate(length(x), integer(0), simplify = FALSE)
+  if (length(x) == 0 || length(y) == 0) {
+    return(out)
+  }
+
+  x_ordinal <- is_ordinal_phonetic_key(x)
+  if (any(!x_ordinal)) {
+    out[!x_ordinal] <- fuzzy_match(x[!x_ordinal], y, osa_max_dist = osa_max_dist)
+  }
+  if (osa_max_dist < 1 || !any(x_ordinal)) {
+    return(out)
+  }
+
+  y_ordinal_idx <- which(is_ordinal_phonetic_key(y))
+  if (length(y_ordinal_idx) == 0) {
+    return(out)
+  }
+  y_ordinal <- y[y_ordinal_idx]
+
+  out[x_ordinal] <- lapply(
+    x[x_ordinal],
+    \(key) {
+      neighbors <- ordinal_phonetic_key_neighbors(key)
+      y_ordinal_idx[y_ordinal %in% neighbors]
+    }
+  )
+  out
+}
+
 soundex <- function(x) {
   stopifnot("x must be a character vector" = is.character(x))
   x <- gsub("[^A-Z]", "", toupper(x))

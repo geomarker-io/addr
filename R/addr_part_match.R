@@ -5,6 +5,11 @@
 #' possible matches are chosen by
 #' fuzzy matching on street name (using phonetic street key and street name)
 #' and exact matching on street type and predirectional.
+#' Ordinal street names use restricted phonetic candidates:
+#' an ordinal phonetic key like `#0007` may fuzzy match only to plausible
+#' ordinal neighbors such as digit shifts (`#0070`, `#0700`, `#7000`)
+#' or same-width substitutions (`#0008`, `#0009`), not arbitrary
+#' OSA-distance-one ordinal keys such as `#0017` or `#0077`.
 #' Ties are broken by .......... the first for now.
 #'
 #' addr_street objects within missing or empty @name are not matched and
@@ -76,9 +81,14 @@ match_addr_street <- function(x, y) {
     nomatch_name_psk <- phonetic_street_key(nomatch_df$street_name)
     nomatch_is_ordinal <- is_ordinal_street_number(nomatch_df$street_name)
     nomatch_bucket_key <- ifelse(
-      is.na(nomatch_df$street_predirectional) | is.na(nomatch_df$street_posttype),
+      is.na(nomatch_df$street_predirectional) |
+        is.na(nomatch_df$street_posttype),
       NA_character_,
-      paste(nomatch_df$street_predirectional, nomatch_df$street_posttype, sep = "\r")
+      paste(
+        nomatch_df$street_predirectional,
+        nomatch_df$street_posttype,
+        sep = "\r"
+      )
     )
     m <- replicate(nrow(nomatch_df), integer(0), simplify = FALSE)
 
@@ -92,17 +102,22 @@ match_addr_street <- function(x, y) {
       bucket_uy_psk <- uy_name_psk[bucket_idx]
 
       bucket_nomatch_names <- nomatch_df$street_name[bucket_nomatch_idx]
+      bucket_nomatch_name_psk <- nomatch_name_psk[bucket_nomatch_idx]
       bucket_nomatch_psk <-
         bucket_uy_psk[
           match(
-            nomatch_name_psk[bucket_nomatch_idx],
+            bucket_nomatch_name_psk,
             bucket_uy_psk,
             incomparables = c("", NA, "0000")
           )
         ]
       # make potential matches based on phonetic and fuzzy OSA distances
-      bucket_phonetic_matches <- fuzzy_match(
-        bucket_nomatch_psk,
+      bucket_phonetic_matches <- phonetic_street_key_fuzzy_match(
+        ifelse(
+          is_ordinal_phonetic_key(bucket_nomatch_name_psk),
+          bucket_nomatch_name_psk,
+          bucket_nomatch_psk
+        ),
         bucket_uy_psk,
         osa_max_dist = 1
       )

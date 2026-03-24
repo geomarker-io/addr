@@ -19,7 +19,12 @@ A single addr_street in y is chosen for each addr_street in x.
 If exact matches (using \code{as.character}) are not found,
 possible matches are chosen by
 fuzzy matching on street name (using phonetic street key and street name)
-and exact matching on street type.
+and exact matching on street type and predirectional.
+Ordinal street names use restricted phonetic candidates:
+an ordinal phonetic key like \verb{#0007} may fuzzy match only to plausible
+ordinal neighbors such as digit shifts (\verb{#0070}, \verb{#0700}, \verb{#7000})
+or same-width substitutions (\verb{#0008}, \verb{#0009}), not arbitrary
+OSA-distance-one ordinal keys such as \verb{#0017} or \verb{#0077}.
 Ties are broken by .......... the first for now.
 }
 \details{
