@@ -31,14 +31,27 @@ match_addr_street <- function(x, y) {
     "x must be an addr_street object" = inherits(x, "addr_street"),
     "y must be an addr_street object" = inherits(y, "addr_street")
   )
-  ux <- unique(x)
-  ux <- ux[!is.na(ux@name)] # omit matching if missing
-  ux <- ux[!ux@name == ""] # or empty street name
-  uy <- unique(y)
-  ux_key <- tolower(as.character(ux))
-  uy_key <- tolower(as.character(uy))
-  x_key <- tolower(as.character(x))
-  uy_df <- as.data.frame(uy)
+  street_key <- function(df) {
+    parts <- lapply(df, \(col) ifelse(is.na(col) | col == "", "", col))
+    trimws(gsub(" +", " ", do.call(paste, c(parts, sep = " "))))
+  }
+
+  x_df <- as.data.frame(x)
+  y_df <- as.data.frame(y)
+  x_key <- tolower(street_key(x_df))
+  y_key <- tolower(street_key(y_df))
+
+  ux_idx <- !duplicated(x_key)
+  ux_df <- x_df[ux_idx, , drop = FALSE]
+  ux_key <- x_key[ux_idx]
+  keep_ux <- !is.na(ux_df$street_name) & ux_df$street_name != ""
+  ux_df <- ux_df[keep_ux, , drop = FALSE]
+  ux_key <- ux_key[keep_ux]
+
+  uy_idx <- !duplicated(y_key)
+  uy_df <- y_df[uy_idx, , drop = FALSE]
+  uy_key <- y_key[uy_idx]
+  uy_name_psk <- phonetic_street_key(uy_df$street_name)
 
   lkp <- match(
     ux_key,
@@ -47,25 +60,27 @@ match_addr_street <- function(x, y) {
   )
 
   uy_bucket_key <- ifelse(
-    is.na(uy@predirectional) | is.na(uy@posttype),
+    is.na(uy_df$street_predirectional) | is.na(uy_df$street_posttype),
     NA_character_,
-    paste(uy@predirectional, uy@posttype, sep = "\r")
+    paste(uy_df$street_predirectional, uy_df$street_posttype, sep = "\r")
   )
   uy_bucket_idx <- split(
-    seq_along(uy),
+    seq_len(nrow(uy_df)),
     uy_bucket_key,
     drop = TRUE
   )
 
   if (any(is.na(lkp))) {
     nomatch_idx <- which(is.na(lkp))
-    nomatch <- ux[nomatch_idx]
+    nomatch_df <- ux_df[nomatch_idx, , drop = FALSE]
+    nomatch_name_psk <- phonetic_street_key(nomatch_df$street_name)
+    nomatch_is_ordinal <- is_ordinal_street_number(nomatch_df$street_name)
     nomatch_bucket_key <- ifelse(
-      is.na(nomatch@predirectional) | is.na(nomatch@posttype),
+      is.na(nomatch_df$street_predirectional) | is.na(nomatch_df$street_posttype),
       NA_character_,
-      paste(nomatch@predirectional, nomatch@posttype, sep = "\r")
+      paste(nomatch_df$street_predirectional, nomatch_df$street_posttype, sep = "\r")
     )
-    m <- replicate(length(nomatch), integer(0), simplify = FALSE)
+    m <- replicate(nrow(nomatch_df), integer(0), simplify = FALSE)
 
     for (bucket_key in unique(stats::na.omit(nomatch_bucket_key))) {
       bucket_idx <- uy_bucket_idx[[bucket_key]]
@@ -73,14 +88,14 @@ match_addr_street <- function(x, y) {
         next
       }
       bucket_nomatch_idx <- which(nomatch_bucket_key == bucket_key)
-      bucket_uy_names <- uy@name[bucket_idx]
-      bucket_uy_psk <- phonetic_street_key(bucket_uy_names)
+      bucket_uy_names <- uy_df$street_name[bucket_idx]
+      bucket_uy_psk <- uy_name_psk[bucket_idx]
 
-      bucket_nomatch_names <- nomatch@name[bucket_nomatch_idx]
+      bucket_nomatch_names <- nomatch_df$street_name[bucket_nomatch_idx]
       bucket_nomatch_psk <-
         bucket_uy_psk[
           match(
-            phonetic_street_key(bucket_nomatch_names),
+            nomatch_name_psk[bucket_nomatch_idx],
             bucket_uy_psk,
             incomparables = c("", NA, "0000")
           )
@@ -99,8 +114,7 @@ match_addr_street <- function(x, y) {
       # Avoid matching one ordinal street number to a different one
       # just because the exact ordinal is absent from this bucket.
       bucket_fuzzy_matches[
-        is_ordinal_street_number(bucket_nomatch_names) &
-          is.na(bucket_nomatch_psk)
+        nomatch_is_ordinal[bucket_nomatch_idx] & is.na(bucket_nomatch_psk)
       ] <- list(integer(0))
       bucket_matches <-
         mapply(
