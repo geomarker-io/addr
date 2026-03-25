@@ -26,6 +26,7 @@ reference:
       - fuzzy_match
   - title: Match addr
     contents:
+      - addr_match
       - match_addr_number
       - match_addr_street
       - match_zipcodes
