@@ -276,10 +276,12 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #' with matched ZIP code and street but no number match also return the matched
 #' `@street`.
 #'
-#' `addr_match_prepare()` speeds up repeated calls that match multiple `x`
-#' batches against the same reference `y` by caching the deduplicated reference
-#' addresses and ZIP/street/number candidate lookups once. This can save time
-#' even when you continue to use sequential `addr_match()`.
+#' `addr_match()` accepts raw reference data and prepares it internally, which
+#' is the right default for one-off matching jobs. `addr_match_prepare()`
+#' becomes useful when the same reference `y` will be reused across multiple
+#' calls to `addr_match()`, because it caches the deduplicated reference
+#' addresses and ZIP/street/number candidate lookups once instead of rebuilding
+#' them on every call.
 #'
 #' @param x addr vector to match
 #' @param y addr vector to match against, or a prepared `addr_match_index`
@@ -303,14 +305,6 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #' prepared_addr <- addr_match_prepare(the_addr)
 #' addr_match(my_addr, prepared_addr)
 #'
-#' \donttest{
-#' my_addr <- suppressWarnings(as_addr(voter_addresses()[1:1000]))
-#' the_addr <- nad_example_data()$nad_addr
-#' prepared_addr <- addr_match_prepare(the_addr)
-#'
-#' system.time(addr_match(my_addr, the_addr, progress = FALSE))
-#' system.time(addr_match(my_addr, prepared_addr, progress = FALSE))
-#' }
 addr_match <- function(
   x,
   y,
@@ -430,7 +424,9 @@ addr_match <- function(
 #'
 #' Preparing `y` once avoids recomputing `unique(y)`, ZIP-code groups, and
 #' exact street/number candidate lookups each time you call `addr_match()`
-#' with the same reference addresses.
+#' with the same reference addresses. For a single end-to-end match, preparing
+#' `y` explicitly does not remove that work; it only moves it outside
+#' `addr_match()`.
 #'
 #' @rdname addr_match
 #' @export

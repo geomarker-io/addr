@@ -49,14 +49,18 @@ but no street match return an addr with only \verb{@place@zipcode} filled; rows
 with matched ZIP code and street but no number match also return the matched
 \verb{@street}.
 
-\code{addr_match_prepare()} speeds up repeated calls that match multiple \code{x}
-batches against the same reference \code{y} by caching the deduplicated reference
-addresses and ZIP/street/number candidate lookups once. This can save time
-even when you continue to use sequential \code{addr_match()}.
+\code{addr_match()} accepts raw reference data and prepares it internally, which
+is the right default for one-off matching jobs. \code{addr_match_prepare()}
+becomes useful when the same reference \code{y} will be reused across multiple
+calls to \code{addr_match()}, because it caches the deduplicated reference
+addresses and ZIP/street/number candidate lookups once instead of rebuilding
+them on every call.
 
 Preparing \code{y} once avoids recomputing \code{unique(y)}, ZIP-code groups, and
 exact street/number candidate lookups each time you call \code{addr_match()}
-with the same reference addresses.
+with the same reference addresses. For a single end-to-end match, preparing
+\code{y} explicitly does not remove that work; it only moves it outside
+\code{addr_match()}.
 }
 \examples{
 my_addr <- as_addr(voter_addresses()[1:10])
@@ -67,12 +71,4 @@ addr_match(my_addr, the_addr)
 prepared_addr <- addr_match_prepare(the_addr)
 addr_match(my_addr, prepared_addr)
 
-\donttest{
-my_addr <- suppressWarnings(as_addr(voter_addresses()[1:1000]))
-the_addr <- nad_example_data()$nad_addr
-prepared_addr <- addr_match_prepare(the_addr)
-
-system.time(addr_match(my_addr, the_addr, progress = FALSE))
-system.time(addr_match(my_addr, prepared_addr, progress = FALSE))
-}
 }
