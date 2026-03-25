@@ -18,16 +18,16 @@ addr_match(
 \item{zip_variants}{logical; fuzzy match to common ZIP code variants in
 \code{match_zipcodes()}?}
 
+\item{osa_max_dist}{integer maximum OSA distance used by
+\code{match_addr_number()}}
+
 \item{progress}{logical; show a progress bar while processing matched ZIP
 groups?}
-
-\item{number_osa_max_dist}{integer maximum OSA distance used by
-\code{match_addr_number()}}
 }
 \value{
 an addr vector, the same length as x, that is the best match in y
-for each addr in x; if no best match is found a missing value is returned
-(\code{addr()})
+for each addr in x. Partial matches are returned with matched ZIP code
+and/or street fields filled when later stages do not match.
 }
 \description{
 A single addr in \code{y} is chosen for each addr in \code{x}. Matching is staged to
@@ -38,10 +38,13 @@ candidate addr remains in \code{y} after these stages, the first candidate in \c
 is returned.
 
 Missing or empty address components that cannot be matched at any stage are
-returned as missing \code{addr()} values.
+left missing in the returned \code{addr()} values. Rows with a matched ZIP code
+but no street match return an addr with only \verb{@place@zipcode} filled; rows
+with matched ZIP code and street but no number match also return the matched
+\verb{@street}.
 }
 \examples{
-my_addr <- as_addr(voter_addresses()[1:1000])
+my_addr <- as_addr(voter_addresses()[1:10])
 the_addr <- nad_example_data()$nad_addr
 
 addr_match(my_addr, the_addr)

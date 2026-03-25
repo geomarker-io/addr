@@ -27,6 +27,7 @@ reference:
   - title: Match addr
     contents:
       - addr_match
+      - addr_match_stage
       - match_addr_number
       - match_addr_street
       - match_zipcodes

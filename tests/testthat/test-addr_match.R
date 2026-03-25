@@ -7,8 +7,9 @@ test_that("addr_match stages zipcode street and number matching", {
   ))
   x <- as_addr(c(
     "10 MAINE STREET CINCINNATI OH 45220",
-    "12 MAIN ST CINCINNATI OH 45220",
+    "99 MAIN ST CINCINNATI OH 45220",
     "10 MAIN ST CINCINNATI OH 45229",
+    "10 OAK ST CINCINNATI OH 45220",
     "10 MAIN ST CINCINNATI OH 45103",
     NA_character_
   ))
@@ -16,9 +17,16 @@ test_that("addr_match stages zipcode street and number matching", {
   out <- addr_match(x, y, progress = FALSE)
 
   expect_true(inherits(out, "addr"))
-  expect_equal(format(out[1:3]), format(y[c(1, 2, 3)]))
-  expect_true(is.na(out[4]))
+  expect_equal(format(out[1]), format(y[1]))
+  expect_true(is.na(out[2]@number))
+  expect_equal(out[2]@street@name, "MAIN")
+  expect_equal(out[2]@place@zipcode, "45220")
+  expect_equal(format(out[3]), format(y[3]))
+  expect_true(is.na(out[4]@number))
+  expect_true(is.na(out[4]@street))
+  expect_equal(out[4]@place@zipcode, "45220")
   expect_true(is.na(out[5]))
+  expect_true(is.na(out[6]))
 })
 
 test_that("addr_match progress output uses zipcode text and 80-char bars", {
@@ -73,11 +81,64 @@ test_that("addr_match progress text formats counts with commas", {
   )
 })
 
+test_that("addr_match_stage classifies staged addr_match results", {
+  y <- as_addr(c(
+    "10 MAIN ST CINCINNATI OH 45220",
+    "11 MAIN ST CINCINNATI OH 45220",
+    "10 MAIN ST CINCINNATI OH 45229",
+    "10 ELM ST CINCINNATI OH 45220"
+  ))
+  x <- as_addr(c(
+    "10 MAINE STREET CINCINNATI OH 45220",
+    "99 MAIN ST CINCINNATI OH 45220",
+    "10 MAIN ST CINCINNATI OH 45229",
+    "10 OAK ST CINCINNATI OH 45220",
+    "10 MAIN ST CINCINNATI OH 45103",
+    NA_character_
+  ))
+
+  out <- addr_match(x, y, progress = FALSE)
+
+  expect_equal(
+    addr_match_stage(out),
+    ordered(
+      c("number", "street", "number", "zip", "none", "none"),
+      levels = c("none", "zip", "street", "number")
+    )
+  )
+})
+
+test_that("addr_match_stage rejects non-addr_match structures in strict mode", {
+  x <- addr(
+    number = addr_number(digits = "10"),
+    street = addr_street(),
+    place = addr_place(zipcode = "45220")
+  )
+
+  expect_error(
+    addr_match_stage(x),
+    "x does not look like an addr_match result"
+  )
+  expect_equal(
+    addr_match_stage(x, strict = FALSE),
+    ordered("number", levels = c("none", "zip", "street", "number"))
+  )
+})
+
 test_that("addr_match works with packaged example data", {
   x <- suppressWarnings(as_addr(voter_addresses()[1:1000]))
   y <- nad_example_data()$nad_addr
 
   out <- addr_match(x, y, progress = FALSE)
+  stage <- addr_match_stage(out)
+
+  expect_equal(sum(!is.na(out@number)), 875)
+  expect_equal(sum(!is.na(out@street)), 903)
+  expect_equal(sum(!is.na(out@place@zipcode)), 1000)
+  expect_equal(
+    as.integer(table(stage)),
+    c(0L, 97L, 28L, 875L)
+  )
 
   expect_true(inherits(out, "addr"))
   expect_length(out, 1000L)

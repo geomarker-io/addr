@@ -91,7 +91,10 @@ addr_progress_update <- function(
 #' is returned.
 #'
 #' Missing or empty address components that cannot be matched at any stage are
-#' returned as missing `addr()` values.
+#' left missing in the returned `addr()` values. Rows with a matched ZIP code
+#' but no street match return an addr with only `@place@zipcode` filled; rows
+#' with matched ZIP code and street but no number match also return the matched
+#' `@street`.
 #'
 #' @param x,y addr vectors to match
 #' @param zip_variants logical; fuzzy match to common ZIP code variants in
@@ -101,11 +104,11 @@ addr_progress_update <- function(
 #' @param progress logical; show a progress bar while processing matched ZIP
 #'   groups?
 #' @return an addr vector, the same length as x, that is the best match in y
-#'   for each addr in x; if no best match is found a missing value is returned
-#'   (`addr()`)
+#'   for each addr in x. Partial matches are returned with matched ZIP code
+#'   and/or street fields filled when later stages do not match.
 #' @export
 #' @examples
-#' my_addr <- as_addr(voter_addresses()[1:1000])
+#' my_addr <- as_addr(voter_addresses()[1:10])
 #' the_addr <- nad_example_data()$nad_addr
 #'
 #' addr_match(my_addr, the_addr)
@@ -122,8 +125,7 @@ addr_match <- function(
     "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
       length(zip_variants) == 1L &&
       !is.na(zip_variants),
-    "number_osa_max_dist must be an integer" = typeof(osa_max_dist) ==
-      "integer" &&
+    "osa_max_dist must be an integer" = typeof(osa_max_dist) == "integer" &&
       length(osa_max_dist) == 1L &&
       !is.na(osa_max_dist),
     "progress must be TRUE or FALSE" = is.logical(progress) &&
@@ -147,7 +149,8 @@ addr_match <- function(
   )
   x_by_zip <- split(seq_along(x), matched_zipcodes, drop = TRUE)
   y_by_zip <- split(seq_along(uy), uy@place@zipcode, drop = TRUE)
-  out_idx <- rep(NA_integer_, length(x))
+  out_df <- as.data.frame(addr_missing(length(x)))
+  out_df$place_zipcode <- matched_zipcodes
 
   processed <- sum(is.na(matched_zipcodes))
   if (progress) {
@@ -202,6 +205,13 @@ addr_match <- function(
     }
 
     street_matches <- match_addr_street(x[x_idx]@street, uy[y_idx]@street)
+    matched_street_rows <- !is.na(street_matches)
+    if (any(matched_street_rows)) {
+      out_df[
+        x_idx[matched_street_rows],
+        names(as.data.frame(street_matches[matched_street_rows]))
+      ] <- as.data.frame(street_matches[matched_street_rows])
+    }
     street_keys <- addr_match_key(street_matches)
     street_keys[is.na(street_matches)] <- NA_character_
     y_street_keys <- addr_match_key(uy[y_idx]@street)
@@ -229,11 +239,15 @@ addr_match <- function(
         next
       }
 
-      out_idx[street_x_idx[matched_numbers]] <- vapply(
+      matched_y_idx <- vapply(
         number_keys[matched_numbers],
         function(key) y_by_number[[key]][1],
         integer(1)
       )
+      out_df[
+        street_x_idx[matched_numbers],
+        names(as.data.frame(uy[matched_y_idx]))
+      ] <- as.data.frame(uy[matched_y_idx])
     }
 
     processed <- processed + length(x_idx)
@@ -247,5 +261,92 @@ addr_match <- function(
     }
   }
 
-  uy[out_idx]
+  vec_restore(out_df, to = addr::addr())
+}
+
+#' Classify addr match stage
+#'
+#' Classify an addr vector into the staged outcomes returned by
+#' `addr_match()`: no match, ZIP-only match, ZIP-plus-street match, or
+#' ZIP-plus-street-plus-number match.
+#'
+#' @param x addr vector to classify
+#' @param strict logical; require `x` to follow the partial-result structure
+#'   produced by `addr_match()`? If `FALSE`, classification is based only on the
+#'   deepest non-missing core component (`@place@zipcode`, `@street@name`,
+#'   `@number@digits`).
+#' @return an ordered factor with levels `none`, `zip`, `street`, `number`
+#' @export
+#' @examples
+#' y <- as_addr(c(
+#'   "10 MAIN ST CINCINNATI OH 45220",
+#'   "11 MAIN ST CINCINNATI OH 45220",
+#'   "10 MAIN ST CINCINNATI OH 45229"
+#' ))
+#' x <- as_addr(c(
+#'   "99 MAIN ST CINCINNATI OH 45220",
+#'   "10 OAK ST CINCINNATI OH 45220",
+#'   "10 MAIN ST CINCINNATI OH 45103"
+#' ))
+#'
+#' out <- addr_match(x, y)
+#' addr_match_stage(out)
+addr_match_stage <- function(x, strict = TRUE) {
+  stopifnot(
+    "x must be an addr vector" = inherits(x, "addr"),
+    "strict must be TRUE or FALSE" = is.logical(strict) &&
+      length(strict) == 1L &&
+      !is.na(strict)
+  )
+
+  x_df <- as.data.frame(x)
+  any_nonmissing <- function(cols) {
+    if (length(cols) == 0L) {
+      return(rep(FALSE, nrow(x_df)))
+    }
+    rowSums(!is.na(x_df[, cols, drop = FALSE])) > 0L
+  }
+
+  has_zip <- !is.na(x_df$place_zipcode)
+  has_street <- !is.na(x_df$street_name)
+  has_number <- !is.na(x_df$number_digits)
+
+  number_any <- any_nonmissing(c(
+    "number_prefix",
+    "number_digits",
+    "number_suffix"
+  ))
+  street_any <- any_nonmissing(c(
+    "street_predirectional",
+    "street_premodifier",
+    "street_pretype",
+    "street_name",
+    "street_posttype",
+    "street_postdirectional"
+  ))
+  place_other_any <- any_nonmissing(c("place_name", "place_state"))
+  all_missing <- rowSums(!is.na(x_df)) == 0L
+
+  if (strict) {
+    valid_none <- all_missing
+    valid_zip <- has_zip & !street_any & !number_any & !place_other_any
+    valid_street <- has_zip & has_street & !number_any & !place_other_any
+    valid_number <- has_zip & has_street & has_number
+    valid <- valid_none | valid_zip | valid_street | valid_number
+    if (any(!valid)) {
+      stop(
+        paste(
+          "x does not look like an addr_match result;",
+          "use strict = FALSE to classify by deepest non-missing component"
+        ),
+        call. = FALSE
+      )
+    }
+  }
+
+  out <- rep("none", length(x))
+  out[has_zip] <- "zip"
+  out[has_street] <- "street"
+  out[has_number] <- "number"
+  ordered(out, levels = c("none", "zip", "street", "number"))
 }
