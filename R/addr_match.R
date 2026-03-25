@@ -129,7 +129,7 @@ addr_progress_update <- function(
     addr_progress_bar(current, total, width = width),
     sep = ""
   )
-  flush.console()
+  utils::flush.console()
 }
 
 is_addr_match_index <- function(x) {
