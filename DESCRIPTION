@@ -41,7 +41,7 @@ Collate:
     'addr_helpers.R'
     'addr_part.R'
     'addr.R'
-    'addr_join.R'
+    'addr_fuzzy_left_join.R'
     'addr_match.R'
     'addr_part_match.R'
     'addr_tag_maps.R'

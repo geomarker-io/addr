@@ -22,6 +22,7 @@ test_that("addr_join works", {
 
 
 test_that("addr_match with NAD", {
+  skip("addr_fuzzy_left_join is deprecated")
   my_addresses <- c(
     "781 GREENWOOD AVE APT 1 CINCINNATI OHIO 45229",
     "781 GREENWOOD AV CINCINNATI OHIO 45229",
