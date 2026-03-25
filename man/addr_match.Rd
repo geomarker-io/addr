@@ -68,7 +68,4 @@ the_addr <- nad_example_data()$nad_addr
 
 addr_match(my_addr, the_addr)
 
-prepared_addr <- addr_match_prepare(the_addr)
-addr_match(my_addr, prepared_addr)
-
 }

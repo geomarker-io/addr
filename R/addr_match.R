@@ -292,9 +292,6 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #'
 #' addr_match(my_addr, the_addr)
 #'
-#' prepared_addr <- addr_match_prepare(the_addr)
-#' addr_match(my_addr, prepared_addr)
-#'
 addr_match <- function(
   x,
   y,
