@@ -27,6 +27,7 @@ reference:
   - title: Match addr
     contents:
       - match_addr_number
+      - match_addr_street
       - match_zipcodes
       - phonetic_street_key
   - title: Geocoding addr

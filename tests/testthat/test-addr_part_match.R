@@ -220,3 +220,152 @@ test_that("match_zipcodes rejects invalid zipcodes", {
     "@zipcode must be exactly five numeric digits"
   )
 })
+
+test_that("match_addr_street works", {
+  my_streets <- addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = c(
+      "Beechview",
+      "Vivian",
+      "Springfield",
+      "Round Bottom",
+      "Pfeiffer",
+      "Beachview",
+      "Vevan",
+      "Srpingfield",
+      "Square Top",
+      "Pfeffer",
+      "Wuhlper",
+      ""
+    ),
+    posttype = c(
+      "Cir",
+      "Pl",
+      "Pike",
+      "Rd",
+      "Rd",
+      "Cir",
+      "Pl",
+      "Pike",
+      "Rd",
+      "Rd",
+      "Ave",
+      ""
+    ),
+    postdirectional = ""
+  )
+  the_streets <- nad_example_data()$nad_addr@street
+  out <- match_addr_street(my_streets, the_streets)
+  expect_identical(
+    out@name,
+    c(
+      "BEECHVIEW",
+      "VIVIAN",
+      "SPRINGFIELD",
+      "ROUND BOTTOM",
+      "PFEIFFER",
+      "BEECHVIEW",
+      "VIVIAN",
+      "SPRINGFIELD",
+      NA,
+      "PFEIFFER",
+      "WOOLPER",
+      NA
+    )
+  )
+  expect_identical(
+    out@posttype,
+    c("Cir", "Pl", "Pike", "Rd", "Rd", "Cir", "Pl", "Pike", NA, "Rd", "Ave", NA)
+  )
+})
+
+test_that("match_addr_street uses predirectional to resolve East 14th Street", {
+  the_streets <- nad_example_data()$nad_addr@street
+  x <- addr_street(
+    predirectional = c("E", ""),
+    premodifier = "",
+    pretype = "",
+    name = "14th",
+    posttype = "Street",
+    postdirectional = ""
+  )
+
+  out <- match_addr_street(x, the_streets)
+
+  expect_identical(out@predirectional, c("E", NA_character_))
+  expect_identical(out@name, c("14TH", NA_character_))
+  expect_identical(out@posttype, c("St", NA_character_))
+  expect_false(is.na(out[1]))
+  expect_true(is.na(out[2]))
+})
+
+test_that("match_addr_street leaves NA and all-empty addr_street values unmatched", {
+  the_streets <- nad_example_data()$nad_addr@street
+  x <- addr_street(
+    predirectional = c("", "", NA_character_),
+    premodifier = c("", "", NA_character_),
+    pretype = c("", "", NA_character_),
+    name = c("", NA_character_, ""),
+    posttype = c("", "Street", NA_character_),
+    postdirectional = c("", "", NA_character_)
+  )
+
+  out <- match_addr_street(x, the_streets)
+
+  expect_true(all(is.na(out)))
+  expect_equal(
+    as.data.frame(out),
+    as.data.frame(
+      addr_street(
+        predirectional = rep(NA_character_, 3),
+        premodifier = rep(NA_character_, 3),
+        pretype = rep(NA_character_, 3),
+        name = rep(NA_character_, 3),
+        posttype = rep(NA_character_, 3),
+        postdirectional = rep(NA_character_, 3),
+        map_posttype = FALSE,
+        map_directional = FALSE,
+        map_pretype = FALSE,
+        map_ordinal = FALSE
+      )
+    )
+  )
+})
+
+test_that("match_addr_street matches typo and phonetic street-name variants", {
+  the_streets <- nad_example_data()$nad_addr@street
+  x <- addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = c("Srpingfield", "Wuhlper", "Pfeffer", "Vevan", "Beechveiw"),
+    posttype = c("Pike", "Ave", "Rd", "Pl", "Cir"),
+    postdirectional = ""
+  )
+
+  out <- match_addr_street(x, the_streets)
+
+  expect_identical(
+    out@name,
+    c("SPRINGFIELD", "WOOLPER", "PFEIFFER", "VIVIAN", "BEECHVIEW")
+  )
+  expect_identical(out@posttype, c("Pike", "Ave", "Rd", "Pl", "Cir"))
+  expect_false(any(is.na(out)))
+})
+
+# test_that("match_addr_street edge cases for Hamilton County, OH", {
+#   the_streets <- nad_example_data()$nad_addr@street
+#   match_addr_street(
+#     addr_street(
+#       predirectional = "",
+#       premodifier = "",
+#       pretype = "",
+#       name = "Burnett",
+#       posttype = "Ave",
+#       postdirectional = ""
+#     ),
+#     the_streets
+#   )
+# })
