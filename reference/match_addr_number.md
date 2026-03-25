@@ -36,7 +36,7 @@ value is returned
 
 addr_number objects with missing @digits or empty strings for all of
 @prefix, @digits, @suffix are not matched and returned as missing
-instead
+instead.
 
 ## Examples
 

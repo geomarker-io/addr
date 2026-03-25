@@ -27,6 +27,8 @@
 
 - [`match_addr_number()`](https://geomarker.io/addr/reference/match_addr_number.md)
   : Match addr_number vectors
+- [`match_addr_street()`](https://geomarker.io/addr/reference/match_addr_street.md)
+  : Match addr_street vectors
 - [`match_zipcodes()`](https://geomarker.io/addr/reference/match_zipcodes.md)
   : Match ZIP codes
 - [`phonetic_street_key()`](https://geomarker.io/addr/reference/phonetic_street_key.md)

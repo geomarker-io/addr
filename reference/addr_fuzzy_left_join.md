@@ -77,19 +77,18 @@ addr_fuzzy_left_join(my_addr, the_addr, c("addr", "nad_addr"))
 #> 49 of 49 unique ZIP codes in x matched to one of 60 unique ZIP codes in y
 #> matching by zipcode ■■                                 2% |  ETA:  3m
 #> matching by zipcode ■■■                                6% |  ETA:  2m
-#> matching by zipcode ■■■■                              10% |  ETA:  1m
+#> matching by zipcode ■■■                                8% |  ETA:  1m
 #> matching by zipcode ■■■■■                             14% |  ETA:  1m
-#> matching by zipcode ■■■■■■■                           20% |  ETA:  1m
+#> matching by zipcode ■■■■■■■                           18% |  ETA:  1m
 #> matching by zipcode ■■■■■■■■■                         27% |  ETA: 48s
-#> matching by zipcode ■■■■■■■■■■■                       33% |  ETA: 45s
-#> matching by zipcode ■■■■■■■■■■■■                      37% |  ETA: 41s
-#> matching by zipcode ■■■■■■■■■■■■■■                    43% |  ETA: 35s
-#> matching by zipcode ■■■■■■■■■■■■■■■■                  49% |  ETA: 31s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■                57% |  ETA: 24s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■             65% |  ETA: 19s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■■            71% |  ETA: 15s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■■■■■         82% |  ETA:  9s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■     92% |  ETA:  4s
+#> matching by zipcode ■■■■■■■■■■                        31% |  ETA: 45s
+#> matching by zipcode ■■■■■■■■■■■                       35% |  ETA: 43s
+#> matching by zipcode ■■■■■■■■■■■■■■                    43% |  ETA: 34s
+#> matching by zipcode ■■■■■■■■■■■■■■■■                  51% |  ETA: 27s
+#> matching by zipcode ■■■■■■■■■■■■■■■■■■■               59% |  ETA: 22s
+#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■             67% |  ETA: 17s
+#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■■■■          78% |  ETA: 11s
+#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■     94% |  ETA:  3s
 #> Warning: Multi-matches detected for 23 addr in x;
 #> More than one row of y will be returned once for each matching row in x
 #> # A tibble: 1,796 × 10
