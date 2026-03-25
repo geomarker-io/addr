@@ -202,9 +202,11 @@ match_addr_number <- function(x, y, osa_max_dist = 1L) {
     "y must be an addr_number object" = inherits(y, "addr_number"),
     "osa_max_dist must be an integer" = typeof(osa_max_dist) == "integer"
   )
-  ux <- unique(x) # also gets rid of empty
-  ux <- ux[!is.na(ux@digits)]
-  uy <- unique(y)
+  ux <- unique(x[!is.na(x@digits) & x@digits != ""])
+  uy <- unique(y[!is.na(y@digits) & y@digits != ""])
+  if (length(ux) == 0L) {
+    return(x[rep(NA_integer_, length(x))])
+  }
   lkp <- lapply(
     seq_along(ux),
     function(.i) {
@@ -276,8 +278,10 @@ match_addr_number <- function(x, y, osa_max_dist = 1L) {
 #'   zip_variants = FALSE
 #' )
 match_zipcodes <- function(x, y, zip_variants = TRUE) {
-  ux <- unique(addr::addr_place(zipcode = x)@zipcode)
-  uy <- unique(addr::addr_place(zipcode = y)@zipcode)
+  x <- addr::addr_place(zipcode = x)@zipcode
+  y <- addr::addr_place(zipcode = y)@zipcode
+  ux <- unique(x[!is.na(x) & x != ""])
+  uy <- unique(y[!is.na(y) & y != ""])
   lkp <- vapply(
     ux,
     FUN = \(xz) {
@@ -303,6 +307,7 @@ match_zipcodes <- function(x, y, zip_variants = TRUE) {
     USE.NAMES = TRUE
   )
   out <- lkp[x]
+  out[is.na(x) | x == ""] <- NA_character_
   names(out) <- NULL
   out
 }

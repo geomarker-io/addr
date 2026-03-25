@@ -1,5 +1,7 @@
 #' Left join two data frames using fuzzy addr matching
 #'
+#'  **This function has been replaced by `addr_match()`**
+#'
 #' This is a convenience wrapper around the addr fuzzy matching helpers that
 #' returns a left-join style result. The addr columns are matched by index and
 #' rows are expanded for one-to-many or many-to-many matches.
@@ -29,9 +31,9 @@
 #' @export
 #' @examples
 #' my_addr <-
-#'   tibble::tibble(address = voter_addresses()[1:1000],
+#'   tibble::tibble(address = voter_addresses()[1:10],
 #'                  addr = as_addr(address),
-#'                  id = sprintf("id_%04d", seq_len(1000)))
+#'                  id = sprintf("id_%04d", seq_len(10)))
 #' the_addr <- nad_example_data()
 #' addr_fuzzy_left_join(my_addr, the_addr, c("addr", "nad_addr"))
 addr_fuzzy_left_join <- function(
@@ -41,6 +43,7 @@ addr_fuzzy_left_join <- function(
   addr_fields = NULL,
   suffix = c(".x", ".y")
 ) {
+  warning("addr_fuzzy_left_join() is deprecated; use addr_join() instead")
   if (is.character(by) && length(by) == 2) {
     x_by <- by[[1]]
     y_by <- by[[2]]

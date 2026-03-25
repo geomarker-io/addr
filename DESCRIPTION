@@ -1,6 +1,6 @@
 Package: addr
 Title: Clean, Parse, Harmonize, Match, and Geocode Messy Real-World Addresses
-Version: 0.99.2
+Version: 0.99.4
 Authors@R: 
     c(person("Cole", "Brokamp", email = "cole@colebrokamp.com", role = c("aut", "cre")),
       person("Erika", "Manning", role = c("aut")))
@@ -41,7 +41,8 @@ Collate:
     'addr_helpers.R'
     'addr_part.R'
     'addr.R'
-    'addr_join.R'
+    'addr_fuzzy_left_join.R'
+    'addr_match.R'
     'addr_part_match.R'
     'addr_tag_maps.R'
     'addr_vectors.R'
