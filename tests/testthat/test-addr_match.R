@@ -54,6 +54,14 @@ test_that("addr_match progress output uses zipcode text and 80-char bars", {
   )[[1]]
 
   expect_true(grepl(
+    "preparing reference addr vector",
+    progress_text
+  ))
+  expect_true(grepl(
+    "prepared reference addr vector in [0-9]+\\.[0-9]{2} seconds",
+    progress_text
+  ))
+  expect_true(grepl(
     "matching addr vectors in 45220 \\(2 to 2\\)",
     progress_text
   ))
@@ -67,6 +75,28 @@ test_that("addr_match progress output uses zipcode text and 80-char bars", {
   ))
   expect_true(length(bar_lines) > 0L)
   expect_true(all(nchar(bar_lines, type = "width") <= 80))
+  expect_true(inherits(out, "addr"))
+})
+
+test_that("addr_match skips preparation message for prepared references", {
+  y <- as_addr(c(
+    "10 MAIN ST CINCINNATI OH 45220",
+    "11 MAIN ST CINCINNATI OH 45220",
+    "10 MAIN ST CINCINNATI OH 45229"
+  ))
+  x <- as_addr(c(
+    "10 MAIN ST CINCINNATI OH 45220",
+    "11 MAIN ST CINCINNATI OH 45220",
+    "10 MAIN ST CINCINNATI OH 45229"
+  ))
+
+  progress_output <- capture.output({
+    out <- addr_match(x, addr_match_prepare(y), progress = TRUE)
+  })
+  progress_text <- paste(progress_output, collapse = "\n")
+  progress_text <- gsub("\033\\[[0-9;]*[[:alpha:]]", "", progress_text)
+
+  expect_false(grepl("preparing reference addr vector", progress_text))
   expect_true(inherits(out, "addr"))
 })
 
@@ -120,7 +150,7 @@ test_that("addr_match_stage classifies staged addr_match results", {
     NA_character_
   ))
 
-  out <- addr_match(x, y, progress = FALSE)
+  out <- addr_match(x, y)
 
   expect_equal(
     addr_match_stage(out),
@@ -149,10 +179,10 @@ test_that("addr_match_stage rejects non-addr_match structures in strict mode", {
 })
 
 test_that("addr_match works with packaged example data", {
-  x <- suppressWarnings(as_addr(voter_addresses()[1:1000]))
+  x <- as_addr(voter_addresses()[1:1000])
   y <- nad_example_data()$nad_addr
 
-  out <- addr_match(x, y, progress = FALSE)
+  out <- addr_match(x, y)
   stage <- addr_match_stage(out)
 
   expect_equal(sum(!is.na(out@number)), 875)

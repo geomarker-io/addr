@@ -27,8 +27,8 @@ created by \code{addr_match_prepare()}}
 \item{osa_max_dist}{integer maximum OSA distance used by
 \code{match_addr_number()}}
 
-\item{progress}{logical; show a progress bar while processing matched ZIP
-groups?}
+\item{progress}{logical; show reference-preparation timing for raw \code{y} and a
+progress bar while processing matched ZIP groups?}
 }
 \value{
 an addr vector, the same length as x, that is the best match in y

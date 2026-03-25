@@ -186,16 +186,6 @@ addr_match_prepare_zip <- function(y) {
   )
 }
 
-addr_match_resolve_index <- function(y) {
-  if (is_addr_match_index(y)) {
-    return(y)
-  }
-  if (!inherits(y, "addr")) {
-    stop("y must be an addr vector or addr_match_index", call. = FALSE)
-  }
-  addr_match_prepare(y)
-}
-
 addr_match_zip_chunk <- function(x, zip_data, osa_max_dist = 1L) {
   out_df <- addr_empty_df(length(x))
   if (length(x) == 0L || is.null(zip_data) || length(zip_data$y) == 0L) {
@@ -290,8 +280,8 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #'   `match_zipcodes()`?
 #' @param osa_max_dist integer maximum OSA distance used by
 #'   `match_addr_number()`
-#' @param progress logical; show a progress bar while processing matched ZIP
-#'   groups?
+#' @param progress logical; show reference-preparation timing for raw `y` and a
+#'   progress bar while processing matched ZIP groups?
 #' @return an addr vector, the same length as x, that is the best match in y
 #'   for each addr in x. Partial matches are returned with matched ZIP code
 #'   and/or street fields filled when later stages do not match.
@@ -329,7 +319,29 @@ addr_match <- function(
   if (length(x) == 0L) {
     return(x)
   }
-  y_index <- addr_match_resolve_index(y)
+
+  if (is_addr_match_index(y)) {
+    y_index <- y
+  } else {
+    if (!inherits(y, "addr")) {
+      stop("y must be an addr vector or addr_match_index", call. = FALSE)
+    }
+    prep_start_time <- proc.time()[["elapsed"]]
+    if (progress) {
+      cat("preparing reference addr vector\n")
+    }
+    y_index <- addr_match_prepare(y)
+    if (progress) {
+      prep_elapsed <- proc.time()[["elapsed"]] - prep_start_time
+      cat(
+        "prepared reference addr vector in ",
+        sprintf("%.2f", prep_elapsed),
+        " seconds\n",
+        sep = ""
+      )
+    }
+  }
+
   if (y_index$n_unique == 0L) {
     return(addr_missing(length(x)))
   }
