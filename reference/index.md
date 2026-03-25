@@ -25,6 +25,11 @@
 
 ## Match addr
 
+- [`addr_match()`](https://geomarker.io/addr/reference/addr_match.md)
+  [`addr_match_prepare()`](https://geomarker.io/addr/reference/addr_match.md)
+  : Match addr vectors
+- [`addr_match_stage()`](https://geomarker.io/addr/reference/addr_match_stage.md)
+  : Classify addr match stage
 - [`match_addr_number()`](https://geomarker.io/addr/reference/match_addr_number.md)
   : Match addr_number vectors
 - [`match_addr_street()`](https://geomarker.io/addr/reference/match_addr_street.md)

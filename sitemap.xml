@@ -7,6 +7,8 @@
 <url><loc>https://geomarker.io/addr/reference/addr.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/addr_fuzzy_left_join.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/addr_fuzzy_match.html</loc></url>
+<url><loc>https://geomarker.io/addr/reference/addr_match.html</loc></url>
+<url><loc>https://geomarker.io/addr/reference/addr_match_stage.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/as_addr.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/clean_address_text.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/elh_data.html</loc></url>

@@ -1,8 +1,7 @@
 # Left join two data frames using fuzzy addr matching
 
-This is a convenience wrapper around the addr fuzzy matching helpers
-that returns a left-join style result. The addr columns are matched by
-index and rows are expanded for one-to-many or many-to-many matches.
+**This function has been replaced by
+[`addr_match()`](https://geomarker.io/addr/reference/addr_match.md)**
 
 ## Usage
 
@@ -42,6 +41,10 @@ a data frame with left-join semantics
 
 ## Details
 
+This is a convenience wrapper around the addr fuzzy matching helpers
+that returns a left-join style result. The addr columns are matched by
+index and rows are expanded for one-to-many or many-to-many matches.
+
 addr_fuzzy_left_join works by matching addresses grouped by ZIP codes,
 so specified osa_max_distances for any place fields are ignored Defaults
 for `addr_fields`:
@@ -68,42 +71,27 @@ for `addr_fields`:
 
 ``` r
 my_addr <-
-  tibble::tibble(address = voter_addresses()[1:1000],
+  tibble::tibble(address = voter_addresses()[1:10],
                  addr = as_addr(address),
-                 id = sprintf("id_%04d", seq_len(1000)))
-#> Warning: street name post type not mapped: la
+                 id = sprintf("id_%04d", seq_len(10)))
 the_addr <- nad_example_data()
 addr_fuzzy_left_join(my_addr, the_addr, c("addr", "nad_addr"))
-#> 49 of 49 unique ZIP codes in x matched to one of 60 unique ZIP codes in y
-#> matching by zipcode ■■                                 2% |  ETA:  3m
-#> matching by zipcode ■■■                                6% |  ETA:  2m
-#> matching by zipcode ■■■                                8% |  ETA:  1m
-#> matching by zipcode ■■■■■                             14% |  ETA:  1m
-#> matching by zipcode ■■■■■■■                           18% |  ETA:  1m
-#> matching by zipcode ■■■■■■■■■                         27% |  ETA: 48s
-#> matching by zipcode ■■■■■■■■■■                        31% |  ETA: 45s
-#> matching by zipcode ■■■■■■■■■■■                       35% |  ETA: 43s
-#> matching by zipcode ■■■■■■■■■■■■■■                    43% |  ETA: 34s
-#> matching by zipcode ■■■■■■■■■■■■■■■■                  51% |  ETA: 27s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■■               59% |  ETA: 22s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■             67% |  ETA: 17s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■■■■          78% |  ETA: 11s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■     94% |  ETA:  3s
-#> Warning: Multi-matches detected for 23 addr in x;
-#> More than one row of y will be returned once for each matching row in x
-#> # A tibble: 1,796 × 10
+#> Warning: addr_fuzzy_left_join() is deprecated; use addr_join() instead
+#> 9 of 9 unique ZIP codes in x matched to one of 60 unique ZIP codes in y
+#> matching by zipcode ■■■■■■■■                          22% |  ETA:  6s
+#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■             67% |  ETA:  2s
+#> # A tibble: 10 × 10
 #>    address             addr  id    nad_addr.y subaddress uuid  date_update s2   
 #>    <chr>               <add> <chr> <addr>     <chr>      <chr> <date>      <s2_>
 #>  1 3359 QUEEN CITY AV… 3359… id_0… 3359 QUEE… NA         {E3A… 2025-03-30  -6.7…
-#>  2 5179 RIVERWATCH DR… 5179… id_0… 5179 RIVE… NA         {CDE… 2025-03-30  -6.7…
-#>  3 4724 GLENWAY AVE C… 4724… id_0… 4724 GLEN… NA         {EB2… 2025-03-30  -6.7…
-#>  4 2375 FAIRGREEN DR … 2375… id_0… 2375 FAIR… NA         {204… 2025-03-30  -6.7…
-#>  5 259 CALVERTON LN C… 259 … id_0…            NA         NA    NA              …
-#>  6 1034 FASHION AVE C… 1034… id_0… 1034 FASH… NA         {DDD… 2025-03-30  -6.7…
-#>  7 2720 QUEEN CITY AV… 2720… id_0… 2720 QUEE… NA         {D94… 2025-03-30  -6.7…
-#>  8 4450 CLOVERHILL TE… 4450… id_0… 4450 CLOV… NA         {55F… 2025-03-30  -6.7…
-#>  9 175 ANDERSON FERRY… 175 … id_0… 175 ANDER… NA         {715… 2025-03-30  -6.7…
-#> 10 5270 WILLNET DR CI… 5270… id_0… 5270 WILL… NA         {A79… 2025-03-30  -6.7…
-#> # ℹ 1,786 more rows
+#>  2 1040 KREIS LN CINC… 1040… id_0… 1040 KREI… NA         {D05… 2025-03-30  -6.7…
+#>  3 9960 DALY RD CINCI… 9960… id_0… 9960 DALY… NA         {109… 2025-03-30  -6.1…
+#>  4 413 VOLKERT PL CIN… 413 … id_0… 413 VOLKE… NA         {1BB… 2025-03-30  -6.7…
+#>  5 8519 LINDERWOOD LN… 8519… id_0… 8519 LIND… NA         {F78… 2025-03-30  -6.6…
+#>  6 6361 BEECHMONT AVE… 6361… id_0… 6361 BEEC… NA         {6D4… 2025-03-30  -6.6…
+#>  7 10466 ADVENTURE LN… 1046… id_0… 10466 ADV… NA         {1D1… 2025-03-30  -6.1…
+#>  8 3156 LOOKOUT CIR C… 3156… id_0… 3156 LOOK… NA         {AE8… 2025-03-30  -6.6…
+#>  9 310 WYOMING AVE CI… 310 … id_0… 310 WYOMI… NA         {331… 2025-03-30  -6.1…
+#> 10 118 SPRINGFIELD PI… 118 … id_0… 118 SPRIN… NA         {F3E… 2025-03-30  -6.1…
 #> # ℹ 2 more variables: address_type <chr>, parcel_id <chr>
 ```
