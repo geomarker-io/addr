@@ -27,11 +27,13 @@ for each addr tag field is not present a default will be used (see details).}
 a data frame with left-join semantics
 }
 \description{
+\strong{This function has been replaced by \code{addr_match()}}
+}
+\details{
 This is a convenience wrapper around the addr fuzzy matching helpers that
 returns a left-join style result. The addr columns are matched by index and
 rows are expanded for one-to-many or many-to-many matches.
-}
-\details{
+
 addr_fuzzy_left_join works by matching addresses grouped by ZIP codes, so specified
 osa_max_distances for any place fields are ignored
 Defaults for \code{addr_fields}:

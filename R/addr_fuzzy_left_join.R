@@ -1,5 +1,7 @@
 #' Left join two data frames using fuzzy addr matching
 #'
+#'  **This function has been replaced by `addr_match()`**
+#'
 #' This is a convenience wrapper around the addr fuzzy matching helpers that
 #' returns a left-join style result. The addr columns are matched by index and
 #' rows are expanded for one-to-many or many-to-many matches.
