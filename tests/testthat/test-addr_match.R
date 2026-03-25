@@ -81,6 +81,29 @@ test_that("addr_match progress text formats counts with commas", {
   )
 })
 
+test_that("addr_match_prepare caches reference data for repeated matching", {
+  y <- as_addr(c(
+    "10 MAIN ST CINCINNATI OH 45220",
+    "11 MAIN ST CINCINNATI OH 45220",
+    "10 MAIN ST CINCINNATI OH 45229",
+    "10 MAIN ST CINCINNATI OH 45220"
+  ))
+  x <- as_addr(c(
+    "10 MAINE STREET CINCINNATI OH 45220",
+    "99 MAIN ST CINCINNATI OH 45220",
+    "10 MAIN ST CINCINNATI OH 45229"
+  ))
+
+  prepared <- addr_match_prepare(y)
+  out_raw <- addr_match(x, y, progress = FALSE)
+  out_prepared <- addr_match(x, prepared, progress = FALSE)
+
+  expect_s3_class(prepared, "addr_match_index")
+  expect_equal(prepared$n_unique, 3L)
+  expect_equal(sort(prepared$zipcodes), c("45220", "45229"))
+  expect_equal(format(out_prepared), format(out_raw))
+})
+
 test_that("addr_match_stage classifies staged addr_match results", {
   y <- as_addr(c(
     "10 MAIN ST CINCINNATI OH 45220",

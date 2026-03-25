@@ -2,6 +2,7 @@
 % Please edit documentation in R/addr_match.R
 \name{addr_match}
 \alias{addr_match}
+\alias{addr_match_prepare}
 \title{Match addr vectors}
 \usage{
 addr_match(
@@ -11,9 +12,14 @@ addr_match(
   osa_max_dist = 1L,
   progress = interactive()
 )
+
+addr_match_prepare(y)
 }
 \arguments{
-\item{x, y}{addr vectors to match}
+\item{x}{addr vector to match}
+
+\item{y}{addr vector to match against, or a prepared \code{addr_match_index}
+created by \code{addr_match_prepare()}}
 
 \item{zip_variants}{logical; fuzzy match to common ZIP code variants in
 \code{match_zipcodes()}?}
@@ -42,10 +48,31 @@ left missing in the returned \code{addr()} values. Rows with a matched ZIP code
 but no street match return an addr with only \verb{@place@zipcode} filled; rows
 with matched ZIP code and street but no number match also return the matched
 \verb{@street}.
+
+\code{addr_match_prepare()} speeds up repeated calls that match multiple \code{x}
+batches against the same reference \code{y} by caching the deduplicated reference
+addresses and ZIP/street/number candidate lookups once. This can save time
+even when you continue to use sequential \code{addr_match()}.
+
+Preparing \code{y} once avoids recomputing \code{unique(y)}, ZIP-code groups, and
+exact street/number candidate lookups each time you call \code{addr_match()}
+with the same reference addresses.
 }
 \examples{
 my_addr <- as_addr(voter_addresses()[1:10])
 the_addr <- nad_example_data()$nad_addr
 
 addr_match(my_addr, the_addr)
+
+prepared_addr <- addr_match_prepare(the_addr)
+addr_match(my_addr, prepared_addr)
+
+\donttest{
+my_addr <- suppressWarnings(as_addr(voter_addresses()[1:1000]))
+the_addr <- nad_example_data()$nad_addr
+prepared_addr <- addr_match_prepare(the_addr)
+
+system.time(addr_match(my_addr, the_addr, progress = FALSE))
+system.time(addr_match(my_addr, prepared_addr, progress = FALSE))
+}
 }
