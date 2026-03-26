@@ -339,6 +339,56 @@ test_that("addr_match honors matching tuning arguments", {
   expect_identical(as.character(addr_match_stage(fuzzy_number_off)), "street")
 })
 
+test_that("addr_match honors street component matching toggles", {
+  demo_addr <- function(number, name, pretype = "", postdirectional = "") {
+    addr(
+      addr_number(prefix = "", digits = number, suffix = ""),
+      addr_street(
+        predirectional = "",
+        premodifier = "",
+        pretype = pretype,
+        name = name,
+        posttype = "Rd",
+        postdirectional = postdirectional,
+        map_pretype = FALSE,
+        map_posttype = FALSE,
+        map_directional = FALSE,
+        map_ordinal = FALSE
+      ),
+      addr_place(name = "Testville", state = "OH", zipcode = "45220")
+    )
+  }
+
+  y <- vctrs::vec_c(
+    demo_addr("10", "Main"),
+    demo_addr("10", "Main", pretype = "US Hwy", postdirectional = "E")
+  )
+  x <- demo_addr("10", "Mian", pretype = "US Hwy", postdirectional = "E")
+
+  out_optional <- addr_match(
+    x,
+    y,
+    name_phonetic_dist = 0L,
+    name_fuzzy_dist = 1L,
+    progress = FALSE
+  )
+  out_required <- addr_match(
+    x,
+    y,
+    name_phonetic_dist = 0L,
+    name_fuzzy_dist = 1L,
+    match_street_pretype = TRUE,
+    match_street_postdirectional = TRUE,
+    progress = FALSE
+  )
+
+  expect_identical(format(out_optional), "10 Main Rd Testville OH 45220")
+  expect_identical(
+    format(out_required),
+    "10 US Hwy Main Rd E Testville OH 45220"
+  )
+})
+
 test_that("nad_example_data can return prepared match data", {
   prepared <- nad_example_data(match_prepare = TRUE)
   expect_s3_class(prepared, "addr_match_index")

@@ -10,7 +10,13 @@ addr_left_join(
   by = "addr",
   suffix = c(".x", ".y"),
   zip_variants = TRUE,
-  osa_max_dist = 1L,
+  name_phonetic_dist = 2L,
+  name_fuzzy_dist = 1L,
+  number_fuzzy_dist = 1L,
+  match_street_predirectional = TRUE,
+  match_street_posttype = TRUE,
+  match_street_pretype = FALSE,
+  match_street_postdirectional = FALSE,
   progress = interactive()
 )
 }
@@ -25,8 +31,27 @@ character vector of \code{c(x_col, y_col)}}
 \item{zip_variants}{logical; fuzzy match to common ZIP code variants in
 \code{match_zipcodes()}?}
 
-\item{osa_max_dist}{integer maximum OSA distance used by
+\item{name_phonetic_dist}{integer; maximum optimized string alignment
+distance between \code{phonetic_street_key()} of x and y to consider a possible
+\code{match}}
+
+\item{name_fuzzy_dist}{integer; maximum optimized string alignment distance
+between \verb{@name} of x and y to consider a possible match}
+
+\item{number_fuzzy_dist}{integer maximum OSA distance used by
 \code{match_addr_number()}}
+
+\item{match_street_predirectional}{logical; require street predirectional to
+match when selecting street candidates?}
+
+\item{match_street_posttype}{logical; require street posttype to match when
+selecting street candidates?}
+
+\item{match_street_pretype}{logical; require street pretype to match when
+selecting street candidates?}
+
+\item{match_street_postdirectional}{logical; require street postdirectional to
+match when selecting street candidates?}
 
 \item{progress}{logical; show \code{addr_match()} progress?}
 }

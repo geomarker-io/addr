@@ -4,7 +4,16 @@
 \alias{match_addr_street}
 \title{Match addr_street vectors}
 \usage{
-match_addr_street(x, y, name_phonetic_dist = 1L, name_fuzzy_dist = 2L)
+match_addr_street(
+  x,
+  y,
+  name_phonetic_dist = 1L,
+  name_fuzzy_dist = 2L,
+  match_street_predirectional = TRUE,
+  match_street_posttype = TRUE,
+  match_street_pretype = FALSE,
+  match_street_postdirectional = FALSE
+)
 }
 \arguments{
 \item{x, y}{addr_street vectors to match}
@@ -15,6 +24,18 @@ match}
 
 \item{name_fuzzy_dist}{integer; maximum optimized string alignment distance
 between \verb{@name} of x and y to consider a possible match}
+
+\item{match_street_predirectional}{logical; require street predirectional to
+match when selecting street candidates?}
+
+\item{match_street_posttype}{logical; require street posttype to match when
+selecting street candidates?}
+
+\item{match_street_pretype}{logical; require street pretype to match when
+selecting street candidates?}
+
+\item{match_street_postdirectional}{logical; require street postdirectional to
+match when selecting street candidates?}
 }
 \value{
 an addr_street vector, the same length as x, that is the
@@ -26,7 +47,7 @@ A single addr_street in y is chosen for each addr_street in x.
 If exact matches (using \code{as.character}) are not found,
 possible matches are chosen by
 fuzzy matching on street name (using phonetic street key and street name)
-and exact matching on street type and predirectional.
+and exact matching on the enabled street components.
 Ordinal street names use restricted phonetic candidates:
 an ordinal phonetic key like \verb{#0007} may fuzzy match only to plausible
 ordinal neighbors such as digit shifts (\verb{#0070}, \verb{#0700}, \verb{#7000})

@@ -191,7 +191,11 @@ addr_match_zip_chunk <- function(
   zip_data,
   name_phonetic_dist = 2L,
   name_fuzzy_dist = 1L,
-  number_fuzzy_dist = 1L
+  number_fuzzy_dist = 1L,
+  match_street_predirectional = TRUE,
+  match_street_posttype = TRUE,
+  match_street_pretype = FALSE,
+  match_street_postdirectional = FALSE
 ) {
   out_df <- addr_empty_df(length(x))
   if (length(x) == 0L || is.null(zip_data) || length(zip_data$y) == 0L) {
@@ -202,7 +206,11 @@ addr_match_zip_chunk <- function(
     x@street,
     zip_data$y@street,
     name_phonetic_dist = name_phonetic_dist,
-    name_fuzzy_dist = name_fuzzy_dist
+    name_fuzzy_dist = name_fuzzy_dist,
+    match_street_predirectional = match_street_predirectional,
+    match_street_posttype = match_street_posttype,
+    match_street_pretype = match_street_pretype,
+    match_street_postdirectional = match_street_postdirectional
   )
   matched_street_rows <- !is.na(street_matches)
   if (any(matched_street_rows)) {
@@ -421,6 +429,10 @@ addr_match <- function(
   name_phonetic_dist = 2L,
   name_fuzzy_dist = 1L,
   number_fuzzy_dist = 1L,
+  match_street_predirectional = TRUE,
+  match_street_posttype = TRUE,
+  match_street_pretype = FALSE,
+  match_street_postdirectional = FALSE,
   progress = interactive()
 ) {
   stopifnot(
@@ -440,6 +452,22 @@ addr_match <- function(
       "integer" &&
       length(number_fuzzy_dist) == 1L &&
       !is.na(number_fuzzy_dist),
+    "match_street_predirectional must be TRUE or FALSE" =
+      is.logical(match_street_predirectional) &&
+        length(match_street_predirectional) == 1L &&
+        !is.na(match_street_predirectional),
+    "match_street_posttype must be TRUE or FALSE" =
+      is.logical(match_street_posttype) &&
+        length(match_street_posttype) == 1L &&
+        !is.na(match_street_posttype),
+    "match_street_pretype must be TRUE or FALSE" =
+      is.logical(match_street_pretype) &&
+        length(match_street_pretype) == 1L &&
+        !is.na(match_street_pretype),
+    "match_street_postdirectional must be TRUE or FALSE" =
+      is.logical(match_street_postdirectional) &&
+        length(match_street_postdirectional) == 1L &&
+        !is.na(match_street_postdirectional),
     "progress must be TRUE or FALSE" = is.logical(progress) &&
       length(progress) == 1L &&
       !is.na(progress)
@@ -546,7 +574,11 @@ addr_match <- function(
         zip_data = zip_data,
         name_phonetic_dist = name_phonetic_dist,
         name_fuzzy_dist = name_fuzzy_dist,
-        number_fuzzy_dist = number_fuzzy_dist
+        number_fuzzy_dist = number_fuzzy_dist,
+        match_street_predirectional = match_street_predirectional,
+        match_street_posttype = match_street_posttype,
+        match_street_pretype = match_street_pretype,
+        match_street_postdirectional = match_street_postdirectional
       )
     )
 
