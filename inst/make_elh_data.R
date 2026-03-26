@@ -1,5 +1,4 @@
 devtools::load_all()
-library(dplyr, warn.conflicts = FALSE)
 
 d <-
   readr::read_csv(
@@ -7,4 +6,4 @@ d <-
     show_col_types = FALSE
   )
 
-saveRDS(d, "inst/elh_data.rds")
+saveRDS(d, file.path("inst", "extdata", "elh_data.rds"))

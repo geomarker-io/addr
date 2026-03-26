@@ -8,16 +8,20 @@
 #'
 #' @details
 #'
-#' The U.S. Department of Transportation partners with address programs from state,
-#' local, and tribal governments to compile their authoritative data into a database.
-#' Find more information here: <https://www.transportation.gov/gis/national-address-database>
-#' The NAD is downloaded as the latest release from the transportation.gov data portal:
+#' The U.S. Department of Transportation partners with address programs from
+#' state, local, and tribal governments to compile their authoritative data
+#' into a database. Find more information here:
+#' <https://www.transportation.gov/gis/national-address-database>
+#' The NAD is downloaded as the latest release from the transportation.gov
+#' data portal:
 #' <https://data.transportation.gov/dataset/National-Address-Database-NAD-File-Geodatabase/yw36-suxr/about_data>
-#' For the original schema, see <https://www.transportation.gov/sites/dot.gov/files/2023-07/NAD_Schema_202304.pdf>
+#' For the original schema, see
+#' <https://www.transportation.gov/sites/dot.gov/files/2023-07/NAD_Schema_202304.pdf>
 #'
 #' The NAD does not distinguish between empty and missing address components.
-#' When reading into R, all missing address components are replaced with an empty
-#' string (`""`) *except* for address number (digits), street name, and ZIP code.
+#' When reading into R, all missing address components are replaced with an
+#' empty string (`""`) *except* for address number (digits), street name,
+#' and ZIP code.
 #' @export
 #' @examples
 #' \dontrun{
@@ -51,8 +55,11 @@ nad_read <- function(county, state) {
     "DateUpdate",
     "Addr_Type"
   )
-  the_query <- glue::glue(
-    "SELECT { paste(nad_fields, collapse = ', ') } FROM NAD WHERE State = '{ state }' AND County = '{ county }'"
+  the_query <- sprintf(
+    "SELECT %s FROM NAD WHERE State = '%s' AND County = '%s'",
+    paste(nad_fields, collapse = ", "),
+    state,
+    county
   )
   rnad <- sf::st_read(dsn = nad_download(), query = the_query)
   na_to_empty <- \(x) ifelse(is.na(x), "", x)

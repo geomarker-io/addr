@@ -14,22 +14,16 @@ RoxygenNote: 7.3.2
 Suggests: 
     testthat (>= 3.0.0),
     sf,
-    s2,
-    rmarkdown,
-    curl,
     leaflet,
+    curl,
     wk,
-    dplyr,
     withr
 Imports: 
-    purrr,
-    stringr,
-    glue,
-    fs,
-    tibble,
-    vctrs,
+    s2,
     S7,
-    stringdist
+    stringdist,
+    tibble,
+    vctrs
 SystemRequirements: Cargo (Rust's package manager), rustc
 Config/testthat/edition: 3
 Depends: 
