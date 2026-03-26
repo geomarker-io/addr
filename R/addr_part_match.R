@@ -1,5 +1,6 @@
 #' Match addr_street vectors
 #'
+#' @description
 #' A single addr_street in y is chosen for each addr_street in x.
 #' If exact matches (using `as.character`) are not found,
 #' possible matches are chosen by
@@ -15,6 +16,11 @@
 #' addr_street objects within missing or empty @name are not matched and
 #' returned as missing instead.
 #' @param x,y addr_street vectors to match
+#' @param name_phonetic_dist integer; maximum optimized string alignment
+#' distance between `phonetic_street_key()` of x and y to consider a possible
+#' match
+#' @param name_fuzzy_dist integer; maximum optimized string alignment distance
+#' between `@name` of x and y to consider a possible match
 #' @return an addr_street vector, the same length as x, that is the
 #' best match in y for each addr_street code in x; if no best match
 #' is found a missing value is returned (`addr_street()`)
@@ -31,7 +37,12 @@
 #'  )
 #' the_streets <- nad_example_data()$nad_addr@street
 #' match_addr_street(my_streets, the_streets)
-match_addr_street <- function(x, y) {
+match_addr_street <- function(
+  x,
+  y,
+  name_phonetic_dist = 1L,
+  name_fuzzy_dist = 2L
+) {
   stopifnot(
     "x must be an addr_street object" = inherits(x, "addr_street"),
     "y must be an addr_street object" = inherits(y, "addr_street")
@@ -119,12 +130,12 @@ match_addr_street <- function(x, y) {
           bucket_nomatch_psk
         ),
         bucket_uy_psk,
-        osa_max_dist = 1
+        osa_max_dist = name_phonetic_dist
       )
       bucket_fuzzy_matches <- fuzzy_match(
         bucket_nomatch_names,
         bucket_uy_names,
-        osa_max_dist = 2
+        osa_max_dist = name_fuzzy_dist
       )
       # Avoid matching one ordinal street number to a different one
       # just because the exact ordinal is absent from this bucket.
@@ -162,9 +173,10 @@ match_addr_street <- function(x, y) {
 
 #' Match addr_number vectors
 #'
+#' @description
 #' A single addr_number in y is chosen for each addr_number in x.
 #' If exact matches (using `as.character`) are not found,
-#' possible matches (within thresh OSA distance) are searched for in y.
+#' possible matches (within `number_fuzzy_distance`) are searched for in y.
 #' If multiple matches are present in y, the best one is selected
 #' based on the lowest absolute numeric difference with the @digits in x;
 #' ties are broken by optimized string alignment (OSA) distances
@@ -175,7 +187,8 @@ match_addr_street <- function(x, y) {
 #' for all of @prefix, @digits, @suffix are not matched and
 #' returned as missing instead.
 #' @param x,y addr_number vectors to match
-#' @param osa_max_dist integer maximum OSA distance to consider a match
+#' @param number_fuzzy_dist integer; maximum optimized string alignment distance
+#' between `@number` of x and y to consider a possible match
 #' @return an addr_number vector, the same length as x, that is the
 #' best match in y for each addr_number code in x; if no best match
 #' is found a missing value is returned (`addr_number()`)
@@ -195,12 +208,12 @@ match_addr_street <- function(x, y) {
 #'
 #' match_addr_number(x, y)
 #'
-#' match_addr_number(x, y, osa_max_dist = 0L)
-match_addr_number <- function(x, y, osa_max_dist = 1L) {
+#' match_addr_number(x, y, number_fuzzy_dist = 0L)
+match_addr_number <- function(x, y, number_fuzzy_dist = 1L) {
   stopifnot(
     "x must be an addr_number object" = inherits(x, "addr_number"),
     "y must be an addr_number object" = inherits(y, "addr_number"),
-    "osa_max_dist must be an integer" = typeof(osa_max_dist) == "integer"
+    "osa_max_dist must be an integer" = typeof(number_fuzzy_dist) == "integer"
   )
   ux <- unique(x[!is.na(x@digits) & x@digits != ""])
   uy <- unique(y[!is.na(y@digits) & y@digits != ""])
@@ -213,14 +226,14 @@ match_addr_number <- function(x, y, osa_max_dist = 1L) {
       if (as.character(ux[.i]) %in% as.character(uy)) {
         return(ux[.i])
       }
-      if (osa_max_dist >= 1) {
+      if (number_fuzzy_dist) {
         m <- uy[
           stringdist::stringdist(
             as.character(ux[.i]),
             as.character(uy),
             method = "osa"
           ) <=
-            osa_max_dist
+            number_fuzzy_dist
         ]
         if (length(m) == 0) {
           return(addr::addr_number())

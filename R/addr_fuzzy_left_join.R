@@ -31,7 +31,10 @@
 #'   \item street_postdirectional: 0
 #' }
 #' @param suffix character vector of length 2 used to suffix duplicate columns
-#' @return a data frame with left-join semantics
+#' @param progress logical; show progress bar while processing matched
+#' ZIP groups?
+#' @return a data frame with left-join semantics; note that *row order will
+#' be changed compared to x*
 #' @export
 #' @examples
 #' my_addr <-
@@ -45,7 +48,8 @@ addr_fuzzy_left_join <- function(
   y,
   by = "addr",
   addr_fields = NULL,
-  suffix = c(".x", ".y")
+  suffix = c(".x", ".y"),
+  progress = interactive()
 ) {
   if (is.character(by) && length(by) == 2) {
     x_by <- by[[1]]
@@ -107,19 +111,21 @@ addr_fuzzy_left_join <- function(
   y_zips <- unique(y_addr@place@zipcode)
   x_idx_no_zip <- which(x_addr@place@zipcode %in% x_zips[!x_zips %in% y_zips])
 
-  message(
-    sum(x_zips %in% y_zips),
-    " of ",
-    length(x_zips),
-    " unique ZIP codes in x matched to one of ",
-    length(y_zips),
-    " unique ZIP codes in y"
-  )
-  if (length(x_idx_no_zip) > 0) {
+  if (progress) {
     message(
-      length(x_idx_no_zip),
-      " addr in x will not have ZIP code-based matching candidates"
+      sum(x_zips %in% y_zips),
+      " of ",
+      length(x_zips),
+      " unique ZIP codes in x matched to one of ",
+      length(y_zips),
+      " unique ZIP codes in y"
     )
+    if (length(x_idx_no_zip) > 0) {
+      message(
+        length(x_idx_no_zip),
+        " addr in x will not have ZIP code-based matching candidates"
+      )
+    }
   }
 
   af <- addr_fuzzy_match_resolve_max_dist(addr_fields)
@@ -149,12 +155,14 @@ addr_fuzzy_left_join <- function(
           "matching addr vectors complete",
           first = FALSE
         )
-        cat(
-          "\nmatched addr vectors in ",
-          sprintf("%.2f", elapsed),
-          " seconds\n",
-          sep = ""
-        )
+        if (progress) {
+          cat(
+            "\nmatched addr vectors in ",
+            sprintf("%.2f", elapsed),
+            " seconds\n",
+            sep = ""
+          )
+        }
       },
       add = TRUE
     )
@@ -174,7 +182,11 @@ addr_fuzzy_left_join <- function(
       addr_progress_text(zip, length(bz$x), length(bz$y)),
       first = FALSE
     )
-    out <- addr_fuzzy_match(x = x_addr[bz$x], y = y_addr[bz$y], addr_fields = af)
+    out <- addr_fuzzy_match(
+      x = x_addr[bz$x],
+      y = y_addr[bz$y],
+      addr_fields = af
+    )
     processed <<- processed + length(bz$x)
     addr_progress_update(
       processed,

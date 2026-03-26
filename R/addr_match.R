@@ -276,10 +276,9 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #' @param x addr vector to match
 #' @param y addr vector to match against, or a prepared `addr_match_index`
 #'   created by `addr_match_prepare()`
-#' @param zip_variants logical; fuzzy match to common ZIP code variants in
-#'   `match_zipcodes()`?
-#' @param osa_max_dist integer maximum OSA distance used by
-#'   `match_addr_number()`
+#' @inheritParams match_zipcodes
+#' @inheritParams match_addr_street
+#' @inheritParams match_addr_number
 #' @param progress logical; show reference-preparation timing for raw `y` and a
 #'   progress bar while processing matched ZIP groups?
 #' @return an addr vector, the same length as x, that is the best match in y
@@ -295,7 +294,9 @@ addr_match <- function(
   x,
   y,
   zip_variants = TRUE,
-  osa_max_dist = 1L,
+  name_phonetic_dist = 2L,
+  name_fuzzy_dist = 1L,
+  number_fuzzy_dist = 1L,
   progress = interactive()
 ) {
   stopifnot(

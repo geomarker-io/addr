@@ -9,7 +9,9 @@ addr_match(
   x,
   y,
   zip_variants = TRUE,
-  osa_max_dist = 1L,
+  name_phonetic_dist = 2L,
+  name_fuzzy_dist = 1L,
+  number_fuzzy_dist = 1L,
   progress = interactive()
 )
 
@@ -21,11 +23,18 @@ addr_match_prepare(y)
 \item{y}{addr vector to match against, or a prepared \code{addr_match_index}
 created by \code{addr_match_prepare()}}
 
-\item{zip_variants}{logical; fuzzy match to common ZIP code variants in
-\code{match_zipcodes()}?}
+\item{zip_variants}{logical; fuzzy match to common variants of
+x in y? (e.g., changing 4th or 5th digit)}
 
-\item{osa_max_dist}{integer maximum OSA distance used by
-\code{match_addr_number()}}
+\item{name_phonetic_dist}{integer; maximum optimized string alignment
+distance between \code{phonetic_street_key()} of x and y to consider a possible
+match}
+
+\item{name_fuzzy_dist}{integer; maximum optimized string alignment distance
+between \verb{@name} of x and y to consider a possible match}
+
+\item{number_fuzzy_dist}{integer; maximum optimized string alignment distance
+between \verb{@number} of x and y to consider a possible match}
 
 \item{progress}{logical; show reference-preparation timing for raw \code{y} and a
 progress bar while processing matched ZIP groups?}

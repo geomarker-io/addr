@@ -9,7 +9,8 @@ addr_fuzzy_left_join(
   y,
   by = "addr",
   addr_fields = NULL,
-  suffix = c(".x", ".y")
+  suffix = c(".x", ".y"),
+  progress = interactive()
 )
 }
 \arguments{
@@ -22,9 +23,13 @@ or a length-2 character vector of \code{c(x_col, y_col)}}
 for each addr tag field is not present a default will be used (see details).}
 
 \item{suffix}{character vector of length 2 used to suffix duplicate columns}
+
+\item{progress}{logical; show progress bar while processing matched
+ZIP groups?}
 }
 \value{
-a data frame with left-join semantics
+a data frame with left-join semantics; note that \emph{row order will
+be changed compared to x}
 }
 \description{
 This wraps around the addr fuzzy matching helpers and

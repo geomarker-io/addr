@@ -4,10 +4,17 @@
 \alias{match_addr_street}
 \title{Match addr_street vectors}
 \usage{
-match_addr_street(x, y)
+match_addr_street(x, y, name_phonetic_dist = 1L, name_fuzzy_dist = 2L)
 }
 \arguments{
 \item{x, y}{addr_street vectors to match}
+
+\item{name_phonetic_dist}{integer; maximum optimized string alignment
+distance between \code{phonetic_street_key()} of x and y to consider a possible
+match}
+
+\item{name_fuzzy_dist}{integer; maximum optimized string alignment distance
+between \verb{@name} of x and y to consider a possible match}
 }
 \value{
 an addr_street vector, the same length as x, that is the
@@ -26,8 +33,7 @@ ordinal neighbors such as digit shifts (\verb{#0070}, \verb{#0700}, \verb{#7000}
 or same-width substitutions (\verb{#0008}, \verb{#0009}), not arbitrary
 OSA-distance-one ordinal keys such as \verb{#0017} or \verb{#0077}.
 Ties are broken by .......... the first for now.
-}
-\details{
+
 addr_street objects within missing or empty @name are not matched and
 returned as missing instead.
 }
