@@ -4,10 +4,15 @@
 \alias{nad_example_data}
 \title{Example National Address Database addresses}
 \usage{
-nad_example_data()
+nad_example_data(match_prepare = FALSE)
+}
+\arguments{
+\item{match_prepare}{logical; return the example data preprocessed with
+\code{addr_match_prepare()}?}
 }
 \value{
-a tibble with 349,407 rows and 7 columns
+If \code{match_prepare = FALSE}, a tibble with 349,407 rows and 7
+columns. If \code{match_prepare = TRUE}, an \code{addr_match_index}.
 }
 \description{
 An example of the data returned using \code{nad_read()} for
@@ -16,4 +21,5 @@ the National Address Database.
 }
 \examples{
 nad_example_data()
+nad_example_data(match_prepare = TRUE)
 }
