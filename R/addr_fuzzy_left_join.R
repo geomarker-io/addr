@@ -127,20 +127,63 @@ addr_fuzzy_left_join <- function(
   af["place_state"] <- Inf
   af["place_zipcode"] <- Inf
 
-  by_zip <- lapply(intersect(x_zips, y_zips), \(.) {
+  matched_zips <- intersect(x_zips, y_zips)
+  by_zip <- lapply(matched_zips, \(.) {
     list(
       x = which(x_addr@place@zipcode == .),
       y = which(y_addr@place@zipcode == .)
     )
   })
+  names(by_zip) <- matched_zips
 
-  # TODO better progress messages that list zipcode and number of addr in each chunk
-  # compat purrr with progress messages or do for loop?
-  by_zip_matches <- purrr::map(
-    by_zip,
-    \(.) addr_fuzzy_match(x = x_addr[.$x], y = y_addr[.$y], addr_fields = af),
-    .progress = "matching by zipcode"
-  )
+  total <- length(x_addr)
+  processed <- length(x_idx_no_zip)
+  start_time <- proc.time()[["elapsed"]]
+  if (total > 0L) {
+    on.exit(
+      {
+        elapsed <- proc.time()[["elapsed"]] - start_time
+        addr_progress_update(
+          total,
+          total,
+          "matching addr vectors complete",
+          first = FALSE
+        )
+        cat(
+          "\nmatched addr vectors in ",
+          sprintf("%.2f", elapsed),
+          " seconds\n",
+          sep = ""
+        )
+      },
+      add = TRUE
+    )
+    addr_progress_update(
+      processed,
+      total,
+      "matching addr vectors",
+      first = TRUE
+    )
+  }
+
+  by_zip_matches <- lapply(names(by_zip), \(zip) {
+    bz <- by_zip[[zip]]
+    addr_progress_update(
+      processed,
+      total,
+      addr_progress_text(zip, length(bz$x), length(bz$y)),
+      first = FALSE
+    )
+    out <- addr_fuzzy_match(x = x_addr[bz$x], y = y_addr[bz$y], addr_fields = af)
+    processed <<- processed + length(bz$x)
+    addr_progress_update(
+      processed,
+      total,
+      addr_progress_text(zip, length(bz$x), length(bz$y)),
+      first = FALSE
+    )
+    out
+  })
 
   normalize_idx <- function(idx) {
     if (is.null(idx) || length(idx) == 0) {

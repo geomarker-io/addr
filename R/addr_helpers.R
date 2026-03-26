@@ -1,7 +1,7 @@
 as_norm_char <- function(x) tolower(trimws(as.character(x)))
 
 to_int <- function(x) {
-  suppressWarnings(as.integer(stringr::str_remove(x, "[^0-9.-]")))
+  suppressWarnings(as.integer(gsub("[^0-9.-]", "", x)))
 }
 
 

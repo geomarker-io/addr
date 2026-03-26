@@ -51,8 +51,11 @@ nad_read <- function(county, state) {
     "DateUpdate",
     "Addr_Type"
   )
-  the_query <- glue::glue(
-    "SELECT { paste(nad_fields, collapse = ', ') } FROM NAD WHERE State = '{ state }' AND County = '{ county }'"
+  the_query <- sprintf(
+    "SELECT %s FROM NAD WHERE State = '%s' AND County = '%s'",
+    paste(nad_fields, collapse = ", "),
+    state,
+    county
   )
   rnad <- sf::st_read(dsn = nad_download(), query = the_query)
   na_to_empty <- \(x) ifelse(is.na(x), "", x)

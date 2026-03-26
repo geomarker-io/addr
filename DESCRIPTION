@@ -22,10 +22,6 @@ Suggests:
     dplyr,
     withr
 Imports: 
-    purrr,
-    stringr,
-    glue,
-    fs,
     tibble,
     vctrs,
     S7,

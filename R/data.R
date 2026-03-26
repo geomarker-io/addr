@@ -19,10 +19,26 @@ nad_example_data <- function(match_prepare = FALSE) {
   )
 
   if (match_prepare) {
-    return(readRDS(fs::path_package("addr", "nad_39061_match_prepared.rds")))
+    return(
+      readRDS(
+        system.file(
+          "extdata",
+          "nad_39061_match_prepared.rds",
+          package = "addr",
+          mustWork = TRUE
+        )
+      )
+    )
   }
 
-  readRDS(fs::path_package("addr", "nad_39061.rds"))
+  readRDS(
+    system.file(
+      "extdata",
+      "nad_39061.rds",
+      package = "addr",
+      mustWork = TRUE
+    )
+  )
 }
 
 #' Example addresses
@@ -38,7 +54,14 @@ nad_example_data <- function(match_prepare = FALSE) {
 #' voter_addresses() |>
 #'   head()
 voter_addresses <- function() {
-  readRDS(fs::path_package("addr", "voter_addresses.rds"))
+  readRDS(
+    system.file(
+      "extdata",
+      "voter_addresses.rds",
+      package = "addr",
+      mustWork = TRUE
+    )
+  )
 }
 
 #' Example line-one addresses
@@ -53,5 +76,12 @@ voter_addresses <- function() {
 #' @examples
 #' elh_data()
 elh_data <- function() {
-  readRDS(fs::path_package("addr", "elh_data.rds"))
+  readRDS(
+    system.file(
+      "extdata",
+      "elh_data.rds",
+      package = "addr",
+      mustWork = TRUE
+    )
+  )
 }

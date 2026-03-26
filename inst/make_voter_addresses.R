@@ -36,4 +36,4 @@ out <- unique(d$address)
 
 length(out)
 
-saveRDS(out, fs::path("inst", "voter_addresses.rds"))
+saveRDS(out, file.path("inst", "voter_addresses.rds"))

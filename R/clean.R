@@ -13,9 +13,7 @@
 #'   "33_33 Burnet Ave. Cincinnati OH 45219"
 #' ))
 clean_address_text <- function(x) {
-  x |>
-    stringr::str_replace_all(stringr::fixed("\\"), "") |>
-    stringr::str_replace_all(stringr::fixed("\""), "") |>
-    stringr::str_replace_all("[^a-zA-Z0-9-# ]", "") |>
-    stringr::str_squish()
+  x <- gsub("\\\\|\"", "", x)
+  x <- gsub("[^[:alnum:]# -]", "", x)
+  trimws(gsub("[[:space:]]+", " ", x))
 }
