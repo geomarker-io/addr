@@ -13,6 +13,24 @@
 - [`clean_address_text()`](https://geomarker.io/addr/reference/clean_address_text.md)
   : clean address text
 
+## Match addr
+
+- [`addr_match()`](https://geomarker.io/addr/reference/addr_match.md)
+  [`addr_match_prepare()`](https://geomarker.io/addr/reference/addr_match.md)
+  : Match addr vectors
+- [`addr_match_stage()`](https://geomarker.io/addr/reference/addr_match_stage.md)
+  : Classify addr match stage
+- [`addr_left_join()`](https://geomarker.io/addr/reference/addr_left_join.md)
+  : Left join two data frames using addr matching
+- [`match_addr_number()`](https://geomarker.io/addr/reference/match_addr_number.md)
+  : Match addr_number vectors
+- [`match_addr_street()`](https://geomarker.io/addr/reference/match_addr_street.md)
+  : Match addr_street vectors
+- [`match_zipcodes()`](https://geomarker.io/addr/reference/match_zipcodes.md)
+  : Match ZIP codes
+- [`phonetic_street_key()`](https://geomarker.io/addr/reference/phonetic_street_key.md)
+  : Convert street names into phonetic matching keys
+
 ## Fuzzy join addr
 
 - [`addr_fuzzy_left_join()`](https://geomarker.io/addr/reference/addr_fuzzy_left_join.md)
@@ -22,22 +40,6 @@
   : Fuzzy match addr vectors using field-specific string distances
 - [`fuzzy_match()`](https://geomarker.io/addr/reference/fuzzy_match.md)
   : Fuzzy match
-
-## Match addr
-
-- [`addr_match()`](https://geomarker.io/addr/reference/addr_match.md)
-  [`addr_match_prepare()`](https://geomarker.io/addr/reference/addr_match.md)
-  : Match addr vectors
-- [`addr_match_stage()`](https://geomarker.io/addr/reference/addr_match_stage.md)
-  : Classify addr match stage
-- [`match_addr_number()`](https://geomarker.io/addr/reference/match_addr_number.md)
-  : Match addr_number vectors
-- [`match_addr_street()`](https://geomarker.io/addr/reference/match_addr_street.md)
-  : Match addr_street vectors
-- [`match_zipcodes()`](https://geomarker.io/addr/reference/match_zipcodes.md)
-  : Match ZIP codes
-- [`phonetic_street_key()`](https://geomarker.io/addr/reference/phonetic_street_key.md)
-  : Convert street names into phonetic matching keys
 
 ## Geocoding addr
 

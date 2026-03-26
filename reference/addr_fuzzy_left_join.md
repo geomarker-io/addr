@@ -79,7 +79,7 @@ addr_fuzzy_left_join(my_addr, the_addr, c("addr", "nad_addr"))
 #> Warning: addr_fuzzy_left_join() is deprecated; use addr_join() instead
 #> 9 of 9 unique ZIP codes in x matched to one of 60 unique ZIP codes in y
 #> matching by zipcode ■■■■■■■■                          22% |  ETA:  6s
-#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■             67% |  ETA:  2s
+#> matching by zipcode ■■■■■■■■■■■■■■■■■■■■■■■■          78% |  ETA:  2s
 #> # A tibble: 10 × 10
 #>    address             addr  id    nad_addr.y subaddress uuid  date_update s2   
 #>    <chr>               <add> <chr> <addr>     <chr>      <chr> <date>      <s2_>
