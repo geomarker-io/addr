@@ -19,16 +19,20 @@ Download the NAD to the R user's data directory for the addr package
 and read data into R by county and state.
 }
 \details{
-The U.S. Department of Transportation partners with address programs from state,
-local, and tribal governments to compile their authoritative data into a database.
-Find more information here: \url{https://www.transportation.gov/gis/national-address-database}
-The NAD is downloaded as the latest release from the transportation.gov data portal:
+The U.S. Department of Transportation partners with address programs from
+state, local, and tribal governments to compile their authoritative data
+into a database. Find more information here:
+\url{https://www.transportation.gov/gis/national-address-database}
+The NAD is downloaded as the latest release from the transportation.gov
+data portal:
 \url{https://data.transportation.gov/dataset/National-Address-Database-NAD-File-Geodatabase/yw36-suxr/about_data}
-For the original schema, see \url{https://www.transportation.gov/sites/dot.gov/files/2023-07/NAD_Schema_202304.pdf}
+For the original schema, see
+\url{https://www.transportation.gov/sites/dot.gov/files/2023-07/NAD_Schema_202304.pdf}
 
 The NAD does not distinguish between empty and missing address components.
-When reading into R, all missing address components are replaced with an empty
-string (\code{""}) \emph{except} for address number (digits), street name, and ZIP code.
+When reading into R, all missing address components are replaced with an
+empty string (\code{""}) \emph{except} for address number (digits), street name,
+and ZIP code.
 }
 \examples{
 \dontrun{

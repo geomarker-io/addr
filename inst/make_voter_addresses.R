@@ -1,4 +1,3 @@
-library(dplyr)
 library(readr)
 
 # might have to update the date in the url to get the download to work
@@ -15,18 +14,17 @@ rd <- read_csv(
 )
 
 d <-
-  rd |>
-  dplyr::mutate(
+  data.frame(
     voter_address = paste(
-      AddressPreDirectional,
-      AddressNumber,
-      AddressStreet,
-      AddressSuffix,
-      CityName,
+      rd$AddressPreDirectional,
+      rd$AddressNumber,
+      rd$AddressStreet,
+      rd$AddressSuffix,
+      rd$CityName,
       "OH",
-      AddressZip
+      rd$AddressZip
     ),
-    .keep = "unused"
+    stringsAsFactors = FALSE
   )
 
 # remove missing address components left in the paste
@@ -36,4 +34,4 @@ out <- unique(d$address)
 
 length(out)
 
-saveRDS(out, file.path("inst", "voter_addresses.rds"))
+saveRDS(out, file.path("inst", "extdata", "voter_addresses.rds"))
