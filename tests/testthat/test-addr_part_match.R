@@ -301,6 +301,89 @@ test_that("match_addr_street uses predirectional to resolve East 14th Street", {
   expect_true(is.na(out[2]))
 })
 
+test_that("match_addr_street can make predirectional optional", {
+  y <- addr_street(
+    predirectional = "E",
+    premodifier = "",
+    pretype = "",
+    name = "14th",
+    posttype = "St",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  )
+  x <- addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "14th",
+    posttype = "St",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  )
+
+  out_required <- match_addr_street(x, y)
+  out_optional <- match_addr_street(
+    x,
+    y,
+    match_street_predirectional = FALSE
+  )
+
+  expect_true(is.na(out_required))
+  expect_identical(out_optional@predirectional, "E")
+  expect_identical(out_optional@name, "14th")
+})
+
+test_that("match_addr_street can make posttype optional", {
+  y <- addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "Oak",
+    posttype = "Rd",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  )
+  x <- addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "Oka",
+    posttype = "Ave",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  )
+
+  out_required <- match_addr_street(
+    x,
+    y,
+    name_phonetic_dist = 0L,
+    name_fuzzy_dist = 1L
+  )
+  out_optional <- match_addr_street(
+    x,
+    y,
+    name_phonetic_dist = 0L,
+    name_fuzzy_dist = 1L,
+    match_street_posttype = FALSE
+  )
+
+  expect_true(is.na(out_required))
+  expect_identical(out_optional@name, "Oak")
+  expect_identical(out_optional@posttype, "Rd")
+})
+
 test_that("match_addr_street can require pretype and postdirectional", {
   y <- addr_street(
     predirectional = "",

@@ -419,6 +419,86 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #'   )
 #' )
 #'
+#' toggle_addr <- function(number, street, type, zipcode,
+#'                         predirectional = "", pretype = "",
+#'                         postdirectional = "") {
+#'   addr(
+#'     addr_number(prefix = "", digits = number, suffix = ""),
+#'     addr_street(
+#'       predirectional = predirectional,
+#'       premodifier = "",
+#'       pretype = pretype,
+#'       name = street,
+#'       posttype = type,
+#'       postdirectional = postdirectional,
+#'       map_pretype = FALSE,
+#'       map_posttype = FALSE,
+#'       map_directional = FALSE,
+#'       map_ordinal = FALSE
+#'     ),
+#'     addr_place(name = "Testville", state = "OH", zipcode = zipcode)
+#'   )
+#' }
+#'
+#' toggle_y <- vctrs::vec_c(
+#'   toggle_addr("10", "14th", "St", "45220", predirectional = "E"),
+#'   toggle_addr("10", "Oak", "Rd", "45220"),
+#'   toggle_addr("10", "Main", "Rd", "45220"),
+#'   toggle_addr("10", "Main", "Rd", "45220",
+#'     predirectional = "E",
+#'     pretype = "US Hwy",
+#'     postdirectional = "E"
+#'   )
+#' )
+#'
+#' # predirectional and posttype are required by default
+#' format(addr_match(
+#'   toggle_addr("10", "14th", "St", "45220"),
+#'   toggle_y
+#' ))
+#' format(addr_match(
+#'   toggle_addr("10", "14th", "St", "45220"),
+#'   toggle_y,
+#'   match_street_predirectional = FALSE
+#' ))
+#' format(addr_match(
+#'   toggle_addr("10", "Oka", "Ave", "45220"),
+#'   toggle_y,
+#'   name_phonetic_dist = 0L,
+#'   name_fuzzy_dist = 1L
+#' ))
+#' format(addr_match(
+#'   toggle_addr("10", "Oka", "Ave", "45220"),
+#'   toggle_y,
+#'   name_phonetic_dist = 0L,
+#'   name_fuzzy_dist = 1L,
+#'   match_street_posttype = FALSE
+#' ))
+#'
+#' # pretype and postdirectional can be made required when needed
+#' format(addr_match(
+#'   toggle_addr("10", "Mian", "Rd", "45220",
+#'     predirectional = "E",
+#'     pretype = "US Hwy",
+#'     postdirectional = "E"
+#'   ),
+#'   toggle_y,
+#'   name_phonetic_dist = 0L,
+#'   name_fuzzy_dist = 1L
+#' ))
+#' format(addr_match(
+#'   toggle_addr("10", "Mian", "Rd", "45220",
+#'     predirectional = "E",
+#'     pretype = "US Hwy",
+#'     postdirectional = "E"
+#'   ),
+#'   toggle_y,
+#'   name_phonetic_dist = 0L,
+#'   name_fuzzy_dist = 1L,
+#'   match_street_pretype = TRUE,
+#'   match_street_postdirectional = TRUE
+#' ))
+#'
 #' my_addr <- as_addr(voter_addresses()[1:100])
 #'
 #' addr_match(my_addr, the_addr)

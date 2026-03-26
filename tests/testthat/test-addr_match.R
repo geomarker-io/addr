@@ -389,6 +389,63 @@ test_that("addr_match honors street component matching toggles", {
   )
 })
 
+test_that("addr_match can make predirectional and posttype optional", {
+  demo_addr <- function(name, type = "Rd", predirectional = "") {
+    addr(
+      addr_number(prefix = "", digits = "10", suffix = ""),
+      addr_street(
+        predirectional = predirectional,
+        premodifier = "",
+        pretype = "",
+        name = name,
+        posttype = type,
+        postdirectional = "",
+        map_pretype = FALSE,
+        map_posttype = FALSE,
+        map_directional = FALSE,
+        map_ordinal = FALSE
+      ),
+      addr_place(name = "Testville", state = "OH", zipcode = "45220")
+    )
+  }
+
+  y_pred <- demo_addr("14th", type = "St", predirectional = "E")
+  x_pred <- demo_addr("14th", type = "St")
+
+  out_pred_required <- addr_match(x_pred, y_pred, progress = FALSE)
+  out_pred_optional <- addr_match(
+    x_pred,
+    y_pred,
+    match_street_predirectional = FALSE,
+    progress = FALSE
+  )
+
+  expect_identical(format(out_pred_required), "45220")
+  expect_identical(format(out_pred_optional), "10 E 14TH St Testville OH 45220")
+
+  y_type <- demo_addr("Oak", type = "Rd")
+  x_type <- demo_addr("Oka", type = "Ave")
+
+  out_type_required <- addr_match(
+    x_type,
+    y_type,
+    name_phonetic_dist = 0L,
+    name_fuzzy_dist = 1L,
+    progress = FALSE
+  )
+  out_type_optional <- addr_match(
+    x_type,
+    y_type,
+    name_phonetic_dist = 0L,
+    name_fuzzy_dist = 1L,
+    match_street_posttype = FALSE,
+    progress = FALSE
+  )
+
+  expect_identical(format(out_type_required), "45220")
+  expect_identical(format(out_type_optional), "10 Oak Rd Testville OH 45220")
+})
+
 test_that("nad_example_data can return prepared match data", {
   prepared <- nad_example_data(match_prepare = TRUE)
   expect_s3_class(prepared, "addr_match_index")

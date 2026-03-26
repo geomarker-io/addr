@@ -45,6 +45,123 @@
 #'  )
 #' the_streets <- nad_example_data()$nad_addr@street
 #' match_addr_street(my_streets, the_streets)
+#'
+#' toggle_y <- addr_street(
+#'   predirectional = c("E", "", "", "E"),
+#'   premodifier = "",
+#'   pretype = c("", "", "US Hwy", "US Hwy"),
+#'   name = c("14th", "Oak", "Main", "Main"),
+#'   posttype = c("St", "Rd", "Rd", "Rd"),
+#'   postdirectional = c("", "", "", "E"),
+#'   map_pretype = FALSE,
+#'   map_posttype = FALSE,
+#'   map_directional = FALSE,
+#'   map_ordinal = FALSE
+#' )
+#'
+#' # predirectional is required by default, so blank "14th St" stays unmatched
+#' format(match_addr_street(
+#'   addr_street(
+#'     predirectional = "",
+#'     premodifier = "",
+#'     pretype = "",
+#'     name = "14th",
+#'     posttype = "St",
+#'     postdirectional = "",
+#'     map_pretype = FALSE,
+#'     map_posttype = FALSE,
+#'     map_directional = FALSE,
+#'     map_ordinal = FALSE
+#'   ),
+#'   toggle_y
+#' ))
+#' format(match_addr_street(
+#'   addr_street(
+#'     predirectional = "",
+#'     premodifier = "",
+#'     pretype = "",
+#'     name = "14th",
+#'     posttype = "St",
+#'     postdirectional = "",
+#'     map_pretype = FALSE,
+#'     map_posttype = FALSE,
+#'     map_directional = FALSE,
+#'     map_ordinal = FALSE
+#'   ),
+#'   toggle_y,
+#'   match_street_predirectional = FALSE
+#' ))
+#'
+#' # posttype can also be made optional during fuzzy street-name matching
+#' format(match_addr_street(
+#'   addr_street(
+#'     predirectional = "",
+#'     premodifier = "",
+#'     pretype = "",
+#'     name = "Oka",
+#'     posttype = "Ave",
+#'     postdirectional = "",
+#'     map_pretype = FALSE,
+#'     map_posttype = FALSE,
+#'     map_directional = FALSE,
+#'     map_ordinal = FALSE
+#'   ),
+#'   toggle_y,
+#'   name_fuzzy_dist = 1L
+#' ))
+#' format(match_addr_street(
+#'   addr_street(
+#'     predirectional = "",
+#'     premodifier = "",
+#'     pretype = "",
+#'     name = "Oka",
+#'     posttype = "Ave",
+#'     postdirectional = "",
+#'     map_pretype = FALSE,
+#'     map_posttype = FALSE,
+#'     map_directional = FALSE,
+#'     map_ordinal = FALSE
+#'   ),
+#'   toggle_y,
+#'   name_fuzzy_dist = 1L,
+#'   match_street_posttype = FALSE
+#' ))
+#'
+#' # pretype and postdirectional are optional by default but can be required
+#' format(match_addr_street(
+#'   addr_street(
+#'     predirectional = "E",
+#'     premodifier = "",
+#'     pretype = "US Hwy",
+#'     name = "Mian",
+#'     posttype = "Rd",
+#'     postdirectional = "E",
+#'     map_pretype = FALSE,
+#'     map_posttype = FALSE,
+#'     map_directional = FALSE,
+#'     map_ordinal = FALSE
+#'   ),
+#'   toggle_y,
+#'   name_fuzzy_dist = 1L
+#' ))
+#' format(match_addr_street(
+#'   addr_street(
+#'     predirectional = "E",
+#'     premodifier = "",
+#'     pretype = "US Hwy",
+#'     name = "Mian",
+#'     posttype = "Rd",
+#'     postdirectional = "E",
+#'     map_pretype = FALSE,
+#'     map_posttype = FALSE,
+#'     map_directional = FALSE,
+#'     map_ordinal = FALSE
+#'   ),
+#'   toggle_y,
+#'   name_fuzzy_dist = 1L,
+#'   match_street_pretype = TRUE,
+#'   match_street_postdirectional = TRUE
+#' ))
 match_addr_street <- function(
   x,
   y,
@@ -96,7 +213,7 @@ match_addr_street <- function(
     out <- do.call(
       paste,
       c(
-        lapply(bucket_df, \(col) ifelse(is.na(col), "", col)),
+        lapply(bucket_df, \(col) ifelse(is.na(col), "", ifelse(col == "", "<EMPTY>", col))),
         sep = "\r"
       )
     )
@@ -142,7 +259,7 @@ match_addr_street <- function(
     nomatch_bucket_key <- street_bucket_key(nomatch_df)
     m <- replicate(nrow(nomatch_df), integer(0), simplify = FALSE)
 
-    for (bucket_key in unique(stats::na.omit(nomatch_bucket_key))) {
+    for (bucket_key in unique(nomatch_bucket_key[!is.na(nomatch_bucket_key)])) {
       bucket_idx <- uy_bucket_idx[[bucket_key]]
       if (is.null(bucket_idx) || length(bucket_idx) == 0) {
         next

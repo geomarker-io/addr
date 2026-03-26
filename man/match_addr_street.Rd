@@ -70,4 +70,121 @@ my_streets <- addr_street(
  )
 the_streets <- nad_example_data()$nad_addr@street
 match_addr_street(my_streets, the_streets)
+
+toggle_y <- addr_street(
+  predirectional = c("E", "", "", "E"),
+  premodifier = "",
+  pretype = c("", "", "US Hwy", "US Hwy"),
+  name = c("14th", "Oak", "Main", "Main"),
+  posttype = c("St", "Rd", "Rd", "Rd"),
+  postdirectional = c("", "", "", "E"),
+  map_pretype = FALSE,
+  map_posttype = FALSE,
+  map_directional = FALSE,
+  map_ordinal = FALSE
+)
+
+# predirectional is required by default, so blank "14th St" stays unmatched
+format(match_addr_street(
+  addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "14th",
+    posttype = "St",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  ),
+  toggle_y
+))
+format(match_addr_street(
+  addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "14th",
+    posttype = "St",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  ),
+  toggle_y,
+  match_street_predirectional = FALSE
+))
+
+# posttype can also be made optional during fuzzy street-name matching
+format(match_addr_street(
+  addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "Oka",
+    posttype = "Ave",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  ),
+  toggle_y,
+  name_fuzzy_dist = 1L
+))
+format(match_addr_street(
+  addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "Oka",
+    posttype = "Ave",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  ),
+  toggle_y,
+  name_fuzzy_dist = 1L,
+  match_street_posttype = FALSE
+))
+
+# pretype and postdirectional are optional by default but can be required
+format(match_addr_street(
+  addr_street(
+    predirectional = "E",
+    premodifier = "",
+    pretype = "US Hwy",
+    name = "Mian",
+    posttype = "Rd",
+    postdirectional = "E",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  ),
+  toggle_y,
+  name_fuzzy_dist = 1L
+))
+format(match_addr_street(
+  addr_street(
+    predirectional = "E",
+    premodifier = "",
+    pretype = "US Hwy",
+    name = "Mian",
+    posttype = "Rd",
+    postdirectional = "E",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  ),
+  toggle_y,
+  name_fuzzy_dist = 1L,
+  match_street_pretype = TRUE,
+  match_street_postdirectional = TRUE
+))
 }
