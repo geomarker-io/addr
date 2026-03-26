@@ -186,13 +186,24 @@ addr_match_prepare_zip <- function(y) {
   )
 }
 
-addr_match_zip_chunk <- function(x, zip_data, osa_max_dist = 1L) {
+addr_match_zip_chunk <- function(
+  x,
+  zip_data,
+  name_phonetic_dist = 2L,
+  name_fuzzy_dist = 1L,
+  number_fuzzy_dist = 1L
+) {
   out_df <- addr_empty_df(length(x))
   if (length(x) == 0L || is.null(zip_data) || length(zip_data$y) == 0L) {
     return(out_df)
   }
 
-  street_matches <- match_addr_street(x@street, zip_data$y@street)
+  street_matches <- match_addr_street(
+    x@street,
+    zip_data$y@street,
+    name_phonetic_dist = name_phonetic_dist,
+    name_fuzzy_dist = name_fuzzy_dist
+  )
   matched_street_rows <- !is.na(street_matches)
   if (any(matched_street_rows)) {
     out_df[
@@ -213,7 +224,7 @@ addr_match_zip_chunk <- function(x, zip_data, osa_max_dist = 1L) {
     number_matches <- match_addr_number(
       x[street_x_idx]@number,
       zip_data$y[street_y_idx]@number,
-      osa_max_dist = osa_max_dist
+      number_fuzzy_dist = number_fuzzy_dist
     )
     number_keys <- addr_match_key(number_matches)
     number_keys[is.na(number_matches)] <- NA_character_
@@ -286,8 +297,121 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #'   and/or street fields filled when later stages do not match.
 #' @export
 #' @examples
-#' my_addr <- as_addr(voter_addresses()[1:100])
 #' the_addr <- nad_example_data(match_prepare = TRUE)
+#'
+#' demo_addr <- function(number, street, type, zipcode, map_ordinal = TRUE) {
+#'   addr(
+#'     addr_number(prefix = "", digits = number, suffix = ""),
+#'     addr_street(
+#'       predirectional = "",
+#'       premodifier = "",
+#'       pretype = "",
+#'       name = street,
+#'       posttype = type,
+#'       postdirectional = "",
+#'       map_ordinal = map_ordinal
+#'     ),
+#'     addr_place(name = "", state = "", zipcode = zipcode)
+#'   )
+#' }
+#'
+#' # `zip_variants` can recover an address when only the ZIP code is off
+#' format(
+#'   addr_match(
+#'     demo_addr("2700", "Alice", "St", "45222"),
+#'     the_addr,
+#'     zip_variants = TRUE
+#'   )
+#' )
+#' format(
+#'   addr_match(
+#'     demo_addr("2700", "Alice", "St", "45222"),
+#'     the_addr,
+#'     zip_variants = FALSE
+#'   )
+#' )
+#'
+#' # `name_fuzzy_dist` allows typo-tolerant street matching
+#' format(
+#'   addr_match(
+#'     demo_addr("10623", "Srpingfield", "Pike", "45215"),
+#'     the_addr,
+#'     name_phonetic_dist = 0L,
+#'     name_fuzzy_dist = 1L
+#'   )
+#' )
+#' format(
+#'   addr_match(
+#'     demo_addr("10623", "Srpingfield", "Pike", "45215"),
+#'     the_addr,
+#'     name_phonetic_dist = 0L,
+#'     name_fuzzy_dist = 0L
+#'   )
+#' )
+#'
+#' # exact phonetic street-name matches like "Wuhlper" / "WOOLPER" also work
+#' format(
+#'   addr_match(
+#'     demo_addr("173", "Wuhlper", "Ave", "45220"),
+#'     the_addr,
+#'     name_phonetic_dist = 0L,
+#'     name_fuzzy_dist = 0L
+#'   )
+#' )
+#'
+#' # ordinal street names can also match nearby ordinal variants phonetically
+#' format(
+#'   addr_match(
+#'     demo_addr("12176", "8TH", "Ave", "45249"),
+#'     the_addr,
+#'     name_phonetic_dist = 1L,
+#'     name_fuzzy_dist = 0L
+#'   )
+#' )
+#' format(
+#'   addr_match(
+#'     demo_addr("12176", "8TH", "Ave", "45249"),
+#'     the_addr,
+#'     name_phonetic_dist = 0L,
+#'     name_fuzzy_dist = 0L
+#'   )
+#' )
+#'
+#' # malformed ordinal street names can use `name_fuzzy_dist`
+#' format(
+#'   addr_match(
+#'     demo_addr("12176", "7HT", "Ave", "45249", map_ordinal = FALSE),
+#'     the_addr,
+#'     name_phonetic_dist = 0L,
+#'     name_fuzzy_dist = 1L
+#'   )
+#' )
+#' format(
+#'   addr_match(
+#'     demo_addr("12176", "7HT", "Ave", "45249", map_ordinal = FALSE),
+#'     the_addr,
+#'     name_phonetic_dist = 0L,
+#'     name_fuzzy_dist = 0L
+#'   )
+#' )
+#'
+#' # `number_fuzzy_dist` controls how close house numbers can be
+#' format(
+#'   addr_match(
+#'     demo_addr("10622", "Springfield", "Pike", "45215"),
+#'     the_addr,
+#'     number_fuzzy_dist = 1L
+#'   )
+#' )
+#' format(
+#'   addr_match(
+#'     demo_addr("10622", "Springfield", "Pike", "45215"),
+#'     the_addr,
+#'     number_fuzzy_dist = 0L
+#'   )
+#' )
+#'
+#' my_addr <- as_addr(voter_addresses()[1:100])
 #'
 #' addr_match(my_addr, the_addr)
 addr_match <- function(
@@ -304,9 +428,18 @@ addr_match <- function(
     "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
       length(zip_variants) == 1L &&
       !is.na(zip_variants),
-    "osa_max_dist must be an integer" = typeof(osa_max_dist) == "integer" &&
-      length(osa_max_dist) == 1L &&
-      !is.na(osa_max_dist),
+    "name_phonetic_dist must be an integer" = typeof(name_phonetic_dist) ==
+      "integer" &&
+      length(name_phonetic_dist) == 1L &&
+      !is.na(name_phonetic_dist),
+    "name_fuzzy_dist must be an integer" = typeof(name_fuzzy_dist) ==
+      "integer" &&
+      length(name_fuzzy_dist) == 1L &&
+      !is.na(name_fuzzy_dist),
+    "number_fuzzy_dist must be an integer" = typeof(number_fuzzy_dist) ==
+      "integer" &&
+      length(number_fuzzy_dist) == 1L &&
+      !is.na(number_fuzzy_dist),
     "progress must be TRUE or FALSE" = is.logical(progress) &&
       length(progress) == 1L &&
       !is.na(progress)
@@ -411,7 +544,9 @@ addr_match <- function(
       zip_out_df = addr_match_zip_chunk(
         x = x[x_idx],
         zip_data = zip_data,
-        osa_max_dist = osa_max_dist
+        name_phonetic_dist = name_phonetic_dist,
+        name_fuzzy_dist = name_fuzzy_dist,
+        number_fuzzy_dist = number_fuzzy_dist
       )
     )
 

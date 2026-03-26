@@ -72,8 +72,121 @@ with the same reference addresses. For a single end-to-end match, preparing
 \code{addr_match()}.
 }
 \examples{
-my_addr <- as_addr(voter_addresses()[1:100])
 the_addr <- nad_example_data(match_prepare = TRUE)
+
+demo_addr <- function(number, street, type, zipcode, map_ordinal = TRUE) {
+  addr(
+    addr_number(prefix = "", digits = number, suffix = ""),
+    addr_street(
+      predirectional = "",
+      premodifier = "",
+      pretype = "",
+      name = street,
+      posttype = type,
+      postdirectional = "",
+      map_ordinal = map_ordinal
+    ),
+    addr_place(name = "", state = "", zipcode = zipcode)
+  )
+}
+
+# `zip_variants` can recover an address when only the ZIP code is off
+format(
+  addr_match(
+    demo_addr("2700", "Alice", "St", "45222"),
+    the_addr,
+    zip_variants = TRUE
+  )
+)
+format(
+  addr_match(
+    demo_addr("2700", "Alice", "St", "45222"),
+    the_addr,
+    zip_variants = FALSE
+  )
+)
+
+# `name_fuzzy_dist` allows typo-tolerant street matching
+format(
+  addr_match(
+    demo_addr("10623", "Srpingfield", "Pike", "45215"),
+    the_addr,
+    name_phonetic_dist = 0L,
+    name_fuzzy_dist = 1L
+  )
+)
+format(
+  addr_match(
+    demo_addr("10623", "Srpingfield", "Pike", "45215"),
+    the_addr,
+    name_phonetic_dist = 0L,
+    name_fuzzy_dist = 0L
+  )
+)
+
+# exact phonetic street-name matches like "Wuhlper" / "WOOLPER" also work
+format(
+  addr_match(
+    demo_addr("173", "Wuhlper", "Ave", "45220"),
+    the_addr,
+    name_phonetic_dist = 0L,
+    name_fuzzy_dist = 0L
+  )
+)
+
+# ordinal street names can also match nearby ordinal variants phonetically
+format(
+  addr_match(
+    demo_addr("12176", "8TH", "Ave", "45249"),
+    the_addr,
+    name_phonetic_dist = 1L,
+    name_fuzzy_dist = 0L
+  )
+)
+format(
+  addr_match(
+    demo_addr("12176", "8TH", "Ave", "45249"),
+    the_addr,
+    name_phonetic_dist = 0L,
+    name_fuzzy_dist = 0L
+  )
+)
+
+# malformed ordinal street names can use `name_fuzzy_dist`
+format(
+  addr_match(
+    demo_addr("12176", "7HT", "Ave", "45249", map_ordinal = FALSE),
+    the_addr,
+    name_phonetic_dist = 0L,
+    name_fuzzy_dist = 1L
+  )
+)
+format(
+  addr_match(
+    demo_addr("12176", "7HT", "Ave", "45249", map_ordinal = FALSE),
+    the_addr,
+    name_phonetic_dist = 0L,
+    name_fuzzy_dist = 0L
+  )
+)
+
+# `number_fuzzy_dist` controls how close house numbers can be
+format(
+  addr_match(
+    demo_addr("10622", "Springfield", "Pike", "45215"),
+    the_addr,
+    number_fuzzy_dist = 1L
+  )
+)
+format(
+  addr_match(
+    demo_addr("10622", "Springfield", "Pike", "45215"),
+    the_addr,
+    number_fuzzy_dist = 0L
+  )
+)
+
+my_addr <- as_addr(voter_addresses()[1:100])
 
 addr_match(my_addr, the_addr)
 }
