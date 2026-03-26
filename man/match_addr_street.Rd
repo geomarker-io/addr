@@ -34,8 +34,8 @@ selecting street candidates?}
 \item{match_street_pretype}{logical; require street pretype to match when
 selecting street candidates?}
 
-\item{match_street_postdirectional}{logical; require street postdirectional to
-match when selecting street candidates?}
+\item{match_street_postdirectional}{logical; require street postdirectional
+to match when selecting street candidates?}
 }
 \value{
 an addr_street vector, the same length as x, that is the

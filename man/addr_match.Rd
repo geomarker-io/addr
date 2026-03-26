@@ -49,8 +49,8 @@ selecting street candidates?}
 \item{match_street_pretype}{logical; require street pretype to match when
 selecting street candidates?}
 
-\item{match_street_postdirectional}{logical; require street postdirectional to
-match when selecting street candidates?}
+\item{match_street_postdirectional}{logical; require street postdirectional
+to match when selecting street candidates?}
 
 \item{progress}{logical; show reference-preparation timing for raw \code{y} and a
 progress bar while processing matched ZIP groups?}

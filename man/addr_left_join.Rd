@@ -28,18 +28,18 @@ character vector of \code{c(x_col, y_col)}}
 
 \item{suffix}{character vector of length 2 used to suffix duplicate columns}
 
-\item{zip_variants}{logical; fuzzy match to common ZIP code variants in
-\code{match_zipcodes()}?}
+\item{zip_variants}{logical; fuzzy match to common variants of
+x in y? (e.g., changing 4th or 5th digit)}
 
 \item{name_phonetic_dist}{integer; maximum optimized string alignment
 distance between \code{phonetic_street_key()} of x and y to consider a possible
-\code{match}}
+match}
 
 \item{name_fuzzy_dist}{integer; maximum optimized string alignment distance
 between \verb{@name} of x and y to consider a possible match}
 
-\item{number_fuzzy_dist}{integer maximum OSA distance used by
-\code{match_addr_number()}}
+\item{number_fuzzy_dist}{integer; maximum optimized string alignment distance
+between \verb{@number} of x and y to consider a possible match}
 
 \item{match_street_predirectional}{logical; require street predirectional to
 match when selecting street candidates?}
@@ -50,8 +50,8 @@ selecting street candidates?}
 \item{match_street_pretype}{logical; require street pretype to match when
 selecting street candidates?}
 
-\item{match_street_postdirectional}{logical; require street postdirectional to
-match when selecting street candidates?}
+\item{match_street_postdirectional}{logical; require street postdirectional
+to match when selecting street candidates?}
 
 \item{progress}{logical; show \code{addr_match()} progress?}
 }
