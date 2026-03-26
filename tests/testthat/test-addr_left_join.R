@@ -48,9 +48,10 @@ test_that("addr_left_join does not expand partial matches to multiple y rows", {
   matched <- addr_match(x$addr, y$addr, progress = FALSE)
 
   expect_equal(nrow(out), 1L)
-  expect_equal(addr_match_stage(matched), ordered("street",
-    levels = c("none", "zip", "street", "number")
-  ))
+  expect_equal(
+    addr_match_stage(matched),
+    ordered("street", levels = c("none", "zip", "street", "number"))
+  )
   expect_true(is.na(out$id.y))
   expect_true(is.na(out$addr.y))
 })
@@ -87,7 +88,15 @@ test_that("addr_left_join forwards addr_match tuning arguments", {
     y_id = c(101L, 202L)
   )
 
-  out_optional <- addr_left_join(
+  out_pretype_optional <- addr_left_join(
+    x,
+    y,
+    name_phonetic_dist = 0L,
+    name_fuzzy_dist = 1L,
+    match_street_pretype = FALSE,
+    progress = FALSE
+  )
+  out_default <- addr_left_join(
     x,
     y,
     name_phonetic_dist = 0L,
@@ -99,11 +108,11 @@ test_that("addr_left_join forwards addr_match tuning arguments", {
     y,
     name_phonetic_dist = 0L,
     name_fuzzy_dist = 1L,
-    match_street_pretype = TRUE,
     match_street_postdirectional = TRUE,
     progress = FALSE
   )
 
-  expect_equal(out_optional$y_id, 101L)
+  expect_equal(out_pretype_optional$y_id, 101L)
+  expect_equal(out_default$y_id, 202L)
   expect_equal(out_required$y_id, 202L)
 })

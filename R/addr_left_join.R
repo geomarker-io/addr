@@ -27,7 +27,7 @@ addr_left_join <- function(
   number_fuzzy_dist = 1L,
   match_street_predirectional = TRUE,
   match_street_posttype = TRUE,
-  match_street_pretype = FALSE,
+  match_street_pretype = TRUE,
   match_street_postdirectional = FALSE,
   progress = interactive()
 ) {

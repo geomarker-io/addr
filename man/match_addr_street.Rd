@@ -11,7 +11,7 @@ match_addr_street(
   name_fuzzy_dist = 2L,
   match_street_predirectional = TRUE,
   match_street_posttype = TRUE,
-  match_street_pretype = FALSE,
+  match_street_pretype = TRUE,
   match_street_postdirectional = FALSE
 )
 }
@@ -152,7 +152,24 @@ format(match_addr_street(
   match_street_posttype = FALSE
 ))
 
-# pretype and postdirectional are optional by default but can be required
+# pretype is required by default; postdirectional can also be required
+format(match_addr_street(
+  addr_street(
+    predirectional = "E",
+    premodifier = "",
+    pretype = "US Hwy",
+    name = "Mian",
+    posttype = "Rd",
+    postdirectional = "E",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  ),
+  toggle_y,
+  match_street_pretype = FALSE,
+  name_fuzzy_dist = 1L
+))
 format(match_addr_street(
   addr_street(
     predirectional = "E",

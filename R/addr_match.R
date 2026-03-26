@@ -194,7 +194,7 @@ addr_match_zip_chunk <- function(
   number_fuzzy_dist = 1L,
   match_street_predirectional = TRUE,
   match_street_posttype = TRUE,
-  match_street_pretype = FALSE,
+  match_street_pretype = TRUE,
   match_street_postdirectional = FALSE
 ) {
   out_df <- addr_empty_df(length(x))
@@ -475,7 +475,18 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #'   match_street_posttype = FALSE
 #' ))
 #'
-#' # pretype and postdirectional can be made required when needed
+#' # pretype is required by default; postdirectional can also be required
+#' format(addr_match(
+#'   toggle_addr("10", "Mian", "Rd", "45220",
+#'     predirectional = "E",
+#'     pretype = "US Hwy",
+#'     postdirectional = "E"
+#'   ),
+#'   toggle_y,
+#'   match_street_pretype = FALSE,
+#'   name_phonetic_dist = 0L,
+#'   name_fuzzy_dist = 1L
+#' ))
 #' format(addr_match(
 #'   toggle_addr("10", "Mian", "Rd", "45220",
 #'     predirectional = "E",
@@ -511,7 +522,7 @@ addr_match <- function(
   number_fuzzy_dist = 1L,
   match_street_predirectional = TRUE,
   match_street_posttype = TRUE,
-  match_street_pretype = FALSE,
+  match_street_pretype = TRUE,
   match_street_postdirectional = FALSE,
   progress = interactive()
 ) {
