@@ -178,9 +178,9 @@ test_that("addr_match_stage rejects non-addr_match structures in strict mode", {
   )
 })
 
-test_that("addr_match works with packaged example data", {
+test_that("addr_match works with packaged prepared example data", {
   x <- as_addr(voter_addresses()[1:1000])
-  y <- nad_example_data()$nad_addr
+  y <- nad_example_data(match_prepare = TRUE)
 
   out <- addr_match(x, y)
   stage <- addr_match_stage(out)
@@ -210,5 +210,17 @@ test_that("addr_match works with packaged example data", {
       "310 WYOMING Ave CINCINNATI OH 45215",
       "118 SPRINGFIELD Pike CINCINNATI OH 45215"
     )
+  )
+})
+
+test_that("nad_example_data can return prepared match data", {
+  x <- as_addr(voter_addresses()[1:10])
+  raw <- nad_example_data()
+  prepared <- nad_example_data(match_prepare = TRUE)
+
+  expect_s3_class(prepared, "addr_match_index")
+  expect_equal(
+    format(addr_match(x, prepared)),
+    format(addr_match(x, raw$nad_addr))
   )
 })
