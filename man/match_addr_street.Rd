@@ -4,10 +4,38 @@
 \alias{match_addr_street}
 \title{Match addr_street vectors}
 \usage{
-match_addr_street(x, y)
+match_addr_street(
+  x,
+  y,
+  name_phonetic_dist = 1L,
+  name_fuzzy_dist = 2L,
+  match_street_predirectional = TRUE,
+  match_street_posttype = TRUE,
+  match_street_pretype = TRUE,
+  match_street_postdirectional = FALSE
+)
 }
 \arguments{
 \item{x, y}{addr_street vectors to match}
+
+\item{name_phonetic_dist}{integer; maximum optimized string alignment
+distance between \code{phonetic_street_key()} of x and y to consider a possible
+match}
+
+\item{name_fuzzy_dist}{integer; maximum optimized string alignment distance
+between \verb{@name} of x and y to consider a possible match}
+
+\item{match_street_predirectional}{logical; require street predirectional to
+match when selecting street candidates?}
+
+\item{match_street_posttype}{logical; require street posttype to match when
+selecting street candidates?}
+
+\item{match_street_pretype}{logical; require street pretype to match when
+selecting street candidates?}
+
+\item{match_street_postdirectional}{logical; require street postdirectional
+to match when selecting street candidates?}
 }
 \value{
 an addr_street vector, the same length as x, that is the
@@ -19,15 +47,14 @@ A single addr_street in y is chosen for each addr_street in x.
 If exact matches (using \code{as.character}) are not found,
 possible matches are chosen by
 fuzzy matching on street name (using phonetic street key and street name)
-and exact matching on street type and predirectional.
+and exact matching on the enabled street components.
 Ordinal street names use restricted phonetic candidates:
 an ordinal phonetic key like \verb{#0007} may fuzzy match only to plausible
 ordinal neighbors such as digit shifts (\verb{#0070}, \verb{#0700}, \verb{#7000})
 or same-width substitutions (\verb{#0008}, \verb{#0009}), not arbitrary
 OSA-distance-one ordinal keys such as \verb{#0017} or \verb{#0077}.
 Ties are broken by .......... the first for now.
-}
-\details{
+
 addr_street objects within missing or empty @name are not matched and
 returned as missing instead.
 }
@@ -43,4 +70,138 @@ my_streets <- addr_street(
  )
 the_streets <- nad_example_data()$nad_addr@street
 match_addr_street(my_streets, the_streets)
+
+toggle_y <- addr_street(
+  predirectional = c("E", "", "", "E"),
+  premodifier = "",
+  pretype = c("", "", "US Hwy", "US Hwy"),
+  name = c("14th", "Oak", "Main", "Main"),
+  posttype = c("St", "Rd", "Rd", "Rd"),
+  postdirectional = c("", "", "", "E"),
+  map_pretype = FALSE,
+  map_posttype = FALSE,
+  map_directional = FALSE,
+  map_ordinal = FALSE
+)
+
+# predirectional is required by default, so blank "14th St" stays unmatched
+format(match_addr_street(
+  addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "14th",
+    posttype = "St",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  ),
+  toggle_y
+))
+format(match_addr_street(
+  addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "14th",
+    posttype = "St",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  ),
+  toggle_y,
+  match_street_predirectional = FALSE
+))
+
+# posttype can also be made optional during fuzzy street-name matching
+format(match_addr_street(
+  addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "Oka",
+    posttype = "Ave",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  ),
+  toggle_y,
+  name_fuzzy_dist = 1L
+))
+format(match_addr_street(
+  addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "Oka",
+    posttype = "Ave",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  ),
+  toggle_y,
+  name_fuzzy_dist = 1L,
+  match_street_posttype = FALSE
+))
+
+# pretype is required by default; postdirectional can also be required
+format(match_addr_street(
+  addr_street(
+    predirectional = "E",
+    premodifier = "",
+    pretype = "US Hwy",
+    name = "Mian",
+    posttype = "Rd",
+    postdirectional = "E",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  ),
+  toggle_y,
+  match_street_pretype = FALSE,
+  name_fuzzy_dist = 1L
+))
+format(match_addr_street(
+  addr_street(
+    predirectional = "E",
+    premodifier = "",
+    pretype = "US Hwy",
+    name = "Mian",
+    posttype = "Rd",
+    postdirectional = "E",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  ),
+  toggle_y,
+  name_fuzzy_dist = 1L
+))
+format(match_addr_street(
+  addr_street(
+    predirectional = "E",
+    premodifier = "",
+    pretype = "US Hwy",
+    name = "Mian",
+    posttype = "Rd",
+    postdirectional = "E",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  ),
+  toggle_y,
+  name_fuzzy_dist = 1L,
+  match_street_pretype = TRUE,
+  match_street_postdirectional = TRUE
+))
 }

@@ -44,7 +44,7 @@ test_that("match_addr_number uses the documented addr_number examples", {
   )
 
   expect_equal(
-    as.data.frame(match_addr_number(x, y, osa_max_dist = 0L)),
+    as.data.frame(match_addr_number(x, y, number_fuzzy_dist = 0L)),
     as.data.frame(
       addr_number(
         prefix = c(
@@ -122,8 +122,8 @@ test_that("match_addr_number threshold controls whether borderline matches are r
   x <- addr_number(prefix = "", digits = c("1", "228", "10"), suffix = "")
   y <- addr_number(prefix = "", digits = c("10", "22"), suffix = "")
 
-  out_thresh_1 <- match_addr_number(x, y, osa_max_dist = 1L)
-  out_thresh_0 <- match_addr_number(x, y, osa_max_dist = 0L)
+  out_thresh_1 <- match_addr_number(x, y, number_fuzzy_dist = 1L)
+  out_thresh_0 <- match_addr_number(x, y, number_fuzzy_dist = 0L)
 
   expect_equal(as.character(out_thresh_1), c("10", "22", "10"))
   expect_equal(as.character(out_thresh_0), c("", "", "10"))
@@ -299,6 +299,141 @@ test_that("match_addr_street uses predirectional to resolve East 14th Street", {
   expect_identical(out@posttype, c("St", NA_character_))
   expect_false(is.na(out[1]))
   expect_true(is.na(out[2]))
+})
+
+test_that("match_addr_street can make predirectional optional", {
+  y <- addr_street(
+    predirectional = "E",
+    premodifier = "",
+    pretype = "",
+    name = "14th",
+    posttype = "St",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  )
+  x <- addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "14th",
+    posttype = "St",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  )
+
+  out_required <- match_addr_street(x, y)
+  out_optional <- match_addr_street(
+    x,
+    y,
+    match_street_predirectional = FALSE
+  )
+
+  expect_true(is.na(out_required))
+  expect_identical(out_optional@predirectional, "E")
+  expect_identical(out_optional@name, "14th")
+})
+
+test_that("match_addr_street can make posttype optional", {
+  y <- addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "Oak",
+    posttype = "Rd",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  )
+  x <- addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "Oka",
+    posttype = "Ave",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  )
+
+  out_required <- match_addr_street(
+    x,
+    y,
+    name_phonetic_dist = 0L,
+    name_fuzzy_dist = 1L
+  )
+  out_optional <- match_addr_street(
+    x,
+    y,
+    name_phonetic_dist = 0L,
+    name_fuzzy_dist = 1L,
+    match_street_posttype = FALSE
+  )
+
+  expect_true(is.na(out_required))
+  expect_identical(out_optional@name, "Oak")
+  expect_identical(out_optional@posttype, "Rd")
+})
+
+test_that("match_addr_street matches pretype by default and can require postdirectional", {
+  y <- addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = c("", "US Hwy"),
+    name = c("Main", "Main"),
+    posttype = "Rd",
+    postdirectional = c("", "E"),
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  )
+  x <- addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = c("US Hwy", "US Hwy"),
+    name = c("Main", "Mian"),
+    posttype = "Rd",
+    postdirectional = c("E", "E"),
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  )
+
+  out_pretype_optional <- match_addr_street(
+    x,
+    y,
+    match_street_pretype = FALSE,
+    name_fuzzy_dist = 1L
+  )
+  out_default <- match_addr_street(
+    x,
+    y,
+    name_fuzzy_dist = 1L
+  )
+  out_postdir_required <- match_addr_street(
+    x,
+    y,
+    name_fuzzy_dist = 1L,
+    match_street_postdirectional = TRUE
+  )
+
+  expect_identical(out_pretype_optional@pretype, c("", ""))
+  expect_identical(out_pretype_optional@postdirectional, c("", ""))
+  expect_identical(out_default@pretype, c("US Hwy", "US Hwy"))
+  expect_identical(out_default@postdirectional, c("E", "E"))
+  expect_identical(out_postdir_required@pretype, c("US Hwy", "US Hwy"))
+  expect_identical(out_postdir_required@postdirectional, c("E", "E"))
 })
 
 test_that("match_addr_street leaves NA and all-empty addr_street values unmatched", {

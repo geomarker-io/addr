@@ -10,10 +10,7 @@
 #' @param by addr column name in `x` (and `y` if the same); or a length-2
 #'   character vector of `c(x_col, y_col)`
 #' @param suffix character vector of length 2 used to suffix duplicate columns
-#' @param zip_variants logical; fuzzy match to common ZIP code variants in
-#'   `match_zipcodes()`?
-#' @param osa_max_dist integer maximum OSA distance used by
-#'   `match_addr_number()`
+#' @inheritParams addr_match
 #' @param progress logical; show `addr_match()` progress?
 #' @return A data frame with left-join semantics. Duplicate rows in `y` with
 #'   the exact same matched `addr` are all returned. Partial ZIP-only or
@@ -25,7 +22,13 @@ addr_left_join <- function(
   by = "addr",
   suffix = c(".x", ".y"),
   zip_variants = TRUE,
-  osa_max_dist = 1L,
+  name_phonetic_dist = 2L,
+  name_fuzzy_dist = 1L,
+  number_fuzzy_dist = 1L,
+  match_street_predirectional = TRUE,
+  match_street_posttype = TRUE,
+  match_street_pretype = TRUE,
+  match_street_postdirectional = FALSE,
   progress = interactive()
 ) {
   if (is.character(by) && length(by) == 2L) {
@@ -47,9 +50,34 @@ addr_left_join <- function(
     "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
       length(zip_variants) == 1L &&
       !is.na(zip_variants),
-    "osa_max_dist must be an integer" = typeof(osa_max_dist) == "integer" &&
-      length(osa_max_dist) == 1L &&
-      !is.na(osa_max_dist),
+    "name_phonetic_dist must be an integer" =
+      typeof(name_phonetic_dist) == "integer" &&
+        length(name_phonetic_dist) == 1L &&
+        !is.na(name_phonetic_dist),
+    "name_fuzzy_dist must be an integer" =
+      typeof(name_fuzzy_dist) == "integer" &&
+        length(name_fuzzy_dist) == 1L &&
+        !is.na(name_fuzzy_dist),
+    "number_fuzzy_dist must be an integer" =
+      typeof(number_fuzzy_dist) == "integer" &&
+        length(number_fuzzy_dist) == 1L &&
+        !is.na(number_fuzzy_dist),
+    "match_street_predirectional must be TRUE or FALSE" =
+      is.logical(match_street_predirectional) &&
+        length(match_street_predirectional) == 1L &&
+        !is.na(match_street_predirectional),
+    "match_street_posttype must be TRUE or FALSE" =
+      is.logical(match_street_posttype) &&
+        length(match_street_posttype) == 1L &&
+        !is.na(match_street_posttype),
+    "match_street_pretype must be TRUE or FALSE" =
+      is.logical(match_street_pretype) &&
+        length(match_street_pretype) == 1L &&
+        !is.na(match_street_pretype),
+    "match_street_postdirectional must be TRUE or FALSE" =
+      is.logical(match_street_postdirectional) &&
+        length(match_street_postdirectional) == 1L &&
+        !is.na(match_street_postdirectional),
     "progress must be TRUE or FALSE" = is.logical(progress) &&
       length(progress) == 1L &&
       !is.na(progress)
@@ -97,7 +125,13 @@ addr_left_join <- function(
     x = x_addr,
     y = y_addr,
     zip_variants = zip_variants,
-    osa_max_dist = osa_max_dist,
+    name_phonetic_dist = name_phonetic_dist,
+    name_fuzzy_dist = name_fuzzy_dist,
+    number_fuzzy_dist = number_fuzzy_dist,
+    match_street_predirectional = match_street_predirectional,
+    match_street_posttype = match_street_posttype,
+    match_street_pretype = match_street_pretype,
+    match_street_postdirectional = match_street_postdirectional,
     progress = progress
   )
 

@@ -186,13 +186,32 @@ addr_match_prepare_zip <- function(y) {
   )
 }
 
-addr_match_zip_chunk <- function(x, zip_data, osa_max_dist = 1L) {
+addr_match_zip_chunk <- function(
+  x,
+  zip_data,
+  name_phonetic_dist = 2L,
+  name_fuzzy_dist = 1L,
+  number_fuzzy_dist = 1L,
+  match_street_predirectional = TRUE,
+  match_street_posttype = TRUE,
+  match_street_pretype = TRUE,
+  match_street_postdirectional = FALSE
+) {
   out_df <- addr_empty_df(length(x))
   if (length(x) == 0L || is.null(zip_data) || length(zip_data$y) == 0L) {
     return(out_df)
   }
 
-  street_matches <- match_addr_street(x@street, zip_data$y@street)
+  street_matches <- match_addr_street(
+    x@street,
+    zip_data$y@street,
+    name_phonetic_dist = name_phonetic_dist,
+    name_fuzzy_dist = name_fuzzy_dist,
+    match_street_predirectional = match_street_predirectional,
+    match_street_posttype = match_street_posttype,
+    match_street_pretype = match_street_pretype,
+    match_street_postdirectional = match_street_postdirectional
+  )
   matched_street_rows <- !is.na(street_matches)
   if (any(matched_street_rows)) {
     out_df[
@@ -213,7 +232,7 @@ addr_match_zip_chunk <- function(x, zip_data, osa_max_dist = 1L) {
     number_matches <- match_addr_number(
       x[street_x_idx]@number,
       zip_data$y[street_y_idx]@number,
-      osa_max_dist = osa_max_dist
+      number_fuzzy_dist = number_fuzzy_dist
     )
     number_keys <- addr_match_key(number_matches)
     number_keys[is.na(number_matches)] <- NA_character_
@@ -276,10 +295,9 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #' @param x addr vector to match
 #' @param y addr vector to match against, or a prepared `addr_match_index`
 #'   created by `addr_match_prepare()`
-#' @param zip_variants logical; fuzzy match to common ZIP code variants in
-#'   `match_zipcodes()`?
-#' @param osa_max_dist integer maximum OSA distance used by
-#'   `match_addr_number()`
+#' @inheritParams match_zipcodes
+#' @inheritParams match_addr_street
+#' @inheritParams match_addr_number
 #' @param progress logical; show reference-preparation timing for raw `y` and a
 #'   progress bar while processing matched ZIP groups?
 #' @return an addr vector, the same length as x, that is the best match in y
@@ -287,15 +305,225 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #'   and/or street fields filled when later stages do not match.
 #' @export
 #' @examples
-#' my_addr <- as_addr(voter_addresses()[1:100])
 #' the_addr <- nad_example_data(match_prepare = TRUE)
+#'
+#' demo_addr <- function(number, street, type, zipcode, map_ordinal = TRUE) {
+#'   addr(
+#'     addr_number(prefix = "", digits = number, suffix = ""),
+#'     addr_street(
+#'       predirectional = "",
+#'       premodifier = "",
+#'       pretype = "",
+#'       name = street,
+#'       posttype = type,
+#'       postdirectional = "",
+#'       map_ordinal = map_ordinal
+#'     ),
+#'     addr_place(name = "", state = "", zipcode = zipcode)
+#'   )
+#' }
+#'
+#' # `zip_variants` can recover an address when only the ZIP code is off
+#' format(
+#'   addr_match(
+#'     demo_addr("2700", "Alice", "St", "45222"),
+#'     the_addr,
+#'     zip_variants = TRUE
+#'   )
+#' )
+#' format(
+#'   addr_match(
+#'     demo_addr("2700", "Alice", "St", "45222"),
+#'     the_addr,
+#'     zip_variants = FALSE
+#'   )
+#' )
+#'
+#' # `name_fuzzy_dist` allows typo-tolerant street matching
+#' format(
+#'   addr_match(
+#'     demo_addr("10623", "Srpingfield", "Pike", "45215"),
+#'     the_addr,
+#'     name_phonetic_dist = 0L,
+#'     name_fuzzy_dist = 1L
+#'   )
+#' )
+#' format(
+#'   addr_match(
+#'     demo_addr("10623", "Srpingfield", "Pike", "45215"),
+#'     the_addr,
+#'     name_phonetic_dist = 0L,
+#'     name_fuzzy_dist = 0L
+#'   )
+#' )
+#'
+#' # exact phonetic street-name matches like "Wuhlper" / "WOOLPER" also work
+#' format(
+#'   addr_match(
+#'     demo_addr("173", "Wuhlper", "Ave", "45220"),
+#'     the_addr,
+#'     name_phonetic_dist = 0L,
+#'     name_fuzzy_dist = 0L
+#'   )
+#' )
+#'
+#' # ordinal street names can also match nearby ordinal variants phonetically
+#' format(
+#'   addr_match(
+#'     demo_addr("12176", "8TH", "Ave", "45249"),
+#'     the_addr,
+#'     name_phonetic_dist = 1L,
+#'     name_fuzzy_dist = 0L
+#'   )
+#' )
+#' format(
+#'   addr_match(
+#'     demo_addr("12176", "8TH", "Ave", "45249"),
+#'     the_addr,
+#'     name_phonetic_dist = 0L,
+#'     name_fuzzy_dist = 0L
+#'   )
+#' )
+#'
+#' # malformed ordinal street names can use `name_fuzzy_dist`
+#' format(
+#'   addr_match(
+#'     demo_addr("12176", "7HT", "Ave", "45249", map_ordinal = FALSE),
+#'     the_addr,
+#'     name_phonetic_dist = 0L,
+#'     name_fuzzy_dist = 1L
+#'   )
+#' )
+#' format(
+#'   addr_match(
+#'     demo_addr("12176", "7HT", "Ave", "45249", map_ordinal = FALSE),
+#'     the_addr,
+#'     name_phonetic_dist = 0L,
+#'     name_fuzzy_dist = 0L
+#'   )
+#' )
+#'
+#' # `number_fuzzy_dist` controls how close house numbers can be
+#' format(
+#'   addr_match(
+#'     demo_addr("10622", "Springfield", "Pike", "45215"),
+#'     the_addr,
+#'     number_fuzzy_dist = 1L
+#'   )
+#' )
+#' format(
+#'   addr_match(
+#'     demo_addr("10622", "Springfield", "Pike", "45215"),
+#'     the_addr,
+#'     number_fuzzy_dist = 0L
+#'   )
+#' )
+#'
+#' toggle_addr <- function(number, street, type, zipcode,
+#'                         predirectional = "", pretype = "",
+#'                         postdirectional = "") {
+#'   addr(
+#'     addr_number(prefix = "", digits = number, suffix = ""),
+#'     addr_street(
+#'       predirectional = predirectional,
+#'       premodifier = "",
+#'       pretype = pretype,
+#'       name = street,
+#'       posttype = type,
+#'       postdirectional = postdirectional,
+#'       map_pretype = FALSE,
+#'       map_posttype = FALSE,
+#'       map_directional = FALSE,
+#'       map_ordinal = FALSE
+#'     ),
+#'     addr_place(name = "Testville", state = "OH", zipcode = zipcode)
+#'   )
+#' }
+#'
+#' toggle_y <- vctrs::vec_c(
+#'   toggle_addr("10", "14th", "St", "45220", predirectional = "E"),
+#'   toggle_addr("10", "Oak", "Rd", "45220"),
+#'   toggle_addr("10", "Main", "Rd", "45220"),
+#'   toggle_addr("10", "Main", "Rd", "45220",
+#'     predirectional = "E",
+#'     pretype = "US Hwy",
+#'     postdirectional = "E"
+#'   )
+#' )
+#'
+#' # predirectional and posttype are required by default
+#' format(addr_match(
+#'   toggle_addr("10", "14th", "St", "45220"),
+#'   toggle_y
+#' ))
+#' format(addr_match(
+#'   toggle_addr("10", "14th", "St", "45220"),
+#'   toggle_y,
+#'   match_street_predirectional = FALSE
+#' ))
+#' format(addr_match(
+#'   toggle_addr("10", "Oka", "Ave", "45220"),
+#'   toggle_y,
+#'   name_phonetic_dist = 0L,
+#'   name_fuzzy_dist = 1L
+#' ))
+#' format(addr_match(
+#'   toggle_addr("10", "Oka", "Ave", "45220"),
+#'   toggle_y,
+#'   name_phonetic_dist = 0L,
+#'   name_fuzzy_dist = 1L,
+#'   match_street_posttype = FALSE
+#' ))
+#'
+#' # pretype is required by default; postdirectional can also be required
+#' format(addr_match(
+#'   toggle_addr("10", "Mian", "Rd", "45220",
+#'     predirectional = "E",
+#'     pretype = "US Hwy",
+#'     postdirectional = "E"
+#'   ),
+#'   toggle_y,
+#'   match_street_pretype = FALSE,
+#'   name_phonetic_dist = 0L,
+#'   name_fuzzy_dist = 1L
+#' ))
+#' format(addr_match(
+#'   toggle_addr("10", "Mian", "Rd", "45220",
+#'     predirectional = "E",
+#'     pretype = "US Hwy",
+#'     postdirectional = "E"
+#'   ),
+#'   toggle_y,
+#'   name_phonetic_dist = 0L,
+#'   name_fuzzy_dist = 1L
+#' ))
+#' format(addr_match(
+#'   toggle_addr("10", "Mian", "Rd", "45220",
+#'     predirectional = "E",
+#'     pretype = "US Hwy",
+#'     postdirectional = "E"
+#'   ),
+#'   toggle_y,
+#'   name_phonetic_dist = 0L,
+#'   name_fuzzy_dist = 1L,
+#'   match_street_pretype = TRUE,
+#'   match_street_postdirectional = TRUE
+#' ))
+#'
+#' my_addr <- as_addr(voter_addresses()[1:100])
 #'
 #' addr_match(my_addr, the_addr)
 addr_match <- function(
   x,
   y,
   zip_variants = TRUE,
-  osa_max_dist = 1L,
+  name_phonetic_dist = 2L,
+  name_fuzzy_dist = 1L,
+  number_fuzzy_dist = 1L,
+  match_street_predirectional = TRUE,
+  match_street_posttype = TRUE,
+  match_street_pretype = TRUE,
+  match_street_postdirectional = FALSE,
   progress = interactive()
 ) {
   stopifnot(
@@ -303,9 +531,34 @@ addr_match <- function(
     "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
       length(zip_variants) == 1L &&
       !is.na(zip_variants),
-    "osa_max_dist must be an integer" = typeof(osa_max_dist) == "integer" &&
-      length(osa_max_dist) == 1L &&
-      !is.na(osa_max_dist),
+    "name_phonetic_dist must be an integer" = typeof(name_phonetic_dist) ==
+      "integer" &&
+      length(name_phonetic_dist) == 1L &&
+      !is.na(name_phonetic_dist),
+    "name_fuzzy_dist must be an integer" = typeof(name_fuzzy_dist) ==
+      "integer" &&
+      length(name_fuzzy_dist) == 1L &&
+      !is.na(name_fuzzy_dist),
+    "number_fuzzy_dist must be an integer" = typeof(number_fuzzy_dist) ==
+      "integer" &&
+      length(number_fuzzy_dist) == 1L &&
+      !is.na(number_fuzzy_dist),
+    "match_street_predirectional must be TRUE or FALSE" =
+      is.logical(match_street_predirectional) &&
+        length(match_street_predirectional) == 1L &&
+        !is.na(match_street_predirectional),
+    "match_street_posttype must be TRUE or FALSE" =
+      is.logical(match_street_posttype) &&
+        length(match_street_posttype) == 1L &&
+        !is.na(match_street_posttype),
+    "match_street_pretype must be TRUE or FALSE" =
+      is.logical(match_street_pretype) &&
+        length(match_street_pretype) == 1L &&
+        !is.na(match_street_pretype),
+    "match_street_postdirectional must be TRUE or FALSE" =
+      is.logical(match_street_postdirectional) &&
+        length(match_street_postdirectional) == 1L &&
+        !is.na(match_street_postdirectional),
     "progress must be TRUE or FALSE" = is.logical(progress) &&
       length(progress) == 1L &&
       !is.na(progress)
@@ -410,7 +663,13 @@ addr_match <- function(
       zip_out_df = addr_match_zip_chunk(
         x = x[x_idx],
         zip_data = zip_data,
-        osa_max_dist = osa_max_dist
+        name_phonetic_dist = name_phonetic_dist,
+        name_fuzzy_dist = name_fuzzy_dist,
+        number_fuzzy_dist = number_fuzzy_dist,
+        match_street_predirectional = match_street_predirectional,
+        match_street_posttype = match_street_posttype,
+        match_street_pretype = match_street_pretype,
+        match_street_postdirectional = match_street_postdirectional
       )
     )
 

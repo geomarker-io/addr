@@ -4,12 +4,13 @@
 \alias{match_addr_number}
 \title{Match addr_number vectors}
 \usage{
-match_addr_number(x, y, osa_max_dist = 1L)
+match_addr_number(x, y, number_fuzzy_dist = 1L)
 }
 \arguments{
 \item{x, y}{addr_number vectors to match}
 
-\item{osa_max_dist}{integer maximum OSA distance to consider a match}
+\item{number_fuzzy_dist}{integer; maximum optimized string alignment distance
+between \verb{@number} of x and y to consider a possible match}
 }
 \value{
 an addr_number vector, the same length as x, that is the
@@ -19,14 +20,13 @@ is found a missing value is returned (\code{addr_number()})
 \description{
 A single addr_number in y is chosen for each addr_number in x.
 If exact matches (using \code{as.character}) are not found,
-possible matches (within thresh OSA distance) are searched for in y.
+possible matches (within \code{number_fuzzy_distance}) are searched for in y.
 If multiple matches are present in y, the best one is selected
 based on the lowest absolute numeric difference with the @digits in x;
 ties are broken by optimized string alignment (OSA) distances
 and then preferring the lowest value sorted in Lexicographic
 order with digits preceding alphabetic characters.
-}
-\details{
+
 addr_number objects with missing @digits or empty strings
 for all of @prefix, @digits, @suffix are not matched and
 returned as missing instead.
@@ -46,5 +46,5 @@ y <- addr_number(
 
 match_addr_number(x, y)
 
-match_addr_number(x, y, osa_max_dist = 0L)
+match_addr_number(x, y, number_fuzzy_dist = 0L)
 }
