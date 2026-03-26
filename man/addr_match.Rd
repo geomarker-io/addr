@@ -63,9 +63,8 @@ with the same reference addresses. For a single end-to-end match, preparing
 \code{addr_match()}.
 }
 \examples{
-my_addr <- as_addr(voter_addresses()[1:10])
+my_addr <- as_addr(voter_addresses()[1:100])
 the_addr <- nad_example_data(match_prepare = TRUE)
 
 addr_match(my_addr, the_addr)
-
 }

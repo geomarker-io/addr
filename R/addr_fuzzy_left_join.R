@@ -1,10 +1,14 @@
 #' Left join two data frames using fuzzy addr matching
 #'
-#'  **This function has been replaced by `addr_match()`**
-#'
-#' This is a convenience wrapper around the addr fuzzy matching helpers that
+#' @description
+#' This wraps around the addr fuzzy matching helpers and
 #' returns a left-join style result. The addr columns are matched by index and
 #' rows are expanded for one-to-many or many-to-many matches.
+#'
+#' See `addr_match()` and `addr_left_join()` for an alternative strategy
+#' to matching addr and joining data frames with addr columns
+#' that is faster, but is limited to one best match instead of
+#' multi-matches.
 #'
 #' @param x,y data frames or tibbles with an addr column
 #' @param by addr column name in `x` (and `y` if the same);
@@ -43,7 +47,6 @@ addr_fuzzy_left_join <- function(
   addr_fields = NULL,
   suffix = c(".x", ".y")
 ) {
-  warning("addr_fuzzy_left_join() is deprecated; use addr_join() instead")
   if (is.character(by) && length(by) == 2) {
     x_by <- by[[1]]
     y_by <- by[[2]]

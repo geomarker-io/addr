@@ -287,11 +287,10 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #'   and/or street fields filled when later stages do not match.
 #' @export
 #' @examples
-#' my_addr <- as_addr(voter_addresses()[1:10])
+#' my_addr <- as_addr(voter_addresses()[1:100])
 #' the_addr <- nad_example_data(match_prepare = TRUE)
 #'
 #' addr_match(my_addr, the_addr)
-#'
 addr_match <- function(
   x,
   y,

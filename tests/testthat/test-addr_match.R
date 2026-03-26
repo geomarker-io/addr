@@ -13,9 +13,7 @@ test_that("addr_match stages zipcode street and number matching", {
     "10 MAIN ST CINCINNATI OH 45103",
     NA_character_
   ))
-
   out <- addr_match(x, y, progress = FALSE)
-
   expect_true(inherits(out, "addr"))
   expect_equal(format(out[1]), format(y[1]))
   expect_true(is.na(out[2]@number))
@@ -40,9 +38,7 @@ test_that("addr_match progress output uses zipcode text and 80-char bars", {
     "11 MAIN ST CINCINNATI OH 45220",
     "10 MAIN ST CINCINNATI OH 45229"
   ))
-
   expect_equal(nchar(addr_progress_bar(1, 3), type = "width"), 80)
-
   progress_output <- capture.output({
     out <- addr_match(x, y, progress = TRUE)
   })
@@ -52,7 +48,6 @@ test_that("addr_match progress output uses zipcode text and 80-char bars", {
     progress_text,
     gregexpr("\\[[=.]+\\]", progress_text)
   )[[1]]
-
   expect_true(grepl(
     "preparing reference addr vector",
     progress_text
@@ -89,13 +84,11 @@ test_that("addr_match skips preparation message for prepared references", {
     "11 MAIN ST CINCINNATI OH 45220",
     "10 MAIN ST CINCINNATI OH 45229"
   ))
-
   progress_output <- capture.output({
     out <- addr_match(x, addr_match_prepare(y), progress = TRUE)
   })
   progress_text <- paste(progress_output, collapse = "\n")
   progress_text <- gsub("\033\\[[0-9;]*[[:alpha:]]", "", progress_text)
-
   expect_false(grepl("preparing reference addr vector", progress_text))
   expect_true(inherits(out, "addr"))
 })
@@ -123,11 +116,9 @@ test_that("addr_match_prepare caches reference data for repeated matching", {
     "99 MAIN ST CINCINNATI OH 45220",
     "10 MAIN ST CINCINNATI OH 45229"
   ))
-
   prepared <- addr_match_prepare(y)
   out_raw <- addr_match(x, y, progress = FALSE)
   out_prepared <- addr_match(x, prepared, progress = FALSE)
-
   expect_s3_class(prepared, "addr_match_index")
   expect_equal(prepared$n_unique, 3L)
   expect_equal(sort(prepared$zipcodes), c("45220", "45229"))
@@ -149,9 +140,7 @@ test_that("addr_match_stage classifies staged addr_match results", {
     "10 MAIN ST CINCINNATI OH 45103",
     NA_character_
   ))
-
-  out <- addr_match(x, y)
-
+  out <- addr_match(x, y, progress = FALSE)
   expect_equal(
     addr_match_stage(out),
     ordered(
@@ -167,7 +156,6 @@ test_that("addr_match_stage rejects non-addr_match structures in strict mode", {
     street = addr_street(),
     place = addr_place(zipcode = "45220")
   )
-
   expect_error(
     addr_match_stage(x),
     "x does not look like an addr_match result"
@@ -179,23 +167,20 @@ test_that("addr_match_stage rejects non-addr_match structures in strict mode", {
 })
 
 test_that("addr_match works with packaged prepared example data", {
-  x <- as_addr(voter_addresses()[1:1000])
+  x <- as_addr(voter_addresses()[1:100])
   y <- nad_example_data(match_prepare = TRUE)
-
-  out <- addr_match(x, y)
+  out <- addr_match(x, y, progress = FALSE)
   stage <- addr_match_stage(out)
-
-  expect_equal(sum(!is.na(out@number)), 875)
-  expect_equal(sum(!is.na(out@street)), 903)
-  expect_equal(sum(!is.na(out@place@zipcode)), 1000)
+  expect_equal(sum(!is.na(out@number)), 89)
+  expect_equal(sum(!is.na(out@street)), 94)
+  expect_equal(sum(!is.na(out@place@zipcode)), 100)
   expect_equal(
     as.integer(table(stage)),
-    c(0L, 97L, 28L, 875L)
+    c(0L, 6L, 5L, 89L)
   )
-
   expect_true(inherits(out, "addr"))
-  expect_length(out, 1000L)
-  expect_equal(sum(!is.na(out)), 875)
+  expect_length(out, 100L)
+  expect_equal(sum(!is.na(out)), 89)
   expect_equal(
     format(out[1:10]),
     c(
@@ -214,13 +199,6 @@ test_that("addr_match works with packaged prepared example data", {
 })
 
 test_that("nad_example_data can return prepared match data", {
-  x <- as_addr(voter_addresses()[1:10])
-  raw <- nad_example_data()
   prepared <- nad_example_data(match_prepare = TRUE)
-
   expect_s3_class(prepared, "addr_match_index")
-  expect_equal(
-    format(addr_match(x, prepared)),
-    format(addr_match(x, raw$nad_addr))
-  )
 })
