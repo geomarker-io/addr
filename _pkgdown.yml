@@ -19,19 +19,20 @@ reference:
       - addr
       - tag_usaddress
       - clean_address_text
+  - title: Match addr
+    contents:
+      - addr_match
+      - addr_match_stage
+      - addr_left_join
+      - match_addr_number
+      - match_addr_street
+      - match_zipcodes
+      - phonetic_street_key
   - title: Fuzzy join addr
     contents:
       - addr_fuzzy_left_join
       - addr_fuzzy_match
       - fuzzy_match
-  - title: Match addr
-    contents:
-      - addr_match
-      - addr_match_stage
-      - match_addr_number
-      - match_addr_street
-      - match_zipcodes
-      - phonetic_street_key
   - title: Geocoding addr
     contents:
       - geocode_tiger
