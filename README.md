@@ -11,9 +11,10 @@ stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://
 
 <!-- badges: end -->
 
-Addresses that were not validated at the time of collection are often heterogenously formatted, making them difficult to directly compare.
-The goal of addr is to clean, parse, standardize, and match messy, real-world addresses in R to use for data linkages.
-addr is built around vctrs-based addr vectors, including the `addr()` vector and the `addr_number()`, `addr_street()`, and `addr_place()` subclass vectors.
+Addresses that were not validated at the time of collection are often heterogenously formatted and filled with typographical and phonetic noise, making them difficult to compare or link to other sets of addresses.
+The goal of addr is to clean, parse, standardize, and match messy, real-world US addresses in R to use for data linkages.
+addr uses the included `usaddress` library to tag address components and build vctrs-based addr vectors, including the `addr()` vector and the `addr_number()`, `addr_street()`, and `addr_place()` subclass vectors.
+Addr and addr_part vectors can be standardized and matched/joined using exact, best, or fuzzy linkages. Ultimately, this facilitates using addr vectors as a column in a data frame which allows for powerful computing on nested address structures using standard R tools.
 
 ## Installation
 
