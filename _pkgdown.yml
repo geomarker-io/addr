@@ -28,6 +28,7 @@ reference:
       - match_addr_street
       - match_zipcodes
       - phonetic_street_key
+      - run_addr_explorer
   - title: Fuzzy join addr
     contents:
       - addr_fuzzy_left_join
