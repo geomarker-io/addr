@@ -1,6 +1,6 @@
 Package: addr
 Title: Clean, Parse, Harmonize, Match, and Geocode Messy Real-World US Addresses
-Version: 0.99.6
+Version: 0.99.7
 Authors@R: 
     c(person("Cole", "Brokamp", email = "cole@colebrokamp.com", role = c("aut", "cre")),
       person("Erika", "Manning", role = c("aut")))
@@ -12,6 +12,8 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Suggests: 
+    htmltools,
+    shiny,
     testthat (>= 3.0.0),
     sf,
     leaflet,
@@ -48,6 +50,7 @@ Collate:
     'fuzzy_match.R'
     'nad.R'
     'phonetic_street_key.R'
+    'shiny_addr_explorer.R'
     'tag_usaddress.R'
     'tiger_addr_feat.R'
     'tiger_geocode.R'
