@@ -34,176 +34,55 @@ addr_explorer_app <- function() {
       shiny::tags$style(shiny::HTML(
         "
         body {
-          background:
-            radial-gradient(circle at top left, rgba(234, 206, 197, 0.42) 0, rgba(234, 206, 197, 0.42) 18%, transparent 42%),
-            linear-gradient(180deg, #ffffff 0%, #fcf6f4 100%);
-          color: #396175;
+          background: #ffffff;
+          color: #2f3a44;
           font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, Arial, sans-serif;
         }
         .container-fluid {
-          max-width: 1540px;
+          max-width: 1400px;
           padding: 0 20px 24px 20px;
         }
         .addr-title {
           margin: 18px 0 6px 0;
-          font-size: 34px;
+          font-size: 30px;
           font-weight: 700;
-          letter-spacing: -0.03em;
-          color: #396175;
+          color: #2f3a44;
         }
         .addr-subtitle {
           margin-bottom: 18px;
           max-width: 980px;
-          color: #4a7283;
-          font-size: 15px;
+          color: #5a6772;
+          font-size: 14px;
           line-height: 1.5;
         }
         .well {
-          background: rgba(255, 255, 255, 0.94);
-          border: 1px solid rgba(194, 130, 115, 0.22);
-          border-radius: 18px;
-          box-shadow: 0 12px 30px rgba(57, 97, 117, 0.08);
+          background: #f7f7f8;
+          border: 1px solid #dddddf;
+          border-radius: 8px;
           padding: 16px;
         }
         .addr-panel {
-          background: rgba(255, 255, 255, 0.9);
-          border: 1px solid rgba(194, 130, 115, 0.18);
-          border-radius: 18px;
-          box-shadow: 0 12px 30px rgba(57, 97, 117, 0.08);
-          padding: 20px;
-          margin-bottom: 18px;
-          backdrop-filter: blur(6px);
+          background: #ffffff;
+          border: 1px solid #dddddf;
+          border-radius: 8px;
+          padding: 16px;
+          margin-bottom: 16px;
         }
         .addr-panel h3 {
           margin-top: 0;
-          margin-bottom: 10px;
+          margin-bottom: 12px;
           font-size: 18px;
-          letter-spacing: -0.02em;
-          color: #396175;
-        }
-        .addr-flow {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 16px;
-        }
-        .addr-card {
-          border-radius: 16px;
-          padding: 18px;
-          border: 1px solid rgba(194, 130, 115, 0.18);
-          border-left: 5px solid #C28273;
-          background: linear-gradient(180deg, #ffffff, #fcf6f4);
-        }
-        .addr-card-title {
-          font-size: 12px;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: #7a8f99;
-          margin-bottom: 8px;
-        }
-        .addr-card-main {
-          font-size: 22px;
-          font-weight: 700;
-          line-height: 1.3;
-          margin-bottom: 10px;
-          color: #2f5364;
-        }
-        .addr-card-note {
-          font-size: 13px;
-          line-height: 1.45;
-          color: #4a7283;
-          white-space: pre-wrap;
-        }
-        .addr-card-details {
-          margin-top: 16px;
-          padding-top: 14px;
-          border-top: 1px solid rgba(194, 130, 115, 0.22);
-          display: grid;
-          gap: 12px;
-        }
-        .addr-detail-section {
-          display: grid;
-          gap: 8px;
-        }
-        .addr-detail-section h4 {
-          margin: 0;
-          font-size: 12px;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: #7a8f99;
-        }
-        .addr-structure-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 12px;
-        }
-        .addr-structure-card {
-          border-radius: 12px;
-          border: 1px solid rgba(194, 130, 115, 0.16);
-          background: #fff8f6;
-          padding: 12px;
-        }
-        .addr-stage-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-          gap: 10px 14px;
-        }
-        .addr-stage-stat {
-          border-radius: 12px;
-          border: 1px solid rgba(194, 130, 115, 0.14);
-          background: rgba(255, 255, 255, 0.85);
-          padding: 10px 12px;
-        }
-        .addr-stage-label {
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: #7a8f99;
-          margin-bottom: 4px;
-        }
-        .addr-stage-value {
-          font-size: 13px;
-          line-height: 1.45;
-          color: #2f5364;
-          word-break: break-word;
-        }
-        .addr-pill {
-          display: inline-block;
-          border-radius: 999px;
-          padding: 4px 10px;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
-          margin-bottom: 8px;
-        }
-        .addr-pill-match {
-          color: #245d49;
-          background: #dff1ea;
-        }
-        .addr-pill-partial {
-          color: #8b5d26;
-          background: #f7e2cf;
-        }
-        .addr-pill-miss {
-          color: #8a3d47;
-          background: #f5dde0;
-        }
-        .addr-pill-info {
-          color: #396175;
-          background: #eaf1f4;
+          color: #2f3a44;
         }
         .addr-kv {
           display: grid;
-          grid-template-columns: 130px 1fr;
+          grid-template-columns: 140px 1fr;
           gap: 8px 12px;
           font-size: 13px;
           line-height: 1.4;
         }
         .addr-kv-key {
-          color: #7a8f99;
+          color: #5a6772;
           font-weight: 600;
         }
         .addr-kv-value {
@@ -217,25 +96,22 @@ addr_explorer_app <- function() {
           border-collapse: collapse;
           font-size: 13px;
           line-height: 1.35;
-          background: rgba(255, 255, 255, 0.92);
-          border-radius: 12px;
-          overflow: hidden;
         }
         .addr-table th {
           text-align: left;
-          background: #f7ece7;
-          color: #396175;
+          background: #f1f3f5;
+          color: #2f3a44;
           padding: 9px 10px;
-          border-bottom: 1px solid rgba(194, 130, 115, 0.18);
+          border: 1px solid #d9dde2;
           white-space: nowrap;
         }
         .addr-table td {
           padding: 8px 10px;
-          border-bottom: 1px solid rgba(194, 130, 115, 0.1);
+          border: 1px solid #e3e6ea;
           vertical-align: top;
         }
         .addr-empty {
-          color: #7a8f99;
+          color: #5a6772;
           font-style: italic;
           margin: 0;
         }
@@ -244,26 +120,26 @@ addr_explorer_app <- function() {
           font-size: 12px;
         }
         .addr-error {
-          border-radius: 14px;
-          background: #f5dde0;
-          color: #8a3d47;
+          border-radius: 8px;
+          background: #f8d7da;
+          color: #7c2732;
           padding: 12px 14px;
           font-weight: 600;
         }
         .btn-default {
-          background: #C28273;
-          border-color: #C28273;
-          color: #ffffff;
+          background: #e9ecef;
+          border-color: #ced4da;
+          color: #2f3a44;
         }
         .btn-default:hover,
         .btn-default:focus {
-          background: #b16f60;
-          border-color: #b16f60;
-          color: #ffffff;
+          background: #dde2e6;
+          border-color: #c5cbd3;
+          color: #2f3a44;
         }
         .form-control:focus {
-          border-color: #C28273;
-          box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px rgba(194, 130, 115, 0.28);
+          border-color: #6c8aa0;
+          box-shadow: none;
         }
         .form-control, .btn, .checkbox, .control-label, .nav-tabs {
           font-size: 13px;
@@ -287,9 +163,8 @@ addr_explorer_app <- function() {
       class = "addr-subtitle",
       paste(
         "Type an address or pull a random example from voter_addresses().",
-        "The page is organized as the parse-and-match flow, with parser output,",
-        "normalized addr structure, and stage diagnostics shown inside each step",
-        "against nad_example_data()$nad_addr."
+        "This app is intentionally basic: it shows parser output, normalized",
+        "addr fields, and the matching stages against nad_example_data()$nad_addr."
       )
     ),
     shiny::sidebarLayout(
@@ -447,6 +322,10 @@ addr_explorer_app <- function() {
               parsed = parsed,
               clean = clean
             ),
+            stage_table = addr_explorer_stage_table(
+              parsed = parsed,
+              diag = diag
+            ),
             diag = diag
           )
         },
@@ -463,10 +342,52 @@ addr_explorer_app <- function() {
         return(shiny::div(class = "addr-error", x$error))
       }
 
-      shiny::div(
-        class = "addr-panel",
-        shiny::h3("Flow"),
-        addr_explorer_flow_ui(x)
+      shiny::tagList(
+        shiny::div(
+          class = "addr-panel",
+          shiny::h3("Current input"),
+          addr_explorer_kv_ui(c(
+            "raw input" = x$raw_input,
+            "cleaned input" = x$clean_preview
+          ))
+        ),
+        shiny::div(
+          class = "addr-panel",
+          shiny::h3("Parser tags"),
+          addr_explorer_table_ui(x$tag_table)
+        ),
+        shiny::div(
+          class = "addr-panel",
+          shiny::h3("Normalized addr"),
+          addr_explorer_kv_ui(c(
+            "addr" = as.character(x$parsed),
+            "street" = as.character(x$parsed@street),
+            "number" = as.character(x$parsed@number),
+            "place" = paste(
+              addr_explorer_format_value(x$parsed@place@name),
+              addr_explorer_format_value(x$parsed@place@state),
+              addr_explorer_format_value(x$parsed@place@zipcode)
+            )
+          )),
+          shiny::tags$div(style = "margin-top: 12px;"),
+          addr_explorer_table_ui(x$parsed_df)
+        ),
+        shiny::div(
+          class = "addr-panel",
+          shiny::h3("Match stages"),
+          addr_explorer_table_ui(x$stage_table)
+        ),
+        shiny::div(
+          class = "addr-panel",
+          shiny::h3("Final match"),
+          addr_explorer_kv_ui(c(
+            "final stage" = x$diag$final_stage,
+            "final match" = as.character(x$diag$final_match),
+            "matched ZIP" = as.character(x$diag$matched_zipcode),
+            "matched street" = as.character(x$diag$street_match),
+            "matched number" = as.character(x$diag$number_match)
+          ))
+        )
       )
     })
   }
@@ -802,397 +723,89 @@ addr_explorer_match_diagnostics <- function(
   )
 }
 
-addr_explorer_pill <- function(text, class) {
-  shiny::tags$span(class = paste("addr-pill", class), text)
-}
-
-addr_explorer_card <- function(title, pill, main, note = NULL, details = NULL) {
+addr_explorer_kv_ui <- function(values) {
   shiny::tags$div(
-    class = "addr-card",
-    shiny::tags$div(class = "addr-card-title", title),
-    pill,
-    shiny::tags$div(class = "addr-card-main", main),
-    shiny::tags$div(class = "addr-card-note", note),
-    if (!is.null(details)) {
-      shiny::tags$div(class = "addr-card-details", details)
-    }
-  )
-}
-
-addr_explorer_detail_section <- function(title, content) {
-  shiny::tags$div(
-    class = "addr-detail-section",
-    shiny::tags$h4(title),
-    content
-  )
-}
-
-addr_explorer_stage_stats_ui <- function(values) {
-  shiny::tags$div(
-    class = "addr-stage-grid",
-    lapply(names(values), function(label) {
-      shiny::tags$div(
-        class = "addr-stage-stat",
-        shiny::tags$div(class = "addr-stage-label", label),
-        shiny::tags$div(
-          class = "addr-stage-value addr-code",
-          htmltools::htmlEscape(addr_explorer_format_value(values[[label]]))
-        )
-      )
-    })
-  )
-}
-
-addr_explorer_structure_ui <- function(parsed) {
-  shiny::tags$div(
-    class = "addr-structure-grid",
-    addr_explorer_detail_section(
-      "Number",
-      shiny::tags$div(
-        class = "addr-structure-card",
-        shiny::tags$div(
-          class = "addr-kv",
-          shiny::tags$div(class = "addr-kv-key", "prefix"),
+    class = "addr-kv",
+    do.call(
+      shiny::tagList,
+      lapply(names(values), function(label) {
+        list(
+          shiny::tags$div(class = "addr-kv-key", label),
           shiny::tags$div(
             class = "addr-kv-value addr-code",
-            addr_explorer_format_value(parsed@number@prefix)
-          ),
-          shiny::tags$div(class = "addr-kv-key", "digits"),
-          shiny::tags$div(
-            class = "addr-kv-value addr-code",
-            addr_explorer_format_value(parsed@number@digits)
-          ),
-          shiny::tags$div(class = "addr-kv-key", "suffix"),
-          shiny::tags$div(
-            class = "addr-kv-value addr-code",
-            addr_explorer_format_value(parsed@number@suffix)
+            addr_explorer_format_value(values[[label]])
           )
         )
-      )
+      })
+    )
+  )
+}
+
+addr_explorer_stage_table <- function(parsed, diag) {
+  data.frame(
+    stage = c("zip", "street", "number", "final"),
+    status = c(
+      if (identical(diag$zip_match_type, "none")) {
+        "no match"
+      } else {
+        diag$zip_match_type
+      },
+      if (identical(diag$zip_match_type, "none")) {
+        "skipped"
+      } else if (identical(diag$street_match_type, "none")) {
+        "no match"
+      } else {
+        diag$street_match_type
+      },
+      if (identical(diag$street_match_type, "none")) {
+        "skipped"
+      } else if (identical(diag$number_match_type, "none")) {
+        "no match"
+      } else {
+        diag$number_match_type
+      },
+      diag$final_stage
     ),
-    addr_explorer_detail_section(
-      "Street",
-      shiny::tags$div(
-        class = "addr-structure-card",
-        shiny::tags$div(
-          class = "addr-kv",
-          shiny::tags$div(class = "addr-kv-key", "predirectional"),
-          shiny::tags$div(
-            class = "addr-kv-value addr-code",
-            addr_explorer_format_value(parsed@street@predirectional)
-          ),
-          shiny::tags$div(class = "addr-kv-key", "premodifier"),
-          shiny::tags$div(
-            class = "addr-kv-value addr-code",
-            addr_explorer_format_value(parsed@street@premodifier)
-          ),
-          shiny::tags$div(class = "addr-kv-key", "pretype"),
-          shiny::tags$div(
-            class = "addr-kv-value addr-code",
-            addr_explorer_format_value(parsed@street@pretype)
-          ),
-          shiny::tags$div(class = "addr-kv-key", "name"),
-          shiny::tags$div(
-            class = "addr-kv-value addr-code",
-            addr_explorer_format_value(parsed@street@name)
-          ),
-          shiny::tags$div(class = "addr-kv-key", "posttype"),
-          shiny::tags$div(
-            class = "addr-kv-value addr-code",
-            addr_explorer_format_value(parsed@street@posttype)
-          ),
-          shiny::tags$div(class = "addr-kv-key", "postdirectional"),
-          shiny::tags$div(
-            class = "addr-kv-value addr-code",
-            addr_explorer_format_value(parsed@street@postdirectional)
-          )
-        )
-      )
+    input = c(
+      addr_explorer_format_value(parsed@place@zipcode),
+      addr_explorer_format_value(as.character(parsed@street)),
+      addr_explorer_format_value(as.character(parsed@number)),
+      addr_explorer_format_value(as.character(parsed))
     ),
-    addr_explorer_detail_section(
-      "Place",
-      shiny::tags$div(
-        class = "addr-structure-card",
-        shiny::tags$div(
-          class = "addr-kv",
-          shiny::tags$div(class = "addr-kv-key", "name"),
-          shiny::tags$div(
-            class = "addr-kv-value addr-code",
-            addr_explorer_format_value(parsed@place@name)
-          ),
-          shiny::tags$div(class = "addr-kv-key", "state"),
-          shiny::tags$div(
-            class = "addr-kv-value addr-code",
-            addr_explorer_format_value(parsed@place@state)
-          ),
-          shiny::tags$div(class = "addr-kv-key", "zipcode"),
-          shiny::tags$div(
-            class = "addr-kv-value addr-code",
-            addr_explorer_format_value(parsed@place@zipcode)
-          )
-        )
-      )
-    )
-  )
-}
-
-addr_explorer_flow_ui <- function(x) {
-  diag <- x$diag
-
-  clean_note <- if (identical(x$raw_input, x$clean_preview)) {
-    paste("Input:", x$raw_input)
-  } else {
-    paste("Input:", x$raw_input, "\nCleaned:", x$clean_preview)
-  }
-
-  input_card <- addr_explorer_card(
-    "Input",
-    addr_explorer_pill("source", "addr-pill-info"),
-    addr_explorer_format_value(x$raw_input),
-    clean_note,
-    details = addr_explorer_detail_section(
-      "Parser tags",
-      addr_explorer_table_ui(x$tag_table)
-    )
-  )
-
-  normalized_card <- addr_explorer_card(
-    "as_addr()",
-    addr_explorer_pill("normalized", "addr-pill-info"),
-    addr_explorer_format_value(as.character(x$parsed)),
-    "The normalized addr object drives every later matching stage.",
-    details = shiny::tagList(
-      addr_explorer_detail_section(
-        "addr structure",
-        addr_explorer_structure_ui(x$parsed)
-      ),
-      addr_explorer_detail_section(
-        "Normalized fields",
-        addr_explorer_table_ui(x$parsed_df)
-      )
-    )
-  )
-
-  zip_card <- if (identical(diag$zip_match_type, "none")) {
-    addr_explorer_card(
-      "ZIP stage",
-      addr_explorer_pill("no match", "addr-pill-miss"),
-      "No ZIP candidate",
-      paste(
-        "Parsed ZIP:",
-        addr_explorer_format_value(x$parsed@place@zipcode),
-        "\nNo reference ZIP matched."
-      ),
-      details = addr_explorer_detail_section(
-        "Stage diagnostics",
-        addr_explorer_stage_stats_ui(c(
-          "status" = "no match",
-          "parsed ZIP" = as.character(x$parsed@place@zipcode),
-          "matched ZIP" = NA_character_,
-          "candidate pool" = "0"
-        ))
-      )
-    )
-  } else {
-    addr_explorer_card(
-      "ZIP stage",
-      addr_explorer_pill(
-        diag$zip_match_type,
-        if (identical(diag$zip_match_type, "exact")) {
-          "addr-pill-match"
-        } else {
-          "addr-pill-partial"
-        }
-      ),
+    matched = c(
       addr_explorer_format_value(diag$matched_zipcode),
-      paste(
-        "Parsed ZIP:",
-        addr_explorer_format_value(x$parsed@place@zipcode),
-        "\nUnique NAD addresses in ZIP:",
-        prettyNum(diag$zip_pool_n, big.mark = ",")
-      ),
-      details = addr_explorer_detail_section(
-        "Stage diagnostics",
-        addr_explorer_stage_stats_ui(c(
-          "status" = diag$zip_match_type,
-          "parsed ZIP" = as.character(x$parsed@place@zipcode),
-          "matched ZIP" = as.character(diag$matched_zipcode),
-          "candidate pool" = prettyNum(diag$zip_pool_n, big.mark = ",")
-        ))
-      )
-    )
-  }
-
-  street_card <- if (identical(diag$zip_match_type, "none")) {
-    addr_explorer_card(
-      "Street stage",
-      addr_explorer_pill("skipped", "addr-pill-info"),
-      "ZIP match required first",
-      "Street matching was not attempted because the ZIP stage failed.",
-      details = addr_explorer_detail_section(
-        "Stage diagnostics",
-        addr_explorer_stage_stats_ui(c(
-          "status" = "skipped",
-          "parsed street" = as.character(x$parsed@street),
-          "matched street" = NA_character_,
-          "street scope" = "0",
-          "candidate pool" = "0"
-        ))
-      )
-    )
-  } else if (identical(diag$street_match_type, "none")) {
-    addr_explorer_card(
-      "Street stage",
-      addr_explorer_pill("no match", "addr-pill-miss"),
-      "No street candidate",
-      paste(
-        "Parsed street:",
-        addr_explorer_format_value(as.character(x$parsed@street)),
-        "\nStreet scope:",
-        prettyNum(diag$street_scope_n, big.mark = ","),
-        "unique streets"
-      ),
-      details = addr_explorer_detail_section(
-        "Stage diagnostics",
-        addr_explorer_stage_stats_ui(c(
-          "status" = "no match",
-          "parsed street" = as.character(x$parsed@street),
-          "matched street" = NA_character_,
-          "street scope" = paste(
-            prettyNum(diag$street_scope_n, big.mark = ","),
-            "unique streets"
-          ),
-          "candidate pool" = "0"
-        ))
-      )
-    )
-  } else {
-    addr_explorer_card(
-      "Street stage",
-      addr_explorer_pill(
-        gsub("_", "/", diag$street_match_type),
-        if (identical(diag$street_match_type, "exact")) {
-          "addr-pill-match"
-        } else {
-          "addr-pill-partial"
-        }
-      ),
       addr_explorer_format_value(as.character(diag$street_match)),
-      paste(
-        "Parsed street:",
-        addr_explorer_format_value(as.character(x$parsed@street)),
-        "\nAddresses sharing the matched street:",
-        prettyNum(diag$street_pool_n, big.mark = ",")
-      ),
-      details = addr_explorer_detail_section(
-        "Stage diagnostics",
-        addr_explorer_stage_stats_ui(c(
-          "status" = gsub("_", "/", diag$street_match_type),
-          "parsed street" = as.character(x$parsed@street),
-          "matched street" = as.character(diag$street_match),
-          "street scope" = paste(
-            prettyNum(diag$street_scope_n, big.mark = ","),
-            "unique streets"
-          ),
-          "candidate pool" = prettyNum(diag$street_pool_n, big.mark = ",")
-        ))
-      )
-    )
-  }
-
-  number_card <- if (identical(diag$street_match_type, "none")) {
-    addr_explorer_card(
-      "Number stage",
-      addr_explorer_pill("skipped", "addr-pill-info"),
-      "Street match required first",
-      "House-number matching was not attempted because the street stage failed.",
-      details = addr_explorer_detail_section(
-        "Stage diagnostics",
-        addr_explorer_stage_stats_ui(c(
-          "status" = "skipped",
-          "parsed number" = as.character(x$parsed@number),
-          "matched number" = NA_character_,
-          "final stage" = diag$final_stage,
-          "final match" = as.character(diag$final_match)
-        ))
-      )
-    )
-  } else if (identical(diag$number_match_type, "none")) {
-    addr_explorer_card(
-      "Number stage",
-      addr_explorer_pill("no match", "addr-pill-miss"),
-      "No number candidate",
-      paste(
-        "Parsed number:",
-        addr_explorer_format_value(as.character(x$parsed@number)),
-        "\nCandidate addresses on matched street:",
-        prettyNum(diag$street_pool_n, big.mark = ",")
-      ),
-      details = shiny::tagList(
-        addr_explorer_detail_section(
-          "Stage diagnostics",
-          addr_explorer_stage_stats_ui(c(
-            "status" = "no match",
-            "parsed number" = as.character(x$parsed@number),
-            "matched number" = NA_character_,
-            "candidate pool" = prettyNum(diag$street_pool_n, big.mark = ","),
-            "final stage" = diag$final_stage
-          ))
-        ),
-        addr_explorer_detail_section(
-          "Best available match",
-          addr_explorer_stage_stats_ui(c(
-            "final match" = as.character(diag$final_match)
-          ))
-        )
-      )
-    )
-  } else {
-    addr_explorer_card(
-      "Number stage",
-      addr_explorer_pill(
-        diag$number_match_type,
-        if (identical(diag$number_match_type, "exact")) {
-          "addr-pill-match"
-        } else {
-          "addr-pill-partial"
-        }
-      ),
       addr_explorer_format_value(as.character(diag$number_match)),
-      paste(
-        "Parsed number:",
-        addr_explorer_format_value(as.character(x$parsed@number)),
-        "\nFinal matched address:",
-        addr_explorer_format_value(as.character(diag$final_match))
-      ),
-      details = shiny::tagList(
-        addr_explorer_detail_section(
-          "Stage diagnostics",
-          addr_explorer_stage_stats_ui(c(
-            "status" = diag$number_match_type,
-            "parsed number" = as.character(x$parsed@number),
-            "matched number" = as.character(diag$number_match),
-            "candidate pool" = prettyNum(diag$street_pool_n, big.mark = ","),
-            "final stage" = diag$final_stage
-          ))
-        ),
-        addr_explorer_detail_section(
-          "Matched address",
-          addr_explorer_stage_stats_ui(c(
-            "final match" = as.character(diag$final_match)
-          ))
+      addr_explorer_format_value(as.character(diag$final_match))
+    ),
+    candidate_pool = c(
+      prettyNum(diag$zip_pool_n, big.mark = ","),
+      if (identical(diag$zip_match_type, "none")) {
+        "0"
+      } else {
+        paste0(
+          prettyNum(diag$street_scope_n, big.mark = ","),
+          " streets / ",
+          prettyNum(diag$zip_pool_n, big.mark = ","),
+          " addresses"
         )
-      )
-    )
-  }
-
-  shiny::tags$div(
-    class = "addr-flow",
-    input_card,
-    normalized_card,
-    zip_card,
-    street_card,
-    number_card
+      },
+      if (identical(diag$street_match_type, "none")) {
+        "0"
+      } else {
+        prettyNum(diag$street_pool_n, big.mark = ",")
+      },
+      if (identical(diag$final_stage, "number")) {
+        "1 best match"
+      } else if (identical(diag$final_stage, "street")) {
+        "street-only result"
+      } else if (identical(diag$final_stage, "zip")) {
+        "zip-only result"
+      } else {
+        "no result"
+      }
+    ),
+    stringsAsFactors = FALSE
   )
 }
 
@@ -1209,7 +822,7 @@ addr_explorer_table_ui <- function(df) {
       lapply(df[i, , drop = FALSE], function(value) {
         shiny::tags$td(
           class = "addr-code",
-          htmltools::htmlEscape(addr_explorer_format_value(value[[1]]))
+          addr_explorer_format_value(value[[1]])
         )
       })
     )
