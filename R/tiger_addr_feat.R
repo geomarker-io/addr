@@ -83,5 +83,6 @@ tiger_addr_feat <- function(county, year) {
   out$FROMHN <- to_int(out$FROMHN)
   out$TOHN <- to_int(out$TOHN)
 
-  out
+  out$s2_geography <- s2::as_s2_geography(out$geometry)
+  sf::st_drop_geometry(out)
 }
