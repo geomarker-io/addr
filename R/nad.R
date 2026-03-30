@@ -1,17 +1,35 @@
-#' National Address Database (NAD)
+#' nad() reads cached NAD data
 #'
-#' Download the NAD to the R user's data directory for the addr package
-#' and read data into R by county and state.
+#' NAD data (r21) is read using the sf package and converted to s2_geography,
+#' then saved into the cache R_user_dir for the addr package.
+#' Using a data binary does not require gdal nor the sf package and
+#' saves the time required to read and process the data from disk.
+#' In the future, data binaries will be hosted online and be available
+#' to download and use directly witout needing the NAD source database.
+
+#' Read National Address Database (NAD) tables into R
+#'
+#' @description
+#' The U.S. Department of Transportation partners with address programs from
+#' state, local, and tribal governments to compile their authoritative data
+#' into a database. Find more information here:
+#' <https://www.transportation.gov/gis/national-address-database>
+#'
+#' `nad_read()` reads data from the NAD geodatabase by county and state,
+#' downloading it first if not already downloaded with `nad_download()`,
+#' and readies it for R.
+#' The NAD geodatabase has a very large size on disk (~10 GB).
+#'
+#' Data binaries are the cached outputs of `nad_read()` for each
+#' County/State and are created on first run with `nad()`.
+#' Download data binaries to the R_user_dir cache folder or point R
+#' (`?R_user_dir`) to these files on disk to read NAD tables without
+#' having to download the nationwide NAD geodatabase.
 #'
 #' @param county character, length one; name of county
 #' @param state character, length one; name of state
 #'
 #' @details
-#'
-#' The U.S. Department of Transportation partners with address programs from
-#' state, local, and tribal governments to compile their authoritative data
-#' into a database. Find more information here:
-#' <https://www.transportation.gov/gis/national-address-database>
 #' The NAD is downloaded as the latest release from the transportation.gov
 #' data portal:
 #' <https://data.transportation.gov/dataset/National-Address-Database-NAD-File-Geodatabase/yw36-suxr/about_data>
@@ -22,14 +40,37 @@
 #' When reading into R, all missing address components are replaced with an
 #' empty string (`""`) *except* for address number (digits), street name,
 #' and ZIP code.
+#'
+#' The NAD geodatabase is downloaded to the R user's data directory and
+#' data binaries are stored in the R user's cache directory, both for the
+#' addr package (see `?R_user_dir`).
+#'
 #' @export
 #' @examples
 #' \dontrun{
-#'   nad_read("Hamilton", "OH")
+#'   nad("Hamilton", "OH")
 #' }
 #'
 #' # example data preloaded for Hamilton County, OH
 #' nad_example_data()
+nad <- function(county, state) {
+  nad_sd <- file.path(
+    tools::R_user_dir("addr", "cache"),
+    "NAD",
+    "v1",
+    state,
+    sprintf("%s.rds", county)
+  )
+  if (!file.exists(nad_sd)) {
+    dir.create(dirname(nad_sd), recursive = TRUE, showWarnings = FALSE)
+    d <- nad_read(county = county, state = state)
+    saveRDS(d, file = nad_sd)
+  }
+  readRDS(nad_sd)
+}
+
+
+#' @rdname nad
 nad_read <- function(county, state) {
   check_installed("sf", "to read from the NAD geodatabase")
   nad_fields <- c(
@@ -102,7 +143,7 @@ nad_read <- function(county, state) {
   return(out)
 }
 
-#' @rdname nad_read
+#' @rdname nad
 nad_download <- function() {
   nad_url <- "https://data.transportation.gov/download/yw36-suxr/application%2Fx-zip-compressed"
   dest <- file.path(
