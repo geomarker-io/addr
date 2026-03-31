@@ -1,4 +1,5 @@
 url: https://geomarker.io/addr/
+llm-docs: false
 template:
   bootstrap: 5
   bslib:
