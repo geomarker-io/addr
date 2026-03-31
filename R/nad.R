@@ -67,7 +67,7 @@ nad <- function(county, state, refresh = c("yes", "no", "force")) {
       !file.exists(nad_sd) &&
       refresh == "no"
   ) {
-    return(addr::example_nad_data(match_prepare = FALSE))
+    return(nad_example_data(match_prepare = FALSE))
   }
   if (!file.exists(nad_sd) || refresh == "force") {
     if (refresh == "no") {

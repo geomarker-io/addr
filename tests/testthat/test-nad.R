@@ -1,4 +1,5 @@
 test_that("nad() uses included cached object for Hamilton, OH", {
+  withr::local_envvar(list("R_USER_CACHE_DIR" = tempfile()))
   d <- nad("Hamilton", "OH", refresh = "no")
   expect_s3_class(d, "data.frame")
 
