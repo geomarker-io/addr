@@ -2,13 +2,11 @@ tiger_download <- function(x) {
   tiger_url <- paste0("ftp://ftp2.census.gov/geo/tiger/", x)
   dest <- file.path(tools::R_user_dir("addr", "data"), x)
   dir.create(dirname(dest), showWarnings = FALSE, recursive = TRUE)
-
   if (!file.exists(dest)) {
     tf <- tempfile()
     utils::download.file(tiger_url, tf)
     file.copy(tf, dest)
   }
-
   return(dest)
 }
 
@@ -45,9 +43,16 @@ pivot_addrfeat_sides <- function(x) {
 
 #' Get s2_geography for tiger street ranges
 #'
-#' TIGER address features (i.e. street address ranges) are downloaded from
-#' the census.gov FTP site and converted to a "long" format by street side L/R,
-#' which is used with `tiger_geocode()`.
+#' @description
+#'
+#' TIGER address features (i.e. street address ranges) are read from compressed
+#' addrfeat shapefiles for each county and Census vintage.
+#' If not already present, compressed addrfeat shapefiles are downloaded
+#' from the census.gov FTP site to the R user's data directory for
+#' the addr package.
+#'
+#' When reading into R, the data is converted to a "long" format by street
+#' side L/R to be used with `tiger_geocode()`.
 #' @param county character string of county identifier
 #' @param year character year of tigris product
 #' @returns a list of tibbles, one for each street name, with `TLID`, `s2_geography`, `from`, and `to` columns

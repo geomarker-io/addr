@@ -510,7 +510,7 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #'   match_street_postdirectional = TRUE
 #' ))
 #'
-#' my_addr <- as_addr(voter_addresses()[1:100])
+#' my_addr <- as_addr(voter_addresses()[1:50])
 #'
 #' addr_match(my_addr, the_addr)
 addr_match <- function(
@@ -733,7 +733,7 @@ addr_match_prepare <- function(y) {
 }
 
 #' @export
-print.addr_match_index <- function(x) {
+print.addr_match_index <- function(x, ...) {
   z <- x$zipcodes
   cat(
     "# An addr_match_index object with",

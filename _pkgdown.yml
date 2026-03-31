@@ -41,6 +41,7 @@ reference:
       - tiger_addr_feat
   - title: National Address Database
     contents:
+      - nad
       - nad_read
       - nad_download
       - nad_example_data

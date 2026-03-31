@@ -31,7 +31,7 @@ into a database. Find more information here:
 
 \code{nad_read()} reads data from the NAD geodatabase by county and state,
 downloading it first to the R user's data directory for the addr
-packages if not already downloaded with \code{nad_download()},
+package if not already downloaded with \code{nad_download()},
 and readies it for R.
 The NAD geodatabase has a very large size on disk (~10 GB).
 
