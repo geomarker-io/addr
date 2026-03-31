@@ -55,7 +55,8 @@ pivot_addrfeat_sides <- function(x) {
 #' side L/R to be used with `tiger_geocode()`.
 #' @param county character string of county identifier
 #' @param year character year of tigris product
-#' @returns a list of tibbles, one for each street name, with `TLID`, `s2_geography`, `from`, and `to` columns
+#' @returns a tibble with `LINEARID`, `FULLNAME`, `side`, `ZIP`,
+#' `FROMHN`, `TOHN`, `PARITY`, `OFFSET`, and `s2_geography` columns
 #' @export
 #' @examples
 #' tiger_addr_feat("39061", "2024")

@@ -12,7 +12,8 @@ tiger_addr_feat(county, year)
 \item{year}{character year of tigris product}
 }
 \value{
-a list of tibbles, one for each street name, with \code{TLID}, \code{s2_geography}, \code{from}, and \code{to} columns
+a tibble with \code{LINEARID}, \code{FULLNAME}, \code{side}, \code{ZIP},
+\code{FROMHN}, \code{TOHN}, \code{PARITY}, \code{OFFSET}, and \code{s2_geography} columns
 }
 \description{
 TIGER address features (i.e. street address ranges) are read from compressed

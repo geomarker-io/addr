@@ -4,7 +4,7 @@
 \alias{nad}
 \alias{nad_read}
 \alias{nad_download}
-\title{nad() reads cached NAD data}
+\title{Read National Address Database (NAD) tables into R}
 \usage{
 nad(county, state, refresh = c("yes", "no", "force"))
 
@@ -43,14 +43,6 @@ having to download the nationwide NAD geodatabase.
 (\code{list.files(tools::R_user_dir("addr", "cache"), recursive = TRUE)})
 }
 \details{
-NAD data (r21) is read using the sf package and converted to s2_geography,
-then saved into the cache R_user_dir for the addr package.
-Using a data binary does not require gdal nor the sf package and
-saves the time required to read and process the data from disk.
-In the future, data binaries will be hosted online and be available
-to download and use directly witout needing the NAD source database.
-Read National Address Database (NAD) tables into R
-
 The NAD is downloaded as the latest release from the transportation.gov
 data portal:
 \url{https://data.transportation.gov/dataset/National-Address-Database-NAD-File-Geodatabase/yw36-suxr/about_data}

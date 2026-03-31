@@ -1,12 +1,3 @@
-#' nad() reads cached NAD data
-#'
-#' NAD data (r21) is read using the sf package and converted to s2_geography,
-#' then saved into the cache R_user_dir for the addr package.
-#' Using a data binary does not require gdal nor the sf package and
-#' saves the time required to read and process the data from disk.
-#' In the future, data binaries will be hosted online and be available
-#' to download and use directly witout needing the NAD source database.
-
 #' Read National Address Database (NAD) tables into R
 #'
 #' @description
