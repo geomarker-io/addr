@@ -543,22 +543,26 @@ addr_match <- function(
       "integer" &&
       length(number_fuzzy_dist) == 1L &&
       !is.na(number_fuzzy_dist),
-    "match_street_predirectional must be TRUE or FALSE" =
-      is.logical(match_street_predirectional) &&
-        length(match_street_predirectional) == 1L &&
-        !is.na(match_street_predirectional),
-    "match_street_posttype must be TRUE or FALSE" =
-      is.logical(match_street_posttype) &&
-        length(match_street_posttype) == 1L &&
-        !is.na(match_street_posttype),
-    "match_street_pretype must be TRUE or FALSE" =
-      is.logical(match_street_pretype) &&
-        length(match_street_pretype) == 1L &&
-        !is.na(match_street_pretype),
-    "match_street_postdirectional must be TRUE or FALSE" =
-      is.logical(match_street_postdirectional) &&
-        length(match_street_postdirectional) == 1L &&
-        !is.na(match_street_postdirectional),
+    "match_street_predirectional must be TRUE or FALSE" = is.logical(
+      match_street_predirectional
+    ) &&
+      length(match_street_predirectional) == 1L &&
+      !is.na(match_street_predirectional),
+    "match_street_posttype must be TRUE or FALSE" = is.logical(
+      match_street_posttype
+    ) &&
+      length(match_street_posttype) == 1L &&
+      !is.na(match_street_posttype),
+    "match_street_pretype must be TRUE or FALSE" = is.logical(
+      match_street_pretype
+    ) &&
+      length(match_street_pretype) == 1L &&
+      !is.na(match_street_pretype),
+    "match_street_postdirectional must be TRUE or FALSE" = is.logical(
+      match_street_postdirectional
+    ) &&
+      length(match_street_postdirectional) == 1L &&
+      !is.na(match_street_postdirectional),
     "progress must be TRUE or FALSE" = is.logical(progress) &&
       length(progress) == 1L &&
       !is.na(progress)
@@ -726,6 +730,21 @@ addr_match_prepare <- function(y) {
     ),
     class = "addr_match_index"
   )
+}
+
+#' @export
+print.addr_match_index <- function(x) {
+  z <- x$zipcodes
+  cat(
+    "# An addr_match_index object with",
+    prettyNum(x$n_unique, big.mark = ","),
+    "addrs in",
+    length(z),
+    "zip code groups:\n"
+  )
+  n <- sapply(x$by_zip, \(.) length(.$y))
+  cat(paste0(z, ": ", prettyNum(n, big.mark = ",")), sep = "\n")
+  cat(".\n")
 }
 
 #' Classify addr match stage
