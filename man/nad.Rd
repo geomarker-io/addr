@@ -6,7 +6,7 @@
 \alias{nad_download}
 \title{nad() reads cached NAD data}
 \usage{
-nad(county, state)
+nad(county, state, refresh = c("yes", "no", "force"))
 
 nad_read(county, state)
 
@@ -16,6 +16,12 @@ nad_download()
 \item{county}{character, length one; name of county}
 
 \item{state}{character, length one; name of state}
+
+\item{refresh}{character, length one; choose how to refresh NAD
+data binaries cached on disk if not already present; "yes" will
+create data binary if not already present, "no" will
+error if data binary is not already present, "force" will
+create the data binary and overwrite any existing data binary}
 }
 \description{
 The U.S. Department of Transportation partners with address programs from
@@ -24,7 +30,8 @@ into a database. Find more information here:
 \url{https://www.transportation.gov/gis/national-address-database}
 
 \code{nad_read()} reads data from the NAD geodatabase by county and state,
-downloading it first if not already downloaded with \code{nad_download()},
+downloading it first to the R user's data directory for the addr
+packages if not already downloaded with \code{nad_download()},
 and readies it for R.
 The NAD geodatabase has a very large size on disk (~10 GB).
 
@@ -33,6 +40,7 @@ County/State and are created on first run with \code{nad()}.
 Download data binaries to the R_user_dir cache folder or point R
 (\code{?R_user_dir}) to these files on disk to read NAD tables without
 having to download the nationwide NAD geodatabase.
+(\code{list.files(tools::R_user_dir("addr", "cache"), recursive = TRUE)})
 }
 \details{
 NAD data (r21) is read using the sf package and converted to s2_geography,
@@ -53,16 +61,14 @@ The NAD does not distinguish between empty and missing address components.
 When reading into R, all missing address components are replaced with an
 empty string (\code{""}) \emph{except} for address number (digits), street name,
 and ZIP code.
-
-The NAD geodatabase is downloaded to the R user's data directory and
-data binaries are stored in the R user's cache directory, both for the
-addr package (see \code{?R_user_dir}).
 }
 \examples{
+# read data from NAD, caching output on first run
 \dontrun{
   nad("Hamilton", "OH")
 }
 
 # example data preloaded for Hamilton County, OH
-nad_example_data()
+# works without downloading NAD gdb first
+nad("Hamilton", "OH", refresh = "no")
 }

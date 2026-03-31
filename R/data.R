@@ -1,8 +1,13 @@
 #' Example National Address Database addresses
 #'
+#' @description
 #' An example of the data returned using `nad_read()` for
 #' Hamilton County, Ohio.  See `?nad_read` for more information about
 #' the National Address Database.
+#'
+#' `nad("Hamilton", "OH", refresh = "no")` is equivalent to
+#' `nad_example_data()`
+#'
 #' @param match_prepare logical; return the example data preprocessed with
 #'   `addr_match_prepare()`?
 #' @returns If `match_prepare = FALSE`, a tibble with 349,407 rows and 7
@@ -23,7 +28,7 @@ nad_example_data <- function(match_prepare = FALSE) {
       readRDS(
         system.file(
           "extdata",
-          "nad_39061_match_prepared.rds",
+          "nad_39061_mp.rds",
           package = "addr",
           mustWork = TRUE
         )
