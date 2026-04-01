@@ -124,6 +124,20 @@ addr_street <- S7::new_class(
     map_pretype = TRUE,
     map_ordinal = TRUE
   ) {
+    stopifnot(
+      "map_posttype must be TRUE or FALSE" = is.logical(map_posttype) &&
+        length(map_posttype) == 1L &&
+        !is.na(map_posttype),
+      "map_directional must be TRUE or FALSE" = is.logical(map_directional) &&
+        length(map_directional) == 1L &&
+        !is.na(map_directional),
+      "map_pretype must be TRUE or FALSE" = is.logical(map_pretype) &&
+        length(map_pretype) == 1L &&
+        !is.na(map_pretype),
+      "map_ordinal must be TRUE or FALSE" = is.logical(map_ordinal) &&
+        length(map_ordinal) == 1L &&
+        !is.na(map_ordinal)
+    )
     if (map_posttype) {
       posttype <- map_street_name_post_type(posttype)
     }
@@ -191,6 +205,11 @@ addr_place <- S7::new_class(
     zipcode = NA_character_,
     map_state = TRUE
   ) {
+    stopifnot(
+      "map_state must be TRUE or FALSE" = is.logical(map_state) &&
+        length(map_state) == 1L &&
+        !is.na(map_state)
+    )
     if (isTRUE(map_state)) {
       state <- map_state_to_abbrev(state)
     }

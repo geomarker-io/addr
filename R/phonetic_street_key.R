@@ -15,6 +15,7 @@
 #'     "PAXTON", "5th", "BURNET", "FIFTH", "CLIFTON")
 #' )
 phonetic_street_key <- function(x) {
+  stopifnot("x must be a character vector" = is.character(x))
   xm <- map_ordinal_street_names(x)
   xord <- is_ordinal_street_number(xm)
   xs <- soundex(xm)
@@ -27,7 +28,10 @@ is_ordinal_phonetic_key <- function(x) {
 }
 
 ordinal_phonetic_key_neighbors <- function(x) {
-  stopifnot(typeof(x) == "character", length(x) == 1L)
+  stopifnot(
+    "x must be a character vector" = is.character(x),
+    "x must be length one" = length(x) == 1L
+  )
   if (is.na(x) || !is_ordinal_phonetic_key(x)) {
     return(character(0))
   }
@@ -151,7 +155,7 @@ ordinal_street_number <- function(x) {
 }
 
 canonical_ordinal <- function(n) {
-  stopifnot(typeof(n) == "integer")
+  stopifnot("n must be an integer vector" = typeof(n) == "integer")
   suffix <- ifelse(
     n %% 100 %in% c(11, 12, 13),
     "TH",

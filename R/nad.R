@@ -50,6 +50,16 @@
 #' # works without downloading NAD gdb first
 #' nad("Hamilton", "OH", refresh = "no")
 nad <- function(county, state, refresh = c("yes", "no", "force")) {
+  stopifnot(
+    "county must be a character vector" = is.character(county),
+    "county must be length one" = length(county) == 1L,
+    "county must not be missing" = !is.na(county),
+    "state must be a character vector" = is.character(state),
+    "state must be length one" = length(state) == 1L,
+    "state must not be missing" = !is.na(state),
+    "refresh must be a character vector" = is.character(refresh),
+    "refresh must not contain missing values" = !any(is.na(refresh))
+  )
   refresh <- match.arg(refresh)
   nad_sd <- nad_sd_path(county, state)
   if (
@@ -82,6 +92,14 @@ nad <- function(county, state, refresh = c("yes", "no", "force")) {
 }
 
 nad_sd_path <- function(county, state) {
+  stopifnot(
+    "county must be a character vector" = is.character(county),
+    "county must be length one" = length(county) == 1L,
+    "county must not be missing" = !is.na(county),
+    "state must be a character vector" = is.character(state),
+    "state must be length one" = length(state) == 1L,
+    "state must not be missing" = !is.na(state)
+  )
   file.path(
     tools::R_user_dir("addr", "cache"),
     "NAD",
@@ -94,6 +112,14 @@ nad_sd_path <- function(county, state) {
 
 #' @rdname nad
 nad_read <- function(county, state) {
+  stopifnot(
+    "county must be a character vector" = is.character(county),
+    "county must be length one" = length(county) == 1L,
+    "county must not be missing" = !is.na(county),
+    "state must be a character vector" = is.character(state),
+    "state must be length one" = length(state) == 1L,
+    "state must not be missing" = !is.na(state)
+  )
   check_installed("sf", "to read from the NAD geodatabase")
   nad_fields <- c(
     "AddNum_Pre",

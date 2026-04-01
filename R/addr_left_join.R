@@ -31,10 +31,16 @@ addr_left_join <- function(
   match_street_postdirectional = FALSE,
   progress = interactive()
 ) {
-  if (is.character(by) && length(by) == 2L) {
+  stopifnot(
+    "by must be a character vector" = is.character(by),
+    "by must have length 1 or 2" = length(by) %in% c(1L, 2L),
+    "by must not contain missing values" = !any(is.na(by))
+  )
+
+  if (length(by) == 2L) {
     x_by <- by[[1]]
     y_by <- by[[2]]
-  } else if (is.character(by) && length(by) == 1L) {
+  } else if (length(by) == 1L) {
     x_by <- by
     y_by <- by
   } else {
@@ -46,7 +52,9 @@ addr_left_join <- function(
     "y must be a data frame" = is.data.frame(y),
     "x must contain the join column" = x_by %in% names(x),
     "y must contain the join column" = y_by %in% names(y),
-    "suffix must be length 2" = is.character(suffix) && length(suffix) == 2,
+    "suffix must be a character vector" = is.character(suffix),
+    "suffix must be length 2" = length(suffix) == 2L,
+    "suffix must not contain missing values" = !any(is.na(suffix)),
     "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
       length(zip_variants) == 1L &&
       !is.na(zip_variants),

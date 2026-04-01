@@ -48,7 +48,18 @@
 #'   leaflet::addCircleMarkers( lng = ~x, lat = ~y, label = ~ feature_id)
 #' }
 geocode_tiger <- function(x, county, year, offset = 0) {
-  stopifnot("x must be an addr vector" = inherits(x, "addr"))
+  stopifnot(
+    "x must be an addr vector" = inherits(x, "addr"),
+    "county must be a character vector" = is.character(county),
+    "county must be length one" = length(county) == 1L,
+    "county must not be missing" = !is.na(county),
+    "year must be a character vector" = is.character(year),
+    "year must be length one" = length(year) == 1L,
+    "year must not be missing" = !is.na(year),
+    "offset must be numeric" = is.numeric(offset),
+    "offset must be length one" = length(offset) == 1L,
+    "offset must not be missing" = !is.na(offset)
+  )
 
   taf <- tiger_addr_feat(county = county, year = year)
 

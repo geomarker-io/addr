@@ -13,6 +13,7 @@
 #'   "33_33 Burnet Ave. Cincinnati OH 45219"
 #' ))
 clean_address_text <- function(x) {
+  stopifnot("x must be a character vector" = is.character(x))
   x <- gsub("\\\\|\"", "", x)
   x <- gsub("[^[:alnum:]# -]", "", x)
   trimws(gsub("[[:space:]]+", " ", x))

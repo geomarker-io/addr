@@ -47,6 +47,23 @@ S7::method(as_addr, S7::class_character) <- function(
   map_directional = TRUE,
   map_pretype = TRUE
 ) {
+  stopifnot(
+    "clean must be TRUE or FALSE" = is.logical(clean) &&
+      length(clean) == 1L &&
+      !is.na(clean),
+    "map_state must be TRUE or FALSE" = is.logical(map_state) &&
+      length(map_state) == 1L &&
+      !is.na(map_state),
+    "map_posttype must be TRUE or FALSE" = is.logical(map_posttype) &&
+      length(map_posttype) == 1L &&
+      !is.na(map_posttype),
+    "map_directional must be TRUE or FALSE" = is.logical(map_directional) &&
+      length(map_directional) == 1L &&
+      !is.na(map_directional),
+    "map_pretype must be TRUE or FALSE" = is.logical(map_pretype) &&
+      length(map_pretype) == 1L &&
+      !is.na(map_pretype)
+  )
   tags <- tag_usaddress(x, clean = clean)
 
   extract_tag <- function(tag_vec, label, collapse = " ") {
@@ -188,6 +205,20 @@ S7::method(as_addr, .data.frame) <-
     map_directional = TRUE,
     map_pretype = TRUE
   ) {
+    stopifnot(
+      "map_state must be TRUE or FALSE" = is.logical(map_state) &&
+        length(map_state) == 1L &&
+        !is.na(map_state),
+      "map_posttype must be TRUE or FALSE" = is.logical(map_posttype) &&
+        length(map_posttype) == 1L &&
+        !is.na(map_posttype),
+      "map_directional must be TRUE or FALSE" = is.logical(map_directional) &&
+        length(map_directional) == 1L &&
+        !is.na(map_directional),
+      "map_pretype must be TRUE or FALSE" = is.logical(map_pretype) &&
+        length(map_pretype) == 1L &&
+        !is.na(map_pretype)
+    )
     n <- nrow(x)
     col_or_na <- function(name) {
       if (name %in% names(x)) {

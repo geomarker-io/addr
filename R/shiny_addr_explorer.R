@@ -12,6 +12,11 @@
 #'   run_addr_explorer()
 #' }
 run_addr_explorer <- function(launch.browser = interactive()) {
+  stopifnot(
+    "launch.browser must be TRUE or FALSE" = is.logical(launch.browser) &&
+      length(launch.browser) == 1L &&
+      !is.na(launch.browser)
+  )
   check_installed("shiny", "to run the address explorer app")
   check_installed("htmltools", "to render the address explorer app")
   invisible(

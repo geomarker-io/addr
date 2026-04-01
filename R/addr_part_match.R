@@ -192,10 +192,17 @@ match_addr_street <- function(
   stopifnot(
     "x must be an addr_street object" = inherits(x, "addr_street"),
     "y must be an addr_street object" = inherits(y, "addr_street"),
+    "name_phonetic_dist must be an integer" = typeof(name_phonetic_dist) ==
+      "integer",
+    "name_phonetic_dist must be length one" = length(name_phonetic_dist) == 1L,
+    "name_phonetic_dist must not be missing" = !is.na(name_phonetic_dist),
     "match_street_predirectional must be TRUE or FALSE" =
       is.logical(match_street_predirectional) &&
         length(match_street_predirectional) == 1L &&
         !is.na(match_street_predirectional),
+    "name_fuzzy_dist must be an integer" = typeof(name_fuzzy_dist) == "integer",
+    "name_fuzzy_dist must be length one" = length(name_fuzzy_dist) == 1L,
+    "name_fuzzy_dist must not be missing" = !is.na(name_fuzzy_dist),
     "match_street_posttype must be TRUE or FALSE" =
       is.logical(match_street_posttype) &&
         length(match_street_posttype) == 1L &&
@@ -386,7 +393,10 @@ match_addr_number <- function(x, y, number_fuzzy_dist = 1L) {
   stopifnot(
     "x must be an addr_number object" = inherits(x, "addr_number"),
     "y must be an addr_number object" = inherits(y, "addr_number"),
-    "osa_max_dist must be an integer" = typeof(number_fuzzy_dist) == "integer"
+    "number_fuzzy_dist must be an integer" = typeof(number_fuzzy_dist) ==
+      "integer",
+    "number_fuzzy_dist must be length one" = length(number_fuzzy_dist) == 1L,
+    "number_fuzzy_dist must not be missing" = !is.na(number_fuzzy_dist)
   )
   ux <- unique(x[!is.na(x@digits) & x@digits != ""])
   uy <- unique(y[!is.na(y@digits) & y@digits != ""])
@@ -464,6 +474,13 @@ match_addr_number <- function(x, y, number_fuzzy_dist = 1L) {
 #'   zip_variants = FALSE
 #' )
 match_zipcodes <- function(x, y, zip_variants = TRUE) {
+  stopifnot(
+    "x must be a character vector" = is.character(x),
+    "y must be a character vector" = is.character(y),
+    "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
+      length(zip_variants) == 1L &&
+      !is.na(zip_variants)
+  )
   x <- addr::addr_place(zipcode = x)@zipcode
   y <- addr::addr_place(zipcode = y)@zipcode
   ux <- unique(x[!is.na(x) & x != ""])
@@ -499,7 +516,10 @@ match_zipcodes <- function(x, y, zip_variants = TRUE) {
 }
 
 zipcode_variant <- function(x) {
-  stopifnot(typeof(x) == "character", length(x) == 1L)
+  stopifnot(
+    "x must be a character vector" = is.character(x),
+    "x must be length one" = length(x) == 1L
+  )
   x <- addr::addr_place(zipcode = x)@zipcode
   if (is.na(x)) {
     return(NA_character_)

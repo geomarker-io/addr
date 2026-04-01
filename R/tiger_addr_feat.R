@@ -1,4 +1,9 @@
 tiger_download <- function(x) {
+  stopifnot(
+    "x must be a character vector" = is.character(x),
+    "x must be length one" = length(x) == 1L,
+    "x must not be missing" = !is.na(x)
+  )
   tiger_url <- paste0("ftp://ftp2.census.gov/geo/tiger/", x)
   dest <- file.path(tools::R_user_dir("addr", "data"), x)
   dir.create(dirname(dest), showWarnings = FALSE, recursive = TRUE)
@@ -61,7 +66,14 @@ pivot_addrfeat_sides <- function(x) {
 #' @examples
 #' tiger_addr_feat("39061", "2024")
 tiger_addr_feat <- function(county, year) {
-  # TODO validate county and year args
+  stopifnot(
+    "county must be a character vector" = is.character(county),
+    "county must be length one" = length(county) == 1L,
+    "county must not be missing" = !is.na(county),
+    "year must be a character vector" = is.character(year),
+    "year must be length one" = length(year) == 1L,
+    "year must not be missing" = !is.na(year)
+  )
   check_installed("sf", "to read address range shapefiles")
   rd <- tiger_download(sprintf(
     "TIGER%s/ADDRFEAT/tl_%s_%s_addrfeat.zip",

@@ -66,7 +66,12 @@
 #'   )
 #' )
 tag_usaddress <- function(x = NA_character_, clean = TRUE) {
-  stopifnot("x must be a character vector" = is.character(x))
+  stopifnot(
+    "x must be a character vector" = is.character(x),
+    "clean must be TRUE or FALSE" = is.logical(clean) &&
+      length(clean) == 1L &&
+      !is.na(clean)
+  )
   if (clean) {
     x <- clean_address_text(x)
   }
