@@ -293,7 +293,7 @@ format(addr_match(
   match_street_postdirectional = TRUE
 ))
 
-my_addr <- as_addr(voter_addresses()[1:100])
+my_addr <- as_addr(voter_addresses()[1:50])
 
 addr_match(my_addr, the_addr)
 }

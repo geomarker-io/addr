@@ -17,7 +17,7 @@ test_that("tiger_addr_feat() can download addr feat from tiger", {
   expect_s3_class(d, c("sf", "tbl_df", "tbl", "data.frame"))
   expect_true(nrow(d) > 0)
   expect_true(all(c("LINEARID", "FULLNAME", "ZIP") %in% names(d)))
-  expect_s3_class(d$geometry, "sfc")
+  expect_s3_class(d$s2_geography, "s2_geography")
 })
 
 test_that("tiger_addr_feat() works with existing user data dir", {
@@ -28,5 +28,5 @@ test_that("tiger_addr_feat() works with existing user data dir", {
   expect_s3_class(d, c("sf", "tbl_df", "tbl", "data.frame"))
   expect_true(nrow(d) > 0)
   expect_true(all(c("LINEARID", "FULLNAME", "ZIP") %in% names(d)))
-  expect_s3_class(d$geometry, "sfc")
+  expect_s3_class(d$s2_geography, "s2_geography")
 })

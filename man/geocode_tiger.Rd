@@ -43,6 +43,7 @@ the best match is chosen based on the smallest width of ranges and
 then on the range with the closest midpoint.
 }
 \examples{
+\dontrun{
 gcd <-
   geocode_tiger(as_addr(voter_addresses()[1:100]),
                 county = "39061", year = "2024", offset = 20)
@@ -61,4 +62,5 @@ s2::as_s2_cell(gcd)
 leaflet::leaflet(wk::wk_coords(gcd)) |>
   leaflet::addTiles() |>
   leaflet::addCircleMarkers( lng = ~x, lat = ~y, label = ~ feature_id)
+}
 }

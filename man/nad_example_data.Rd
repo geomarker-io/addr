@@ -18,6 +18,9 @@ columns. If \code{match_prepare = TRUE}, an \code{addr_match_index}.
 An example of the data returned using \code{nad_read()} for
 Hamilton County, Ohio.  See \code{?nad_read} for more information about
 the National Address Database.
+
+\code{nad("Hamilton", "OH", refresh = "no")} is equivalent to
+\code{nad_example_data()}
 }
 \examples{
 nad_example_data()

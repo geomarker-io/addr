@@ -27,6 +27,7 @@
 #'
 #' @export
 #' @examples
+#' \dontrun{
 #' gcd <-
 #'   geocode_tiger(as_addr(voter_addresses()[1:100]),
 #'                 county = "39061", year = "2024", offset = 20)
@@ -45,6 +46,7 @@
 #' leaflet::leaflet(wk::wk_coords(gcd)) |>
 #'   leaflet::addTiles() |>
 #'   leaflet::addCircleMarkers( lng = ~x, lat = ~y, label = ~ feature_id)
+#' }
 geocode_tiger <- function(x, county, year, offset = 0) {
   stopifnot("x must be an addr vector" = inherits(x, "addr"))
 

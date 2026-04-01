@@ -1,4 +1,5 @@
 url: https://geomarker.io/addr/
+llm-docs: false
 template:
   bootstrap: 5
   bslib:
@@ -40,6 +41,7 @@ reference:
       - tiger_addr_feat
   - title: National Address Database
     contents:
+      - nad
       - nad_read
       - nad_download
       - nad_example_data
