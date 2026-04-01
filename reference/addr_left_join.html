@@ -15,7 +15,7 @@ selects a single best address before this wrapper expands exact duplicates."></h
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,7 +56,13 @@ selects a single best address before this wrapper expands exact duplicates.</p>
 <span>  by <span class="op">=</span> <span class="st">"addr"</span>,</span>
 <span>  suffix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">".x"</span>, <span class="st">".y"</span><span class="op">)</span>,</span>
 <span>  zip_variants <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  osa_max_dist <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  name_phonetic_dist <span class="op">=</span> <span class="fl">2L</span>,</span>
+<span>  name_fuzzy_dist <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  number_fuzzy_dist <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  match_street_predirectional <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  match_street_posttype <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  match_street_pretype <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  match_street_postdirectional <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  progress <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/interactive.html" class="external-link">interactive</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -79,13 +85,44 @@ character vector of <code>c(x_col, y_col)</code></p></dd>
 
 
 <dt id="arg-zip-variants">zip_variants<a class="anchor" aria-label="anchor" href="#arg-zip-variants"></a></dt>
-<dd><p>logical; fuzzy match to common ZIP code variants in
-<code><a href="match_zipcodes.html">match_zipcodes()</a></code>?</p></dd>
+<dd><p>logical; fuzzy match to common variants of
+x in y? (e.g., changing 4th or 5th digit)</p></dd>
 
 
-<dt id="arg-osa-max-dist">osa_max_dist<a class="anchor" aria-label="anchor" href="#arg-osa-max-dist"></a></dt>
-<dd><p>integer maximum OSA distance used by
-<code><a href="match_addr_number.html">match_addr_number()</a></code></p></dd>
+<dt id="arg-name-phonetic-dist">name_phonetic_dist<a class="anchor" aria-label="anchor" href="#arg-name-phonetic-dist"></a></dt>
+<dd><p>integer; maximum optimized string alignment
+distance between <code><a href="phonetic_street_key.html">phonetic_street_key()</a></code> of x and y to consider a possible
+match</p></dd>
+
+
+<dt id="arg-name-fuzzy-dist">name_fuzzy_dist<a class="anchor" aria-label="anchor" href="#arg-name-fuzzy-dist"></a></dt>
+<dd><p>integer; maximum optimized string alignment distance
+between <code>@name</code> of x and y to consider a possible match</p></dd>
+
+
+<dt id="arg-number-fuzzy-dist">number_fuzzy_dist<a class="anchor" aria-label="anchor" href="#arg-number-fuzzy-dist"></a></dt>
+<dd><p>integer; maximum optimized string alignment distance
+between <code>@number</code> of x and y to consider a possible match</p></dd>
+
+
+<dt id="arg-match-street-predirectional">match_street_predirectional<a class="anchor" aria-label="anchor" href="#arg-match-street-predirectional"></a></dt>
+<dd><p>logical; require street predirectional to
+match when selecting street candidates?</p></dd>
+
+
+<dt id="arg-match-street-posttype">match_street_posttype<a class="anchor" aria-label="anchor" href="#arg-match-street-posttype"></a></dt>
+<dd><p>logical; require street posttype to match when
+selecting street candidates?</p></dd>
+
+
+<dt id="arg-match-street-pretype">match_street_pretype<a class="anchor" aria-label="anchor" href="#arg-match-street-pretype"></a></dt>
+<dd><p>logical; require street pretype to match when
+selecting street candidates?</p></dd>
+
+
+<dt id="arg-match-street-postdirectional">match_street_postdirectional<a class="anchor" aria-label="anchor" href="#arg-match-street-postdirectional"></a></dt>
+<dd><p>logical; require street postdirectional
+to match when selecting street candidates?</p></dd>
 
 
 <dt id="arg-progress">progress<a class="anchor" aria-label="anchor" href="#arg-progress"></a></dt>
