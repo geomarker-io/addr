@@ -23,7 +23,9 @@
 #'   id = 1:100
 #' )
 #' d <- addr_left_join(my_addr, the_addr, by = c("addr", "nad_addr"))
+#'
 #' d
+#'
 #' # some addresses may match with more than one address in NAD
 #' # since matching does not consider subaddress (e.g. "line two")
 #' # take the first row in these cases
