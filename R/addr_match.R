@@ -60,6 +60,17 @@ addr_match_key <- function(x) {
   do.call(paste, c(parts, sep = "\r"))
 }
 
+addr_match_unique_keys_by_zip <- function(y, y_keys = NULL) {
+  if (length(y) == 0L) {
+    return(list())
+  }
+  if (is.null(y_keys)) {
+    y_keys <- addr_match_key(y)
+  }
+  unique_idx <- !duplicated(y_keys)
+  split(y_keys[unique_idx], y@place@zipcode[unique_idx], drop = TRUE)
+}
+
 addr_empty_df <- function(n) {
   data.frame(
     number_prefix = rep(NA_character_, n),
@@ -396,7 +407,6 @@ addr_match <- function(
       !is.na(progress)
   )
 
-  start_time <- proc.time()[["elapsed"]]
   if (length(x) == 0L) {
     return(x)
   }
@@ -427,6 +437,7 @@ addr_match <- function(
     return(addr_missing(length(x)))
   }
 
+  match_start_time <- proc.time()[["elapsed"]]
   matched_zipcodes <- match_zipcodes_prepared(
     x@place@zipcode,
     y_index$zipcodes,
@@ -440,7 +451,7 @@ addr_match <- function(
   if (progress) {
     on.exit(
       {
-        elapsed <- proc.time()[["elapsed"]] - start_time
+        elapsed <- proc.time()[["elapsed"]] - match_start_time
         addr_progress_update(
           length(x),
           length(x),
@@ -537,7 +548,8 @@ addr_match_prepare <- function(y) {
       list(
         by_zip = list(),
         zipcodes = character(),
-        n_unique = 0L
+        n_unique = 0L,
+        keys_by_zip = list()
       ),
       class = "addr_match_index"
     ))
@@ -554,7 +566,8 @@ addr_match_prepare <- function(y) {
     list(
       by_zip = by_zip,
       zipcodes = zipcodes,
-      n_unique = length(uy)
+      n_unique = length(uy),
+      keys_by_zip = split(addr_match_key(uy), uy@place@zipcode, drop = TRUE)
     ),
     class = "addr_match_index"
   )

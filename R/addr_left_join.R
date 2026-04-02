@@ -12,17 +12,27 @@
 #' @param suffix character vector of length 2 used to suffix duplicate columns
 #' @inheritParams addr_match
 #' @param progress logical; show `addr_match()` progress?
+#' @param match_prepared optional prepared `addr_match_index` for the `y` addr
+#'   column, usually from `addr_match_prepare()`. When supplied,
+#'   `addr_left_join()` validates that it is equivalent to the `y` addr column
+#'   before reusing it for matching.
 #' @return A data frame with left-join semantics. Duplicate rows in `y` with
 #'   the exact same matched `addr` are all returned. Partial ZIP-only or
 #'   street-only matches do not expand to multiple candidate rows in `y`.
 #' @export
 #' @examples
 #' the_addr <- nad("Hamilton", "OH", refresh = "no")
+#' the_addr_mp <- addr_match_prepare(the_addr$nad_addr)
 #' my_addr <- tibble::tibble(
 #'   addr = as_addr(voter_addresses()[1:100]),
 #'   id = 1:100
 #' )
-#' d <- addr_left_join(my_addr, the_addr, by = c("addr", "nad_addr"))
+#' d <- addr_left_join(
+#'   my_addr,
+#'   the_addr,
+#'   by = c("addr", "nad_addr"),
+#'   match_prepared = the_addr_mp
+#' )
 #'
 #' d
 #'
@@ -44,7 +54,8 @@ addr_left_join <- function(
   match_street_posttype = TRUE,
   match_street_pretype = TRUE,
   match_street_postdirectional = FALSE,
-  progress = interactive()
+  progress = interactive(),
+  match_prepared = NULL
 ) {
   stopifnot(
     "by must be a character vector" = is.character(by),
@@ -107,7 +118,11 @@ addr_left_join <- function(
       !is.na(match_street_postdirectional),
     "progress must be TRUE or FALSE" = is.logical(progress) &&
       length(progress) == 1L &&
-      !is.na(progress)
+      !is.na(progress),
+    "match_prepared must be NULL or an addr_match_index" = is.null(
+      match_prepared
+    ) ||
+      is_addr_match_index(match_prepared)
   )
 
   if (nrow(x) == 0L) {
@@ -148,9 +163,29 @@ addr_left_join <- function(
     )
   }
 
+  y_addr_keys <- addr_match_key(y_addr)
+  if (!is.null(match_prepared)) {
+    if (is.null(match_prepared$keys_by_zip)) {
+      stop(
+        "match_prepared must be created by addr_match_prepare() with validation metadata",
+        call. = FALSE
+      )
+    }
+    y_keys_by_zip <- addr_match_unique_keys_by_zip(y_addr, y_addr_keys)
+    if (!identical(match_prepared$keys_by_zip, y_keys_by_zip)) {
+      stop(
+        sprintf(
+          "match_prepared is not equivalent to y$%s",
+          y_by
+        ),
+        call. = FALSE
+      )
+    }
+  }
+
   matched <- addr_match(
     x = x_addr,
-    y = y_addr,
+    y = if (is.null(match_prepared)) y_addr else match_prepared,
     zip_variants = zip_variants,
     name_phonetic_dist = name_phonetic_dist,
     name_fuzzy_dist = name_fuzzy_dist,
@@ -162,7 +197,7 @@ addr_left_join <- function(
     progress = progress
   )
 
-  y_rows_by_key <- split(seq_len(nrow(y)), addr_match_key(y_addr), drop = TRUE)
+  y_rows_by_key <- split(seq_len(nrow(y)), y_addr_keys, drop = TRUE)
   matched_keys <- addr_match_key(matched)
   matched_keys[is.na(matched)] <- NA_character_
 

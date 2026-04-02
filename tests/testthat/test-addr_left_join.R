@@ -116,3 +116,56 @@ test_that("addr_left_join forwards addr_match tuning arguments", {
   expect_equal(out_default$y_id, 202L)
   expect_equal(out_required$y_id, 202L)
 })
+
+test_that("addr_left_join can reuse a prepared match index for y", {
+  x <- tibble::tibble(
+    id = 1:2,
+    addr = as_addr(c(
+      "10 MAIN ST CINCINNATI OH 45220",
+      "20 MAIN ST CINCINNATI OH 45220"
+    ))
+  )
+  y <- tibble::tibble(
+    addr = as_addr(c(
+      "10 MAIN ST CINCINNATI OH 45220",
+      "10 MAIN ST CINCINNATI OH 45220",
+      "20 MAIN ST CINCINNATI OH 45220"
+    )),
+    id = c(101, 102, 201)
+  )
+
+  out_raw <- addr_left_join(x, y, progress = FALSE)
+  out_prepared <- addr_left_join(
+    x,
+    y,
+    progress = FALSE,
+    match_prepared = addr_match_prepare(y$addr)
+  )
+
+  expect_equal(out_prepared, out_raw)
+})
+
+test_that("addr_left_join rejects a prepared match index from different y", {
+  x <- tibble::tibble(
+    id = 1L,
+    addr = as_addr("10 MAIN ST CINCINNATI OH 45220")
+  )
+  y <- tibble::tibble(
+    addr = as_addr("10 MAIN ST CINCINNATI OH 45220"),
+    id = 101L
+  )
+  y_other <- tibble::tibble(
+    addr = as_addr("11 MAIN ST CINCINNATI OH 45220"),
+    id = 202L
+  )
+
+  expect_error(
+    addr_left_join(
+      x,
+      y,
+      progress = FALSE,
+      match_prepared = addr_match_prepare(y_other$addr)
+    ),
+    "match_prepared is not equivalent to y\\$addr"
+  )
+})
