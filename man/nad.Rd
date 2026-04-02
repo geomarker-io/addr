@@ -6,22 +6,37 @@
 \alias{nad_download}
 \title{Read National Address Database (NAD) tables into R}
 \usage{
-nad(county, state, refresh = c("yes", "no", "force"))
+nad(
+  county,
+  state,
+  release = "latest",
+  refresh_binary = c("yes", "no", "force"),
+  refresh_source = c("yes", "no", "force")
+)
 
-nad_read(county, state)
+nad_read(county, state, release, refresh_source = c("yes", "no", "force"))
 
-nad_download()
+nad_download(release = "latest", refresh_source = c("yes", "no", "force"))
 }
 \arguments{
 \item{county}{character, length one; name of county}
 
 \item{state}{character, length one; name of state}
 
-\item{refresh}{character, length one; choose how to refresh NAD
+\item{release}{character, length 1; revision of the NAD;
+the default ("latest") fetches the most recent version available online;
+specify other versions by their .zip filename (see examples)}
+
+\item{refresh_binary}{character, length one; choose how to refresh NAD
 data binaries cached on disk if not already present; "yes" will
 create data binary if not already present, "no" will
 error if data binary is not already present, "force" will
 create the data binary and overwrite any existing data binary}
+
+\item{refresh_source}{character, length one; choose how to refresh NAD
+source geodatabase on disk if not already present; "yes" wil download
+the geodatabase if not already present, "no" will error if file does not already
+exist, "force" will download and overwrite any existing geodatabase}
 }
 \description{
 The U.S. Department of Transportation partners with address programs from
@@ -29,9 +44,9 @@ state, local, and tribal governments to compile their authoritative data
 into a database. Find more information here:
 \url{https://www.transportation.gov/gis/national-address-database}
 
-\code{nad_read()} reads data from the NAD geodatabase by county and state,
-downloading it first to the R user's data directory for the addr
-package if not already downloaded with \code{nad_download()},
+\code{nad_read()} reads data from the NAD geodatabase
+by county and state, downloading it first to the R user's data directory
+for the addr package if not already downloaded with \code{nad_download()},
 and readies it for R.
 The NAD geodatabase has a very large size on disk (~10 GB).
 
@@ -43,11 +58,16 @@ having to download the nationwide NAD geodatabase.
 (\code{list.files(tools::R_user_dir("addr", "cache"), recursive = TRUE)})
 }
 \details{
-The NAD is downloaded as the latest release from the transportation.gov
+The NAD is downloaded from each release on the transportation.gov
 data portal:
-\url{https://data.transportation.gov/dataset/National-Address-Database-NAD-File-Geodatabase/yw36-suxr/about_data}
+\url{https://data.transportation.gov/d/yw36-suxr}
 For the original schema, see
 \url{https://www.transportation.gov/sites/dot.gov/files/2023-07/NAD_Schema_202304.pdf}
+Before downloading, please read the disclaimer here:
+\url{https://www.transportation.gov/mission/open/gis/national-address-database/national-address-database-nad-disclaimer}
+
+Investigate individual address points in the online viewer:
+\url{https://usdot.maps.arcgis.com/apps/instant/portfolio/index.html?appid=59f7e4fb71994d13b61f424e21a6cffe}
 
 The NAD does not distinguish between empty and missing address components.
 When reading into R, all missing address components are replaced with an
@@ -62,5 +82,14 @@ and ZIP code.
 
 # example data preloaded for Hamilton County, OH
 # works without downloading NAD gdb first
-nad("Hamilton", "OH", refresh = "no")
+nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no")
+
+# some older releases can still be downloaded
+\dontrun{
+  nad_download(release = "NAD_r21_FGDB.zip")
+}
+# can also point to older releases if they are already downloaded installed
+\dontrun{
+  nad_download(release = "NAD_r21_FGDB.zip", refresh_source = "no")
+}
 }

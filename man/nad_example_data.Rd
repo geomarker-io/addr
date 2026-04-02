@@ -4,25 +4,25 @@
 \alias{nad_example_data}
 \title{Example National Address Database addresses}
 \usage{
-nad_example_data(match_prepare = FALSE)
+nad_example_data(match_prepared = FALSE)
 }
 \arguments{
-\item{match_prepare}{logical; return the example data preprocessed with
+\item{match_prepared}{logical; return the example data preprocessed with
 \code{addr_match_prepare()}?}
 }
 \value{
-If \code{match_prepare = FALSE}, a tibble with 349,407 rows and 7
-columns. If \code{match_prepare = TRUE}, an \code{addr_match_index}.
+If \code{match_prepared = FALSE}, a tibble with 349,407 rows and 7
+columns. If \code{match_prepared = TRUE}, an \code{addr_match_index}.
 }
 \description{
-An example of the data returned using \code{nad_read()} for
-Hamilton County, Ohio.  See \code{?nad_read} for more information about
+An example of the data returned using \code{nad()} for
+Hamilton County, Ohio (release \code{NAD_r22.zip}).  See \code{?nad} for more information about
 the National Address Database.
 
-\code{nad("Hamilton", "OH", refresh = "no")} is equivalent to
-\code{nad_example_data()}
+\code{nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no")}
+is equivalent to \code{nad_example_data()}
 }
 \examples{
 nad_example_data()
-nad_example_data(match_prepare = TRUE)
+nad_example_data(match_prepared = TRUE)
 }
