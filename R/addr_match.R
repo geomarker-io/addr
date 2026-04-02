@@ -337,7 +337,10 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #'
 #' my_addr <- as_addr(voter_addresses()[1:100])
 #'
-#' addr_match(my_addr, the_addr)
+#' d <- addr_match(my_addr, the_addr)
+#' d
+#'
+#' addr_match_stage(d)
 addr_match <- function(
   x,
   y,

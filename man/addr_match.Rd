@@ -120,5 +120,8 @@ addr_match(
 
 my_addr <- as_addr(voter_addresses()[1:100])
 
-addr_match(my_addr, the_addr)
+d <- addr_match(my_addr, the_addr)
+d
+
+addr_match_stage(d)
 }

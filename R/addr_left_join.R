@@ -22,9 +22,13 @@
 #'   addr = as_addr(voter_addresses()[1:100]),
 #'   id = 1:100
 #' )
-#' addr_left_join(my_addr, the_addr, by = c("addr", "nad_addr"))
+#' d <- addr_left_join(my_addr, the_addr, by = c("addr", "nad_addr"))
+#' d
 #' # some addresses may match with more than one address in NAD
 #' # since matching does not consider subaddress (e.g. "line two")
+#' # take the first row in these cases
+#'
+#' table(addr_match_stage(d$nad_addr.y[!duplicated(d$id)]))
 addr_left_join <- function(
   x,
   y,
