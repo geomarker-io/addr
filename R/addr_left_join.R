@@ -16,6 +16,15 @@
 #'   the exact same matched `addr` are all returned. Partial ZIP-only or
 #'   street-only matches do not expand to multiple candidate rows in `y`.
 #' @export
+#' @examples
+#' the_addr <- nad("Hamilton", "OH", refresh = "no")
+#' my_addr <- tibble::tibble(
+#'   addr = as_addr(voter_addresses()[1:100]),
+#'   id = 1:100
+#' )
+#' addr_left_join(my_addr, the_addr, by = c("addr", "nad_addr"))
+#' # some addresses may match with more than one address in NAD
+#' # since matching does not consider subaddress (e.g. "line two")
 addr_left_join <- function(
   x,
   y,
@@ -58,34 +67,38 @@ addr_left_join <- function(
     "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
       length(zip_variants) == 1L &&
       !is.na(zip_variants),
-    "name_phonetic_dist must be an integer" =
-      typeof(name_phonetic_dist) == "integer" &&
-        length(name_phonetic_dist) == 1L &&
-        !is.na(name_phonetic_dist),
-    "name_fuzzy_dist must be an integer" =
-      typeof(name_fuzzy_dist) == "integer" &&
-        length(name_fuzzy_dist) == 1L &&
-        !is.na(name_fuzzy_dist),
-    "number_fuzzy_dist must be an integer" =
-      typeof(number_fuzzy_dist) == "integer" &&
-        length(number_fuzzy_dist) == 1L &&
-        !is.na(number_fuzzy_dist),
-    "match_street_predirectional must be TRUE or FALSE" =
-      is.logical(match_street_predirectional) &&
-        length(match_street_predirectional) == 1L &&
-        !is.na(match_street_predirectional),
-    "match_street_posttype must be TRUE or FALSE" =
-      is.logical(match_street_posttype) &&
-        length(match_street_posttype) == 1L &&
-        !is.na(match_street_posttype),
-    "match_street_pretype must be TRUE or FALSE" =
-      is.logical(match_street_pretype) &&
-        length(match_street_pretype) == 1L &&
-        !is.na(match_street_pretype),
-    "match_street_postdirectional must be TRUE or FALSE" =
-      is.logical(match_street_postdirectional) &&
-        length(match_street_postdirectional) == 1L &&
-        !is.na(match_street_postdirectional),
+    "name_phonetic_dist must be an integer" = typeof(name_phonetic_dist) ==
+      "integer" &&
+      length(name_phonetic_dist) == 1L &&
+      !is.na(name_phonetic_dist),
+    "name_fuzzy_dist must be an integer" = typeof(name_fuzzy_dist) ==
+      "integer" &&
+      length(name_fuzzy_dist) == 1L &&
+      !is.na(name_fuzzy_dist),
+    "number_fuzzy_dist must be an integer" = typeof(number_fuzzy_dist) ==
+      "integer" &&
+      length(number_fuzzy_dist) == 1L &&
+      !is.na(number_fuzzy_dist),
+    "match_street_predirectional must be TRUE or FALSE" = is.logical(
+      match_street_predirectional
+    ) &&
+      length(match_street_predirectional) == 1L &&
+      !is.na(match_street_predirectional),
+    "match_street_posttype must be TRUE or FALSE" = is.logical(
+      match_street_posttype
+    ) &&
+      length(match_street_posttype) == 1L &&
+      !is.na(match_street_posttype),
+    "match_street_pretype must be TRUE or FALSE" = is.logical(
+      match_street_pretype
+    ) &&
+      length(match_street_pretype) == 1L &&
+      !is.na(match_street_pretype),
+    "match_street_postdirectional must be TRUE or FALSE" = is.logical(
+      match_street_postdirectional
+    ) &&
+      length(match_street_postdirectional) == 1L &&
+      !is.na(match_street_postdirectional),
     "progress must be TRUE or FALSE" = is.logical(progress) &&
       length(progress) == 1L &&
       !is.na(progress)

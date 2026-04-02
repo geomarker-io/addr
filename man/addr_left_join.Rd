@@ -67,3 +67,13 @@ in the original \code{y} that share the exact matched \code{addr}, but it does n
 return multiple distinct candidate addresses from \code{y}. \code{addr_match()} still
 selects a single best address before this wrapper expands exact duplicates.
 }
+\examples{
+the_addr <- nad("Hamilton", "OH", refresh = "no")
+my_addr <- tibble::tibble(
+  addr = as_addr(voter_addresses()[1:100]),
+  id = 1:100
+)
+addr_left_join(my_addr, the_addr, by = c("addr", "nad_addr"))
+# some addresses may match with more than one address in NAD
+# since matching does not consider subaddress (e.g. "line two")
+}
