@@ -136,6 +136,33 @@ the exact same matched <code>addr</code> are all returned. Partial ZIP-only or
 street-only matches do not expand to multiple candidate rows in <code>y</code>.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">the_addr</span> <span class="op">&lt;-</span> <span class="fu"><a href="nad.html">nad</a></span><span class="op">(</span><span class="st">"Hamilton"</span>, <span class="st">"OH"</span>, refresh <span class="op">=</span> <span class="st">"no"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">my_addr</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  addr <span class="op">=</span> <span class="fu"><a href="as_addr.html">as_addr</a></span><span class="op">(</span><span class="fu"><a href="voter_addresses.html">voter_addresses</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span><span class="op">]</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">100</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">addr_left_join</span><span class="op">(</span><span class="va">my_addr</span>, <span class="va">the_addr</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr"</span>, <span class="st">"nad_addr"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 111 × 9</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    addr            id nad_addr.y subaddress uuid  date_update s2    address_type</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;addr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;addr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;s2_&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 3359 QUEEN …     1 3359 QUEE… <span style="color: #BB0000;">NA</span>         {E3A… 2025-03-30  -6.7… Unknown     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> 1040 KREIS …     2 1040 KREI… <span style="color: #BB0000;">NA</span>         {D05… 2025-03-30  -6.7… Unknown     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> 9960 DALY R…     3 9960 DALY… <span style="color: #BB0000;">NA</span>         {109… 2025-03-30  -6.1… Unknown     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 413 VOLKERT…     4 413 VOLKE… <span style="color: #BB0000;">NA</span>         {1BB… 2025-03-30  -6.7… Unknown     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 8519 LINDER…     5 8519 LIND… <span style="color: #BB0000;">NA</span>         {F78… 2025-03-30  -6.6… Unknown     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> 6361 BEECHM…     6 6361 BEEC… <span style="color: #BB0000;">NA</span>         {6D4… 2025-03-30  -6.6… Unknown     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 10466 ADVEN…     7 10466 ADV… <span style="color: #BB0000;">NA</span>         {1D1… 2025-03-30  -6.1… Unknown     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> 3156 LOOKOU…     8 3156 LOOK… <span style="color: #BB0000;">NA</span>         {AE8… 2025-03-30  -6.6… Unknown     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 310 WYOMING…     9 310 WYOMI… <span style="color: #BB0000;">NA</span>         {331… 2025-03-30  -6.1… Unknown     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 118 SPRINGF…    10 118 SPRIN… <span style="color: #BB0000;">NA</span>         {F3E… 2025-03-30  -6.1… Unknown     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 101 more rows</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 1 more variable: parcel_id &lt;chr&gt;</span></span>
+<span class="r-in"><span><span class="co"># some addresses may match with more than one address in NAD</span></span></span>
+<span class="r-in"><span><span class="co"># since matching does not consider subaddress (e.g. "line two")</span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 
