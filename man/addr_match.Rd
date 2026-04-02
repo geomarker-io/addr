@@ -19,7 +19,7 @@ addr_match(
   progress = interactive()
 )
 
-addr_match_prepare(y)
+addr_match_prepare(y, progress = interactive())
 }
 \arguments{
 \item{x}{addr vector to match}
@@ -52,8 +52,8 @@ selecting street candidates?}
 \item{match_street_postdirectional}{logical; require street postdirectional
 to match when selecting street candidates?}
 
-\item{progress}{logical; show reference-preparation timing for raw \code{y} and a
-progress bar while processing matched ZIP groups?}
+\item{progress}{logical; show reference-preparation timing and a progress
+bar while preparing raw \code{y} or processing matched ZIP groups?}
 }
 \value{
 an addr vector, the same length as x, that is the best match in y

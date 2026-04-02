@@ -108,6 +108,18 @@ addr_progress_text <- function(zip, x_n, y_n) {
   )
 }
 
+addr_prepare_progress_text <- function(zip, y_n) {
+  zip <- zip[[1]]
+  if (is.na(zip) || identical(zip, "") || identical(zip, "NA")) {
+    zip <- "<missing zipcode>"
+  }
+  sprintf(
+    "preparing reference addr vector in %s (%s addrs)",
+    zip,
+    prettyNum(y_n, big.mark = ",", preserve.width = "none")
+  )
+}
+
 addr_progress_bar <- function(current, total, width = 80L) {
   width <- as.integer(width[[1]])
   total <- max(as.integer(total[[1]]), 1L)
@@ -309,8 +321,8 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #' @inheritParams match_zipcodes
 #' @inheritParams match_addr_street
 #' @inheritParams match_addr_number
-#' @param progress logical; show reference-preparation timing for raw `y` and a
-#'   progress bar while processing matched ZIP groups?
+#' @param progress logical; show reference-preparation timing and a progress
+#'   bar while preparing raw `y` or processing matched ZIP groups?
 #' @return an addr vector, the same length as x, that is the best match in y
 #'   for each addr in x. Partial matches are returned with matched ZIP code
 #'   and/or street fields filled when later stages do not match.
@@ -417,20 +429,7 @@ addr_match <- function(
     if (!inherits(y, "addr")) {
       stop("y must be an addr vector or addr_match_index", call. = FALSE)
     }
-    prep_start_time <- proc.time()[["elapsed"]]
-    if (progress) {
-      cat("preparing reference addr vector\n")
-    }
-    y_index <- addr_match_prepare(y)
-    if (progress) {
-      prep_elapsed <- proc.time()[["elapsed"]] - prep_start_time
-      cat(
-        "prepared reference addr vector in ",
-        sprintf("%.2f", prep_elapsed),
-        " seconds\n",
-        sep = ""
-      )
-    }
+    y_index <- addr_match_prepare(y, progress = progress)
   }
 
   if (y_index$n_unique == 0L) {
@@ -540,8 +539,13 @@ addr_match <- function(
 #'
 #' @rdname addr_match
 #' @export
-addr_match_prepare <- function(y) {
-  stopifnot("y must be an addr vector" = inherits(y, "addr"))
+addr_match_prepare <- function(y, progress = interactive()) {
+  stopifnot(
+    "y must be an addr vector" = inherits(y, "addr"),
+    "progress must be TRUE or FALSE" = is.logical(progress) &&
+      length(progress) == 1L &&
+      !is.na(progress)
+  )
 
   if (length(y) == 0L) {
     return(structure(
@@ -555,9 +559,50 @@ addr_match_prepare <- function(y) {
     ))
   }
 
+  prep_start_time <- proc.time()[["elapsed"]]
   uy <- unique(y)
   y_by_zip_idx <- split(seq_along(uy), uy@place@zipcode, drop = TRUE)
-  by_zip <- lapply(y_by_zip_idx, function(idx) addr_match_prepare_zip(uy[idx]))
+  n_zip_groups <- length(y_by_zip_idx)
+
+  if (progress) {
+    cat("preparing reference addr vector\n")
+    on.exit(
+      {
+        if (n_zip_groups > 0L) {
+          addr_progress_update(
+            n_zip_groups,
+            n_zip_groups,
+            "preparing reference addr vector complete",
+            first = FALSE
+          )
+          cat("\n", sep = "")
+        }
+        prep_elapsed <- proc.time()[["elapsed"]] - prep_start_time
+        cat(
+          "prepared reference addr vector in ",
+          sprintf("%.2f", prep_elapsed),
+          " seconds\n",
+          sep = ""
+        )
+      },
+      add = TRUE
+    )
+  }
+
+  by_zip <- vector("list", n_zip_groups)
+  names(by_zip) <- names(y_by_zip_idx)
+  for (i in seq_along(y_by_zip_idx)) {
+    idx <- y_by_zip_idx[[i]]
+    by_zip[[i]] <- addr_match_prepare_zip(uy[idx])
+    if (progress) {
+      addr_progress_update(
+        i,
+        n_zip_groups,
+        addr_prepare_progress_text(names(y_by_zip_idx)[[i]], length(idx)),
+        first = i == 1L
+      )
+    }
+  }
   zipcodes <- unique(uy@place@zipcode[
     !is.na(uy@place@zipcode) & uy@place@zipcode != ""
   ])

@@ -73,6 +73,40 @@ test_that("addr_match progress output uses zipcode text and 80-char bars", {
   expect_true(inherits(out, "addr"))
 })
 
+test_that("addr_match_prepare can show its own progress bar", {
+  y <- as_addr(c(
+    "10 MAIN ST CINCINNATI OH 45220",
+    "11 MAIN ST CINCINNATI OH 45220",
+    "10 MAIN ST CINCINNATI OH 45229"
+  ))
+
+  progress_output <- capture.output({
+    prepared <- addr_match_prepare(y, progress = TRUE)
+  })
+  progress_text <- paste(progress_output, collapse = "\n")
+  progress_text <- gsub("\033\\[[0-9;]*[[:alpha:]]", "", progress_text)
+  bar_lines <- regmatches(
+    progress_text,
+    gregexpr("\\[[=.]+\\]", progress_text)
+  )[[1]]
+
+  expect_true(grepl("preparing reference addr vector", progress_text))
+  expect_true(grepl(
+    "preparing reference addr vector in 45220 \\(2 addrs\\)",
+    progress_text
+  ))
+  expect_true(grepl(
+    "preparing reference addr vector in 45229 \\(1 addrs\\)",
+    progress_text
+  ))
+  expect_true(grepl(
+    "prepared reference addr vector in [0-9]+\\.[0-9]{2} seconds",
+    progress_text
+  ))
+  expect_true(length(bar_lines) > 0L)
+  expect_s3_class(prepared, "addr_match_index")
+})
+
 test_that("addr_match skips preparation message for prepared references", {
   y <- as_addr(c(
     "10 MAIN ST CINCINNATI OH 45220",

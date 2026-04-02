@@ -75,16 +75,16 @@ selects a single best address before this wrapper expands exact duplicates.
 }
 \examples{
 the_addr <- nad("Hamilton", "OH", refresh = "no")
-the_addr_mp <- addr_match_prepare(the_addr$nad_addr)
 my_addr <- tibble::tibble(
   addr = as_addr(voter_addresses()[1:100]),
   id = 1:100
 )
+
 d <- addr_left_join(
   my_addr,
   the_addr,
   by = c("addr", "nad_addr"),
-  match_prepared = the_addr_mp
+  match_prepared = nad_example_data(match_prepare = TRUE)
 )
 
 d

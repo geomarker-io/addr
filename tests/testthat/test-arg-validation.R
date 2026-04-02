@@ -64,6 +64,11 @@ test_that("matching helpers validate scalar tuning arguments", {
     match_zipcodes(45220, "45220"),
     "x must be a character vector"
   )
+
+  expect_error(
+    addr_match_prepare(as_addr("10 MAIN ST CINCINNATI OH 45220"), progress = NA),
+    "progress must be TRUE or FALSE"
+  )
 })
 
 test_that("join helpers validate by, suffix, and progress arguments", {
