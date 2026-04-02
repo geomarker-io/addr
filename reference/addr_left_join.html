@@ -15,7 +15,7 @@ selects a single best address before this wrapper expands exact duplicates."></h
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,7 +63,8 @@ selects a single best address before this wrapper expands exact duplicates.</p>
 <span>  match_street_posttype <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  match_street_pretype <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  match_street_postdirectional <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  progress <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/interactive.html" class="external-link">interactive</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  progress <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/interactive.html" class="external-link">interactive</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  match_prepared <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -128,6 +129,13 @@ to match when selecting street candidates?</p></dd>
 <dt id="arg-progress">progress<a class="anchor" aria-label="anchor" href="#arg-progress"></a></dt>
 <dd><p>logical; show <code><a href="addr_match.html">addr_match()</a></code> progress?</p></dd>
 
+
+<dt id="arg-match-prepared">match_prepared<a class="anchor" aria-label="anchor" href="#arg-match-prepared"></a></dt>
+<dd><p>optional prepared <code>addr_match_index</code> for the <code>y</code> addr
+column, usually from <code><a href="addr_match.html">addr_match_prepare()</a></code>. When supplied,
+<code>addr_left_join()</code> validates that it is equivalent to the <code>y</code> addr column
+before reusing it for matching.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -139,11 +147,17 @@ street-only matches do not expand to multiple candidate rows in <code>y</code>.<
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">the_addr</span> <span class="op">&lt;-</span> <span class="fu"><a href="nad.html">nad</a></span><span class="op">(</span><span class="st">"Hamilton"</span>, <span class="st">"OH"</span>, refresh <span class="op">=</span> <span class="st">"no"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">the_addr_mp</span> <span class="op">&lt;-</span> <span class="fu"><a href="addr_match.html">addr_match_prepare</a></span><span class="op">(</span><span class="va">the_addr</span><span class="op">$</span><span class="va">nad_addr</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">my_addr</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  addr <span class="op">=</span> <span class="fu"><a href="as_addr.html">as_addr</a></span><span class="op">(</span><span class="fu"><a href="voter_addresses.html">voter_addresses</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span><span class="op">]</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">100</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu">addr_left_join</span><span class="op">(</span><span class="va">my_addr</span>, <span class="va">the_addr</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr"</span>, <span class="st">"nad_addr"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu">addr_left_join</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">my_addr</span>,</span></span>
+<span class="r-in"><span>  <span class="va">the_addr</span>,</span></span>
+<span class="r-in"><span>  by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"addr"</span>, <span class="st">"nad_addr"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  match_prepared <span class="op">=</span> <span class="va">the_addr_mp</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">d</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 111 × 9</span></span>
