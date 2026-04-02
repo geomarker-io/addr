@@ -306,211 +306,36 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #' @export
 #' @examples
 #' the_addr <- nad_example_data(match_prepare = TRUE)
+#' # the_addr <- addr_match_prepare(nad("Hamilton", "OH", refresh = "no")$nad_addr)
 #'
-#' demo_addr <- function(number, street, type, zipcode, map_ordinal = TRUE) {
-#'   addr(
-#'     addr_number(prefix = "", digits = number, suffix = ""),
-#'     addr_street(
-#'       predirectional = "",
-#'       premodifier = "",
-#'       pretype = "",
-#'       name = street,
-#'       posttype = type,
-#'       postdirectional = "",
-#'       map_ordinal = map_ordinal
-#'     ),
-#'     addr_place(name = "", state = "", zipcode = zipcode)
-#'   )
-#' }
-#'
-#' # `zip_variants` can recover an address when only the ZIP code is off
-#' format(
-#'   addr_match(
-#'     demo_addr("2700", "Alice", "St", "45222"),
-#'     the_addr,
-#'     zip_variants = TRUE
-#'   )
-#' )
-#' format(
-#'   addr_match(
-#'     demo_addr("2700", "Alice", "St", "45222"),
-#'     the_addr,
-#'     zip_variants = FALSE
+#' my_addr <- as_addr(
+#'   c(
+#'     "2700 Alice St 45222",
+#'     "10623 Srpingfield Pike 45215",
+#'     "173 Wuhlper Ave 45220",
+#'     "12176 8th Ave 45249",
+#'     "12176 7ht Ave 45249",
+#'     "10 W 14th St 45202",
+#'     "10 Oak Rd 45241"
 #'   )
 #' )
 #'
-#' # `name_fuzzy_dist` allows typo-tolerant street matching
-#' format(
-#'   addr_match(
-#'     demo_addr("10623", "Srpingfield", "Pike", "45215"),
-#'     the_addr,
-#'     name_phonetic_dist = 0L,
-#'     name_fuzzy_dist = 1L
-#'   )
-#' )
-#' format(
-#'   addr_match(
-#'     demo_addr("10623", "Srpingfield", "Pike", "45215"),
-#'     the_addr,
-#'     name_phonetic_dist = 0L,
-#'     name_fuzzy_dist = 0L
-#'   )
-#' )
+#' addr_match(my_addr, the_addr)
 #'
-#' # exact phonetic street-name matches like "Wuhlper" / "WOOLPER" also work
-#' format(
-#'   addr_match(
-#'     demo_addr("173", "Wuhlper", "Ave", "45220"),
-#'     the_addr,
-#'     name_phonetic_dist = 0L,
-#'     name_fuzzy_dist = 0L
-#'   )
-#' )
-#'
-#' # ordinal street names can also match nearby ordinal variants phonetically
-#' format(
-#'   addr_match(
-#'     demo_addr("12176", "8TH", "Ave", "45249"),
-#'     the_addr,
-#'     name_phonetic_dist = 1L,
-#'     name_fuzzy_dist = 0L
-#'   )
-#' )
-#' format(
-#'   addr_match(
-#'     demo_addr("12176", "8TH", "Ave", "45249"),
-#'     the_addr,
-#'     name_phonetic_dist = 0L,
-#'     name_fuzzy_dist = 0L
-#'   )
-#' )
-#'
-#' # malformed ordinal street names can use `name_fuzzy_dist`
-#' format(
-#'   addr_match(
-#'     demo_addr("12176", "7HT", "Ave", "45249", map_ordinal = FALSE),
-#'     the_addr,
-#'     name_phonetic_dist = 0L,
-#'     name_fuzzy_dist = 1L
-#'   )
-#' )
-#' format(
-#'   addr_match(
-#'     demo_addr("12176", "7HT", "Ave", "45249", map_ordinal = FALSE),
-#'     the_addr,
-#'     name_phonetic_dist = 0L,
-#'     name_fuzzy_dist = 0L
-#'   )
-#' )
-#'
-#' # `number_fuzzy_dist` controls how close house numbers can be
-#' format(
-#'   addr_match(
-#'     demo_addr("10622", "Springfield", "Pike", "45215"),
-#'     the_addr,
-#'     number_fuzzy_dist = 1L
-#'   )
-#' )
-#' format(
-#'   addr_match(
-#'     demo_addr("10622", "Springfield", "Pike", "45215"),
-#'     the_addr,
-#'     number_fuzzy_dist = 0L
-#'   )
-#' )
-#'
-#' toggle_addr <- function(number, street, type, zipcode,
-#'                         predirectional = "", pretype = "",
-#'                         postdirectional = "") {
-#'   addr(
-#'     addr_number(prefix = "", digits = number, suffix = ""),
-#'     addr_street(
-#'       predirectional = predirectional,
-#'       premodifier = "",
-#'       pretype = pretype,
-#'       name = street,
-#'       posttype = type,
-#'       postdirectional = postdirectional,
-#'       map_pretype = FALSE,
-#'       map_posttype = FALSE,
-#'       map_directional = FALSE,
-#'       map_ordinal = FALSE
-#'     ),
-#'     addr_place(name = "Testville", state = "OH", zipcode = zipcode)
-#'   )
-#' }
-#'
-#' toggle_y <- vctrs::vec_c(
-#'   toggle_addr("10", "14th", "St", "45220", predirectional = "E"),
-#'   toggle_addr("10", "Oak", "Rd", "45220"),
-#'   toggle_addr("10", "Main", "Rd", "45220"),
-#'   toggle_addr("10", "Main", "Rd", "45220",
-#'     predirectional = "E",
-#'     pretype = "US Hwy",
-#'     postdirectional = "E"
-#'   )
-#' )
-#'
-#' # predirectional and posttype are required by default
-#' format(addr_match(
-#'   toggle_addr("10", "14th", "St", "45220"),
-#'   toggle_y
-#' ))
-#' format(addr_match(
-#'   toggle_addr("10", "14th", "St", "45220"),
-#'   toggle_y,
-#'   match_street_predirectional = FALSE
-#' ))
-#' format(addr_match(
-#'   toggle_addr("10", "Oka", "Ave", "45220"),
-#'   toggle_y,
+#' addr_match(
+#'   my_addr,
+#'   the_addr,
+#'   zip_variants = FALSE,
 #'   name_phonetic_dist = 0L,
-#'   name_fuzzy_dist = 1L
-#' ))
-#' format(addr_match(
-#'   toggle_addr("10", "Oka", "Ave", "45220"),
-#'   toggle_y,
-#'   name_phonetic_dist = 0L,
-#'   name_fuzzy_dist = 1L,
-#'   match_street_posttype = FALSE
-#' ))
-#'
-#' # pretype is required by default; postdirectional can also be required
-#' format(addr_match(
-#'   toggle_addr("10", "Mian", "Rd", "45220",
-#'     predirectional = "E",
-#'     pretype = "US Hwy",
-#'     postdirectional = "E"
-#'   ),
-#'   toggle_y,
+#'   name_fuzzy_dist = 0L,
+#'   number_fuzzy_dist = 0L,
+#'   match_street_predirectional = FALSE,
+#'   match_street_posttype = FALSE,
 #'   match_street_pretype = FALSE,
-#'   name_phonetic_dist = 0L,
-#'   name_fuzzy_dist = 1L
-#' ))
-#' format(addr_match(
-#'   toggle_addr("10", "Mian", "Rd", "45220",
-#'     predirectional = "E",
-#'     pretype = "US Hwy",
-#'     postdirectional = "E"
-#'   ),
-#'   toggle_y,
-#'   name_phonetic_dist = 0L,
-#'   name_fuzzy_dist = 1L
-#' ))
-#' format(addr_match(
-#'   toggle_addr("10", "Mian", "Rd", "45220",
-#'     predirectional = "E",
-#'     pretype = "US Hwy",
-#'     postdirectional = "E"
-#'   ),
-#'   toggle_y,
-#'   name_phonetic_dist = 0L,
-#'   name_fuzzy_dist = 1L,
-#'   match_street_pretype = TRUE,
-#'   match_street_postdirectional = TRUE
-#' ))
+#'   match_street_postdirectional = FALSE
+#' )
 #'
-#' my_addr <- as_addr(voter_addresses()[1:50])
+#' my_addr <- as_addr(voter_addresses()[1:100])
 #'
 #' addr_match(my_addr, the_addr)
 addr_match <- function(
