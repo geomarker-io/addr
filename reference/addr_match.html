@@ -250,7 +250,8 @@ and/or street fields filled when later stages do not match.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">my_addr</span> <span class="op">&lt;-</span> <span class="fu"><a href="as_addr.html">as_addr</a></span><span class="op">(</span><span class="fu"><a href="voter_addresses.html">voter_addresses</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="fu">addr_match</span><span class="op">(</span><span class="va">my_addr</span>, <span class="va">the_addr</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu">addr_match</span><span class="op">(</span><span class="va">my_addr</span>, <span class="va">the_addr</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">d</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;addr&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ number: &lt;addr_number&gt; function ()  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ prefix: chr [1:100] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
@@ -267,6 +268,19 @@ and/or street fields filled when later stages do not match.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr [1:100] "CINCINNATI" "CINCINNATI" "CINCINNATI" "CINCINNATI" ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ state  : chr [1:100] "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ zipcode: chr [1:100] "45238" "45205" "45231" "45219" "45255" "45230" ...</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="addr_match_stage.html">addr_match_stage</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   [1] number number number number number number number number number number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [11] number number number number number number number number number number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [21] number number number number number number number number number number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [31] number number number number number number number zip    number number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [41] number number number number number number number number number number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [51] number number number number number number number number number number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [61] number street number number number zip    street number number number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [71] number number number number zip    street zip    number number number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [81] street number number number number number zip    number zip    number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [91] street number number number number number number number number number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Levels: none &lt; zip &lt; street &lt; number</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
