@@ -187,247 +187,86 @@ and/or street fields filled when later stages do not match.</p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">the_addr</span> <span class="op">&lt;-</span> <span class="fu"><a href="nad_example_data.html">nad_example_data</a></span><span class="op">(</span>match_prepare <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># the_addr &lt;- addr_match_prepare(nad("Hamilton", "OH", refresh = "no")$nad_addr)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">demo_addr</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">number</span>, <span class="va">street</span>, <span class="va">type</span>, <span class="va">zipcode</span>, <span class="va">map_ordinal</span> <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="addr.html">addr</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="fu"><a href="addr.html">addr_number</a></span><span class="op">(</span>prefix <span class="op">=</span> <span class="st">""</span>, digits <span class="op">=</span> <span class="va">number</span>, suffix <span class="op">=</span> <span class="st">""</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="fu"><a href="addr.html">addr_street</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>      predirectional <span class="op">=</span> <span class="st">""</span>,</span></span>
-<span class="r-in"><span>      premodifier <span class="op">=</span> <span class="st">""</span>,</span></span>
-<span class="r-in"><span>      pretype <span class="op">=</span> <span class="st">""</span>,</span></span>
-<span class="r-in"><span>      name <span class="op">=</span> <span class="va">street</span>,</span></span>
-<span class="r-in"><span>      posttype <span class="op">=</span> <span class="va">type</span>,</span></span>
-<span class="r-in"><span>      postdirectional <span class="op">=</span> <span class="st">""</span>,</span></span>
-<span class="r-in"><span>      map_ordinal <span class="op">=</span> <span class="va">map_ordinal</span></span></span>
-<span class="r-in"><span>    <span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="fu"><a href="addr.html">addr_place</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">""</span>, state <span class="op">=</span> <span class="st">""</span>, zipcode <span class="op">=</span> <span class="va">zipcode</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># `zip_variants` can recover an address when only the ZIP code is off</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="fu">demo_addr</span><span class="op">(</span><span class="st">"2700"</span>, <span class="st">"Alice"</span>, <span class="st">"St"</span>, <span class="st">"45222"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="va">the_addr</span>,</span></span>
-<span class="r-in"><span>    zip_variants <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span><span class="va">my_addr</span> <span class="op">&lt;-</span> <span class="fu"><a href="as_addr.html">as_addr</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="st">"2700 Alice St 45222"</span>,</span></span>
+<span class="r-in"><span>    <span class="st">"10623 Srpingfield Pike 45215"</span>,</span></span>
+<span class="r-in"><span>    <span class="st">"173 Wuhlper Ave 45220"</span>,</span></span>
+<span class="r-in"><span>    <span class="st">"12176 8th Ave 45249"</span>,</span></span>
+<span class="r-in"><span>    <span class="st">"12176 7ht Ave 45249"</span>,</span></span>
+<span class="r-in"><span>    <span class="st">"10 W 14th St 45202"</span>,</span></span>
+<span class="r-in"><span>    <span class="st">"10 Oak Rd 45241"</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "2700 ALICE St CINCINNATI OH 45221"</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="fu">demo_addr</span><span class="op">(</span><span class="st">"2700"</span>, <span class="st">"Alice"</span>, <span class="st">"St"</span>, <span class="st">"45222"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="va">the_addr</span>,</span></span>
-<span class="r-in"><span>    zip_variants <span class="op">=</span> <span class="cn">FALSE</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] ""</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># `name_fuzzy_dist` allows typo-tolerant street matching</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="fu">demo_addr</span><span class="op">(</span><span class="st">"10623"</span>, <span class="st">"Srpingfield"</span>, <span class="st">"Pike"</span>, <span class="st">"45215"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="va">the_addr</span>,</span></span>
-<span class="r-in"><span>    name_phonetic_dist <span class="op">=</span> <span class="fl">0L</span>,</span></span>
-<span class="r-in"><span>    name_fuzzy_dist <span class="op">=</span> <span class="fl">1L</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "10623 SPRINGFIELD Pike CINCINNATI OH 45215"</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="fu">demo_addr</span><span class="op">(</span><span class="st">"10623"</span>, <span class="st">"Srpingfield"</span>, <span class="st">"Pike"</span>, <span class="st">"45215"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="va">the_addr</span>,</span></span>
-<span class="r-in"><span>    name_phonetic_dist <span class="op">=</span> <span class="fl">0L</span>,</span></span>
-<span class="r-in"><span>    name_fuzzy_dist <span class="op">=</span> <span class="fl">0L</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "45215"</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># exact phonetic street-name matches like "Wuhlper" / "WOOLPER" also work</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="fu">demo_addr</span><span class="op">(</span><span class="st">"173"</span>, <span class="st">"Wuhlper"</span>, <span class="st">"Ave"</span>, <span class="st">"45220"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="va">the_addr</span>,</span></span>
-<span class="r-in"><span>    name_phonetic_dist <span class="op">=</span> <span class="fl">0L</span>,</span></span>
-<span class="r-in"><span>    name_fuzzy_dist <span class="op">=</span> <span class="fl">0L</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "173 WOOLPER Ave CINCINNATI OH 45220"</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># ordinal street names can also match nearby ordinal variants phonetically</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="fu">demo_addr</span><span class="op">(</span><span class="st">"12176"</span>, <span class="st">"8TH"</span>, <span class="st">"Ave"</span>, <span class="st">"45249"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="va">the_addr</span>,</span></span>
-<span class="r-in"><span>    name_phonetic_dist <span class="op">=</span> <span class="fl">1L</span>,</span></span>
-<span class="r-in"><span>    name_fuzzy_dist <span class="op">=</span> <span class="fl">0L</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "12176 7TH Ave CINCINNATI OH 45249"</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="fu">demo_addr</span><span class="op">(</span><span class="st">"12176"</span>, <span class="st">"8TH"</span>, <span class="st">"Ave"</span>, <span class="st">"45249"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="va">the_addr</span>,</span></span>
-<span class="r-in"><span>    name_phonetic_dist <span class="op">=</span> <span class="fl">0L</span>,</span></span>
-<span class="r-in"><span>    name_fuzzy_dist <span class="op">=</span> <span class="fl">0L</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "45249"</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># malformed ordinal street names can use `name_fuzzy_dist`</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="fu">demo_addr</span><span class="op">(</span><span class="st">"12176"</span>, <span class="st">"7HT"</span>, <span class="st">"Ave"</span>, <span class="st">"45249"</span>, map_ordinal <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="va">the_addr</span>,</span></span>
-<span class="r-in"><span>    name_phonetic_dist <span class="op">=</span> <span class="fl">0L</span>,</span></span>
-<span class="r-in"><span>    name_fuzzy_dist <span class="op">=</span> <span class="fl">1L</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "12176 7TH Ave CINCINNATI OH 45249"</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="fu">demo_addr</span><span class="op">(</span><span class="st">"12176"</span>, <span class="st">"7HT"</span>, <span class="st">"Ave"</span>, <span class="st">"45249"</span>, map_ordinal <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="va">the_addr</span>,</span></span>
-<span class="r-in"><span>    name_phonetic_dist <span class="op">=</span> <span class="fl">0L</span>,</span></span>
-<span class="r-in"><span>    name_fuzzy_dist <span class="op">=</span> <span class="fl">0L</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "45249"</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># `number_fuzzy_dist` controls how close house numbers can be</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="fu">demo_addr</span><span class="op">(</span><span class="st">"10622"</span>, <span class="st">"Springfield"</span>, <span class="st">"Pike"</span>, <span class="st">"45215"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="va">the_addr</span>,</span></span>
-<span class="r-in"><span>    number_fuzzy_dist <span class="op">=</span> <span class="fl">1L</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "10623 SPRINGFIELD Pike CINCINNATI OH 45215"</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="fu">demo_addr</span><span class="op">(</span><span class="st">"10622"</span>, <span class="st">"Springfield"</span>, <span class="st">"Pike"</span>, <span class="st">"45215"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="va">the_addr</span>,</span></span>
-<span class="r-in"><span>    number_fuzzy_dist <span class="op">=</span> <span class="fl">0L</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "SPRINGFIELD Pike 45215"</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">toggle_addr</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">number</span>, <span class="va">street</span>, <span class="va">type</span>, <span class="va">zipcode</span>,</span></span>
-<span class="r-in"><span>                        <span class="va">predirectional</span> <span class="op">=</span> <span class="st">""</span>, <span class="va">pretype</span> <span class="op">=</span> <span class="st">""</span>,</span></span>
-<span class="r-in"><span>                        <span class="va">postdirectional</span> <span class="op">=</span> <span class="st">""</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="addr.html">addr</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="fu"><a href="addr.html">addr_number</a></span><span class="op">(</span>prefix <span class="op">=</span> <span class="st">""</span>, digits <span class="op">=</span> <span class="va">number</span>, suffix <span class="op">=</span> <span class="st">""</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="fu"><a href="addr.html">addr_street</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>      predirectional <span class="op">=</span> <span class="va">predirectional</span>,</span></span>
-<span class="r-in"><span>      premodifier <span class="op">=</span> <span class="st">""</span>,</span></span>
-<span class="r-in"><span>      pretype <span class="op">=</span> <span class="va">pretype</span>,</span></span>
-<span class="r-in"><span>      name <span class="op">=</span> <span class="va">street</span>,</span></span>
-<span class="r-in"><span>      posttype <span class="op">=</span> <span class="va">type</span>,</span></span>
-<span class="r-in"><span>      postdirectional <span class="op">=</span> <span class="va">postdirectional</span>,</span></span>
-<span class="r-in"><span>      map_pretype <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
-<span class="r-in"><span>      map_posttype <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
-<span class="r-in"><span>      map_directional <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
-<span class="r-in"><span>      map_ordinal <span class="op">=</span> <span class="cn">FALSE</span></span></span>
-<span class="r-in"><span>    <span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="fu"><a href="addr.html">addr_place</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Testville"</span>, state <span class="op">=</span> <span class="st">"OH"</span>, zipcode <span class="op">=</span> <span class="va">zipcode</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">toggle_y</span> <span class="op">&lt;-</span> <span class="fu">vctrs</span><span class="fu">::</span><span class="fu"><a href="https://vctrs.r-lib.org/reference/vec_c.html" class="external-link">vec_c</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">toggle_addr</span><span class="op">(</span><span class="st">"10"</span>, <span class="st">"14th"</span>, <span class="st">"St"</span>, <span class="st">"45220"</span>, predirectional <span class="op">=</span> <span class="st">"E"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  <span class="fu">toggle_addr</span><span class="op">(</span><span class="st">"10"</span>, <span class="st">"Oak"</span>, <span class="st">"Rd"</span>, <span class="st">"45220"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  <span class="fu">toggle_addr</span><span class="op">(</span><span class="st">"10"</span>, <span class="st">"Main"</span>, <span class="st">"Rd"</span>, <span class="st">"45220"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  <span class="fu">toggle_addr</span><span class="op">(</span><span class="st">"10"</span>, <span class="st">"Main"</span>, <span class="st">"Rd"</span>, <span class="st">"45220"</span>,</span></span>
-<span class="r-in"><span>    predirectional <span class="op">=</span> <span class="st">"E"</span>,</span></span>
-<span class="r-in"><span>    pretype <span class="op">=</span> <span class="st">"US Hwy"</span>,</span></span>
-<span class="r-in"><span>    postdirectional <span class="op">=</span> <span class="st">"E"</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># predirectional and posttype are required by default</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">toggle_addr</span><span class="op">(</span><span class="st">"10"</span>, <span class="st">"14th"</span>, <span class="st">"St"</span>, <span class="st">"45220"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  <span class="va">toggle_y</span></span></span>
-<span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "45220"</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">toggle_addr</span><span class="op">(</span><span class="st">"10"</span>, <span class="st">"14th"</span>, <span class="st">"St"</span>, <span class="st">"45220"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  <span class="va">toggle_y</span>,</span></span>
-<span class="r-in"><span>  match_street_predirectional <span class="op">=</span> <span class="cn">FALSE</span></span></span>
-<span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "10 E 14TH St Testville OH 45220"</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">toggle_addr</span><span class="op">(</span><span class="st">"10"</span>, <span class="st">"Oka"</span>, <span class="st">"Ave"</span>, <span class="st">"45220"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  <span class="va">toggle_y</span>,</span></span>
-<span class="r-in"><span>  name_phonetic_dist <span class="op">=</span> <span class="fl">0L</span>,</span></span>
-<span class="r-in"><span>  name_fuzzy_dist <span class="op">=</span> <span class="fl">1L</span></span></span>
-<span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "45220"</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">toggle_addr</span><span class="op">(</span><span class="st">"10"</span>, <span class="st">"Oka"</span>, <span class="st">"Ave"</span>, <span class="st">"45220"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  <span class="va">toggle_y</span>,</span></span>
-<span class="r-in"><span>  name_phonetic_dist <span class="op">=</span> <span class="fl">0L</span>,</span></span>
-<span class="r-in"><span>  name_fuzzy_dist <span class="op">=</span> <span class="fl">1L</span>,</span></span>
-<span class="r-in"><span>  match_street_posttype <span class="op">=</span> <span class="cn">FALSE</span></span></span>
-<span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "10 Oak Rd Testville OH 45220"</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># pretype is required by default; postdirectional can also be required</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">toggle_addr</span><span class="op">(</span><span class="st">"10"</span>, <span class="st">"Mian"</span>, <span class="st">"Rd"</span>, <span class="st">"45220"</span>,</span></span>
-<span class="r-in"><span>    predirectional <span class="op">=</span> <span class="st">"E"</span>,</span></span>
-<span class="r-in"><span>    pretype <span class="op">=</span> <span class="st">"US Hwy"</span>,</span></span>
-<span class="r-in"><span>    postdirectional <span class="op">=</span> <span class="st">"E"</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span>,</span></span>
-<span class="r-in"><span>  <span class="va">toggle_y</span>,</span></span>
-<span class="r-in"><span>  match_street_pretype <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
-<span class="r-in"><span>  name_phonetic_dist <span class="op">=</span> <span class="fl">0L</span>,</span></span>
-<span class="r-in"><span>  name_fuzzy_dist <span class="op">=</span> <span class="fl">1L</span></span></span>
-<span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "10 E US Hwy Main Rd E Testville OH 45220"</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">toggle_addr</span><span class="op">(</span><span class="st">"10"</span>, <span class="st">"Mian"</span>, <span class="st">"Rd"</span>, <span class="st">"45220"</span>,</span></span>
-<span class="r-in"><span>    predirectional <span class="op">=</span> <span class="st">"E"</span>,</span></span>
-<span class="r-in"><span>    pretype <span class="op">=</span> <span class="st">"US Hwy"</span>,</span></span>
-<span class="r-in"><span>    postdirectional <span class="op">=</span> <span class="st">"E"</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span>,</span></span>
-<span class="r-in"><span>  <span class="va">toggle_y</span>,</span></span>
-<span class="r-in"><span>  name_phonetic_dist <span class="op">=</span> <span class="fl">0L</span>,</span></span>
-<span class="r-in"><span>  name_fuzzy_dist <span class="op">=</span> <span class="fl">1L</span></span></span>
-<span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "10 E US Hwy Main Rd E Testville OH 45220"</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="fu">addr_match</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu">toggle_addr</span><span class="op">(</span><span class="st">"10"</span>, <span class="st">"Mian"</span>, <span class="st">"Rd"</span>, <span class="st">"45220"</span>,</span></span>
-<span class="r-in"><span>    predirectional <span class="op">=</span> <span class="st">"E"</span>,</span></span>
-<span class="r-in"><span>    pretype <span class="op">=</span> <span class="st">"US Hwy"</span>,</span></span>
-<span class="r-in"><span>    postdirectional <span class="op">=</span> <span class="st">"E"</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span>,</span></span>
-<span class="r-in"><span>  <span class="va">toggle_y</span>,</span></span>
-<span class="r-in"><span>  name_phonetic_dist <span class="op">=</span> <span class="fl">0L</span>,</span></span>
-<span class="r-in"><span>  name_fuzzy_dist <span class="op">=</span> <span class="fl">1L</span>,</span></span>
-<span class="r-in"><span>  match_street_pretype <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>  match_street_postdirectional <span class="op">=</span> <span class="cn">TRUE</span></span></span>
-<span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "10 E US Hwy Main Rd E Testville OH 45220"</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">my_addr</span> <span class="op">&lt;-</span> <span class="fu"><a href="as_addr.html">as_addr</a></span><span class="op">(</span><span class="fu"><a href="voter_addresses.html">voter_addresses</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">50</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">addr_match</span><span class="op">(</span><span class="va">my_addr</span>, <span class="va">the_addr</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;addr&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ number: &lt;addr_number&gt; function ()  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ prefix: chr [1:50] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ digits: chr [1:50] "3359" "1040" "9960" "413" "8519" "6361" "10466" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ suffix: chr [1:50] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ prefix: chr [1:7] "" "" "" "" "" "" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ digits: chr [1:7] "2700" "10623" "173" "12176" "12176" "10" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ suffix: chr [1:7] "" "" "" "" "" "" NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ street: &lt;addr_street&gt; function ()  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ predirectional : chr [1:50] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ premodifier    : chr [1:50] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ pretype        : chr [1:50] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name           : chr [1:50] "QUEEN CITY" "KREIS" "DALY" "VOLKERT" "LINDERWOOD" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr [1:50] "Ave" "Ln" "Rd" "Pl" "Ln" "Ave" "Ln" "Cir" "Ave" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ postdirectional: chr [1:50] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ predirectional : chr [1:7] "" "" "" "" "" "W" ""</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ premodifier    : chr [1:7] "" "" "" "" "" "" ""</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ pretype        : chr [1:7] "" "" "" "" "" "" ""</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name           : chr [1:7] "ALICE" "SPRINGFIELD" "WOOLPER" "7TH" "7TH" "14TH" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr [1:7] "St" "Pike" "Ave" "Ave" "Ave" "St" "Rd"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ postdirectional: chr [1:7] "" "" "" "" "" "" ""</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ place : &lt;addr_place&gt; function ()  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr [1:50] "CINCINNATI" "CINCINNATI" "CINCINNATI" "CINCINNATI" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ state  : chr [1:50] "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ zipcode: chr [1:50] "45238" "45205" "45231" "45219" "45255" "45230" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr [1:7] "CINCINNATI" "CINCINNATI" "CINCINNATI" "CINCINNATI" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ state  : chr [1:7] "OH" "OH" "OH" "OH" "OH" "OH" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ zipcode: chr [1:7] "45221" "45215" "45220" "45249" "45249" "45202" ...</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">addr_match</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">my_addr</span>,</span></span>
+<span class="r-in"><span>  <span class="va">the_addr</span>,</span></span>
+<span class="r-in"><span>  zip_variants <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>  name_phonetic_dist <span class="op">=</span> <span class="fl">0L</span>,</span></span>
+<span class="r-in"><span>  name_fuzzy_dist <span class="op">=</span> <span class="fl">0L</span>,</span></span>
+<span class="r-in"><span>  number_fuzzy_dist <span class="op">=</span> <span class="fl">0L</span>,</span></span>
+<span class="r-in"><span>  match_street_predirectional <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>  match_street_posttype <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>  match_street_pretype <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>  match_street_postdirectional <span class="op">=</span> <span class="cn">FALSE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;addr&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  @ number: &lt;addr_number&gt; function ()  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ prefix: chr [1:7] NA NA NA NA NA "" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ digits: chr [1:7] NA NA NA NA NA "10" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ suffix: chr [1:7] NA NA NA NA NA "" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  @ street: &lt;addr_street&gt; function ()  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ predirectional : chr [1:7] NA NA NA NA NA "W" ""</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ premodifier    : chr [1:7] NA NA NA NA NA "" ""</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ pretype        : chr [1:7] NA NA NA NA NA "" ""</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name           : chr [1:7] NA NA NA NA NA "14TH" "OAK"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr [1:7] NA NA NA NA NA "St" "St"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ postdirectional: chr [1:7] NA NA NA NA NA "" ""</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  @ place : &lt;addr_place&gt; function ()  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr [1:7] NA NA NA NA NA "CINCINNATI" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ state  : chr [1:7] NA NA NA NA NA "OH" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ zipcode: chr [1:7] NA "45215" "45220" "45249" "45249" "45202" "45241"</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">my_addr</span> <span class="op">&lt;-</span> <span class="fu"><a href="as_addr.html">as_addr</a></span><span class="op">(</span><span class="fu"><a href="voter_addresses.html">voter_addresses</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">addr_match</span><span class="op">(</span><span class="va">my_addr</span>, <span class="va">the_addr</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;addr&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  @ number: &lt;addr_number&gt; function ()  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ prefix: chr [1:100] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ digits: chr [1:100] "3359" "1040" "9960" "413" "8519" "6361" "10466" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ suffix: chr [1:100] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  @ street: &lt;addr_street&gt; function ()  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ predirectional : chr [1:100] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ premodifier    : chr [1:100] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ pretype        : chr [1:100] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name           : chr [1:100] "QUEEN CITY" "KREIS" "DALY" "VOLKERT" "LINDERWOOD" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr [1:100] "Ave" "Ln" "Rd" "Pl" "Ln" "Ave" "Ln" "Cir" "Ave" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ postdirectional: chr [1:100] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  @ place : &lt;addr_place&gt; function ()  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr [1:100] "CINCINNATI" "CINCINNATI" "CINCINNATI" "CINCINNATI" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ state  : chr [1:100] "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ zipcode: chr [1:100] "45238" "45205" "45231" "45219" "45255" "45230" ...</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
