@@ -55,7 +55,9 @@ County/State and are created on first run with \code{nad()}.
 Download data binaries to the R_user_dir cache folder or point R
 (\code{?R_user_dir}) to these files on disk to read NAD tables without
 having to download the nationwide NAD geodatabase.
-(\code{list.files(tools::R_user_dir("addr", "cache"), recursive = TRUE)})
+(Files are organized by major package version,
+NAD release, state, and named by county; e.g., see
+\code{list.files(tools::R_user_dir("addr", "cache"), recursive = TRUE)})
 }
 \details{
 The NAD is downloaded from each release on the transportation.gov
@@ -88,7 +90,8 @@ nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no")
 \dontrun{
   nad_download(release = "NAD_r21_FGDB.zip")
 }
-# can also point to older releases if they are already downloaded installed
+# can also point to older releases if they are already downloaded
+# or if data binaries are installed
 \dontrun{
   nad_download(release = "NAD_r21_FGDB.zip", refresh_source = "no")
 }
