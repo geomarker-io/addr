@@ -565,7 +565,6 @@ addr_match_prepare <- function(y, progress = interactive()) {
   n_zip_groups <- length(y_by_zip_idx)
 
   if (progress) {
-    cat("preparing reference addr vector\n")
     on.exit(
       {
         if (n_zip_groups > 0L) {
@@ -587,6 +586,12 @@ addr_match_prepare <- function(y, progress = interactive()) {
       },
       add = TRUE
     )
+    addr_progress_update(
+      0L,
+      n_zip_groups,
+      "preparing reference addr vector",
+      first = TRUE
+    )
   }
 
   by_zip <- vector("list", n_zip_groups)
@@ -599,7 +604,7 @@ addr_match_prepare <- function(y, progress = interactive()) {
         i,
         n_zip_groups,
         addr_prepare_progress_text(names(y_by_zip_idx)[[i]], length(idx)),
-        first = i == 1L
+        first = FALSE
       )
     }
   }

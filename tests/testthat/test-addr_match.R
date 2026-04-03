@@ -119,7 +119,11 @@ test_that("addr_match skips preparation message for prepared references", {
     "10 MAIN ST CINCINNATI OH 45229"
   ))
   progress_output <- capture.output({
-    out <- addr_match(x, addr_match_prepare(y), progress = TRUE)
+    out <- addr_match(
+      x,
+      addr_match_prepare(y, progress = FALSE),
+      progress = TRUE
+    )
   })
   progress_text <- paste(progress_output, collapse = "\n")
   progress_text <- gsub("\033\\[[0-9;]*[[:alpha:]]", "", progress_text)
