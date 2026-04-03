@@ -6,10 +6,12 @@
 #' into a database. Find more information here:
 #' <https://www.transportation.gov/gis/national-address-database>
 #'
-#' `nad_read()` reads data from the NAD geodatabase
-#' by county and state, downloading it first to the R user's data directory
-#' for the addr package if not already downloaded with `nad_download()`,
-#' and readies it for R.
+#' `nad_read()` reads data from the NAD geodatabase by county,
+#' downloading it first to the R user's data directory for the addr package
+#' if not already downloaded with `nad_download()`, and readies it for R.
+#' Counties can be identified either by county name plus state, or by a
+#' 5-digit county FIPS identifier. County names and state abbreviations are
+#' resolved internally and still determine the cache path and source query.
 #' The NAD geodatabase has a very large size on disk (~10 GB).
 #'
 #' Data binaries are the cached outputs of `nad_read()` for each
@@ -21,8 +23,11 @@
 #' NAD release, state, and named by county; e.g., see
 #' `list.files(tools::R_user_dir("addr", "cache"), recursive = TRUE)`)
 #'
-#' @param county character, length one; name of county
-#' @param state character, length one; name of state
+#' @param county character, length one; county name or 5-digit county FIPS
+#'   identifier
+#' @param state character, length one; name or abbreviation of state. Required
+#'   when `county` is a county name; ignored when `county` is a 5-digit county
+#'   FIPS identifier
 #' @param refresh_binary character, length one; choose how to refresh NAD
 #' data binaries cached on disk if not already present; "yes" will
 #' create data binary if not already present, "no" will
@@ -51,11 +56,13 @@
 #' # read data from NAD, caching output on first run
 #' \dontrun{
 #'   nad("Hamilton", "OH")
+#'   nad("39061")
 #' }
 #'
 #' # example data preloaded for Hamilton County, OH
 #' # works without downloading NAD gdb first
 #' nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no")
+#' nad("39061", refresh_source = "no", refresh_binary = "no")
 #'
 #' # some older releases can still be downloaded
 #' \dontrun{
@@ -68,7 +75,7 @@
 #' }
 nad <- function(
   county,
-  state,
+  state = NULL,
   release = "latest",
   refresh_binary = c("yes", "no", "force"),
   refresh_source = c("yes", "no", "force")
@@ -77,9 +84,10 @@ nad <- function(
     "county must be a character vector" = is.character(county),
     "county must be length one" = length(county) == 1L,
     "county must not be missing" = !is.na(county),
-    "state must be a character vector" = is.character(state),
-    "state must be length one" = length(state) == 1L,
-    "state must not be missing" = !is.na(state),
+    "state must be NULL or a character vector" = is.null(state) ||
+      is.character(state),
+    "state must be NULL or length one" = is.null(state) || length(state) == 1L,
+    "state must be NULL or not missing" = is.null(state) || !is.na(state),
     "refresh_binary must be a character vector" = is.character(refresh_binary),
     "refresh_binary must not contain missing values" = !any(is.na(
       refresh_binary
@@ -91,17 +99,21 @@ nad <- function(
   )
   refresh_binary <- match.arg(refresh_binary)
   refresh_source <- match.arg(refresh_source)
+  county_info <- nad_county_info(county, state)
   if (release == "latest") {
     release <- fetch_nad_metadata()$flnm
   }
-  nad_sd <- nad_sd_path(county, state, release = release)
+  nad_sd <- nad_sd_path(
+    county = county_info$county,
+    state = county_info$state,
+    release = release
+  )
   if (
-    county == "Hamilton" &&
-      state == "OH" &&
+    county_info$county_fips == "39061" &&
       !file.exists(nad_sd) &&
       refresh_binary == "no"
   ) {
-    return(nad_example_data(match_prepare = FALSE))
+    return(nad_example_data(match_prepared = FALSE))
   }
   if (!file.exists(nad_sd) || refresh_binary == "force") {
     if (refresh_binary == "no") {
@@ -129,6 +141,32 @@ nad <- function(
   readRDS(nad_sd)
 }
 
+nad_county_info <- function(county, state = NULL) {
+  stopifnot(
+    "county must be a character vector" = is.character(county),
+    "county must be length one" = length(county) == 1L,
+    "county must not be missing" = !is.na(county),
+    "state must be NULL or a character vector" = is.null(state) ||
+      is.character(state),
+    "state must be NULL or length one" = is.null(state) || length(state) == 1L,
+    "state must be NULL or not missing" = is.null(state) || !is.na(state)
+  )
+
+  if (!grepl("^[0-9]{5}$", county) && is.null(state)) {
+    stop(
+      "state must be supplied when county is not a 5-digit FIPS identifier",
+      call. = FALSE
+    )
+  }
+
+  county_info <- county_fips_lookup(county, state)
+  list(
+    county_fips = county_info$county_fips[[1]],
+    county = county_info$county[[1]],
+    state = county_info$state[[1]]
+  )
+}
+
 nad_sd_path <- function(county, state, release) {
   stopifnot(
     "county must be a character vector" = is.character(county),
@@ -151,18 +189,20 @@ nad_sd_path <- function(county, state, release) {
 #' @rdname nad
 nad_read <- function(
   county,
-  state,
-  release,
+  state = NULL,
+  release = "latest",
   refresh_source = c("yes", "no", "force")
 ) {
   stopifnot(
     "county must be a character vector" = is.character(county),
     "county must be length one" = length(county) == 1L,
     "county must not be missing" = !is.na(county),
-    "state must be a character vector" = is.character(state),
-    "state must be length one" = length(state) == 1L,
-    "state must not be missing" = !is.na(state)
+    "state must be NULL or a character vector" = is.null(state) ||
+      is.character(state),
+    "state must be NULL or length one" = is.null(state) || length(state) == 1L,
+    "state must be NULL or not missing" = is.null(state) || !is.na(state)
   )
+  county_info <- nad_county_info(county, state)
   check_installed("sf", "to read from the NAD geodatabase")
   nad_fields <- c(
     "AddNum_Pre",
@@ -187,6 +227,9 @@ nad_read <- function(
     "DateUpdate",
     "Addr_Type"
   )
+  if (release == "latest") {
+    release <- fetch_nad_metadata()$flnm
+  }
   nad_gdb_file <- nad_download(
     release = release,
     refresh_source = refresh_source
@@ -196,8 +239,8 @@ nad_read <- function(
     "SELECT %s FROM %s WHERE State = '%s' AND County = '%s'",
     paste(nad_fields, collapse = ", "),
     nad_layer_name,
-    state,
-    county
+    county_info$state,
+    county_info$county
   )
   rnad <- sf::st_read(
     dsn = nad_gdb_file,

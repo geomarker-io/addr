@@ -8,20 +8,28 @@
 \usage{
 nad(
   county,
-  state,
+  state = NULL,
   release = "latest",
   refresh_binary = c("yes", "no", "force"),
   refresh_source = c("yes", "no", "force")
 )
 
-nad_read(county, state, release, refresh_source = c("yes", "no", "force"))
+nad_read(
+  county,
+  state = NULL,
+  release = "latest",
+  refresh_source = c("yes", "no", "force")
+)
 
 nad_download(release = "latest", refresh_source = c("yes", "no", "force"))
 }
 \arguments{
-\item{county}{character, length one; name of county}
+\item{county}{character, length one; county name or 5-digit county FIPS
+identifier}
 
-\item{state}{character, length one; name of state}
+\item{state}{character, length one; name or abbreviation of state. Required
+when \code{county} is a county name; ignored when \code{county} is a 5-digit county
+FIPS identifier}
 
 \item{release}{character, length 1; revision of the NAD;
 the default ("latest") fetches the most recent version available online;
@@ -44,10 +52,12 @@ state, local, and tribal governments to compile their authoritative data
 into a database. Find more information here:
 \url{https://www.transportation.gov/gis/national-address-database}
 
-\code{nad_read()} reads data from the NAD geodatabase
-by county and state, downloading it first to the R user's data directory
-for the addr package if not already downloaded with \code{nad_download()},
-and readies it for R.
+\code{nad_read()} reads data from the NAD geodatabase by county,
+downloading it first to the R user's data directory for the addr package
+if not already downloaded with \code{nad_download()}, and readies it for R.
+Counties can be identified either by county name plus state, or by a
+5-digit county FIPS identifier. County names and state abbreviations are
+resolved internally and still determine the cache path and source query.
 The NAD geodatabase has a very large size on disk (~10 GB).
 
 Data binaries are the cached outputs of \code{nad_read()} for each
@@ -80,11 +90,13 @@ and ZIP code.
 # read data from NAD, caching output on first run
 \dontrun{
   nad("Hamilton", "OH")
+  nad("39061")
 }
 
 # example data preloaded for Hamilton County, OH
 # works without downloading NAD gdb first
 nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no")
+nad("39061", refresh_source = "no", refresh_binary = "no")
 
 # some older releases can still be downloaded
 \dontrun{
