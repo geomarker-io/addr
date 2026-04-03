@@ -6,6 +6,7 @@
 #' the National Address Database.
 #'
 #' `nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no")`
+#' and `nad("39061", refresh_source = "no", refresh_binary = "no")`
 #' is equivalent to `nad_example_data()`
 #'
 #' @param match_prepared logical; return the example data preprocessed with

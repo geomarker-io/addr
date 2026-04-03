@@ -21,7 +21,7 @@
 #'   street-only matches do not expand to multiple candidate rows in `y`.
 #' @export
 #' @examples
-#' the_addr <- nad("Hamilton", "OH", refresh = "no")
+#' the_addr <- nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no")
 #' my_addr <- tibble::tibble(
 #'   addr = as_addr(voter_addresses()[1:100]),
 #'   id = 1:100
@@ -31,7 +31,7 @@
 #'   my_addr,
 #'   the_addr,
 #'   by = c("addr", "nad_addr"),
-#'   match_prepared = nad_example_data(match_prepare = TRUE)
+#'   match_prepared = nad_example_data(match_prepared = TRUE)
 #' )
 #'
 #' d

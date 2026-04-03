@@ -328,8 +328,8 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #'   and/or street fields filled when later stages do not match.
 #' @export
 #' @examples
-#' the_addr <- nad_example_data(match_prepare = TRUE)
-#' # the_addr <- addr_match_prepare(nad("Hamilton", "OH", refresh = "no")$nad_addr)
+#' the_addr <- nad_example_data(match_prepared = TRUE)
+#' # the_addr <- addr_match_prepare(nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no")$nad_addr)
 #'
 #' my_addr <- as_addr(
 #'   c(
