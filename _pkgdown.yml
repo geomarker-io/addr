@@ -50,4 +50,4 @@ reference:
       - voter_addresses
       - elh_data
       - county_fips_lookup
-      - zips_fips_lookup
+      - zip_fips_lookup

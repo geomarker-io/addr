@@ -19,11 +19,10 @@ if fips is not NULL, an addr_place vector of length one
 \description{
 \code{zip_fips_lookup()} uses a package-internal reference derived from the
 2025 Q4 HUD USPS ZIP Code Crosswalk Files to translate between
-ZIP codes and county FIPS identifiers.
-
-Only one of zip and fips should be provided and the other will be
-returned.  ZIP codes and counties are not mutually exclusive;
-output could be longer than one if multiple matches are present.
+a ZIP code and county FIPS identifiers.
+Some ZIP codes are linked to multiple counties; also specify
+the county FIPS identifier to get the USPS preferred city and
+state names (in an addr_place() vector).
 }
 \examples{
 zip_fips_lookup(zip = "45220")

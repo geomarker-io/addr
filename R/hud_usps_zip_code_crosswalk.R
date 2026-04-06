@@ -3,12 +3,10 @@
 #' @description
 #' `zip_fips_lookup()` uses a package-internal reference derived from the
 #' 2025 Q4 HUD USPS ZIP Code Crosswalk Files to translate between
-#' ZIP codes and county FIPS identifiers.
-#'
-#' Only one of zip and fips should be provided and the other will be
-#' returned.  ZIP codes and counties are not mutually exclusive;
-#' output could be longer than one if multiple matches are present.
-#'
+#' a ZIP code and county FIPS identifiers.
+#' Some ZIP codes are linked to multiple counties; also specify
+#' the county FIPS identifier to get the USPS preferred city and
+#' state names (in an addr_place() vector).
 #' @param zip character, length one; a 5-digit ZIP code
 #' @param fips character, length one; a 5-digit FIPS county identifier
 #' @returns if fips is NULL, a character vector of matched 5-digit FIPS
