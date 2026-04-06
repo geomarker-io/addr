@@ -85,6 +85,7 @@ The NAD does not distinguish between empty and missing address components.
 When reading into R, all missing address components are replaced with an
 empty string (\code{""}) \emph{except} for address number (digits), street name,
 and ZIP code.
+Addresses with malformed ZIP codes are removed.
 }
 \examples{
 # read data from NAD, caching output on first run

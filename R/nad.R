@@ -50,6 +50,7 @@
 #' When reading into R, all missing address components are replaced with an
 #' empty string (`""`) *except* for address number (digits), street name,
 #' and ZIP code.
+#' Addresses with malformed ZIP codes are removed.
 #'
 #' @export
 #' @examples
@@ -247,6 +248,17 @@ nad_read <- function(
     query = the_query
   )
   na_to_empty <- \(x) ifelse(is.na(x), "", x)
+  bad_zips <- which(nchar(rnad$Zip_Code) != 5L)
+  if (length(bad_zips) > 0) {
+    warning(
+      "removing ",
+      length(bad_zips),
+      " address records in ",
+      county_info$county_fips,
+      " with malformed zip codes."
+    )
+    rnad <- rnad[-bad_zips, ]
+  }
   rnad_addr <-
     with(rnad, {
       addr(
@@ -292,6 +304,8 @@ fetch_nad_metadata <- function() {
     warn = FALSE,
     encoding = "UTF-8"
   )
+  check_installed("jsonlite", "to read downloaded NAD metadata")
+
   d <- jsonlite::fromJSON(paste(txt, collapse = "\n"), simplifyVector = TRUE)
   list(
     flnm = d$blobFilename,
