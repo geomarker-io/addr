@@ -49,7 +49,7 @@ addr_match()."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -186,9 +186,7 @@ and/or street fields filled when later stages do not match.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">the_addr</span> <span class="op">&lt;-</span> <span class="fu"><a href="nad_example_data.html">nad_example_data</a></span><span class="op">(</span>match_prepare <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># the_addr &lt;- addr_match_prepare(nad("Hamilton", "OH", refresh = "no")$nad_addr)</span></span></span>
-<span class="r-in"><span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">the_addr</span> <span class="op">&lt;-</span> <span class="fu"><a href="nad_example_data.html">nad_example_data</a></span><span class="op">(</span>match_prepared <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">my_addr</span> <span class="op">&lt;-</span> <span class="fu"><a href="as_addr.html">as_addr</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    <span class="st">"2700 Alice St 45222"</span>,</span></span>

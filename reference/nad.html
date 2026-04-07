@@ -3,31 +3,39 @@
 state, local, and tribal governments to compile their authoritative data
 into a database. Find more information here:
 https://www.transportation.gov/gis/national-address-database
-nad_read() reads data from the NAD geodatabase by county and state,
-downloading it first to the R user's data directory for the addr
-package if not already downloaded with nad_download(),
-and readies it for R.
+nad_read() reads data from the NAD geodatabase by county,
+downloading it first to the R user's data directory for the addr package
+if not already downloaded with nad_download(), and readies it for R.
+Counties can be identified either by county name plus state, or by a
+5-digit county FIPS identifier. County names and state abbreviations are
+resolved internally and still determine the cache path and source query.
 The NAD geodatabase has a very large size on disk (~10 GB).
 Data binaries are the cached outputs of nad_read() for each
 County/State and are created on first run with nad().
 Download data binaries to the R_user_dir cache folder or point R
 (?R_user_dir) to these files on disk to read NAD tables without
 having to download the nationwide NAD geodatabase.
-(list.files(tools::R_user_dir(&quot;addr&quot;, &quot;cache&quot;), recursive = TRUE))"><meta property="og:description" content="The U.S. Department of Transportation partners with address programs from
+(Files are organized by major package version,
+NAD release, state, and named by county; e.g., see
+list.files(tools::R_user_dir(&quot;addr&quot;, &quot;cache&quot;), recursive = TRUE))"><meta property="og:description" content="The U.S. Department of Transportation partners with address programs from
 state, local, and tribal governments to compile their authoritative data
 into a database. Find more information here:
 https://www.transportation.gov/gis/national-address-database
-nad_read() reads data from the NAD geodatabase by county and state,
-downloading it first to the R user's data directory for the addr
-package if not already downloaded with nad_download(),
-and readies it for R.
+nad_read() reads data from the NAD geodatabase by county,
+downloading it first to the R user's data directory for the addr package
+if not already downloaded with nad_download(), and readies it for R.
+Counties can be identified either by county name plus state, or by a
+5-digit county FIPS identifier. County names and state abbreviations are
+resolved internally and still determine the cache path and source query.
 The NAD geodatabase has a very large size on disk (~10 GB).
 Data binaries are the cached outputs of nad_read() for each
 County/State and are created on first run with nad().
 Download data binaries to the R_user_dir cache folder or point R
 (?R_user_dir) to these files on disk to read NAD tables without
 having to download the nationwide NAD geodatabase.
-(list.files(tools::R_user_dir(&quot;addr&quot;, &quot;cache&quot;), recursive = TRUE))"></head><body>
+(Files are organized by major package version,
+NAD release, state, and named by county; e.g., see
+list.files(tools::R_user_dir(&quot;addr&quot;, &quot;cache&quot;), recursive = TRUE))"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -35,7 +43,7 @@ having to download the nationwide NAD geodatabase.
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.99.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,26 +73,41 @@ having to download the nationwide NAD geodatabase.
 state, local, and tribal governments to compile their authoritative data
 into a database. Find more information here:
 <a href="https://www.transportation.gov/gis/national-address-database" class="external-link">https://www.transportation.gov/gis/national-address-database</a></p>
-<p><code>nad_read()</code> reads data from the NAD geodatabase by county and state,
-downloading it first to the R user's data directory for the addr
-package if not already downloaded with <code>nad_download()</code>,
-and readies it for R.
+<p><code>nad_read()</code> reads data from the NAD geodatabase by county,
+downloading it first to the R user's data directory for the addr package
+if not already downloaded with <code>nad_download()</code>, and readies it for R.
+Counties can be identified either by county name plus state, or by a
+5-digit county FIPS identifier. County names and state abbreviations are
+resolved internally and still determine the cache path and source query.
 The NAD geodatabase has a very large size on disk (~10 GB).</p>
 <p>Data binaries are the cached outputs of <code>nad_read()</code> for each
 County/State and are created on first run with <code>nad()</code>.
 Download data binaries to the R_user_dir cache folder or point R
 (<code>?R_user_dir</code>) to these files on disk to read NAD tables without
 having to download the nationwide NAD geodatabase.
-(<code>list.files(tools::R_user_dir("addr", "cache"), recursive = TRUE)</code>)</p>
+(Files are organized by major package version,
+NAD release, state, and named by county; e.g., see
+<code>list.files(tools::R_user_dir("addr", "cache"), recursive = TRUE)</code>)</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">nad</span><span class="op">(</span><span class="va">county</span>, <span class="va">state</span>, refresh <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"yes"</span>, <span class="st">"no"</span>, <span class="st">"force"</span><span class="op">)</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">nad</span><span class="op">(</span></span>
+<span>  <span class="va">county</span>,</span>
+<span>  state <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  release <span class="op">=</span> <span class="st">"latest"</span>,</span>
+<span>  refresh_binary <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"yes"</span>, <span class="st">"no"</span>, <span class="st">"force"</span><span class="op">)</span>,</span>
+<span>  refresh_source <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"yes"</span>, <span class="st">"no"</span>, <span class="st">"force"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">nad_read</span><span class="op">(</span><span class="va">county</span>, <span class="va">state</span><span class="op">)</span></span>
+<span><span class="fu">nad_read</span><span class="op">(</span></span>
+<span>  <span class="va">county</span>,</span>
+<span>  state <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  release <span class="op">=</span> <span class="st">"latest"</span>,</span>
+<span>  refresh_source <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"yes"</span>, <span class="st">"no"</span>, <span class="st">"force"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">nad_download</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">nad_download</span><span class="op">(</span>release <span class="op">=</span> <span class="st">"latest"</span>, refresh_source <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"yes"</span>, <span class="st">"no"</span>, <span class="st">"force"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -92,32 +115,53 @@ having to download the nationwide NAD geodatabase.
 
 
 <dl><dt id="arg-county">county<a class="anchor" aria-label="anchor" href="#arg-county"></a></dt>
-<dd><p>character, length one; name of county</p></dd>
+<dd><p>character, length one; county name or 5-digit county FIPS
+identifier</p></dd>
 
 
 <dt id="arg-state">state<a class="anchor" aria-label="anchor" href="#arg-state"></a></dt>
-<dd><p>character, length one; name of state</p></dd>
+<dd><p>character, length one; name or abbreviation of state. Required
+when <code>county</code> is a county name; ignored when <code>county</code> is a 5-digit county
+FIPS identifier</p></dd>
 
 
-<dt id="arg-refresh">refresh<a class="anchor" aria-label="anchor" href="#arg-refresh"></a></dt>
+<dt id="arg-release">release<a class="anchor" aria-label="anchor" href="#arg-release"></a></dt>
+<dd><p>character, length 1; revision of the NAD;
+the default ("latest") fetches the most recent version available online;
+specify other versions by their .zip filename (see examples)</p></dd>
+
+
+<dt id="arg-refresh-binary">refresh_binary<a class="anchor" aria-label="anchor" href="#arg-refresh-binary"></a></dt>
 <dd><p>character, length one; choose how to refresh NAD
 data binaries cached on disk if not already present; "yes" will
 create data binary if not already present, "no" will
 error if data binary is not already present, "force" will
 create the data binary and overwrite any existing data binary</p></dd>
 
+
+<dt id="arg-refresh-source">refresh_source<a class="anchor" aria-label="anchor" href="#arg-refresh-source"></a></dt>
+<dd><p>character, length one; choose how to refresh NAD
+source geodatabase on disk if not already present; "yes" wil download
+the geodatabase if not already present, "no" will error if file does not already
+exist, "force" will download and overwrite any existing geodatabase</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The NAD is downloaded as the latest release from the transportation.gov
+    <p>The NAD is downloaded from each release on the transportation.gov
 data portal:
-<a href="https://data.transportation.gov/dataset/National-Address-Database-NAD-File-Geodatabase/yw36-suxr/about_data" class="external-link">https://data.transportation.gov/dataset/National-Address-Database-NAD-File-Geodatabase/yw36-suxr/about_data</a>
+<a href="https://data.transportation.gov/d/yw36-suxr" class="external-link">https://data.transportation.gov/d/yw36-suxr</a>
 For the original schema, see
-<a href="https://www.transportation.gov/sites/dot.gov/files/2023-07/NAD_Schema_202304.pdf" class="external-link">https://www.transportation.gov/sites/dot.gov/files/2023-07/NAD_Schema_202304.pdf</a></p>
+<a href="https://www.transportation.gov/sites/dot.gov/files/2023-07/NAD_Schema_202304.pdf" class="external-link">https://www.transportation.gov/sites/dot.gov/files/2023-07/NAD_Schema_202304.pdf</a>
+Before downloading, please read the disclaimer here:
+<a href="https://www.transportation.gov/mission/open/gis/national-address-database/national-address-database-nad-disclaimer" class="external-link">https://www.transportation.gov/mission/open/gis/national-address-database/national-address-database-nad-disclaimer</a></p>
+<p>Investigate individual address points in the online viewer:
+<a href="https://usdot.maps.arcgis.com/apps/instant/portfolio/index.html?appid=59f7e4fb71994d13b61f424e21a6cffe" class="external-link">https://usdot.maps.arcgis.com/apps/instant/portfolio/index.html?appid=59f7e4fb71994d13b61f424e21a6cffe</a></p>
 <p>The NAD does not distinguish between empty and missing address components.
 When reading into R, all missing address components are replaced with an
 empty string (<code>""</code>) <em>except</em> for address number (digits), street name,
-and ZIP code.</p>
+and ZIP code.
+Addresses with malformed ZIP codes are removed.</p>
     </div>
 
     <div class="section level2">
@@ -125,11 +169,12 @@ and ZIP code.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># read data from NAD, caching output on first run</span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span>  <span class="fu">nad</span><span class="op">(</span><span class="st">"Hamilton"</span>, <span class="st">"OH"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu">nad</span><span class="op">(</span><span class="st">"39061"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># example data preloaded for Hamilton County, OH</span></span></span>
 <span class="r-in"><span><span class="co"># works without downloading NAD gdb first</span></span></span>
-<span class="r-in"><span><span class="fu">nad</span><span class="op">(</span><span class="st">"Hamilton"</span>, <span class="st">"OH"</span>, refresh <span class="op">=</span> <span class="st">"no"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">nad</span><span class="op">(</span><span class="st">"Hamilton"</span>, <span class="st">"OH"</span>, refresh_source <span class="op">=</span> <span class="st">"no"</span>, refresh_binary <span class="op">=</span> <span class="st">"no"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 349,407 × 7</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    nad_addr            subaddress uuid  date_update s2    address_type parcel_id</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;addr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;s2c&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span>
@@ -144,6 +189,31 @@ and ZIP code.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 8210 MARKET PLACE … <span style="color: #BB0000;">NA</span>         {C01… 2025-03-30  8840… Unknown      <span style="color: #BB0000;">NA</span>       </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 8212 MARKET PLACE … <span style="color: #BB0000;">NA</span>         {2A8… 2025-03-30  8840… Unknown      <span style="color: #BB0000;">NA</span>       </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 349,397 more rows</span></span>
+<span class="r-in"><span><span class="fu">nad</span><span class="op">(</span><span class="st">"39061"</span>, refresh_source <span class="op">=</span> <span class="st">"no"</span>, refresh_binary <span class="op">=</span> <span class="st">"no"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 349,407 × 7</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    nad_addr            subaddress uuid  date_update s2    address_type parcel_id</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;addr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;s2c&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 7610 THOMPSON Rd C… <span style="color: #BB0000;">NA</span>         {68A… 2025-03-30  8840… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> 9483 ZOLA Ct HARRI… <span style="color: #BB0000;">NA</span>         {CBF… 2025-03-30  8840… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> 208 MOHAWK St CINC… <span style="color: #BB0000;">NA</span>         {B18… 2025-03-30  8841… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 11800 READING Rd C… <span style="color: #BB0000;">NA</span>         {393… 2025-03-30  8840… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 12050 PRINCETON Pi… <span style="color: #BB0000;">NA</span>         {478… 2025-03-30  8840… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> 6610 PFEIFFER Rd C… <span style="color: #BB0000;">NA</span>         {947… 2025-03-30  8840… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 6501 PFEIFFER Rd C… <span style="color: #BB0000;">NA</span>         {998… 2025-03-30  8840… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> 4244 ROUND BOTTOM … <span style="color: #BB0000;">NA</span>         {5F5… 2025-03-30  8841… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 8210 MARKET PLACE … <span style="color: #BB0000;">NA</span>         {C01… 2025-03-30  8840… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 8212 MARKET PLACE … <span style="color: #BB0000;">NA</span>         {2A8… 2025-03-30  8840… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 349,397 more rows</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># some older releases can still be downloaded</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span>  <span class="fu">nad_download</span><span class="op">(</span>release <span class="op">=</span> <span class="st">"NAD_r21_FGDB.zip"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-in"><span><span class="co"># can also point to older releases if they are already downloaded</span></span></span>
+<span class="r-in"><span><span class="co"># or if data binaries are installed</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span>  <span class="fu">nad_download</span><span class="op">(</span>release <span class="op">=</span> <span class="st">"NAD_r21_FGDB.zip"</span>, refresh_source <span class="op">=</span> <span class="st">"no"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

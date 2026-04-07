@@ -12,6 +12,7 @@
 <url><loc>https://geomarker.io/addr/reference/addr_match_stage.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/as_addr.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/clean_address_text.html</loc></url>
+<url><loc>https://geomarker.io/addr/reference/county_fips_lookup.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/elh_data.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/fuzzy_match.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/geocode_tiger.html</loc></url>
@@ -27,5 +28,6 @@
 <url><loc>https://geomarker.io/addr/reference/tiger_addr_feat.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/usaddress_tag.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/voter_addresses.html</loc></url>
+<url><loc>https://geomarker.io/addr/reference/zip_fips_lookup.html</loc></url>
 </urlset>
 
