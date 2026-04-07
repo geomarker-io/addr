@@ -1,15 +1,19 @@
-test_that("nad-family functions validate county and state scalars", {
+test_that("nad-family functions validate county inputs and path scalars", {
   expect_error(
-    nad(NA_character_, "OH", refresh = "no"),
+    nad(NA_character_, "OH", refresh_binary = "no", refresh_source = "no"),
     "county must not be missing"
   )
   expect_error(
-    nad("Hamilton", c("OH", "KY"), refresh = "no"),
-    "state must be length one"
+    nad("Hamilton", refresh_binary = "no", refresh_source = "no"),
+    "state must be supplied when county is not a 5-digit FIPS identifier"
   )
   expect_error(
-    nad_read("Hamilton", NA_character_),
-    "state must not be missing"
+    nad("Hamilton", c("OH", "KY"), refresh_binary = "no", refresh_source = "no"),
+    "state must be NULL or length one"
+  )
+  expect_error(
+    nad_read("Hamilton", NA_character_, release = "NAD_r22.zip", refresh_source = "no"),
+    "state must be NULL or not missing"
   )
   expect_error(
     nad_sd_path(1, "OH"),

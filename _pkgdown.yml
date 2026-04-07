@@ -20,6 +20,7 @@ reference:
       - addr
       - tag_usaddress
       - clean_address_text
+      - run_addr_explorer
   - title: Match addr
     contents:
       - addr_match
@@ -29,23 +30,24 @@ reference:
       - match_addr_street
       - match_zipcodes
       - phonetic_street_key
-      - run_addr_explorer
   - title: Fuzzy join addr
     contents:
       - addr_fuzzy_left_join
       - addr_fuzzy_match
       - fuzzy_match
-  - title: Geocoding addr
-    contents:
-      - geocode_tiger
-      - tiger_addr_feat
   - title: National Address Database
     contents:
       - nad
       - nad_read
       - nad_download
       - nad_example_data
-  - title: Examples
+  - title: Geocoding addr
+    contents:
+      - geocode_tiger
+      - tiger_addr_feat
+  - title: Examples & Helpers
     contents:
       - voter_addresses
       - elh_data
+      - county_fips_lookup
+      - zip_fips_lookup

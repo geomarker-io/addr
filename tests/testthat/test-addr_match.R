@@ -119,7 +119,11 @@ test_that("addr_match skips preparation message for prepared references", {
     "10 MAIN ST CINCINNATI OH 45229"
   ))
   progress_output <- capture.output({
-    out <- addr_match(x, addr_match_prepare(y), progress = TRUE)
+    out <- addr_match(
+      x,
+      addr_match_prepare(y, progress = FALSE),
+      progress = TRUE
+    )
   })
   progress_text <- paste(progress_output, collapse = "\n")
   progress_text <- gsub("\033\\[[0-9;]*[[:alpha:]]", "", progress_text)
@@ -202,7 +206,7 @@ test_that("addr_match_stage rejects non-addr_match structures in strict mode", {
 
 test_that("addr_match works with packaged prepared example data", {
   x <- as_addr(voter_addresses()[1:100])
-  y <- nad_example_data(match_prepare = TRUE)
+  y <- nad_example_data(match_prepared = TRUE)
   out <- addr_match(x, y, progress = FALSE)
   stage <- addr_match_stage(out)
   expect_equal(sum(!is.na(out@number)), 89)
@@ -233,7 +237,7 @@ test_that("addr_match works with packaged prepared example data", {
 })
 
 test_that("addr_match honors matching tuning arguments", {
-  y <- nad_example_data(match_prepare = TRUE)
+  y <- nad_example_data(match_prepared = TRUE)
   demo_addr <- function(number, street, type, zipcode, map_ordinal = TRUE) {
     addr(
       addr_number(prefix = "", digits = number, suffix = ""),
@@ -423,7 +427,10 @@ test_that("addr_match honors pretype and postdirectional matching toggles", {
     progress = FALSE
   )
 
-  expect_identical(format(out_pretype_optional), "10 Main Rd Testville OH 45220")
+  expect_identical(
+    format(out_pretype_optional),
+    "10 Main Rd Testville OH 45220"
+  )
   expect_identical(
     format(out_default),
     "10 US Hwy Main Rd E Testville OH 45220"
@@ -492,6 +499,6 @@ test_that("addr_match can make predirectional and posttype optional", {
 })
 
 test_that("nad_example_data can return prepared match data", {
-  prepared <- nad_example_data(match_prepare = TRUE)
+  prepared <- nad_example_data(match_prepared = TRUE)
   expect_s3_class(prepared, "addr_match_index")
 })

@@ -32,7 +32,7 @@ addr_explorer_app <- function() {
   check_installed("htmltools", "to render the address explorer app")
 
   voter_pool <- voter_addresses()
-  nad_index <- nad_example_data(match_prepare = TRUE)
+  nad_index <- nad_example_data(match_prepared = TRUE)
 
   ui <- shiny::fluidPage(
     shiny::tags$head(

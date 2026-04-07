@@ -1,6 +1,6 @@
 Package: addr
 Title: Clean, Parse, Harmonize, Match, and Geocode Messy Real-World US Addresses
-Version: 0.99.8
+Version: 0.99.9
 Authors@R: 
     c(person("Cole", "Brokamp", email = "cole@colebrokamp.com", role = c("aut", "cre")),
       person("Erika", "Manning", role = c("aut")))
@@ -15,6 +15,7 @@ Suggests:
     htmltools,
     shiny,
     testthat (>= 3.0.0),
+    jsonlite,
     sf,
     leaflet,
     curl,
@@ -45,9 +46,11 @@ Collate:
     'addr_vectors.R'
     'as_addr.R'
     'clean.R'
+    'county_fips.R'
     'data.R'
     'extendr-wrappers.R'
     'fuzzy_match.R'
+    'hud_usps_zip_code_crosswalk.R'
     'nad.R'
     'phonetic_street_key.R'
     'shiny_addr_explorer.R'

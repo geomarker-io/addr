@@ -88,9 +88,7 @@ with the same reference addresses. For a single end-to-end match, preparing
 \code{addr_match()}.
 }
 \examples{
-the_addr <- nad_example_data(match_prepare = TRUE)
-# the_addr <- addr_match_prepare(nad("Hamilton", "OH", refresh = "no")$nad_addr)
-
+the_addr <- nad_example_data(match_prepared = TRUE)
 my_addr <- as_addr(
   c(
     "2700 Alice St 45222",
