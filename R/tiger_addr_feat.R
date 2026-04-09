@@ -103,3 +103,145 @@ tiger_addr_feat <- function(county, year) {
   out$s2_geography <- s2::as_s2_geography(out$geometry)
   sf::st_drop_geometry(out)
 }
+
+#' TIGER Address Features dataset
+#'
+#' taf() uses the arrow package to open the hive partitioned, parquet dataset
+#' of TIGER address features in the R user directory for the addr package
+#' @param year integer, length one; vintage of TIGER addrfeat files
+#' @param version character, length one; major version of the package
+#' and taf dataset schema
+#' @returns (from the arrow package), A Dataset R6 object. Use `dplyr` methods
+#' on it to query the data, or call `$NewScan()` to construc a query directly.
+#' @export
+#' @examples
+#' taf()
+taf <- function(year = as.character(2025:2011), version = "v1") {
+  stopifnot(
+    "version must be a character vector" = is.character(version),
+    "version must be length one" = length(version) == 1L,
+    "version must not be missing" = !is.na(version)
+  )
+  year <- match.arg(year)
+  taf_path <- file.path(
+    tools::R_user_dir("addr", "data"),
+    "tiger_addr_feat",
+    version,
+    year
+  )
+  dir.create(taf_path, showWarnings = FALSE, recursive = TRUE)
+  arrow::open_dataset(
+    taf_path,
+    format = "parquet",
+    partitioning = arrow::hive_partition(
+      state = arrow::string(),
+      county = arrow::string()
+    )
+  )
+}
+
+#' @param county_fips character, length 1; county fips code
+#' @rdname taf
+#' @export
+#' @examples
+#' taf_install("39061", "2025")
+taf_install <- function(county_fips, year, version = "v1") {
+  taf_path <- file.path(
+    tools::R_user_dir("addr", "data"),
+    "tiger_addr_feat",
+    version,
+    year,
+    sprintf("state=%s", substr(county_fips, 1, 2)),
+    sprintf("county=%s", substr(county_fips, 3, 5))
+  )
+  dir.create(taf_path, recursive = TRUE, showWarnings = FALSE)
+  out_file <- file.path(taf_path, "part-0.parquet")
+  if (!file.exists(out_file)) {
+    d <- tiger_addr_feat(county_fips, year)
+    d_addr <-
+      as_addr(
+        paste(
+          "3",
+          d$FULLNAME,
+          "Springfield",
+          "OH",
+          d$ZIP
+        ),
+        clean = FALSE,
+        map_posttype = FALSE,
+        map_directional = FALSE,
+        map_pretype = FALSE,
+        map_ordinal = FALSE,
+        map_state = FALSE
+      )
+    d$addr_street <- d_addr@street
+    out <- tibble::tibble(d, tibble::as_tibble(d$addr_street))
+    out$addr_street <- NULL
+    out$geometry_wkt <- s2::s2_as_text(out$s2_geography)
+    out$s2_geography <- NULL
+    arrow::write_parquet(out, out_file)
+  }
+  return(invisible(county_fips))
+}
+
+# transform data read in from taf()
+# - reconstruct county_fips
+# - reconstruct s2_geography
+# - reconstruct addr_street, mapping all tags
+#   (ensures consistency with loaded version of package)
+taf_extract_to_addr_tbl <- function(x) {
+  x$s2_geography <- s2::as_s2_geography(x$geometry_wkt)
+  x$geometry_wkt <- NULL
+  x$addr_street <- addr_street(
+    predirectional = x$street_predirectional,
+    premodifier = x$street_premodifier,
+    pretype = x$street_pretype,
+    name = x$street_name,
+    posttype = x$street_posttype,
+    postdirectional = x$street_postdirectional,
+    map_posttype = TRUE,
+    map_directional = TRUE,
+    map_pretype = TRUE,
+    map_ordinal = TRUE
+  )
+  x$street_predirectional <- NULL
+  x$street_premodifier <- NULL
+  x$street_pretype <- NULL
+  x$street_name <- NULL
+  x$street_posttype <- NULL
+  x$street_postdirectional <- NULL
+  x$county_fips <- paste0(x$state, x$county)
+  x$state <- NULL
+  x$county <- NULL
+  return(x)
+}
+#
+# taf() |>
+#   filter(ZIP == "45220", street_name == "Woolper") |>
+#   collect() |>
+#   taf_extract_to_addr_tbl()
+#
+# taf_read_simple <- function(x) {
+#   taf_extract_to_addr_tbl(dplyr::collect(x))
+# }
+#
+#
+# taf() |>
+#   filter(.data$ZIP == "45249") |>
+#   taf_read_simple()
+#
+#
+# taf() |>
+#   group_by(street_name, street_posttype) |>
+#   summarize(
+#     n_zips = n_distinct(ZIP),
+#     n_ranges = n(),
+#     .groups = "drop"
+#   ) |>
+#   arrange(desc(n_zips), desc(n_ranges)) |>
+#   collect()
+#
+# taf() |>
+#   filter(.data$ZIP == "45220") |>
+#   taf_read_simple() |>
+#   filter(addr_street@name == "woolper")
