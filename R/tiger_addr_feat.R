@@ -125,8 +125,8 @@ taf <- function(year = as.character(2025:2011), version = "v1") {
   year <- match.arg(year)
   taf_path <- file.path(
     tools::R_user_dir("addr", "data"),
-    "tiger_addr_feat",
     version,
+    "tiger_addr_feat",
     year
   )
   dir.create(taf_path, showWarnings = FALSE, recursive = TRUE)
@@ -148,8 +148,8 @@ taf <- function(year = as.character(2025:2011), version = "v1") {
 taf_install <- function(county_fips, year, version = "v1") {
   taf_path <- file.path(
     tools::R_user_dir("addr", "data"),
-    "tiger_addr_feat",
     version,
+    "tiger_addr_feat",
     year,
     sprintf("state=%s", substr(county_fips, 1, 2)),
     sprintf("county=%s", substr(county_fips, 3, 5))
