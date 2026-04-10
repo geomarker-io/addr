@@ -1,6 +1,7 @@
 devtools::load_all()
 
 mirai::daemons(parallelly::availableCores() - 1)
+# mirai::daemons(4)
 
 cnty_fips <- county_fips_reference$county_fips
 cnty_fips <- cnty_fips[
@@ -17,6 +18,7 @@ system.time({
   )
   mmo <- mm[.stop, .progress]
 })
+
 mirai::daemons(0)
 
 taf_fls <-
@@ -39,7 +41,3 @@ message(
   " totaling ",
   sum(taf_fls$size)
 )
-
-# baking on my laptop with 9/10 cores
-# ~ 22min including downloading TIGER shapefiles
-# ~ 14min without downloading

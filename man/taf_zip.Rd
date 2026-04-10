@@ -2,10 +2,25 @@
 % Please edit documentation in R/tiger_addr_feat.R
 \name{taf_zip}
 \alias{taf_zip}
-\title{taf_zip(c("45249", "45230", "45220"))}
+\title{read taf() for a ZIP code across all installed counties}
 \usage{
-taf_zip(x)
+taf_zip(x, map = TRUE)
+}
+\arguments{
+\item{map}{logical, length 1; map street tags read from taf() data
+(type, directional, ordinal) when converting to \code{addr_street()} vector?}
+}
+\value{
+a tibble with \code{LINEARID}, \code{FULLNAME}, \code{side}, \code{ZIP},
+\code{FROMHN}, \code{TOHN}, \code{PARITY}, \code{OFFSET}, \code{s2_geography}, \code{addr_street},
+and \code{county_fips} columns
 }
 \description{
+taf_zip() is a helper that transforms data read in from taf()
+for a subset of zip codes to use with the addr package.
+It reconstructs the \code{county_fips}, \code{s2_geography}, and \code{addr_street},
+vectors in the returned data frame to use with the addr package.
+}
+\examples{
 taf_zip(c("45249", "45230", "45220"))
 }

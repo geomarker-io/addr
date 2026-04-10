@@ -274,7 +274,6 @@ taf_install <- function(
   )
   dir.create(taf_path, recursive = TRUE, showWarnings = FALSE)
   out_file <- file.path(taf_path, "part-0.parquet")
-  browser()
   if (!file.exists(out_file)) {
     d_names <- tiger_feat_names(county = county, year = year)
     d_geom <- tiger_addr_feat(county = county, year = year)
