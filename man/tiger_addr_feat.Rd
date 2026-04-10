@@ -23,8 +23,8 @@ from the census.gov FTP site to the R user's data directory for
 the addr package.
 
 When reading into R, the data is converted to a "long" format by street
-side L/R to be used with \code{tiger_geocode()}.
+side L/R to be used within \code{taf_install()} to create \code{taf()}.
 }
 \examples{
-tiger_addr_feat("39061", "2024")
+tiger_addr_feat("39061", "2025")
 }

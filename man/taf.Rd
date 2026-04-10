@@ -7,7 +7,7 @@
 \usage{
 taf(year = as.character(2025:2011), version = "v1")
 
-taf_install(county_fips, year, version = "v1")
+taf_install(county, year = as.character(2025:2011), version = "v1")
 }
 \arguments{
 \item{year}{integer, length one; vintage of TIGER addrfeat files}
@@ -15,7 +15,7 @@ taf_install(county_fips, year, version = "v1")
 \item{version}{character, length one; major version of the package
 and taf dataset schema}
 
-\item{county_fips}{character, length 1; county fips code}
+\item{county}{character, length 1; county fips code}
 }
 \value{
 a Dataset R6 object (see \code{?arrow::open_dataset}); use \code{dplyr}

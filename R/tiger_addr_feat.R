@@ -15,6 +15,142 @@ tiger_download <- function(x) {
   return(dest)
 }
 
+#' Get names for tiger street ranges
+#'
+#' @description
+#'
+#' TIGER primary feature names are read from compressed featnames databases for
+#' each county and census vintage.
+#' If not already present, compressed addrfeat shapefiles are downloaded
+#' from the census.gov FTP site to the R user's data directory for
+#' the addr package.
+#'
+#' When reading into R, the data is filtered to addressable MTFCCs
+#' (S1100, S1200, S1400, S1640) that have a name.
+#' @inheritParams tiger_addr_feat
+#' @returns a tibble with unique `LINEARID` and `addr` columns
+#' @export
+#' @examples
+#' tiger_feat_names("39061", "2025")
+tiger_feat_names <- function(county, year) {
+  stopifnot(
+    "county must be a character vector" = is.character(county),
+    "county must be length one" = length(county) == 1L,
+    "county must not be missing" = !is.na(county),
+    "year must be a character vector" = is.character(year),
+    "year must be length one" = length(year) == 1L,
+    "year must not be missing" = !is.na(year)
+  )
+  check_installed("sf", "to read TIGER feature names")
+  tp <- tiger_download(sprintf(
+    "TIGER%s/FEATNAMES/tl_%s_%s_featnames.zip",
+    year,
+    year,
+    county
+  )) |>
+    paste0("/vsizip/", file_path = _)
+  rd <- sf::st_read(
+    tp,
+    quiet = TRUE,
+    stringsAsFactors = FALSE,
+    as_tibble = TRUE
+  )
+  rd <- rd[rd$MTFCC %in% c("S1100", "S1200", "S1400", "S1630", "S1640"), ]
+  rd <- rd[!is.na(rd$FULLNAME), ]
+  rd <- rd[rd$PAFLAG == "P", ]
+  na_to_empty <- \(x) ifelse(is.na(x), "", x)
+  d <- tibble::tibble(
+    LINEARID = rd$LINEARID,
+    premodifier = na_to_empty(rd$PREQUALABR),
+    predirectional = na_to_empty(rd$PREDIRABRV),
+    pretype = na_to_empty(rd$PRETYPABRV),
+    name = na_to_empty(rd$NAME),
+    posttype = na_to_empty(rd$SUFTYPABRV),
+    postdirectional = na_to_empty(rd$SUFDIRABRV),
+  ) |>
+    unique()
+  d$addr_street <- addr::addr_street(
+    premodifier = d$premodifier,
+    predirectional = d$predirectional,
+    pretype = d$pretype,
+    name = d$name,
+    posttype = d$posttype,
+    postdirectional = d$postdirectional,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_pretype = FALSE,
+    map_ordinal = FALSE
+  )
+  d$premodifier <- NULL
+  d$predirectional <- NULL
+  d$pretype <- NULL
+  d$name <- NULL
+  d$posttype <- NULL
+  d$postdirectional <- NULL
+  d
+}
+
+#' Get s2_geography for tiger street ranges
+#'
+#' @description
+#'
+#' TIGER address features (i.e. street address ranges) are read from compressed
+#' addrfeat shapefiles for each county and Census vintage.
+#' If not already present, compressed addrfeat shapefiles are downloaded
+#' from the census.gov FTP site to the R user's data directory for
+#' the addr package.
+#'
+#' When reading into R, the data is converted to a "long" format by street
+#' side L/R to be used within `taf_install()` to create `taf()`.
+#' @param county character string of county identifier
+#' @param year character year of tigris product
+#' @returns a tibble with `LINEARID`, `FULLNAME`, `side`, `ZIP`,
+#' `FROMHN`, `TOHN`, `PARITY`, `OFFSET`, and `s2_geography` columns
+#' @export
+#' @examples
+#' tiger_addr_feat("39061", "2025")
+tiger_addr_feat <- function(county, year) {
+  stopifnot(
+    "county must be a character vector" = is.character(county),
+    "county must be length one" = length(county) == 1L,
+    "county must not be missing" = !is.na(county),
+    "year must be a character vector" = is.character(year),
+    "year must be length one" = length(year) == 1L,
+    "year must not be missing" = !is.na(year)
+  )
+  check_installed("sf", "to read address range shapefiles")
+
+  tp <- tiger_download(sprintf(
+    "TIGER%s/ADDRFEAT/tl_%s_%s_addrfeat.zip",
+    year,
+    year,
+    county
+  )) |>
+    paste0("/vsizip/", file_path = _)
+
+  rd <-
+    sf::st_read(
+      tp,
+      query = sprintf(
+        "SELECT LINEARID, FULLNAME, ZIPL, ZIPR, LFROMHN, LTOHN, RFROMHN, RTOHN, PARITYL, PARITYR, OFFSETL, OFFSETR FROM tl_%s_%s_addrfeat",
+        year,
+        county
+      ),
+      quiet = TRUE,
+      stringsAsFactors = FALSE,
+      as_tibble = TRUE
+    )
+
+  out <- pivot_addrfeat_sides(rd) |>
+    stats::na.omit()
+
+  out$FROMHN <- to_int(out$FROMHN)
+  out$TOHN <- to_int(out$TOHN)
+
+  out$s2_geography <- s2::as_s2_geography(out$geometry)
+  sf::st_drop_geometry(out)
+}
+
 pivot_addrfeat_sides <- function(x) {
   side_cols <- c(
     "ZIPL",
@@ -46,63 +182,6 @@ pivot_addrfeat_sides <- function(x) {
   rbind(left, right)
 }
 
-#' Get s2_geography for tiger street ranges
-#'
-#' @description
-#'
-#' TIGER address features (i.e. street address ranges) are read from compressed
-#' addrfeat shapefiles for each county and Census vintage.
-#' If not already present, compressed addrfeat shapefiles are downloaded
-#' from the census.gov FTP site to the R user's data directory for
-#' the addr package.
-#'
-#' When reading into R, the data is converted to a "long" format by street
-#' side L/R to be used with `tiger_geocode()`.
-#' @param county character string of county identifier
-#' @param year character year of tigris product
-#' @returns a tibble with `LINEARID`, `FULLNAME`, `side`, `ZIP`,
-#' `FROMHN`, `TOHN`, `PARITY`, `OFFSET`, and `s2_geography` columns
-#' @export
-#' @examples
-#' tiger_addr_feat("39061", "2024")
-tiger_addr_feat <- function(county, year) {
-  stopifnot(
-    "county must be a character vector" = is.character(county),
-    "county must be length one" = length(county) == 1L,
-    "county must not be missing" = !is.na(county),
-    "year must be a character vector" = is.character(year),
-    "year must be length one" = length(year) == 1L,
-    "year must not be missing" = !is.na(year)
-  )
-  check_installed("sf", "to read address range shapefiles")
-  rd <- tiger_download(sprintf(
-    "TIGER%s/ADDRFEAT/tl_%s_%s_addrfeat.zip",
-    year,
-    year,
-    county
-  )) |>
-    paste0("/vsizip/", file_path = _) |>
-    sf::st_read(
-      dsn = _,
-      query = sprintf(
-        "SELECT LINEARID, FULLNAME, ZIPL, ZIPR, LFROMHN, LTOHN, RFROMHN, RTOHN, PARITYL, PARITYR, OFFSETL, OFFSETR FROM tl_%s_%s_addrfeat",
-        year,
-        county
-      ),
-      quiet = TRUE,
-      stringsAsFactors = FALSE,
-      as_tibble = TRUE
-    )
-
-  out <- pivot_addrfeat_sides(rd) |>
-    stats::na.omit()
-
-  out$FROMHN <- to_int(out$FROMHN)
-  out$TOHN <- to_int(out$TOHN)
-
-  out$s2_geography <- s2::as_s2_geography(out$geometry)
-  sf::st_drop_geometry(out)
-}
 
 #' TIGER Address Features dataset
 #'
@@ -161,48 +240,52 @@ taf <- function(year = as.character(2025:2011), version = "v1") {
   )
 }
 
-#' @param county_fips character, length 1; county fips code
 #' @rdname taf
+#' @param county character, length 1; county fips code
 #' @export
 #' @examples
 #' taf_install("39061", "2025")
-taf_install <- function(county_fips, year, version = "v1") {
+taf_install <- function(
+  county,
+  year = as.character(2025:2011),
+  version = "v1"
+) {
+  stopifnot(
+    "county must be a character vector" = is.character(county),
+    "county must be length one" = length(county) == 1L,
+    "county must not be missing" = !is.na(county),
+    "year must be a character vector" = is.character(year),
+    "year must be length one" = length(year) == 1L,
+    "year must not be missing" = !is.na(year)
+  )
+  year <- match.arg(year)
+  stopifnot(
+    "version must be a character vector" = is.character(version),
+    "version must be length one" = length(version) == 1L,
+    "version must not be missing" = !is.na(version)
+  )
   taf_path <- file.path(
     tools::R_user_dir("addr", "data"),
     version,
     "tiger_addr_feat",
     year,
-    sprintf("state=%s", substr(county_fips, 1, 2)),
-    sprintf("county=%s", substr(county_fips, 3, 5))
+    sprintf("state=%s", substr(county, 1, 2)),
+    sprintf("county=%s", substr(county, 3, 5))
   )
   dir.create(taf_path, recursive = TRUE, showWarnings = FALSE)
   out_file <- file.path(taf_path, "part-0.parquet")
+  browser()
   if (!file.exists(out_file)) {
-    d <- tiger_addr_feat(county_fips, year)
-    d_addr <-
-      as_addr(
-        paste(
-          "3",
-          d$FULLNAME,
-          "Springfield",
-          "OH",
-          d$ZIP
-        ),
-        clean = FALSE,
-        map_posttype = FALSE,
-        map_directional = FALSE,
-        map_pretype = FALSE,
-        map_ordinal = FALSE,
-        map_state = FALSE
-      )
-    d$addr_street <- d_addr@street
-    out <- tibble::tibble(d, tibble::as_tibble(d$addr_street))
-    out$addr_street <- NULL
+    d_names <- tiger_feat_names(county = county, year = year)
+    d_geom <- tiger_addr_feat(county = county, year = year)
+
+    idn <- match(d_geom$LINEARID, d_names$LINEARID)
+    out <- tibble::tibble(d_geom, tibble::as_tibble(d_names$addr_street[idn]))
     out$geometry_wkt <- s2::s2_as_text(out$s2_geography)
     out$s2_geography <- NULL
     arrow::write_parquet(out, out_file)
   }
-  return(invisible(county_fips))
+  return(invisible(county))
 }
 
 # read taf() for a ZIP code across all installed counties
