@@ -3,7 +3,9 @@ devtools::load_all()
 mirai::daemons(parallelly::availableCores() - 1)
 
 cnty_fips <- county_fips_reference$county_fips
-cnty_fips <- cnty_fips[!substr(cnty_fips, 1, 2) %in% c("60", "69")]
+cnty_fips <- cnty_fips[
+  !substr(cnty_fips, 1, 2) %in% c("60", "66", "69", "72", "78")
+]
 
 system.time({
   mm <- mirai::mirai_map(
@@ -38,5 +40,6 @@ message(
   sum(taf_fls$size)
 )
 
-# baking with pre-downloaded TIGER shapefiles takes
-# ~ 14min on my laptop using 9/10 cores
+# baking on my laptop with 9/10 cores
+# ~ 22min including downloading TIGER shapefiles
+# ~ 14min without downloading

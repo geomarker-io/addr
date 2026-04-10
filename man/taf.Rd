@@ -34,9 +34,10 @@ more details on arrow and dplyr
 \examples{
 taf()
 
-# use dplyr verbs to query and
-# find top ten most frequent street name-posttype combinations
+# use dplyr verbs to query
 library(dplyr, warn.conflicts = FALSE)
+
+# find top ten most frequent street name-posttype combinations
 taf() |>
   group_by(street_name, street_posttype) |>
   summarize(

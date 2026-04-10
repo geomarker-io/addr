@@ -123,9 +123,10 @@ tiger_addr_feat <- function(county, year) {
 #' @examples
 #' taf()
 #'
-#' # use dplyr verbs to query and
-#' # find top ten most frequent street name-posttype combinations
+#' # use dplyr verbs to query
 #' library(dplyr, warn.conflicts = FALSE)
+#'
+#' # find top ten most frequent street name-posttype combinations
 #' taf() |>
 #'   group_by(street_name, street_posttype) |>
 #'   summarize(
@@ -204,34 +205,44 @@ taf_install <- function(county_fips, year, version = "v1") {
   return(invisible(county_fips))
 }
 
+# read taf() for a ZIP code across all installed counties
 # transform data read in from taf()
 # - reconstruct county_fips
 # - reconstruct s2_geography
 # - reconstruct addr_street, mapping all tags
 #   (ensures consistency with loaded version of package)
-taf_extract_to_addr_tbl <- function(x) {
-  x$s2_geography <- s2::as_s2_geography(x$geometry_wkt)
-  x$geometry_wkt <- NULL
-  x$addr_street <- addr_street(
-    predirectional = x$street_predirectional,
-    premodifier = x$street_premodifier,
-    pretype = x$street_pretype,
-    name = x$street_name,
-    posttype = x$street_posttype,
-    postdirectional = x$street_postdirectional,
+#' taf_zip(c("45249", "45230", "45220"))
+taf_zip <- function(x) {
+  stopifnot(is.character(x), length(x) > 0, !any(is.na(x)))
+  x <- addr::addr_place(zipcode = x)@zipcode
+  filter_expr <- lapply(x, function(z) {
+    arrow::Expression$field_ref("ZIP") == z
+  }) |>
+    Reduce(`|`, x = _)
+  d <- taf()$NewScan()$Filter(filter_expr)$Finish()$ToTable() |>
+    tibble::as_tibble()
+  d$s2_geography <- s2::as_s2_geography(d$geometry_wkt)
+  d$geometry_wkt <- NULL
+  d$addr_street <- addr_street(
+    predirectional = d$street_predirectional,
+    premodifier = d$street_premodifier,
+    pretype = d$street_pretype,
+    name = d$street_name,
+    posttype = d$street_posttype,
+    postdirectional = d$street_postdirectional,
     map_posttype = TRUE,
     map_directional = TRUE,
     map_pretype = TRUE,
     map_ordinal = TRUE
   )
-  x$street_predirectional <- NULL
-  x$street_premodifier <- NULL
-  x$street_pretype <- NULL
-  x$street_name <- NULL
-  x$street_posttype <- NULL
-  x$street_postdirectional <- NULL
-  x$county_fips <- paste0(x$state, x$county)
-  x$state <- NULL
-  x$county <- NULL
-  return(x)
+  d$street_predirectional <- NULL
+  d$street_premodifier <- NULL
+  d$street_pretype <- NULL
+  d$street_name <- NULL
+  d$street_posttype <- NULL
+  d$street_postdirectional <- NULL
+  d$county_fips <- paste0(d$state, d$county)
+  d$state <- NULL
+  d$county <- NULL
+  d
 }
