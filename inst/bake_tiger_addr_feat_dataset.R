@@ -39,4 +39,4 @@ message(
 )
 
 # baking with pre-downloaded TIGER shapefiles takes
-# ~ 15min on my laptop using 9/10 cores
+# ~ 14min on my laptop using 9/10 cores

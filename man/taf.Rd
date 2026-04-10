@@ -18,14 +18,34 @@ and taf dataset schema}
 \item{county_fips}{character, length 1; county fips code}
 }
 \value{
-(from the arrow package), A Dataset R6 object. Use \code{dplyr} methods
-on it to query the data, or call \verb{$NewScan()} to construc a query directly.
+a Dataset R6 object (see \code{?arrow::open_dataset}); use \code{dplyr}
+verbs to query the data and get results, see examples
 }
 \description{
-taf() uses the arrow package to open the hive partitioned, parquet dataset
-of TIGER address features in the R user directory for the addr package
+taf() uses the arrow package to open the
+hive partitioned, parquet dataset of TIGER address features in the R user
+directory for the addr package.
+The FileSystemDataset in Arrow is database-like backend for
+larger-than-memory datasets and provides functionality
+to use dplyr syntax for data manipulation;
+see \url{https://arrow.apache.org/docs/r/articles/data_wrangling.html} for
+more details on arrow and dplyr
 }
 \examples{
 taf()
+
+# use dplyr verbs to query and
+# find top ten most frequent street name-posttype combinations
+library(dplyr, warn.conflicts = FALSE)
+taf() |>
+  group_by(street_name, street_posttype) |>
+  summarize(
+    n_zips = n_distinct(ZIP),
+    n_ranges = n(),
+    .groups = "drop"
+  ) |>
+  arrange(desc(n_zips), desc(n_ranges)) |>
+  collect() |>
+  slice(1:10)
 taf_install("39061", "2025")
 }

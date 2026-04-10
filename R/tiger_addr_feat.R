@@ -106,16 +106,36 @@ tiger_addr_feat <- function(county, year) {
 
 #' TIGER Address Features dataset
 #'
-#' taf() uses the arrow package to open the hive partitioned, parquet dataset
-#' of TIGER address features in the R user directory for the addr package
+#' taf() uses the arrow package to open the
+#' hive partitioned, parquet dataset of TIGER address features in the R user
+#' directory for the addr package.
+#' The FileSystemDataset in Arrow is database-like backend for
+#' larger-than-memory datasets and provides functionality
+#' to use dplyr syntax for data manipulation;
+#' see <https://arrow.apache.org/docs/r/articles/data_wrangling.html> for
+#' more details on arrow and dplyr
 #' @param year integer, length one; vintage of TIGER addrfeat files
 #' @param version character, length one; major version of the package
 #' and taf dataset schema
-#' @returns (from the arrow package), A Dataset R6 object. Use `dplyr` methods
-#' on it to query the data, or call `$NewScan()` to construc a query directly.
+#' @returns a Dataset R6 object (see `?arrow::open_dataset`); use `dplyr`
+#' verbs to query the data and get results, see examples
 #' @export
 #' @examples
 #' taf()
+#'
+#' # use dplyr verbs to query and
+#' # find top ten most frequent street name-posttype combinations
+#' library(dplyr, warn.conflicts = FALSE)
+#' taf() |>
+#'   group_by(street_name, street_posttype) |>
+#'   summarize(
+#'     n_zips = n_distinct(ZIP),
+#'     n_ranges = n(),
+#'     .groups = "drop"
+#'   ) |>
+#'   arrange(desc(n_zips), desc(n_ranges)) |>
+#'   collect() |>
+#'   slice(1:10)
 taf <- function(year = as.character(2025:2011), version = "v1") {
   stopifnot(
     "version must be a character vector" = is.character(version),
@@ -215,33 +235,3 @@ taf_extract_to_addr_tbl <- function(x) {
   x$county <- NULL
   return(x)
 }
-#
-# taf() |>
-#   filter(ZIP == "45220", street_name == "Woolper") |>
-#   collect() |>
-#   taf_extract_to_addr_tbl()
-#
-# taf_read_simple <- function(x) {
-#   taf_extract_to_addr_tbl(dplyr::collect(x))
-# }
-#
-#
-# taf() |>
-#   filter(.data$ZIP == "45249") |>
-#   taf_read_simple()
-#
-#
-# taf() |>
-#   group_by(street_name, street_posttype) |>
-#   summarize(
-#     n_zips = n_distinct(ZIP),
-#     n_ranges = n(),
-#     .groups = "drop"
-#   ) |>
-#   arrange(desc(n_zips), desc(n_ranges)) |>
-#   collect()
-#
-# taf() |>
-#   filter(.data$ZIP == "45220") |>
-#   taf_read_simple() |>
-#   filter(addr_street@name == "woolper")
