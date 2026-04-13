@@ -274,12 +274,31 @@ taf_install <- function(
   )
   dir.create(taf_path, recursive = TRUE, showWarnings = FALSE)
   out_file <- file.path(taf_path, "part-0.parquet")
+  browser()
   if (!file.exists(out_file)) {
     d_names <- tiger_feat_names(county = county, year = year)
     d_geom <- tiger_addr_feat(county = county, year = year)
 
     idn <- match(d_geom$LINEARID, d_names$LINEARID)
-    out <- tibble::tibble(d_geom, tibble::as_tibble(d_names$addr_street[idn]))
+    lid_no_name <- which(is.na(idn))
+    if (length(lid_no_name) > 0) {
+      warning(
+        "structured street name info not found for ",
+        length(lid_no_name),
+        " ranges"
+      )
+      lid_no_name_parse <-
+        d_geom[lid_no_name, "FULLNAME", drop = TRUE] |>
+        paste("3", street = _, "Anytown", "OHIO", "45000") |>
+        as_addr() |>
+        S7::prop("street")
+    }
+    addr_street_out <- tibble::as_tibble(d_names$addr_street[idn])
+    addr_street_out[lid_no_name, ] <- tibble::as_tibble(lid_no_name_parse)
+
+    out <- tibble::tibble(d_geom, addr_street_out)
+    out$street_tag_parsed <- FALSE
+    out[lid_no_name, "street_tag_parsed"] <- TRUE
     out$geometry_wkt <- s2::s2_as_text(out$s2_geography)
     out$s2_geography <- NULL
     arrow::write_parquet(out, out_file)
@@ -287,14 +306,20 @@ taf_install <- function(
   return(invisible(county))
 }
 
-# read taf() for a ZIP code across all installed counties
-# transform data read in from taf()
-# - reconstruct county_fips
-# - reconstruct s2_geography
-# - reconstruct addr_street, mapping all tags
-#   (ensures consistency with loaded version of package)
+#' read taf() for a ZIP code across all installed counties
+#'
+#' taf_zip() is a helper that transforms data read in from taf()
+#' for a subset of zip codes to use with the addr package.
+#' It reconstructs the `county_fips`, `s2_geography`, and `addr_street`,
+#' vectors in the returned data frame to use with the addr package.
+#' @param map logical, length 1; map street tags read from taf() data
+#' (type, directional, ordinal) when converting to `addr_street()` vector?
+#' @returns a tibble with `LINEARID`, `FULLNAME`, `side`, `ZIP`,
+#' `FROMHN`, `TOHN`, `PARITY`, `OFFSET`, `s2_geography`, `addr_street`,
+#' and `county_fips` columns
+#' @examples
 #' taf_zip(c("45249", "45230", "45220"))
-taf_zip <- function(x) {
+taf_zip <- function(x, map = TRUE) {
   stopifnot(is.character(x), length(x) > 0, !any(is.na(x)))
   x <- addr::addr_place(zipcode = x)@zipcode
   filter_expr <- lapply(x, function(z) {
@@ -312,10 +337,10 @@ taf_zip <- function(x) {
     name = d$street_name,
     posttype = d$street_posttype,
     postdirectional = d$street_postdirectional,
-    map_posttype = TRUE,
-    map_directional = TRUE,
-    map_pretype = TRUE,
-    map_ordinal = TRUE
+    map_posttype = map,
+    map_directional = map,
+    map_pretype = map,
+    map_ordinal = map
   )
   d$street_predirectional <- NULL
   d$street_premodifier <- NULL
