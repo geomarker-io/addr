@@ -33,7 +33,7 @@ pak::pak("cole-brokamp/addr")
 
 Installing addr from GitHub requires a working [Rust](https://www.rust-lang.org/learn/get-started) toolchain; install one using [rustup](https://www.rust-lang.org/tools/install).
 
-## Using
+## Getting Started
 
 addr vectors behave like standard R vectors: they recycle, subset, and combine with vctrs tooling. You can parse text into an addr vector with `as_addr()` or build one from its subclass vectors with `addr()`.
 
@@ -41,3 +41,25 @@ addr vectors behave like standard R vectors: they recycle, subset, and combine w
 addr_vec <- as_addr(c("3333 Burnet Ave Cincinnati OH 45229",
                       "5130 Rapid Run Rd Cincinnati OH 45238"))
 ```
+
+`addr` vectors store addresses as three linked vectors (`number`, `street`, `place`).
+The structure of addr and its components was derived from the [US Thoroughfare, Landmark, and Postal Address Data Standard](https://www.fgdc.gov/standards/projects/address-data), taking what is relevant for residential, numbered thoroughfare addresses.
+
+![Diagram of the addr object structure and staged fuzzy matching](man/figures/addr_data.png)
+
+```r
+addr_vec
+```
+
+Addr in a tibble...
+
+## Linking to National Address Database (NAD) data
+
+## Geocoding with TIGER/Line
+
+> soon
+
+## Code of Conduct
+
+Please note that the addr project is released with a [Contributor Code of Conduct](https://geomarker.io/addr/CODE_OF_CONDUCT.html).
+By contributing to this project, you agree to abide by its terms.
