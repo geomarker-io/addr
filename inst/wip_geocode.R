@@ -6,8 +6,18 @@ devtools::load_all()
 # zip_variants logical;
 # match_addr_street criteria;
 
+gcd <- purrr::map(
+  as.list(as_addr(voter_addresses()[1:1000])),
+  geocode_tiger,
+  .progress = "geocoding"
+)
+
+# TODO
+voter_addresses()[75]
+
 #' geocode_tiger(as_addr(voter_addresses()[1323]))
 geocode_tiger <- function(x) {
+  stopifnot("x must be an addr vector" = inherits(x, "addr"))
   out <- tibble::tibble(
     matched_zipcode = NA_character_,
     matched_addr_street = addr_street(),
@@ -33,7 +43,7 @@ geocode_tiger <- function(x) {
     }
   }
   if (is.na(x_ref_street)) {
-    out$matched_zipcode <- character(0)
+    out$matched_zipcode <- ""
     return(out)
   }
   ref_rng <- ref[as.character(ref$addr_street) == as.character(x_ref_street), ]
@@ -54,7 +64,7 @@ geocode_tiger <- function(x) {
   cand0 <- cand0[cand0$par_ok, ]
   cand0 <- cand0[order(cand0$width, cand0$mid_dist, na.last = TRUE), ]
   if (nrow(cand0) == 0) {
-    # TODO: no matching ranges in matched street
+    stop("TODO")
   }
   brm <- cand0[1, ]
   out$matched_zipcode <- brm[1, "ZIP", drop = TRUE]
