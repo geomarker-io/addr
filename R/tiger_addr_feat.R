@@ -307,7 +307,7 @@ taf_install <- function(
       sprintf("zip2=%s", out_part$zip2[[1]])
     )
     dir.create(taf_path, recursive = TRUE, showWarnings = FALSE)
-    out_file <- file.path(taf_path, sprintf("%s.parquet", county))
+    out_file <- file.path(taf_path, sprintf("county_fips_%s.parquet", county))
     out_part$zip2 <- NULL
     out_part$zip3 <- NULL
     if (file.exists(out_file)) {

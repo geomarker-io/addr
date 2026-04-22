@@ -1,7 +1,6 @@
 devtools::load_all()
 
-mirai::daemons(parallelly::availableCores() - 1)
-# mirai::daemons(4)
+mirai::daemons(4)
 
 cnty_fips <- county_fips_reference$county_fips
 cnty_fips <- cnty_fips[
