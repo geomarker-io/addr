@@ -234,8 +234,8 @@ taf <- function(year = as.character(2025:2011), version = "v1") {
     taf_path,
     format = "parquet",
     partitioning = arrow::hive_partition(
-      state = arrow::string(),
-      county = arrow::string()
+      zip3 = arrow::string(),
+      zip2 = arrow::string()
     )
   )
 }
@@ -264,43 +264,56 @@ taf_install <- function(
     "version must be length one" = length(version) == 1L,
     "version must not be missing" = !is.na(version)
   )
-  taf_path <- file.path(
-    tools::R_user_dir("addr", "data"),
-    version,
-    "tiger_addr_feat",
-    year,
-    sprintf("state=%s", substr(county, 1, 2)),
-    sprintf("county=%s", substr(county, 3, 5))
-  )
-  dir.create(taf_path, recursive = TRUE, showWarnings = FALSE)
-  out_file <- file.path(taf_path, "part-0.parquet")
-  if (!file.exists(out_file)) {
-    d_names <- tiger_feat_names(county = county, year = year)
-    d_geom <- tiger_addr_feat(county = county, year = year)
+  d_names <- tiger_feat_names(county = county, year = year)
+  d_geom <- tiger_addr_feat(county = county, year = year)
 
-    idn <- match(d_geom$LINEARID, d_names$LINEARID)
-    lid_no_name <- which(is.na(idn))
-    if (length(lid_no_name) > 0) {
-      warning(
-        "structured street name info not found for ",
-        length(lid_no_name),
-        " ranges"
-      )
-      lid_no_name_parse <-
-        d_geom[lid_no_name, "FULLNAME", drop = TRUE] |>
-        paste("3", street = _, "Anytown", "OHIO", "45000") |>
-        as_addr() |>
-        S7::prop("street")
-    }
-    addr_street_out <- tibble::as_tibble(d_names$addr_street[idn])
+  idn <- match(d_geom$LINEARID, d_names$LINEARID)
+  lid_no_name <- which(is.na(idn))
+  if (length(lid_no_name) > 0) {
+    warning(
+      "structured street name info not found for ",
+      length(lid_no_name),
+      " ranges"
+    )
+    lid_no_name_parse <-
+      d_geom[lid_no_name, "FULLNAME", drop = TRUE] |>
+      paste("3", street = _, "Anytown", "OHIO", "45000") |>
+      as_addr() |>
+      S7::prop("street")
+  }
+  addr_street_out <- tibble::as_tibble(d_names$addr_street[idn])
+  if (length(lid_no_name) > 0) {
     addr_street_out[lid_no_name, ] <- tibble::as_tibble(lid_no_name_parse)
+  }
 
-    out <- tibble::tibble(d_geom, addr_street_out)
-    out$street_tag_parsed <- FALSE
-    out[lid_no_name, "street_tag_parsed"] <- TRUE
-    out$geometry_wkt <- s2::s2_as_text(out$s2_geography)
-    out$s2_geography <- NULL
-    arrow::write_parquet(out, out_file)
+  out <- tibble::tibble(d_geom, addr_street_out)
+  out$county_fips <- county
+  out$street_tag_parsed <- FALSE
+  out[lid_no_name, "street_tag_parsed"] <- TRUE
+  out$geometry_wkt <- s2::s2_as_text(out$s2_geography)
+  out$s2_geography <- NULL
+  out$zip3 <- substr(out$ZIP, 1, 3)
+  out$zip2 <- substr(out$ZIP, 4, 5)
+
+  zip_groups <- split(seq_len(nrow(out)), paste(out$zip3, out$zip2, sep = ":"))
+  for (idx in zip_groups) {
+    out_part <- out[idx, , drop = FALSE]
+    taf_path <- file.path(
+      tools::R_user_dir("addr", "data"),
+      version,
+      "tiger_addr_feat",
+      year,
+      sprintf("zip3=%s", out_part$zip3[[1]]),
+      sprintf("zip2=%s", out_part$zip2[[1]])
+    )
+    dir.create(taf_path, recursive = TRUE, showWarnings = FALSE)
+    out_file <- file.path(taf_path, sprintf("%s.parquet", county))
+    out_part$zip2 <- NULL
+    out_part$zip3 <- NULL
+    if (file.exists(out_file)) {
+      file.remove(out_file)
+    }
+    arrow::write_parquet(out_part, out_file)
   }
   return(invisible(county))
 }
@@ -320,9 +333,10 @@ taf_install <- function(
 #' taf_zip(c("45249", "45230", "45220"))
 taf_zip <- function(x, map = TRUE) {
   stopifnot(is.character(x), length(x) > 0, !any(is.na(x)))
-  x <- addr::addr_place(zipcode = x)@zipcode
+  x <- unique(addr::addr_place(zipcode = x)@zipcode)
   filter_expr <- lapply(x, function(z) {
-    arrow::Expression$field_ref("ZIP") == z
+    (arrow::Expression$field_ref("zip3") == substr(z, 1, 3)) &
+      (arrow::Expression$field_ref("zip2") == substr(z, 4, 5))
   }) |>
     Reduce(`|`, x = _)
   d <- taf()$NewScan()$Filter(filter_expr)$Finish()$ToTable() |>
@@ -347,8 +361,7 @@ taf_zip <- function(x, map = TRUE) {
   d$street_name <- NULL
   d$street_posttype <- NULL
   d$street_postdirectional <- NULL
-  d$county_fips <- paste0(d$state, d$county)
-  d$state <- NULL
-  d$county <- NULL
+  d$zip2 <- NULL
+  d$zip3 <- NULL
   d
 }

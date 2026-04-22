@@ -34,10 +34,15 @@ taf_fls <-
   dplyr::filter(type == "file")
 
 message(
-  file.path(tools::R_user_dir("addr", "data"), "v1", "2025"),
+  file.path(
+    tools::R_user_dir("addr", "data"),
+    "v1",
+    "tiger_addr_feat",
+    "2025"
+  ),
   " has ",
   prettyNum(nrow(taf_fls), big.mark = ","),
-  " county files",
+  " parquet files",
   " totaling ",
   sum(taf_fls$size)
 )
