@@ -15,6 +15,18 @@ zip_fips_lookup(zip, fips = NULL)
 if fips is NULL, a character vector of matched 5-digit FIPS
 county identifiers, ordered by percentages of residential addresses;
 if fips is not NULL, an addr_place vector of length one
+
+Potentially real ZIP codes that are not in the HUD crosswalk return an error.
+A ZIP code can be a real, active USPS ZIP and still be absent from
+the HUD crosswalk for a specific quarter because HUD builds the file from
+quarterly ZIP+4 records rather than a complete USPS list, and excludes
+records that cannot cannot be reliably geocoded to Census geography;
+PO Box-only and some institutional or unique ZIP codes may therefore
+be absent.
+If a zip code is absent from the HUD crosswalk, an error is raised.
+If a zip code is present, but not in the specified county, then
+\verb{@name} and \verb{@state} (but not @zipcode) are set to missing in the returned
+addr_place vector
 }
 \description{
 \code{zip_fips_lookup()} uses a package-internal reference derived from the
@@ -25,7 +37,16 @@ the county FIPS identifier to get the USPS preferred city and
 state names (in an addr_place() vector).
 }
 \examples{
+
+# one zip to one county
 zip_fips_lookup(zip = "45220")
+
+# one zip to > one county
 zip_fips_lookup(zip = "45249")
+
+# use fips code to specify the place
 zip_fips_lookup(zip = "45249", fips = "39061")
+
+# zip codes in wrong county will have NA place and state
+zip_fips_lookup(zip = "45249", fips = "39017")
 }

@@ -196,25 +196,29 @@ match_addr_street <- function(
       "integer",
     "name_phonetic_dist must be length one" = length(name_phonetic_dist) == 1L,
     "name_phonetic_dist must not be missing" = !is.na(name_phonetic_dist),
-    "match_street_predirectional must be TRUE or FALSE" =
-      is.logical(match_street_predirectional) &&
-        length(match_street_predirectional) == 1L &&
-        !is.na(match_street_predirectional),
+    "match_street_predirectional must be TRUE or FALSE" = is.logical(
+      match_street_predirectional
+    ) &&
+      length(match_street_predirectional) == 1L &&
+      !is.na(match_street_predirectional),
     "name_fuzzy_dist must be an integer" = typeof(name_fuzzy_dist) == "integer",
     "name_fuzzy_dist must be length one" = length(name_fuzzy_dist) == 1L,
     "name_fuzzy_dist must not be missing" = !is.na(name_fuzzy_dist),
-    "match_street_posttype must be TRUE or FALSE" =
-      is.logical(match_street_posttype) &&
-        length(match_street_posttype) == 1L &&
-        !is.na(match_street_posttype),
-    "match_street_pretype must be TRUE or FALSE" =
-      is.logical(match_street_pretype) &&
-        length(match_street_pretype) == 1L &&
-        !is.na(match_street_pretype),
-    "match_street_postdirectional must be TRUE or FALSE" =
-      is.logical(match_street_postdirectional) &&
-        length(match_street_postdirectional) == 1L &&
-        !is.na(match_street_postdirectional)
+    "match_street_posttype must be TRUE or FALSE" = is.logical(
+      match_street_posttype
+    ) &&
+      length(match_street_posttype) == 1L &&
+      !is.na(match_street_posttype),
+    "match_street_pretype must be TRUE or FALSE" = is.logical(
+      match_street_pretype
+    ) &&
+      length(match_street_pretype) == 1L &&
+      !is.na(match_street_pretype),
+    "match_street_postdirectional must be TRUE or FALSE" = is.logical(
+      match_street_postdirectional
+    ) &&
+      length(match_street_postdirectional) == 1L &&
+      !is.na(match_street_postdirectional)
   )
   street_match_fields <- c(
     if (match_street_predirectional) "street_predirectional",
@@ -237,7 +241,9 @@ match_addr_street <- function(
     out <- do.call(
       paste,
       c(
-        lapply(bucket_df, \(col) ifelse(is.na(col), "", ifelse(col == "", "<EMPTY>", col))),
+        lapply(bucket_df, \(col) {
+          ifelse(is.na(col), "", ifelse(col == "", "<EMPTY>", col))
+        }),
         sep = "\r"
       )
     )
@@ -515,6 +521,11 @@ match_zipcodes <- function(x, y, zip_variants = TRUE) {
   out
 }
 
+# ordered variants produced (for, e.g., 45220)
+# - minus one, plus one (45219, 45221)
+# - sub5 (45221, 45222, 45223, 45224, 45225, 45226, 45227, 45228, 45229)
+# - sub4 (45200, 45210, 45230, 45240, 45250, 45260, 45270, 45280, 45290)
+# - swap (42520)
 zipcode_variant <- function(x) {
   stopifnot(
     "x must be a character vector" = is.character(x),
@@ -540,7 +551,7 @@ zipcode_variant <- function(x) {
   )
   plus1 <- as.character(as.integer(x) + 1)
   minus1 <- as.character(as.integer(x) - 1)
-  uout <- unique(c(swap, sub4, sub5, plus1, minus1))
+  uout <- unique(c(minus1, plus1, sub5, sub4, swap))
   out <- as.character(sort(as.integer(uout[uout != x])))
   sprintf("%05s", out)
 }
