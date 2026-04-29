@@ -1,5 +1,7 @@
 #' TIGER Address Features dataset
 #'
+#' @description
+#'
 #' taf() uses the arrow package to open the
 #' hive partitioned, parquet dataset of TIGER address features in the R user
 #' directory for the addr package.
@@ -7,7 +9,15 @@
 #' larger-than-memory datasets and provides functionality
 #' to use dplyr syntax for data manipulation;
 #' see <https://arrow.apache.org/docs/r/articles/data_wrangling.html> for
-#' more details on arrow and dplyr
+#' more details on arrow and dplyr.
+#'
+#' `install_taf()` will download and link TIGER address features and
+#' feature names for a specific year and county, installing the resulting
+#' file in the R user's data directory for the {addr} package.
+#' If an address feature does not have a corresponding LINEARID with a
+#' feature name, then the street tags are parsed from the full name, in
+#' which case the column, `street_tag_parsed` will be TRUE.
+#'
 #' @param year integer, length one; vintage of TIGER addrfeat files
 #' @param version character, length one; major version of the package
 #' and taf dataset schema
@@ -174,7 +184,7 @@ taf_install <- function(
 #' and taf dataset schema
 #' @returns a tibble with `LINEARID`, `FULLNAME`, `side`, `ZIP`,
 #' `FROMHN`, `TOHN`, `PARITY`, `OFFSET`, `s2_geography`, `addr_street`,
-#' and `county_fips` columns
+#' `county_fips`, and `street_tag_parsed` columns
 #' @examples
 #' \dontrun{
 #'   taf_zip(c("45249", "45230", "45220"))

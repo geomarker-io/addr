@@ -18,7 +18,7 @@ and taf dataset schema}
 \value{
 a tibble with \code{LINEARID}, \code{FULLNAME}, \code{side}, \code{ZIP},
 \code{FROMHN}, \code{TOHN}, \code{PARITY}, \code{OFFSET}, \code{s2_geography}, \code{addr_street},
-and \code{county_fips} columns
+\code{county_fips}, and \code{street_tag_parsed} columns
 }
 \description{
 taf_zip() is a helper that transforms data read in from taf()
@@ -28,6 +28,6 @@ vectors in the returned data frame to use with the addr package.
 }
 \examples{
 \dontrun{
-taf_zip(c("45249", "45230", "45220"))
+  taf_zip(c("45249", "45230", "45220"))
 }
 }
