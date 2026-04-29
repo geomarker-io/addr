@@ -270,6 +270,39 @@ S7::method(`[`, addr) <- function(x, i, ...) {
   do.call(addr, lapply(S7::props(x), `[`, i, ...))
 }
 
+#' @method [<- addr
+#' @export
+`[<-.addr` <- function(x, i, ..., value) {
+  if (!inherits(value, "addr")) {
+    stop("`value` must be an addr vector", call. = FALSE)
+  }
+  if (length(list(...)) > 0L) {
+    stop("addr vectors only support one-dimensional subassignment",
+      call. = FALSE
+    )
+  }
+
+  x_parts <- S7::props(x)
+  value_parts <- S7::props(value)
+  has_i <- !missing(i)
+  x_parts <- Map(
+    function(old, new) {
+      if (has_i) {
+        old[i] <- new
+      } else {
+        old[] <- new
+      }
+      old
+    },
+    x_parts,
+    value_parts
+  )
+
+  do.call(addr, x_parts)
+}
+
+S7::method(`[<-`, addr) <- `[<-.addr`
+
 S7::method(unique, addr) <- function(x, ...) {
   x[!duplicated(as.character(x))]
 }

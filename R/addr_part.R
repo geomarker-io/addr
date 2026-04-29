@@ -25,6 +25,46 @@ S7::method(`[`, addr_part) <- function(x, i, ...) {
   do.call(cnstr, lapply(S7::props(x), \(.) .[i]))
 }
 
+#' @method [<- addr_part
+#' @export
+`[<-.addr_part` <- function(x, i, ..., value) {
+  if (!inherits(value, "addr_part") ||
+    which_addr_part(value) != which_addr_part(x)) {
+    stop(
+      "`value` must be an addr_",
+      which_addr_part(x),
+      " vector",
+      call. = FALSE
+    )
+  }
+  if (length(list(...)) > 0L) {
+    stop("addr_part vectors only support one-dimensional subassignment",
+      call. = FALSE
+    )
+  }
+
+  x_parts <- S7::props(x)
+  value_parts <- S7::props(value)
+  has_i <- !missing(i)
+  x_parts <- Map(
+    function(old, new) {
+      if (has_i) {
+        old[i] <- new
+      } else {
+        old[] <- new
+      }
+      old
+    },
+    x_parts,
+    value_parts
+  )
+
+  cnstr <- get(paste0("addr_", which_addr_part(x)))
+  do.call(cnstr, x_parts)
+}
+
+S7::method(`[<-`, addr_part) <- `[<-.addr_part`
+
 S7::method(format, addr_part) <- function(x, ...) {
   parts <- S7::props(x)
   lens <- vapply(parts, length, integer(1))
