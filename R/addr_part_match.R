@@ -521,6 +521,7 @@ match_zipcodes <- function(x, y, zip_variants = TRUE) {
   out
 }
 
+# TODO export this and link with match zipcode
 # ordered variants produced (for, e.g., 45220)
 # - minus one, plus one (45219, 45221)
 # - sub5 (45221, 45222, 45223, 45224, 45225, 45226, 45227, 45228, 45229)

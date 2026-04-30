@@ -63,8 +63,6 @@ S7::method(`[`, addr_part) <- function(x, i, ...) {
   do.call(cnstr, x_parts)
 }
 
-S7::method(`[<-`, addr_part) <- `[<-.addr_part`
-
 S7::method(format, addr_part) <- function(x, ...) {
   parts <- S7::props(x)
   lens <- vapply(parts, length, integer(1))

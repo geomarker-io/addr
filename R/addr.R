@@ -301,8 +301,6 @@ S7::method(`[`, addr) <- function(x, i, ...) {
   do.call(addr, x_parts)
 }
 
-S7::method(`[<-`, addr) <- `[<-.addr`
-
 S7::method(unique, addr) <- function(x, ...) {
   x[!duplicated(as.character(x))]
 }
