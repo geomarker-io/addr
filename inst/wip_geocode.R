@@ -10,6 +10,11 @@ x <- voter_addresses()[1:500]
 
 x_addr <- as_addr(x)
 
+
+x_addr[x_addr@place@zipcode == "45220"] |>
+  geocode_zip()
+
+
 gcd <- purrr::map(as.list(x_addr), geocode_tiger, .progress = "geocoding")
 
 # stop and return here for R-based output of list
