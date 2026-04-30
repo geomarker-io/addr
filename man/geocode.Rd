@@ -3,7 +3,7 @@
 \name{geocode}
 \alias{geocode}
 \alias{geocode_zip}
-\title{geocode using installed TIGER address features}
+\title{Geocode addr vectors with census.gov TIGER address features}
 \usage{
 geocode(x, offset = 0L)
 
@@ -17,10 +17,11 @@ geocode_zip(x, offset = 0L)
 \value{
 a tbl with columns: addr (\code{x}, addr vector),
 matched zipcode (character vector, matched street (addr_street vector),
-s2_geography (s2_geography point vector), and s2_cell (s2_cell vector);
-see details
+s2_geography (s2_geography point vector), and s2_cell (s2_cell vector)
 }
 \description{
+\code{geocode_tiger()} geocodes addr vectors using census.gov TIGER address
+features (see \code{?taf}) by:
 \enumerate{
 \item searching for a matching street (see \code{?match_addr_street}),
 within the same zip code, also searching similar zip codes (see
@@ -30,16 +31,13 @@ side of the street (even/odd), tiebreaking on smallest width and spread)
 \item linearly interpolate a geographic point along the best range line based
 on the actual and potential range of address numbers
 }
-}
-\details{
-Under the hood, addresses are grouped by ZIP code for processing;
-parallel and asyncronous geocoding are supported through \code{mirai::daemons}
 
 Only matched input addr will return non-missing matched zipcode/street (and
 geography/s2cell) values, but if all ranges on the matched zipcode/street
 exclude the address number, then \emph{only} the geography/s2cell values
 will return NA.
-
+}
+\details{
 \code{geocode_zip()} is the workhorse function and operates on addr vectors
 with the same ZIP code; use \code{geocode()} to geocode an addr vector
 with different ZIP codes by grouping them by ZIP code and processing

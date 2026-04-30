@@ -1,8 +1,8 @@
-#' geocode using installed TIGER address features
+#' Geocode addr vectors with census.gov TIGER address features
 #'
-# @description
-# geocode_tiger() geocodes addr vectors using census.gov TIGER address
-# features (see `?taf`) by:
+#' @description
+#' `geocode_tiger()` geocodes addr vectors using census.gov TIGER address
+#' features (see `?taf`) by:
 #' 1. searching for a matching street (see `?match_addr_street`),
 #' within the same zip code, also searching similar zip codes (see
 #' `?zip_variant`) for a matching street if necessary
@@ -11,26 +11,23 @@
 #' 3. linearly interpolate a geographic point along the best range line based
 #' on the actual and potential range of address numbers
 #'
-#' Under the hood, addresses are grouped by ZIP code for processing;
-#' parallel and asyncronous geocoding are supported through `mirai::daemons`
-#' @param x an addr vector (`?as_addr`)
-#' @param offset number of meters to offset geocode from street line
-#' @returns a tbl with columns: addr (`x`, addr vector),
-#' matched zipcode (character vector, matched street (addr_street vector),
-#' s2_geography (s2_geography point vector), and s2_cell (s2_cell vector);
-#' see details
-#' @details
 #' Only matched input addr will return non-missing matched zipcode/street (and
 #' geography/s2cell) values, but if all ranges on the matched zipcode/street
 #' exclude the address number, then *only* the geography/s2cell values
 #' will return NA.
-#'
+#' @param x an addr vector (`?as_addr`)
+#' @param offset number of meters to offset geocode from street line
+#' @returns a tbl with columns: addr (`x`, addr vector),
+#' matched zipcode (character vector, matched street (addr_street vector),
+#' s2_geography (s2_geography point vector), and s2_cell (s2_cell vector)
+#' @details
 #' `geocode_zip()` is the workhorse function and operates on addr vectors
 #' with the same ZIP code; use `geocode()` to geocode an addr vector
 #' with different ZIP codes by grouping them by ZIP code and processing
 #' serially.
 #' At a lower level, grouping addr vectors by ZIP code and applying
 #' `geocode_zip()` facilitates more control (e.g., parallel processing)
+#'
 #' @export
 #' @examples
 #'
@@ -178,4 +175,3 @@ geocode_zip <- function(x, offset = 0L) {
 
   out
 }
-

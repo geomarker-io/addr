@@ -43,8 +43,12 @@ reference:
       - nad_example_data
   - title: Geocoding addr
     contents:
-      - geocode_tiger
+      - geocode
+      - taf_zip
+      - taf_install
+      - taf
       - tiger_addr_feat
+      - tiger_feat_names
   - title: Examples & Helpers
     contents:
       - voter_addresses
