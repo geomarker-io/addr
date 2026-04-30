@@ -13,7 +13,7 @@
 #'
 #' `install_taf()` will download and link TIGER address features and
 #' feature names for a specific year and county, installing the resulting
-#' file in the R user's data directory for the {addr} package.
+#' file in the R user's data directory for the addr package.
 #' If an address feature does not have a corresponding LINEARID with a
 #' feature name, then the street tags are parsed from the full name, in
 #' which case the column, `street_tag_parsed` will be TRUE.
@@ -44,6 +44,7 @@
 #'   slice(1:10)
 #' }
 taf <- function(year = as.character(2025:2011), version = "v1") {
+  check_installed("arrow", "to open the multi-file taf dataset")
   stopifnot(
     "version must be a character vector" = is.character(version),
     "version must be length one" = length(version) == 1L,
@@ -78,6 +79,7 @@ taf_install <- function(
   overwrite = FALSE,
   redownload = FALSE
 ) {
+  check_installed("arrow", "to write to the multi-file taf dataset")
   stopifnot(
     "county must be a character vector" = is.character(county),
     "county must be length one" = length(county) == 1L,
@@ -177,6 +179,7 @@ taf_install <- function(
 #' for a subset of zip codes to use with the addr package.
 #' It reconstructs the `county_fips`, `s2_geography`, and `addr_street`,
 #' vectors in the returned data frame to use with the addr package.
+#' @param x character vector of five digit ZIP codes
 #' @param map logical, length 1; map street tags read from taf() data
 #' (type, directional, ordinal) when converting to `addr_street()` vector?
 #' @param year character, length 1; vintage of TIGER addrfeat files
@@ -185,6 +188,7 @@ taf_install <- function(
 #' @returns a tibble with `LINEARID`, `FULLNAME`, `side`, `ZIP`,
 #' `FROMHN`, `TOHN`, `PARITY`, `OFFSET`, `s2_geography`, `addr_street`,
 #' `county_fips`, and `street_tag_parsed` columns
+#' @export
 #' @examples
 #' \dontrun{
 #'   taf_zip(c("45249", "45230", "45220"))
@@ -195,6 +199,7 @@ taf_zip <- function(
   year = as.character(2025:2011),
   version = "v1"
 ) {
+  check_installed("arrow", "to read from the multi-file taf dataset")
   stopifnot(is.character(x), length(x) > 0, !any(is.na(x)))
   stopifnot(
     "version must be a character vector" = is.character(version),

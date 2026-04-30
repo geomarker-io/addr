@@ -7,6 +7,8 @@
 taf_zip(x, map = TRUE, year = as.character(2025:2011), version = "v1")
 }
 \arguments{
+\item{x}{character vector of five digit ZIP codes}
+
 \item{map}{logical, length 1; map street tags read from taf() data
 (type, directional, ordinal) when converting to \code{addr_street()} vector?}
 
