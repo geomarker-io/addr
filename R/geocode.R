@@ -7,9 +7,10 @@
 #' within the same zip code, also searching similar zip codes (see
 #' `?zip_variant`) for a matching street if necessary
 #' 2. using the address number to select the best address feature range and
-#' side of the street (even/odd), tiebreaking on smallest width and spread)
-#' 3. linearly interpolate a geographic point along the best range line based
+#' side of the street (even/odd), tiebreaking on smallest width and spread
+#' 3. linearly interpolating a geographic point along the best range line based
 #' on the actual and potential range of address numbers
+#' 4. offsetting the interpolated point from the range line perpendicularly
 #'
 #' Only matched input addr will return non-missing matched zipcode/street
 #' values. Missing or unmatched zip codes return missing matched zipcode/street,
@@ -180,7 +181,7 @@ geocode_no_match <- function(x) {
 #' @rdname geocode
 geocode_zip <- function(
   x,
-  offset = 0L,
+  offset = 10L,
   name_phonetic_dist = 1L,
   name_fuzzy_dist = 2L,
   match_street_predirectional = TRUE,

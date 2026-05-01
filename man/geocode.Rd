@@ -19,7 +19,7 @@ geocode(
 
 geocode_zip(
   x,
-  offset = 0L,
+  offset = 10L,
   name_phonetic_dist = 1L,
   name_fuzzy_dist = 2L,
   match_street_predirectional = TRUE,
@@ -71,9 +71,10 @@ features (see \code{?taf}) by:
 within the same zip code, also searching similar zip codes (see
 \code{?zip_variant}) for a matching street if necessary
 \item using the address number to select the best address feature range and
-side of the street (even/odd), tiebreaking on smallest width and spread)
-\item linearly interpolate a geographic point along the best range line based
+side of the street (even/odd), tiebreaking on smallest width and spread
+\item linearly interpolating a geographic point along the best range line based
 on the actual and potential range of address numbers
+\item offsetting the interpolated point from the range line perpendicularly
 }
 
 Only matched input addr will return non-missing matched zipcode/street
