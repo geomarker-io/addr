@@ -69,14 +69,53 @@ geocode <- function(x, offset = 0L) {
 }
 
 lapply_pb <- function(x, FUN, ...) {
-  pb <- utils::txtProgressBar(min = 0, max = length(x), style = 3)
-  on.exit(close(pb), add = TRUE)
+  total <- sum(lengths(x))
+  processed <- 0L
+  addr_progress_update(
+    processed,
+    total,
+    "geocoding addr vectors",
+    first = TRUE
+  )
+  on.exit(cat("\n"), add = TRUE)
+
   out <- vector("list", length(x))
   for (i in seq_along(x)) {
-    out[[i]] <- FUN(x[[i]], ...)
-    utils::setTxtProgressBar(pb, i)
+    zip <- names(x)[[i]]
+    x_n <- length(x[[i]])
+    text <- geocode_progress_text(zip, x_n, NA_integer_)
+    progress_callback <- function(y_n) {
+      text <<- geocode_progress_text(zip, x_n, y_n)
+      addr_progress_update(
+        processed,
+        total,
+        text,
+        first = FALSE
+      )
+    }
+    args <- c(list(x[[i]]), list(...))
+    if ("progress_callback" %in% names(formals(FUN))) {
+      args$progress_callback <- progress_callback
+    }
+    out[[i]] <- do.call(FUN, args)
+    processed <- processed + x_n
+    addr_progress_update(
+      processed,
+      total,
+      text,
+      first = FALSE
+    )
   }
   out
+}
+
+geocode_progress_text <- function(zip, x_n, y_n) {
+  sprintf(
+    "geocoding %s (%s addr to %s addr_street)",
+    zip,
+    prettyNum(x_n, big.mark = ",", preserve.width = "none"),
+    prettyNum(y_n, big.mark = ",", preserve.width = "none")
+  )
 }
 
 geocode_no_match <- function(x) {
@@ -93,8 +132,10 @@ geocode_no_match <- function(x) {
 # gcd_tbl$s2_cell <- as.character(gcd_tbl$s2_cell)
 # gcd_tbl$wkt <- s2::s2_as_text(x_s2_geo)
 
+#' @param progress_callback optional callback used internally by `geocode()`
+#'   to update progress after ZIP-code reference data is loaded
 #' @rdname geocode
-geocode_zip <- function(x, offset = 0L) {
+geocode_zip <- function(x, offset = 0L, progress_callback = NULL) {
   stopifnot("x must be an addr vector" = inherits(x, "addr"))
   zpcd <- unique(x@place@zipcode)
   if (length(zpcd) != 1) {
@@ -116,6 +157,9 @@ geocode_zip <- function(x, offset = 0L) {
   }
 
   ref_exact <- addr::taf_zip(zpcd, map = TRUE)
+  if (is.function(progress_callback)) {
+    progress_callback(length(ref_exact$addr_street))
+  }
   out$matched_street <- match_addr_street(x@street, ref_exact$addr_street)
 
   no <- which(is.na(out$matched_street))

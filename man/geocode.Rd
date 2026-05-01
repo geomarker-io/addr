@@ -7,12 +7,15 @@
 \usage{
 geocode(x, offset = 0L)
 
-geocode_zip(x, offset = 0L)
+geocode_zip(x, offset = 0L, progress_callback = NULL)
 }
 \arguments{
 \item{x}{an addr vector (\code{?as_addr})}
 
 \item{offset}{number of meters to offset geocode from street line}
+
+\item{progress_callback}{optional callback used internally by \code{geocode()}
+to update progress after ZIP-code reference data is loaded}
 }
 \value{
 a tbl with columns: addr (\code{x}, addr vector),
