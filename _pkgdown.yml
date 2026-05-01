@@ -30,17 +30,6 @@ reference:
       - match_addr_street
       - match_zipcodes
       - phonetic_street_key
-  - title: Fuzzy join addr
-    contents:
-      - addr_fuzzy_left_join
-      - addr_fuzzy_match
-      - fuzzy_match
-  - title: National Address Database
-    contents:
-      - nad
-      - nad_read
-      - nad_download
-      - nad_example_data
   - title: Geocoding addr
     contents:
       - geocode
@@ -49,6 +38,18 @@ reference:
       - taf
       - tiger_addr_feat
       - tiger_feat_names
+      - run_geocode_explorer
+  - title: National Address Database
+    contents:
+      - nad
+      - nad_read
+      - nad_download
+      - nad_example_data
+  - title: Fuzzy join addr
+    contents:
+      - addr_fuzzy_left_join
+      - addr_fuzzy_match
+      - fuzzy_match
   - title: Examples & Helpers
     contents:
       - voter_addresses

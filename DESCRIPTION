@@ -56,6 +56,7 @@ Collate:
     'nad.R'
     'phonetic_street_key.R'
     'shiny_addr_explorer.R'
+    'shiny_geocode_explorer.R'
     'taf.R'
     'tag_usaddress.R'
     'tiger.R'
