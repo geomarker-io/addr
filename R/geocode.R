@@ -19,6 +19,7 @@
 #' @param x an addr vector (`?as_addr`)
 #' @param offset number of meters to offset geocode from street line
 #' @param progress logical; show a ZIP-code progress bar while geocoding?
+#' @inheritParams match_addr_street
 #' @returns a tbl with columns: addr (`x`, addr vector),
 #' matched zipcode (character vector, matched street (addr_street vector),
 #' s2_geography (s2_geography point vector), and s2_cell (s2_cell vector)
@@ -39,7 +40,17 @@
 #' leaflet::leaflet(wk::wk_coords(gcd$matched_geography)) |>
 #'   leaflet::addTiles() |>
 #'   leaflet::addCircleMarkers(lng = ~x, lat = ~y, label = ~feature_id)
-geocode <- function(x, offset = 0L, progress = interactive()) {
+geocode <- function(
+  x,
+  offset = 0L,
+  name_phonetic_dist = 1L,
+  name_fuzzy_dist = 2L,
+  match_street_predirectional = TRUE,
+  match_street_posttype = TRUE,
+  match_street_pretype = TRUE,
+  match_street_postdirectional = FALSE,
+  progress = interactive()
+) {
   stopifnot(
     "x must be an addr vector" = inherits(x, "addr"),
     "offset must be an integer" = typeof(offset) == "integer",
@@ -49,6 +60,14 @@ geocode <- function(x, offset = 0L, progress = interactive()) {
       length(progress) == 1L &&
       !is.na(progress)
   )
+  validate_match_addr_street_args(
+    name_phonetic_dist = name_phonetic_dist,
+    name_fuzzy_dist = name_fuzzy_dist,
+    match_street_predirectional = match_street_predirectional,
+    match_street_posttype = match_street_posttype,
+    match_street_pretype = match_street_pretype,
+    match_street_postdirectional = match_street_postdirectional
+  )
   xu <- unique(x)
   missing_zip <- is.na(xu@place@zipcode) | xu@place@zipcode == ""
   z_list <- split(xu[!missing_zip], xu[!missing_zip]@place@zipcode)
@@ -57,9 +76,29 @@ geocode <- function(x, offset = 0L, progress = interactive()) {
   gcd <- if (length(z_list) == 0L) {
     list()
   } else if (progress) {
-    lapply_pb(z_list, geocode_zip, offset = offset)
+    lapply_pb(
+      z_list,
+      geocode_zip,
+      offset = offset,
+      name_phonetic_dist = name_phonetic_dist,
+      name_fuzzy_dist = name_fuzzy_dist,
+      match_street_predirectional = match_street_predirectional,
+      match_street_posttype = match_street_posttype,
+      match_street_pretype = match_street_pretype,
+      match_street_postdirectional = match_street_postdirectional
+    )
   } else {
-    lapply(z_list, geocode_zip, offset = offset)
+    lapply(
+      z_list,
+      geocode_zip,
+      offset = offset,
+      name_phonetic_dist = name_phonetic_dist,
+      name_fuzzy_dist = name_fuzzy_dist,
+      match_street_predirectional = match_street_predirectional,
+      match_street_posttype = match_street_posttype,
+      match_street_pretype = match_street_pretype,
+      match_street_postdirectional = match_street_postdirectional
+    )
   }
   if (any(missing_zip)) {
     gcd <- c(gcd, list(missing_zip = geocode_no_match(xu[missing_zip])))
@@ -141,8 +180,34 @@ geocode_no_match <- function(x) {
 #' @param progress_callback optional callback used internally by `geocode()`
 #'   to update progress after ZIP-code reference data is loaded
 #' @rdname geocode
-geocode_zip <- function(x, offset = 0L, progress_callback = NULL) {
+geocode_zip <- function(
+  x,
+  offset = 0L,
+  name_phonetic_dist = 1L,
+  name_fuzzy_dist = 2L,
+  match_street_predirectional = TRUE,
+  match_street_posttype = TRUE,
+  match_street_pretype = TRUE,
+  match_street_postdirectional = FALSE,
+  progress_callback = NULL
+) {
   stopifnot("x must be an addr vector" = inherits(x, "addr"))
+  validate_match_addr_street_args(
+    name_phonetic_dist = name_phonetic_dist,
+    name_fuzzy_dist = name_fuzzy_dist,
+    match_street_predirectional = match_street_predirectional,
+    match_street_posttype = match_street_posttype,
+    match_street_pretype = match_street_pretype,
+    match_street_postdirectional = match_street_postdirectional
+  )
+  street_match_args <- list(
+    name_phonetic_dist = name_phonetic_dist,
+    name_fuzzy_dist = name_fuzzy_dist,
+    match_street_predirectional = match_street_predirectional,
+    match_street_posttype = match_street_posttype,
+    match_street_pretype = match_street_pretype,
+    match_street_postdirectional = match_street_postdirectional
+  )
   zpcd <- unique(x@place@zipcode)
   if (length(zpcd) != 1) {
     stop(
@@ -166,7 +231,10 @@ geocode_zip <- function(x, offset = 0L, progress_callback = NULL) {
   if (is.function(progress_callback)) {
     progress_callback(length(ref_exact$addr_street))
   }
-  out$matched_street <- match_addr_street(x@street, ref_exact$addr_street)
+  out$matched_street <- do.call(
+    match_addr_street,
+    c(list(x = x@street, y = ref_exact$addr_street), street_match_args)
+  )
 
   no <- which(is.na(out$matched_street))
   out$matched_zipcode <- zpcd
@@ -174,9 +242,9 @@ geocode_zip <- function(x, offset = 0L, progress_callback = NULL) {
   if (length(no) != 0) {
     out$matched_zipcode[no] <- NA_character_
     ref_variant <- taf_zip(zipcode_variant(zpcd), map = TRUE)
-    out$matched_street[no] <- match_addr_street(
-      x@street[no],
-      ref_variant$addr_street
+    out$matched_street[no] <- do.call(
+      match_addr_street,
+      c(list(x = x@street[no], y = ref_variant$addr_street), street_match_args)
     )
     out$matched_zipcode[no] <-
       ref_variant[

@@ -94,6 +94,14 @@ test_that("geocode validates progress argument", {
     geocode(x, progress = NA),
     "progress must be TRUE or FALSE"
   )
+  expect_error(
+    geocode(x, match_street_posttype = NA),
+    "match_street_posttype must be TRUE or FALSE"
+  )
+  expect_error(
+    geocode_zip(x, name_phonetic_dist = NA_integer_),
+    "name_phonetic_dist must not be missing"
+  )
 })
 
 test_that("join helpers validate by, suffix, and progress arguments", {

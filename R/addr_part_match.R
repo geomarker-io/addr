@@ -191,34 +191,15 @@ match_addr_street <- function(
 ) {
   stopifnot(
     "x must be an addr_street object" = inherits(x, "addr_street"),
-    "y must be an addr_street object" = inherits(y, "addr_street"),
-    "name_phonetic_dist must be an integer" = typeof(name_phonetic_dist) ==
-      "integer",
-    "name_phonetic_dist must be length one" = length(name_phonetic_dist) == 1L,
-    "name_phonetic_dist must not be missing" = !is.na(name_phonetic_dist),
-    "match_street_predirectional must be TRUE or FALSE" = is.logical(
-      match_street_predirectional
-    ) &&
-      length(match_street_predirectional) == 1L &&
-      !is.na(match_street_predirectional),
-    "name_fuzzy_dist must be an integer" = typeof(name_fuzzy_dist) == "integer",
-    "name_fuzzy_dist must be length one" = length(name_fuzzy_dist) == 1L,
-    "name_fuzzy_dist must not be missing" = !is.na(name_fuzzy_dist),
-    "match_street_posttype must be TRUE or FALSE" = is.logical(
-      match_street_posttype
-    ) &&
-      length(match_street_posttype) == 1L &&
-      !is.na(match_street_posttype),
-    "match_street_pretype must be TRUE or FALSE" = is.logical(
-      match_street_pretype
-    ) &&
-      length(match_street_pretype) == 1L &&
-      !is.na(match_street_pretype),
-    "match_street_postdirectional must be TRUE or FALSE" = is.logical(
-      match_street_postdirectional
-    ) &&
-      length(match_street_postdirectional) == 1L &&
-      !is.na(match_street_postdirectional)
+    "y must be an addr_street object" = inherits(y, "addr_street")
+  )
+  validate_match_addr_street_args(
+    name_phonetic_dist = name_phonetic_dist,
+    name_fuzzy_dist = name_fuzzy_dist,
+    match_street_predirectional = match_street_predirectional,
+    match_street_posttype = match_street_posttype,
+    match_street_pretype = match_street_pretype,
+    match_street_postdirectional = match_street_postdirectional
   )
   street_match_fields <- c(
     if (match_street_predirectional) "street_predirectional",
@@ -355,6 +336,46 @@ match_addr_street <- function(
   out <- uy_df[out_idx, , drop = FALSE] |>
     vec_restore(to = addr::addr_street())
   return(out)
+}
+
+validate_match_addr_street_args <- function(
+  name_phonetic_dist = 1L,
+  name_fuzzy_dist = 2L,
+  match_street_predirectional = TRUE,
+  match_street_posttype = TRUE,
+  match_street_pretype = TRUE,
+  match_street_postdirectional = FALSE
+) {
+  stopifnot(
+    "name_phonetic_dist must be an integer" = typeof(name_phonetic_dist) ==
+      "integer",
+    "name_phonetic_dist must be length one" = length(name_phonetic_dist) == 1L,
+    "name_phonetic_dist must not be missing" = !is.na(name_phonetic_dist),
+    "match_street_predirectional must be TRUE or FALSE" = is.logical(
+      match_street_predirectional
+    ) &&
+      length(match_street_predirectional) == 1L &&
+      !is.na(match_street_predirectional),
+    "name_fuzzy_dist must be an integer" = typeof(name_fuzzy_dist) == "integer",
+    "name_fuzzy_dist must be length one" = length(name_fuzzy_dist) == 1L,
+    "name_fuzzy_dist must not be missing" = !is.na(name_fuzzy_dist),
+    "match_street_posttype must be TRUE or FALSE" = is.logical(
+      match_street_posttype
+    ) &&
+      length(match_street_posttype) == 1L &&
+      !is.na(match_street_posttype),
+    "match_street_pretype must be TRUE or FALSE" = is.logical(
+      match_street_pretype
+    ) &&
+      length(match_street_pretype) == 1L &&
+      !is.na(match_street_pretype),
+    "match_street_postdirectional must be TRUE or FALSE" = is.logical(
+      match_street_postdirectional
+    ) &&
+      length(match_street_postdirectional) == 1L &&
+      !is.na(match_street_postdirectional)
+  )
+  invisible(TRUE)
 }
 
 #' Match addr_number vectors

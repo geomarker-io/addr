@@ -5,14 +5,53 @@
 \alias{geocode_zip}
 \title{Geocode addr vectors with census.gov TIGER address features}
 \usage{
-geocode(x, offset = 0L, progress = interactive())
+geocode(
+  x,
+  offset = 0L,
+  name_phonetic_dist = 1L,
+  name_fuzzy_dist = 2L,
+  match_street_predirectional = TRUE,
+  match_street_posttype = TRUE,
+  match_street_pretype = TRUE,
+  match_street_postdirectional = FALSE,
+  progress = interactive()
+)
 
-geocode_zip(x, offset = 0L, progress_callback = NULL)
+geocode_zip(
+  x,
+  offset = 0L,
+  name_phonetic_dist = 1L,
+  name_fuzzy_dist = 2L,
+  match_street_predirectional = TRUE,
+  match_street_posttype = TRUE,
+  match_street_pretype = TRUE,
+  match_street_postdirectional = FALSE,
+  progress_callback = NULL
+)
 }
 \arguments{
 \item{x}{an addr vector (\code{?as_addr})}
 
 \item{offset}{number of meters to offset geocode from street line}
+
+\item{name_phonetic_dist}{integer; maximum optimized string alignment
+distance between \code{phonetic_street_key()} of x and y to consider a possible
+match}
+
+\item{name_fuzzy_dist}{integer; maximum optimized string alignment distance
+between \verb{@name} of x and y to consider a possible match}
+
+\item{match_street_predirectional}{logical; require street predirectional to
+match when selecting street candidates?}
+
+\item{match_street_posttype}{logical; require street posttype to match when
+selecting street candidates?}
+
+\item{match_street_pretype}{logical; require street pretype to match when
+selecting street candidates?}
+
+\item{match_street_postdirectional}{logical; require street postdirectional
+to match when selecting street candidates?}
 
 \item{progress}{logical; show a ZIP-code progress bar while geocoding?}
 
