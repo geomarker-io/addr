@@ -95,8 +95,16 @@ test_that("geocode validates progress argument", {
     "progress must be TRUE or FALSE"
   )
   expect_error(
+    geocode(x, offset = -1),
+    "offset must be non-negative"
+  )
+  expect_error(
     geocode(x, match_street_posttype = NA),
     "match_street_posttype must be TRUE or FALSE"
+  )
+  expect_error(
+    geocode_zip(x, offset = NA_real_),
+    "offset must not be missing"
   )
   expect_error(
     geocode_zip(x, name_phonetic_dist = NA_integer_),

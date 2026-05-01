@@ -35,7 +35,7 @@
 #' @examples
 #'
 #' x <- as_addr(voter_addresses()[1:100])
-#' gcd <- geocode(x)
+#' gcd <- geocode(x, offset = 20L)
 #'
 #' leaflet::leaflet(wk::wk_coords(gcd$matched_geography)) |>
 #'   leaflet::addTiles() |>
@@ -53,13 +53,11 @@ geocode <- function(
 ) {
   stopifnot(
     "x must be an addr vector" = inherits(x, "addr"),
-    "offset must be an integer" = typeof(offset) == "integer",
-    "offset must be length one" = length(offset) == 1,
-    "offset must not be missing" = !is.na(offset),
     "progress must be TRUE or FALSE" = is.logical(progress) &&
       length(progress) == 1L &&
       !is.na(progress)
   )
+  validate_geocode_offset(offset)
   validate_match_addr_street_args(
     name_phonetic_dist = name_phonetic_dist,
     name_fuzzy_dist = name_fuzzy_dist,
@@ -192,6 +190,7 @@ geocode_zip <- function(
   progress_callback = NULL
 ) {
   stopifnot("x must be an addr vector" = inherits(x, "addr"))
+  validate_geocode_offset(offset)
   validate_match_addr_street_args(
     name_phonetic_dist = name_phonetic_dist,
     name_fuzzy_dist = name_fuzzy_dist,
@@ -307,13 +306,107 @@ geocode_zip <- function(
         return(s2::as_s2_geography(NA_character_))
       }
       brm <- cand0[1, ]
-      s2::s2_interpolate_normalized(
+      fraction <- geocode_range_fraction(sn, brm$FROMHN, brm$TOHN)
+      point <- s2::s2_interpolate_normalized(
         brm$s2_geography,
-        max(0, min(1, (sn - brm$FROMHN) / (brm$TOHN - brm$FROMHN)))
+        fraction
       )
-      # TODO: offset...
+      # TIGER side is relative to the digitized street line direction.
+      geocode_offset_point(point, brm$s2_geography, fraction, brm$side, offset)
     }) |>
     do.call(c, args = _)
 
   out
+}
+
+validate_geocode_offset <- function(offset) {
+  stopifnot(
+    "offset must be numeric" = is.numeric(offset),
+    "offset must be length one" = length(offset) == 1L,
+    "offset must not be missing" = !is.na(offset),
+    "offset must be finite" = is.finite(offset),
+    "offset must be non-negative" = offset >= 0
+  )
+}
+
+geocode_range_fraction <- function(number, from, to) {
+  if (from == to) {
+    return(0.5)
+  }
+  max(0, min(1, (number - from) / (to - from)))
+}
+
+geocode_offset_point <- function(point, line, fraction, side, offset) {
+  if (offset == 0 || is.na(side) || !side %in% c("L", "R")) {
+    return(point)
+  }
+
+  bearing <- geocode_line_bearing(line, fraction)
+  if (is.na(bearing)) {
+    return(point)
+  }
+
+  offset_bearing <- bearing + if (side == "L") -90 else 90
+  geocode_direct_point(point, offset_bearing, offset)
+}
+
+geocode_line_bearing <- function(line, fraction) {
+  delta <- 1e-6
+  from <- s2::s2_interpolate_normalized(line, max(0, fraction - delta))
+  to <- s2::s2_interpolate_normalized(line, min(1, fraction + delta))
+
+  if (s2::s2_distance(from, to) == 0) {
+    return(NA_real_)
+  }
+
+  geocode_bearing(from, to)
+}
+
+geocode_bearing <- function(from, to) {
+  from_lon <- geocode_degrees_to_radians(s2::s2_x(from))
+  from_lat <- geocode_degrees_to_radians(s2::s2_y(from))
+  to_lon <- geocode_degrees_to_radians(s2::s2_x(to))
+  to_lat <- geocode_degrees_to_radians(s2::s2_y(to))
+
+  d_lon <- to_lon - from_lon
+  x <- sin(d_lon) * cos(to_lat)
+  y <- cos(from_lat) * sin(to_lat) - sin(from_lat) * cos(to_lat) * cos(d_lon)
+
+  geocode_radians_to_degrees(atan2(x, y))
+}
+
+geocode_direct_point <- function(point, bearing, distance) {
+  radius <- s2::s2_earth_radius_meters()
+  angular_distance <- distance / radius
+  lon <- geocode_degrees_to_radians(s2::s2_x(point))
+  lat <- geocode_degrees_to_radians(s2::s2_y(point))
+  bearing <- geocode_degrees_to_radians(bearing)
+
+  out_lat <- asin(
+    sin(lat) *
+      cos(angular_distance) +
+      cos(lat) * sin(angular_distance) * cos(bearing)
+  )
+  out_lon <- lon +
+    atan2(
+      sin(bearing) * sin(angular_distance) * cos(lat),
+      cos(angular_distance) - sin(lat) * sin(out_lat)
+    )
+
+  s2::s2_geog_point(
+    geocode_normalize_longitude(geocode_radians_to_degrees(out_lon)),
+    geocode_radians_to_degrees(out_lat)
+  )
+}
+
+geocode_degrees_to_radians <- function(x) {
+  x * pi / 180
+}
+
+geocode_radians_to_degrees <- function(x) {
+  x * 180 / pi
+}
+
+geocode_normalize_longitude <- function(x) {
+  ((x + 540) %% 360) - 180
 }

@@ -158,6 +158,56 @@ test_that("geocode_zip forwards street matching arguments to match_addr_street",
   )
 })
 
+test_that("geocode_zip offsets matched points by TIGER side", {
+  local_mocked_bindings(
+    taf_zip = function(zipcode, map = TRUE) {
+      tibble::tibble(
+        ZIP = rep("45219", 2),
+        addr_street = addr_street(
+          predirectional = c("", ""),
+          premodifier = c("", ""),
+          pretype = c("", ""),
+          name = c("Main", "Main"),
+          posttype = c("St", "St"),
+          postdirectional = c("", "")
+        ),
+        side = c("L", "R"),
+        FROMHN = c(1L, 2L),
+        TOHN = c(99L, 100L),
+        PARITY = c("O", "E"),
+        OFFSET = c("", ""),
+        s2_geography = s2::as_s2_geography(
+          rep("LINESTRING (0 0, 0.01 0)", 2)
+        )
+      )
+    },
+    match_addr_street = function(x, y, ...) {
+      y[rep(1L, length(x))]
+    }
+  )
+
+  x <- addr(
+    addr_number(digits = c("1", "2")),
+    addr_street(name = c("Main", "Main"), posttype = c("St", "St")),
+    addr_place(zipcode = c("45219", "45219"))
+  )
+
+  on_line <- geocode_zip(x, offset = 0)
+  offset <- geocode_zip(x, offset = 10)
+
+  expect_equal(s2::s2_y(on_line$matched_geography), c(0, 0), tolerance = 1e-8)
+  expect_gt(s2::s2_y(offset$matched_geography[1]), 0)
+  expect_lt(s2::s2_y(offset$matched_geography[2]), 0)
+  expect_equal(
+    as.numeric(s2::s2_distance(
+      on_line$matched_geography,
+      offset$matched_geography
+    )),
+    c(10, 10),
+    tolerance = 1e-5
+  )
+})
+
 test_that("geocode progress text shows ZIP and addr_street count", {
   expect_equal(
     geocode_progress_text("45219", 1234L, 56789L),
