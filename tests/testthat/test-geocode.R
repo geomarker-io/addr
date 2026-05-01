@@ -82,10 +82,37 @@ test_that("geocode progress gets addr_street count from geocode_zip", {
     ),
     addr_place(zipcode = c("45219", "45219"))
   )
-  progress_output <- capture.output(geocode(x))
+  progress_output <- capture.output(geocode(x, progress = TRUE))
   progress_text <- paste(progress_output, collapse = "\n")
   progress_text <- gsub("\033\\[[0-9;]*[[:alpha:]]", "", progress_text)
   expect_true(
     grepl("geocoding 45219 \\(2 addr to 4,599 addr_street\\)", progress_text)
   )
+})
+
+test_that("geocode progress can be disabled", {
+  local_mocked_bindings(
+    geocode_zip = function(x, offset = 0L, progress_callback = NULL) {
+      tibble::tibble(
+        addr = x,
+        matched_zipcode = rep("45219", length(x)),
+        matched_street = x@street,
+        matched_geography = s2::as_s2_geography(
+          rep("POINT (-84.5 39.1)", length(x))
+        )
+      )
+    }
+  )
+  x <- addr(
+    addr_number(digits = "1"),
+    addr_street(
+      name = "Main",
+      map_posttype = FALSE,
+      map_pretype = FALSE,
+      map_directional = FALSE
+    ),
+    addr_place(zipcode = "45219")
+  )
+  progress_output <- capture.output(invisible(geocode(x, progress = FALSE)))
+  expect_equal(progress_output, character())
 })

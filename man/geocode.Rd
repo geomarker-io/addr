@@ -5,7 +5,7 @@
 \alias{geocode_zip}
 \title{Geocode addr vectors with census.gov TIGER address features}
 \usage{
-geocode(x, offset = 0L)
+geocode(x, offset = 0L, progress = interactive())
 
 geocode_zip(x, offset = 0L, progress_callback = NULL)
 }
@@ -13,6 +13,8 @@ geocode_zip(x, offset = 0L, progress_callback = NULL)
 \item{x}{an addr vector (\code{?as_addr})}
 
 \item{offset}{number of meters to offset geocode from street line}
+
+\item{progress}{logical; show a ZIP-code progress bar while geocoding?}
 
 \item{progress_callback}{optional callback used internally by \code{geocode()}
 to update progress after ZIP-code reference data is loaded}

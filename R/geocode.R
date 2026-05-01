@@ -18,6 +18,7 @@
 #' geography/s2cell values will return NA.
 #' @param x an addr vector (`?as_addr`)
 #' @param offset number of meters to offset geocode from street line
+#' @param progress logical; show a ZIP-code progress bar while geocoding?
 #' @returns a tbl with columns: addr (`x`, addr vector),
 #' matched zipcode (character vector, matched street (addr_street vector),
 #' s2_geography (s2_geography point vector), and s2_cell (s2_cell vector)
@@ -38,12 +39,15 @@
 #' leaflet::leaflet(wk::wk_coords(gcd$matched_geography)) |>
 #'   leaflet::addTiles() |>
 #'   leaflet::addCircleMarkers(lng = ~x, lat = ~y, label = ~feature_id)
-geocode <- function(x, offset = 0L) {
+geocode <- function(x, offset = 0L, progress = interactive()) {
   stopifnot(
     "x must be an addr vector" = inherits(x, "addr"),
     "offset must be an integer" = typeof(offset) == "integer",
     "offset must be length one" = length(offset) == 1,
-    "offset must not be missing" = !is.na(offset)
+    "offset must not be missing" = !is.na(offset),
+    "progress must be TRUE or FALSE" = is.logical(progress) &&
+      length(progress) == 1L &&
+      !is.na(progress)
   )
   xu <- unique(x)
   missing_zip <- is.na(xu@place@zipcode) | xu@place@zipcode == ""
@@ -52,8 +56,10 @@ geocode <- function(x, offset = 0L) {
   # gcd <- mirai::mirai_map(z_list, geocode_zip)[.progress, .stop]
   gcd <- if (length(z_list) == 0L) {
     list()
-  } else {
+  } else if (progress) {
     lapply_pb(z_list, geocode_zip, offset = offset)
+  } else {
+    lapply(z_list, geocode_zip, offset = offset)
   }
   if (any(missing_zip)) {
     gcd <- c(gcd, list(missing_zip = geocode_no_match(xu[missing_zip])))
@@ -156,7 +162,7 @@ geocode_zip <- function(x, offset = 0L, progress_callback = NULL) {
     return(out)
   }
 
-  ref_exact <- addr::taf_zip(zpcd, map = TRUE)
+  ref_exact <- taf_zip(zpcd, map = TRUE)
   if (is.function(progress_callback)) {
     progress_callback(length(ref_exact$addr_street))
   }
@@ -167,7 +173,7 @@ geocode_zip <- function(x, offset = 0L, progress_callback = NULL) {
 
   if (length(no) != 0) {
     out$matched_zipcode[no] <- NA_character_
-    ref_variant <- addr::taf_zip(zipcode_variant(zpcd), map = TRUE)
+    ref_variant <- taf_zip(zipcode_variant(zpcd), map = TRUE)
     out$matched_street[no] <- match_addr_street(
       x@street[no],
       ref_variant$addr_street

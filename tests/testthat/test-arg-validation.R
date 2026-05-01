@@ -84,6 +84,18 @@ test_that("matching helpers validate scalar tuning arguments", {
   )
 })
 
+test_that("geocode validates progress argument", {
+  x <- addr(
+    addr_number(digits = "10"),
+    addr_street(name = "Main", posttype = "St"),
+    addr_place(zipcode = "45220")
+  )
+  expect_error(
+    geocode(x, progress = NA),
+    "progress must be TRUE or FALSE"
+  )
+})
+
 test_that("join helpers validate by, suffix, and progress arguments", {
   x <- tibble::tibble(addr = as_addr("10 MAIN ST CINCINNATI OH 45220"))
   y <- tibble::tibble(addr = as_addr("10 MAIN ST CINCINNATI OH 45220"))
