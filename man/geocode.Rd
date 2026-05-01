@@ -7,13 +7,13 @@
 \usage{
 geocode(
   x,
-  offset = 0L,
   name_phonetic_dist = 1L,
   name_fuzzy_dist = 2L,
   match_street_predirectional = TRUE,
   match_street_posttype = TRUE,
   match_street_pretype = TRUE,
   match_street_postdirectional = FALSE,
+  offset = 10L,
   progress = interactive()
 )
 
@@ -31,8 +31,6 @@ geocode_zip(
 }
 \arguments{
 \item{x}{an addr vector (\code{?as_addr})}
-
-\item{offset}{number of meters to offset geocode from street line}
 
 \item{name_phonetic_dist}{integer; maximum optimized string alignment
 distance between \code{phonetic_street_key()} of x and y to consider a possible
@@ -52,6 +50,8 @@ selecting street candidates?}
 
 \item{match_street_postdirectional}{logical; require street postdirectional
 to match when selecting street candidates?}
+
+\item{offset}{number of meters to offset geocode from street line}
 
 \item{progress}{logical; show a ZIP-code progress bar while geocoding?}
 

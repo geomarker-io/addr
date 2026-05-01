@@ -35,20 +35,20 @@
 #' @examples
 #'
 #' x <- as_addr(voter_addresses()[1:100])
-#' gcd <- geocode(x, offset = 20L)
+#' gcd <- geocode(x)
 #'
 #' leaflet::leaflet(wk::wk_coords(gcd$matched_geography)) |>
 #'   leaflet::addTiles() |>
 #'   leaflet::addCircleMarkers(lng = ~x, lat = ~y, label = ~feature_id)
 geocode <- function(
   x,
-  offset = 0L,
   name_phonetic_dist = 1L,
   name_fuzzy_dist = 2L,
   match_street_predirectional = TRUE,
   match_street_posttype = TRUE,
   match_street_pretype = TRUE,
   match_street_postdirectional = FALSE,
+  offset = 10L,
   progress = interactive()
 ) {
   stopifnot(
