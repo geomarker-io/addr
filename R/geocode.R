@@ -11,10 +11,11 @@
 #' 3. linearly interpolate a geographic point along the best range line based
 #' on the actual and potential range of address numbers
 #'
-#' Only matched input addr will return non-missing matched zipcode/street (and
-#' geography/s2cell) values, but if all ranges on the matched zipcode/street
-#' exclude the address number, then *only* the geography/s2cell values
-#' will return NA.
+#' Only matched input addr will return non-missing matched zipcode/street
+#' values. Missing or unmatched zip codes return missing matched zipcode/street,
+#' geography, and s2cell values, like any other non-match. If all ranges on the
+#' matched zipcode/street exclude the address number, then *only* the
+#' geography/s2cell values will return NA.
 #' @param x an addr vector (`?as_addr`)
 #' @param offset number of meters to offset geocode from street line
 #' @returns a tbl with columns: addr (`x`, addr vector),
@@ -45,10 +46,21 @@ geocode <- function(x, offset = 0L) {
     "offset must not be missing" = !is.na(offset)
   )
   xu <- unique(x)
-  z_list <- split(xu, xu@place@zipcode)
+  missing_zip <- is.na(xu@place@zipcode) | xu@place@zipcode == ""
+  z_list <- split(xu[!missing_zip], xu[!missing_zip]@place@zipcode)
 
   # gcd <- mirai::mirai_map(z_list, geocode_zip)[.progress, .stop]
-  gcd <- lapply_pb(z_list, geocode_zip)
+  gcd <- if (length(z_list) == 0L) {
+    list()
+  } else {
+    lapply_pb(z_list, geocode_zip, offset = offset)
+  }
+  if (any(missing_zip)) {
+    gcd <- c(gcd, list(missing_zip = geocode_no_match(xu[missing_zip])))
+  }
+  if (length(gcd) == 0L) {
+    gcd <- list(geocode_no_match(xu))
+  }
   gcd <- do.call(rbind, gcd)
 
   out <- gcd[match(format(x), format(gcd$addr)), ]
@@ -65,6 +77,15 @@ lapply_pb <- function(x, FUN, ...) {
     utils::setTxtProgressBar(pb, i)
   }
   out
+}
+
+geocode_no_match <- function(x) {
+  tibble::tibble(
+    addr = x,
+    matched_zipcode = rep(NA_character_, length(x)),
+    matched_street = addr_street(rep(NA_character_, length(x))),
+    matched_geography = s2::as_s2_geography(rep(NA_character_, length(x)))
+  )
 }
 
 
@@ -88,12 +109,7 @@ geocode_zip <- function(x, offset = 0L) {
     )
   }
 
-  out <- tibble::tibble(
-    addr = x,
-    matched_zipcode = rep(NA_character_, length(x)),
-    matched_street = addr_street(rep(NA_character_, length(x))),
-    matched_geography = s2::as_s2_geography(rep(NA_character_, length(x)))
-  )
+  out <- geocode_no_match(x)
 
   if (is.na(zpcd) || zpcd == "") {
     return(out)
@@ -121,11 +137,13 @@ geocode_zip <- function(x, offset = 0L) {
         "ZIP",
         drop = TRUE
       ]
-    out$matched_zipcode[is.na(out$matched_zipcode)] <- ""
   }
 
   ref_rng <-
     lapply(seq_along(x), \(.i) {
+      if (is.na(out$matched_zipcode[.i]) || is.na(out$matched_street[.i])) {
+        return(ref_exact[0, ])
+      }
       if (out$matched_zipcode[.i] == zpcd) {
         return(
           ref_exact[
@@ -145,6 +163,9 @@ geocode_zip <- function(x, offset = 0L) {
   out$matched_geography <-
     lapply(seq_along(x), \(.i) {
       sn <- to_int(x@number@digits[.i])
+      if (is.na(sn) || nrow(ref_rng[[.i]]) == 0L) {
+        return(s2::as_s2_geography(NA_character_))
+      }
       sn_par <- ifelse(sn %% 2 == 0, "E", "O")
       cand0 <- ref_rng[[.i]]
       cand0$in_range <- sn >= pmin(cand0$FROMHN, cand0$TOHN) &
@@ -164,6 +185,9 @@ geocode_zip <- function(x, offset = 0L) {
       cand0$mid_dist <- abs(sn - cand0$mid)
       cand0 <- cand0[cand0$par_ok, ]
       cand0 <- cand0[order(cand0$width, cand0$mid_dist, na.last = TRUE), ]
+      if (nrow(cand0) == 0L) {
+        return(s2::as_s2_geography(NA_character_))
+      }
       brm <- cand0[1, ]
       s2::s2_interpolate_normalized(
         brm$s2_geography,

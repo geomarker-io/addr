@@ -32,10 +32,11 @@ side of the street (even/odd), tiebreaking on smallest width and spread)
 on the actual and potential range of address numbers
 }
 
-Only matched input addr will return non-missing matched zipcode/street (and
-geography/s2cell) values, but if all ranges on the matched zipcode/street
-exclude the address number, then \emph{only} the geography/s2cell values
-will return NA.
+Only matched input addr will return non-missing matched zipcode/street
+values. Missing or unmatched zip codes return missing matched zipcode/street,
+geography, and s2cell values, like any other non-match. If all ranges on the
+matched zipcode/street exclude the address number, then \emph{only} the
+geography/s2cell values will return NA.
 }
 \details{
 \code{geocode_zip()} is the workhorse function and operates on addr vectors
