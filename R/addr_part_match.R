@@ -1,9 +1,9 @@
 #' Match addr_street vectors
 #'
 #' @description
-#' A single addr_street in y is chosen for each addr_street in x.
+#' A single `addr_street` in `y` is chosen for each `addr_street` in `x`.
 #' If exact matches (using `as.character`) are not found,
-#' possible matches are chosen by
+#' candidate matches are chosen by
 #' fuzzy matching on street name (using phonetic street key and street name)
 #' and exact matching on the enabled street components.
 #' Ordinal street names use restricted phonetic candidates:
@@ -11,9 +11,10 @@
 #' ordinal neighbors such as digit shifts (`#0070`, `#0700`, `#7000`)
 #' or same-width substitutions (`#0008`, `#0009`), not arbitrary
 #' OSA-distance-one ordinal keys such as `#0017` or `#0077`.
-#' Ties are broken by .......... the first for now.
+#' If multiple candidates remain after fuzzy matching, the first candidate in
+#' `y` is returned.
 #'
-#' addr_street objects within missing or empty @name are not matched and
+#' `addr_street` objects with missing or empty `@name` are not matched and
 #' returned as missing instead.
 #' @param x,y addr_street vectors to match
 #' @param name_phonetic_dist integer; maximum optimized string alignment
@@ -29,9 +30,9 @@
 #'   selecting street candidates?
 #' @param match_street_postdirectional logical; require street postdirectional
 #'   to match when selecting street candidates?
-#' @return an addr_street vector, the same length as x, that is the
-#' best match in y for each addr_street code in x; if no best match
-#' is found a missing value is returned (`addr_street()`)
+#' @return An `addr_street` vector, the same length as `x`, containing the
+#'   selected match in `y` for each element of `x`. Unmatched elements are
+#'   returned as missing `addr_street()` values.
 #' @export
 #' @examples
 #' my_streets <- addr_street(
@@ -381,24 +382,24 @@ validate_match_addr_street_args <- function(
 #' Match addr_number vectors
 #'
 #' @description
-#' A single addr_number in y is chosen for each addr_number in x.
+#' A single `addr_number` in `y` is chosen for each `addr_number` in `x`.
 #' If exact matches (using `as.character`) are not found,
-#' possible matches (within `number_fuzzy_distance`) are searched for in y.
-#' If multiple matches are present in y, the best one is selected
-#' based on the lowest absolute numeric difference with the @digits in x;
-#' ties are broken by optimized string alignment (OSA) distances
-#' and then preferring the lowest value sorted in Lexicographic
+#' possible matches within `number_fuzzy_dist` are searched for in `y`.
+#' If multiple matches are present in `y`, the selected match has the
+#' lowest absolute numeric difference from `@digits` in `x`; ties are broken
+#' by optimized string alignment (OSA) distance and then by lexicographic
 #' order with digits preceding alphabetic characters.
 #'
-#' addr_number objects with missing @digits or empty strings
-#' for all of @prefix, @digits, @suffix are not matched and
+#' `addr_number` objects with missing `@digits`, or with empty strings
+#' for all of `@prefix`, `@digits`, and `@suffix`, are not matched and
 #' returned as missing instead.
 #' @param x,y addr_number vectors to match
-#' @param number_fuzzy_dist integer; maximum optimized string alignment distance
-#' between `@number` of x and y to consider a possible match
-#' @return an addr_number vector, the same length as x, that is the
-#' best match in y for each addr_number code in x; if no best match
-#' is found a missing value is returned (`addr_number()`)
+#' @param number_fuzzy_dist integer; maximum optimized string alignment
+#'   distance between `addr_number` strings in `x` and `y` to consider a
+#'   possible match.
+#' @return An `addr_number` vector, the same length as `x`, containing the
+#'   selected match in `y` for each element of `x`. Unmatched elements are
+#'   returned as missing `addr_number()` values.
 #' @export
 #' @examples
 #'  x <- addr_number(
@@ -476,18 +477,18 @@ match_addr_number <- function(x, y, number_fuzzy_dist = 1L) {
 
 #' Match ZIP codes
 #'
-#' A single ZIP code in y is chosen for each ZIP code
-#' in x. By default, if exact matches are not found, common variants
-#' of ZIP codes in x are searched for in y.
-#' If multiple variants are present in y, the best one is selected
-#' based on the lowest absolute numeric difference with the ZIP code in x;
-#' ties are broken by OSA string distances and then preferring the
+#' A single ZIP code in `y` is chosen for each ZIP code in `x`.
+#' By default, if exact matches are not found, common variants of ZIP codes
+#' in `x` are searched for in `y`.
+#' If multiple variants are present in `y`, the selected match has the lowest
+#' absolute numeric difference from the ZIP code in `x`; ties are broken by
+#' OSA string distance and then by the
 #' minimum number.
 #' @param x,y character vectors of ZIP codes to match
 #' @param zip_variants logical; fuzzy match to common variants of
-#' x in y? (e.g., changing 4th or 5th digit)
-#' @return a character vector, the same length as x, that is the
-#' best match in y for each ZIP code in x
+#' `x` in `y`? (for example, changing the fourth or fifth digit)
+#' @return A character vector, the same length as `x`, containing the selected
+#'   match in `y` for each ZIP code in `x`.
 #' @export
 #' @examples
 #' match_zipcodes(

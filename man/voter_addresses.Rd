@@ -10,11 +10,11 @@ voter_addresses()
 a character vector
 }
 \description{
-The voter_addresses data was generated as an example character vector of real-world addresses.
-These addresses were downloaded from the Hamilton County, Ohio voter registration database on 2024-09-12.
-See \code{inst/make_example_addresses.R} for more details.
-\code{AddressPreDirectional}, \code{AddressNumber}, \code{AddressStreet}, \code{AddressSuffix}, \code{CityName}, "OH", and \code{AddressZip}
-are pasted together to create 242,133 unique addresses of registered voters in Hamilton County, OH.
+\code{voter_addresses()} returns an example character vector of real-world
+addresses downloaded from the Hamilton County, Ohio voter registration
+database on 2024-09-12. \code{AddressPreDirectional}, \code{AddressNumber},
+\code{AddressStreet}, \code{AddressSuffix}, \code{CityName}, \code{"OH"}, and \code{AddressZip}
+were pasted together to create 242,133 unique registered-voter addresses.
 }
 \examples{
 voter_addresses() |>

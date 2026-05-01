@@ -1,33 +1,34 @@
-#' Geocode addr vectors with census.gov TIGER address features
+#' Geocode addr vectors with Census TIGER address features
 #'
 #' @description
-#' `geocode_tiger()` geocodes addr vectors using census.gov TIGER address
+#' `geocode()` geocodes addr vectors using Census TIGER address
 #' features (see `?taf`) by:
 #' 1. searching for a matching street (see `?match_addr_street`),
-#' within the same zip code, also searching similar zip codes (see
-#' `?zip_variant`) for a matching street if necessary
+#' within the same ZIP code, also searching similar ZIP codes for a matching
+#' street if necessary
 #' 2. using the address number to select the best address feature range and
-#' side of the street (even/odd), tiebreaking on smallest width and spread
+#' side of the street (even/odd), breaking ties on smallest width and spread
 #' 3. linearly interpolating a geographic point along the best range line based
 #' on the actual and potential range of address numbers
 #' 4. offsetting the interpolated point from the range line perpendicularly
 #'
-#' Only matched input addr will return non-missing matched zipcode/street
-#' values. Missing or unmatched zip codes return missing matched zipcode/street,
-#' geography, and s2cell values, like any other non-match. If all ranges on the
-#' matched zipcode/street exclude the address number, then *only* the
-#' geography/s2cell values will return NA.
+#' Only matched input addresses return non-missing matched ZIP code and street
+#' values. Missing or unmatched ZIP codes return missing matched ZIP code,
+#' street, geography, and s2 cell values. If all ranges on the matched ZIP code
+#' and street exclude the address number, only the geography and s2 cell values
+#' return `NA`.
 #' @param x an addr vector (`?as_addr`)
 #' @param offset number of meters to offset geocode from street line
 #' @param progress logical; show a ZIP-code progress bar while geocoding?
 #' @inheritParams match_addr_street
-#' @returns a tbl with columns: addr (`x`, addr vector),
-#' matched zipcode (character vector, matched street (addr_street vector),
-#' s2_geography (s2_geography point vector), and s2_cell (s2_cell vector)
+#' @returns A tibble with columns `addr` (the input addr vector),
+#'   `matched_zipcode` (character vector), `matched_street` (`addr_street`
+#'   vector), `matched_geography` (`s2_geography` point vector), and `s2_cell`
+#'   (`s2_cell` vector).
 #' @details
 #' `geocode_zip()` is the workhorse function and operates on addr vectors
 #' with the same ZIP code; use `geocode()` to geocode an addr vector
-#' with different ZIP codes by grouping them by ZIP code and processing
+#' with multiple ZIP codes by grouping them by ZIP code and processing
 #' serially.
 #' At a lower level, grouping addr vectors by ZIP code and applying
 #' `geocode_zip()` facilitates more control (e.g., parallel processing)

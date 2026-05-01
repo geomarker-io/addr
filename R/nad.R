@@ -255,7 +255,7 @@ nad_read <- function(
       length(bad_zips),
       " address records in ",
       county_info$county_fips,
-      " with malformed zip codes."
+      " with malformed ZIP codes."
     )
     rnad <- rnad[-bad_zips, ]
   }

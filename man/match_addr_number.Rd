@@ -9,26 +9,26 @@ match_addr_number(x, y, number_fuzzy_dist = 1L)
 \arguments{
 \item{x, y}{addr_number vectors to match}
 
-\item{number_fuzzy_dist}{integer; maximum optimized string alignment distance
-between \verb{@number} of x and y to consider a possible match}
+\item{number_fuzzy_dist}{integer; maximum optimized string alignment
+distance between \code{addr_number} strings in \code{x} and \code{y} to consider a
+possible match.}
 }
 \value{
-an addr_number vector, the same length as x, that is the
-best match in y for each addr_number code in x; if no best match
-is found a missing value is returned (\code{addr_number()})
+An \code{addr_number} vector, the same length as \code{x}, containing the
+selected match in \code{y} for each element of \code{x}. Unmatched elements are
+returned as missing \code{addr_number()} values.
 }
 \description{
-A single addr_number in y is chosen for each addr_number in x.
+A single \code{addr_number} in \code{y} is chosen for each \code{addr_number} in \code{x}.
 If exact matches (using \code{as.character}) are not found,
-possible matches (within \code{number_fuzzy_distance}) are searched for in y.
-If multiple matches are present in y, the best one is selected
-based on the lowest absolute numeric difference with the @digits in x;
-ties are broken by optimized string alignment (OSA) distances
-and then preferring the lowest value sorted in Lexicographic
+possible matches within \code{number_fuzzy_dist} are searched for in \code{y}.
+If multiple matches are present in \code{y}, the selected match has the
+lowest absolute numeric difference from \verb{@digits} in \code{x}; ties are broken
+by optimized string alignment (OSA) distance and then by lexicographic
 order with digits preceding alphabetic characters.
 
-addr_number objects with missing @digits or empty strings
-for all of @prefix, @digits, @suffix are not matched and
+\code{addr_number} objects with missing \verb{@digits}, or with empty strings
+for all of \verb{@prefix}, \verb{@digits}, and \verb{@suffix}, are not matched and
 returned as missing instead.
 }
 \examples{

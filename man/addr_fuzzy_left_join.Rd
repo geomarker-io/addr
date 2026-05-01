@@ -19,8 +19,8 @@ addr_fuzzy_left_join(
 \item{by}{addr column name in \code{x} (and \code{y} if the same);
 or a length-2 character vector of \code{c(x_col, y_col)}}
 
-\item{addr_fields}{a named vector of osa_max_distances; if max distances
-for each addr tag field is not present a default will be used (see details).}
+\item{addr_fields}{a named vector of OSA maximum distances. Defaults are
+used for fields that are not supplied; see Details.}
 
 \item{suffix}{character vector of length 2 used to suffix duplicate columns}
 
@@ -32,18 +32,16 @@ a data frame with left-join semantics; note that \emph{row order will
 be changed compared to x}
 }
 \description{
-This wraps around the addr fuzzy matching helpers and
-returns a left-join style result. The addr columns are matched by index and
+This wraps the addr fuzzy matching helpers and returns a left-join style
+result. The addr columns are matched by index and
 rows are expanded for one-to-many or many-to-many matches.
 
-See \code{addr_match()} and \code{addr_left_join()} for an alternative strategy
-to matching addr and joining data frames with addr columns
-that is faster, but is limited to one best match instead of
-multi-matches.
+See \code{addr_match()} and \code{addr_left_join()} for a faster alternative that
+returns one selected match instead of all fuzzy matches.
 }
 \details{
-addr_fuzzy_left_join works by matching addresses grouped by ZIP codes, so specified
-osa_max_distances for any place fields are ignored
+\code{addr_fuzzy_left_join()} matches addresses within ZIP code groups, so
+maximum distances for place fields are ignored.
 Defaults for \code{addr_fields}:
 \itemize{
 \item number_prefix: 0

@@ -38,14 +38,14 @@ selecting street candidates?}
 to match when selecting street candidates?}
 }
 \value{
-an addr_street vector, the same length as x, that is the
-best match in y for each addr_street code in x; if no best match
-is found a missing value is returned (\code{addr_street()})
+An \code{addr_street} vector, the same length as \code{x}, containing the
+selected match in \code{y} for each element of \code{x}. Unmatched elements are
+returned as missing \code{addr_street()} values.
 }
 \description{
-A single addr_street in y is chosen for each addr_street in x.
+A single \code{addr_street} in \code{y} is chosen for each \code{addr_street} in \code{x}.
 If exact matches (using \code{as.character}) are not found,
-possible matches are chosen by
+candidate matches are chosen by
 fuzzy matching on street name (using phonetic street key and street name)
 and exact matching on the enabled street components.
 Ordinal street names use restricted phonetic candidates:
@@ -53,9 +53,10 @@ an ordinal phonetic key like \verb{#0007} may fuzzy match only to plausible
 ordinal neighbors such as digit shifts (\verb{#0070}, \verb{#0700}, \verb{#7000})
 or same-width substitutions (\verb{#0008}, \verb{#0009}), not arbitrary
 OSA-distance-one ordinal keys such as \verb{#0017} or \verb{#0077}.
-Ties are broken by .......... the first for now.
+If multiple candidates remain after fuzzy matching, the first candidate in
+\code{y} is returned.
 
-addr_street objects within missing or empty @name are not matched and
+\code{addr_street} objects with missing or empty \verb{@name} are not matched and
 returned as missing instead.
 }
 \examples{

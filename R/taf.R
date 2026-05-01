@@ -2,18 +2,15 @@
 #'
 #' @description
 #'
-#' taf() uses the arrow package to open the
-#' hive partitioned, parquet dataset of TIGER address features in the R user
-#' directory for the addr package.
-#' The FileSystemDataset in Arrow is database-like backend for
-#' larger-than-memory datasets and provides functionality
-#' to use dplyr syntax for data manipulation;
-#' see <https://arrow.apache.org/docs/r/articles/data_wrangling.html> for
-#' more details on arrow and dplyr.
+#' `taf()` uses the arrow package to open the hive-partitioned parquet dataset
+#' of TIGER address features in the addr user data directory.
+#' Arrow `FileSystemDataset` objects are database-like backends for
+#' larger-than-memory datasets and support dplyr syntax for data manipulation;
+#' see <https://arrow.apache.org/docs/r/articles/data_wrangling.html>.
 #'
-#' `install_taf()` will download and link TIGER address features and
+#' `taf_install()` downloads and links TIGER address features and
 #' feature names for a specific year and county, installing the resulting
-#' file in the R user's data directory for the addr package.
+#' file in the addr user data directory.
 #' If an address feature does not have a corresponding LINEARID with a
 #' feature name, then the street tags are parsed from the full name, in
 #' which case the column, `street_tag_parsed` will be TRUE.
@@ -64,9 +61,9 @@ taf <- function(year = as.character(2025:2011), version = "v1") {
 }
 
 #' @rdname taf
-#' @param county character, length 1; county fips code
+#' @param county character, length 1; county FIPS code
 #' @param overwrite logical, length 1; overwrite an existing county install?
-#' @param redownload logical, length 1; re-download cached TIGER zip files?
+#' @param redownload logical, length 1; re-download cached TIGER ZIP files?
 #' @export
 #' @examples
 #' \dontrun{
@@ -173,13 +170,12 @@ taf_install <- function(
   return(invisible(county))
 }
 
-#' read taf() for a ZIP code across all installed counties
+#' Read taf() data for ZIP codes across all installed counties
 #'
-#' taf_zip() is a helper that transforms data read in from taf()
-#' for a subset of zip codes to use with the addr package.
-#' It reconstructs the `county_fips`, `s2_geography`, and `addr_street`,
-#' vectors in the returned data frame to use with the addr package.
-#' @param x character vector of five digit ZIP codes
+#' `taf_zip()` reads and transforms `taf()` data for a subset of ZIP codes.
+#' It reconstructs the `county_fips`, `s2_geography`, and `addr_street`
+#' vectors in the returned data frame.
+#' @param x character vector of five-digit ZIP codes
 #' @param map logical, length 1; map street tags read from taf() data
 #' (type, directional, ordinal) when converting to `addr_street()` vector?
 #' @param year character, length 1; vintage of TIGER addrfeat files

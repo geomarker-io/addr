@@ -1,19 +1,18 @@
 #' Fuzzy match
 #'
-#' Fuzzy match strings in x to y using optimized string alignment
-#' (ignoring capitalization).
+#' Fuzzy match strings in `x` to strings in `y` using optimized string
+#' alignment (OSA) distance and ignoring capitalization.
 #'
-#' If multiple strings in `y` are tied for the minimum osa distances with a
-#' string in `x`, then all of their indices are included in the return value.
+#' If multiple strings in `y` are tied for the minimum OSA distance from a
+#' string in `x`, all of their indices are included in the return value.
 #' @param x character vector to match
 #' @param y character vector to match to
 #' @param osa_max_dist maximum OSA distance to consider a match;
 #' `Inf` is a special case that avoids computing string distance by
-#' returning all of `y` instead of just the best match(es) in 'y`
-#' @param prefilter method used to prefilter y before computing
-#' osa distances for fuzzy matching to speed up calculations;
-#' "none" does nothing, "psk" removes addrs in y that do not have
-#' a `phonetic_street_key()` in x
+#' returning all of `y` instead of just the best match or matches in `y`.
+#' @param prefilter method used to prefilter `y` before computing
+#' OSA distances; `"none"` does nothing, and `"psk"` removes values in `y`
+#' that do not share a `phonetic_street_key()` with any value in `x`.
 #' @return a list of integer vectors representing the position of the best
 #' matching string(s) in `y` for each string in `x`
 #' @export
@@ -90,17 +89,18 @@ fuzzy_match <- function(x, y, osa_max_dist = 1, prefilter = c("none", "psk")) {
 #' Fuzzy match addr vectors using field-specific string distances
 #'
 #' @description
-#' `addr_fuzzy_match()` matches two addr vectors using more than one address tag
+#' `addr_fuzzy_match()` matches two addr vectors using more than one address
+#' field.
 #'
 #' `fuzzy_match_addr_field()` matches two addr vectors using a single address
-#' tag
+#' field.
 #'
 #' Distances between address tags are defined using optimized string alignment;
 #' see `fuzzy_match()` and `stringdist::stringdist()` for more details.
 #' @param x addr vector to match
 #' @param y addr vector to match to
-#' @param addr_fields a named vector of osa_max_distances; if max distances
-#' for each addr tag field is not present a default will be used (see details).
+#' @param addr_fields a named vector of OSA maximum distances. Defaults are
+#'   used for fields that are not supplied; see Details.
 #' @details
 #' Defaults for `addr_fields`:
 #' \itemize{

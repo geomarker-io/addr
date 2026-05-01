@@ -2,12 +2,12 @@
 % Please edit documentation in R/taf.R
 \name{taf_zip}
 \alias{taf_zip}
-\title{read taf() for a ZIP code across all installed counties}
+\title{Read taf() data for ZIP codes across all installed counties}
 \usage{
 taf_zip(x, map = TRUE, year = as.character(2025:2011), version = "v1")
 }
 \arguments{
-\item{x}{character vector of five digit ZIP codes}
+\item{x}{character vector of five-digit ZIP codes}
 
 \item{map}{logical, length 1; map street tags read from taf() data
 (type, directional, ordinal) when converting to \code{addr_street()} vector?}
@@ -23,10 +23,9 @@ a tibble with \code{LINEARID}, \code{FULLNAME}, \code{side}, \code{ZIP},
 \code{county_fips}, and \code{street_tag_parsed} columns
 }
 \description{
-taf_zip() is a helper that transforms data read in from taf()
-for a subset of zip codes to use with the addr package.
-It reconstructs the \code{county_fips}, \code{s2_geography}, and \code{addr_street},
-vectors in the returned data frame to use with the addr package.
+\code{taf_zip()} reads and transforms \code{taf()} data for a subset of ZIP codes.
+It reconstructs the \code{county_fips}, \code{s2_geography}, and \code{addr_street}
+vectors in the returned data frame.
 }
 \examples{
 \dontrun{

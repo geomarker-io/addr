@@ -11,10 +11,10 @@ stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://
 
 <!-- badges: end -->
 
-Addresses that were not validated at the time of collection are often heterogenously formatted and filled with typographical and phonetic noise, making them difficult to compare or link to other sets of addresses.
-The goal of addr is to clean, parse, standardize, and match messy, real-world US addresses in R to use for data linkages.
-addr uses the included `usaddress` library to tag address components and build vctrs-based addr vectors, including the `addr()` vector and the `addr_number()`, `addr_street()`, and `addr_place()` subclass vectors.
-Addr and addr_part vectors can be standardized and matched/joined using exact, best, or fuzzy linkages. Ultimately, this facilitates using addr vectors as a column in a data frame which allows for powerful computing on nested address structures using standard R tools.
+Addresses that were not validated at collection are often inconsistently formatted and contain typographical or phonetic noise, making them difficult to compare or link to other address data.
+The goal of addr is to clean, parse, standardize, match, and geocode messy, real-world US addresses in R.
+addr uses the included `usaddress` library to tag address components and build vctrs-based address vectors, including `addr()` vectors and the `addr_number()`, `addr_street()`, and `addr_place()` component vectors.
+These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.
 
 ## Installation
 
@@ -35,7 +35,7 @@ Installing addr from GitHub requires a working [Rust](https://www.rust-lang.org/
 
 ## Using
 
-addr vectors behave like standard R vectors: they recycle, subset, and combine with vctrs tooling. You can parse text into an addr vector with `as_addr()` or build one from its subclass vectors with `addr()`.
+addr vectors behave like standard R vectors: they recycle, subset, and combine with vctrs tooling. You can parse text into an addr vector with `as_addr()` or build one from component vectors with `addr()`.
 
 ```r
 addr_vec <- as_addr(c("3333 Burnet Ave Cincinnati OH 45229",

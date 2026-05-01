@@ -4,7 +4,7 @@ Version: 1.0.0.9000
 Authors@R: 
     c(person("Cole", "Brokamp", email = "cole@colebrokamp.com", role = c("aut", "cre")),
       person("Erika", "Manning", role = c("aut")))
-Description: Addresses that were not validated at the time of collection are often heterogenously formatted and filled with typographical and phonetic noise, making them difficult to compare or link to other sets of addresses. The addr package is designed to clean character strings of addresses, use the `usaddress` library to tag address components, and create addr vector objects. Addr vectors are composed of addr_part vectors for number, street, and place. Addr and addr_part vectors can be standardized and matched/joined using exact, best, or fuzzy linkages. Ultimately, this facilitates using addr vectors as a column in a data frame which allows for powerful computing on nested address structures using standard R tools. 
+Description: Addresses that were not validated at collection are often inconsistently formatted and contain typographical or phonetic noise, making them difficult to compare or link to other address data. The addr package cleans, parses, standardizes, matches, and geocodes messy, real-world US addresses. It uses the `usaddress` library to tag address components and build addr vector objects composed of addr_part vectors for number, street, and place. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures. 
 URL: https://github.com/geomarker-io/addr, https://geomarker.io/addr
 BugReports: https://github.com/cole-brokamp/addr/issues
 License: MIT + file LICENSE

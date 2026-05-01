@@ -2,41 +2,40 @@
 #'
 #' @description
 #' `zip_fips_lookup()` uses a package-internal reference derived from the
-#' 2025 Q4 HUD USPS ZIP Code Crosswalk Files to translate between
-#' a ZIP code and county FIPS identifiers.
-#' Some ZIP codes are linked to multiple counties; also specify
-#' the county FIPS identifier to get the USPS preferred city and
-#' state names (in an addr_place() vector).
+#' 2025 Q4 HUD USPS ZIP Code Crosswalk Files to translate from a ZIP code to
+#' county FIPS identifiers.
+#' Some ZIP codes are linked to multiple counties; also specify a county FIPS
+#' identifier to get the USPS preferred city and state names as an
+#' `addr_place()` vector.
 #' @param zip character, length one; a 5-digit ZIP code
 #' @param fips character, length one; a 5-digit FIPS county identifier
-#' @returns if fips is NULL, a character vector of matched 5-digit FIPS
-#' county identifiers, ordered by percentages of residential addresses;
-#' if fips is not NULL, an addr_place vector of length one
+#' @returns If `fips` is `NULL`, a character vector of matched 5-digit county
+#'   FIPS identifiers, ordered by residential-address percentage. If `fips` is
+#'   supplied, an `addr_place` vector of length one.
 #'
 #' Potentially real ZIP codes that are not in the HUD crosswalk return an error.
 #' A ZIP code can be a real, active USPS ZIP and still be absent from
 #' the HUD crosswalk for a specific quarter because HUD builds the file from
 #' quarterly ZIP+4 records rather than a complete USPS list, and excludes
-#' records that cannot cannot be reliably geocoded to Census geography;
+#' records that cannot be reliably geocoded to Census geography;
 #' PO Box-only and some institutional or unique ZIP codes may therefore
 #' be absent.
-#' If a zip code is absent from the HUD crosswalk, an error is raised.
-#' If a zip code is present, but not in the specified county, then
-#' `@name` and `@state` (but not @zipcode) are set to missing in the returned
-#' addr_place vector
+#' If a ZIP code is present, but not in the specified county, `@name` and
+#' `@state` (but not `@zipcode`) are set to missing in the returned
+#' `addr_place` vector.
 #' @export
 #' @examples
 #'
-#' # one zip to one county
+#' # one ZIP code to one county
 #' zip_fips_lookup(zip = "45220")
 #'
-#' # one zip to > one county
+#' # one ZIP code to more than one county
 #' zip_fips_lookup(zip = "45249")
 #'
-#' # use fips code to specify the place
+#' # use a county FIPS code to specify the place
 #' zip_fips_lookup(zip = "45249", fips = "39061")
 #'
-#' # zip codes in wrong county will have NA place and state
+#' # ZIP codes in the wrong county will have NA place and state
 #' zip_fips_lookup(zip = "45249", fips = "39017")
 zip_fips_lookup <- function(zip, fips = NULL) {
   stopifnot(

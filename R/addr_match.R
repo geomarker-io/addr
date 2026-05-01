@@ -323,8 +323,9 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #' @inheritParams match_addr_number
 #' @param progress logical; show reference-preparation timing and a progress
 #'   bar while preparing raw `y` or processing matched ZIP groups?
-#' @return an addr vector, the same length as x, that is the best match in y
-#'   for each addr in x. Partial matches are returned with matched ZIP code
+#' @return An addr vector, the same length as `x`, containing the selected
+#'   match in `y` for each addr in `x`. Partial matches are returned with
+#'   matched ZIP code
 #'   and/or street fields filled when later stages do not match.
 #' @export
 #' @examples
@@ -629,7 +630,7 @@ print.addr_match_index <- function(x, ...) {
     prettyNum(x$n_unique, big.mark = ","),
     "addrs in",
     length(z),
-    "zip code groups:\n"
+    "ZIP code groups:\n"
   )
   n <- sapply(x$by_zip, \(.) length(.$y))
   cat(paste0(z, ": ", prettyNum(n, big.mark = ",")), sep = "\n")
