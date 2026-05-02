@@ -46,7 +46,9 @@ feature name, then the street tags are parsed from the full name, in
 which case the column, \code{street_tag_parsed} will be TRUE.
 }
 \examples{
-\dontrun{
+Sys.setenv("R_USER_DATA_DIR" = tempfile())
+taf_install("39061", "2025")
+
 taf()
 
 # use dplyr verbs to query
@@ -63,8 +65,6 @@ taf() |>
   arrange(desc(n_zips), desc(n_ranges)) |>
   collect() |>
   slice(1:10)
-}
-\dontrun{
-  taf_install("39061", "2025")
-}
+Sys.setenv("R_USER_DATA_DIR" = tempfile())
+taf_install("39061", "2025")
 }

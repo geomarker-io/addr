@@ -22,7 +22,9 @@
 #' verbs to query the data and get results, see examples
 #' @export
 #' @examples
-#' \dontrun{
+#' Sys.setenv("R_USER_DATA_DIR" = tempfile())
+#' taf_install("39061", "2025")
+#'
 #' taf()
 #'
 #' # use dplyr verbs to query
@@ -39,7 +41,6 @@
 #'   arrange(desc(n_zips), desc(n_ranges)) |>
 #'   collect() |>
 #'   slice(1:10)
-#' }
 taf <- function(year = as.character(2025:2011), version = "v1") {
   check_installed("arrow", "to open the multi-file taf dataset")
   stopifnot(
@@ -66,9 +67,8 @@ taf <- function(year = as.character(2025:2011), version = "v1") {
 #' @param redownload logical, length 1; re-download cached TIGER ZIP files?
 #' @export
 #' @examples
-#' \dontrun{
-#'   taf_install("39061", "2025")
-#' }
+#' Sys.setenv("R_USER_DATA_DIR" = tempfile())
+#' taf_install("39061", "2025")
 taf_install <- function(
   county,
   year = as.character(2025:2011),
@@ -82,7 +82,6 @@ taf_install <- function(
     "county must be length one" = length(county) == 1L,
     "county must not be missing" = !is.na(county),
     "year must be a character vector" = is.character(year),
-    "year must be length one" = length(year) == 1L,
     "year must not be missing" = !is.na(year)
   )
   year <- match.arg(year)
@@ -186,9 +185,9 @@ taf_install <- function(
 #' `county_fips`, and `street_tag_parsed` columns
 #' @export
 #' @examples
-#' \dontrun{
-#'   taf_zip(c("45249", "45230", "45220"))
-#' }
+#' Sys.setenv("R_USER_DATA_DIR" = tempfile())
+#' taf_install("39061", "2025")
+#' taf_zip(c("45249", "45230", "45220"))
 taf_zip <- function(
   x,
   map = TRUE,

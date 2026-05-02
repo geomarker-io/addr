@@ -28,7 +28,7 @@ It reconstructs the \code{county_fips}, \code{s2_geography}, and \code{addr_stre
 vectors in the returned data frame.
 }
 \examples{
-\dontrun{
-  taf_zip(c("45249", "45230", "45220"))
-}
+Sys.setenv("R_USER_DATA_DIR" = tempfile())
+taf_install("39061", "2025")
+taf_zip(c("45249", "45230", "45220"))
 }

@@ -103,6 +103,8 @@ At a lower level, grouping addr vectors by ZIP code and applying
 \code{geocode_zip()} facilitates more control (e.g., parallel processing)
 }
 \examples{
+Sys.setenv("R_USER_DATA_DIR" = tempfile())
+taf_install("39061", "2025")
 
 x <- as_addr(voter_addresses()[1:100])
 gcd <- geocode(x)
