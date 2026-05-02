@@ -15,7 +15,8 @@
 #' feature name, then the street tags are parsed from the full name, in
 #' which case the column, `street_tag_parsed` will be TRUE.
 #'
-#' @param year integer, length one; vintage of TIGER addrfeat files
+#' @param year integer, length one; vintage of TIGER addrfeat (address feature)
+#'   files
 #' @param version character, length one; major version of the package
 #' and taf dataset schema
 #' @returns a Dataset R6 object (see `?arrow::open_dataset`); use `dplyr`
@@ -333,7 +334,8 @@ taf_install <- function(
 #' @param x character vector of five-digit ZIP codes
 #' @param map logical, length 1; map street tags read from taf() data
 #' (type, directional, ordinal) when converting to `addr_street()` vector?
-#' @param year character, length 1; vintage of TIGER addrfeat files
+#' @param year character, length 1; vintage of TIGER addrfeat (address feature)
+#'   files
 #' @param version character, length 1; major version of the package
 #' and taf dataset schema
 #' @returns a tibble with `LINEARID`, `FULLNAME`, `side`, `ZIP`,

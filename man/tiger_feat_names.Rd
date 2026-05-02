@@ -7,21 +7,20 @@
 tiger_feat_names(county, year, redownload = FALSE)
 }
 \arguments{
-\item{county}{character string of county identifier}
+\item{county}{character string of county FIPS identifier}
 
-\item{year}{character year of tigris product}
+\item{year}{character year of the Census TIGER/Line product}
 
-\item{redownload}{logical, length 1; re-download the cached TIGER zip file?}
+\item{redownload}{logical, length 1; re-download the cached TIGER ZIP file?}
 }
 \value{
 a tibble with unique \code{LINEARID} and \code{addr} columns
 }
 \description{
-TIGER primary feature names are read from compressed featnames databases for
-each county and census vintage.
-If not already present, compressed addrfeat shapefiles are downloaded
-from the census.gov FTP site to the R user's data directory for
-the addr package.
+TIGER primary feature names are read from compressed feature-name databases
+for each county and Census vintage.
+If not already present, compressed addrfeat (address feature) shapefiles are
+downloaded from the Census FTP site to the addr user data directory.
 
 When reading into R, the data is filtered to addressable MTFCCs
 (S1100, S1200, S1400, S1640) that have a name.

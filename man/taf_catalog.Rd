@@ -7,7 +7,8 @@
 taf_catalog(year = as.character(2025:2011), version = "v1")
 }
 \arguments{
-\item{year}{integer, length one; vintage of TIGER addrfeat files}
+\item{year}{integer, length one; vintage of TIGER addrfeat (address feature)
+files}
 
 \item{version}{character, length one; major version of the package
 and taf dataset schema}

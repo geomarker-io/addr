@@ -7,25 +7,24 @@
 tiger_addr_feat(county, year, redownload = FALSE)
 }
 \arguments{
-\item{county}{character string of county identifier}
+\item{county}{character string of county FIPS identifier}
 
-\item{year}{character year of tigris product}
+\item{year}{character year of the Census TIGER/Line product}
 
-\item{redownload}{logical, length 1; re-download the cached TIGER zip file?}
+\item{redownload}{logical, length 1; re-download the cached TIGER ZIP file?}
 }
 \value{
 a tibble with \code{LINEARID}, \code{FULLNAME}, \code{side}, \code{ZIP},
 \code{FROMHN}, \code{TOHN}, \code{PARITY}, \code{OFFSET}, and \code{s2_geography} columns
 }
 \description{
-TIGER address features (i.e. street address ranges) are read from compressed
-addrfeat shapefiles for each county and Census vintage.
-If not already present, compressed addrfeat shapefiles are downloaded
-from the census.gov FTP site to the R user's data directory for
-the addr package.
+TIGER address features (street address ranges) are read from compressed
+addrfeat (address feature) shapefiles for each county and Census vintage.
+If not already present, compressed addrfeat shapefiles are downloaded from
+the Census FTP site to the addr user data directory.
 
-When reading into R, the data is converted to a "long" format by street
-side L/R to be used within \code{taf_install()} to create \code{taf()}.
+When reading into R, the data is converted to one row per street side
+(\code{L}/\code{R}) for use by \code{taf_install()} when building \code{taf()} data.
 }
 \examples{
 tiger_addr_feat("39061", "2025")

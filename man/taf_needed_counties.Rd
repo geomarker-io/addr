@@ -25,7 +25,8 @@ taf_ensure(
 \arguments{
 \item{x}{an addr vector (\code{?as_addr}) or character vector of ZIP codes}
 
-\item{year}{integer, length one; vintage of TIGER addrfeat files}
+\item{year}{integer, length one; vintage of TIGER addrfeat (address feature)
+files}
 
 \item{version}{character, length one; major version of the package
 and taf dataset schema}

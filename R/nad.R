@@ -16,9 +16,9 @@
 #'
 #' Data binaries are the cached outputs of `nad_read()` for each
 #' County/State and are created on first run with `nad()`.
-#' Download data binaries to the R_user_dir cache folder or point R
-#' (`?R_user_dir`) to these files on disk to read NAD tables without
-#' having to download the nationwide NAD geodatabase.
+#' Download data binaries to the `tools::R_user_dir()` cache directory, or
+#' point R to these files on disk, to read NAD tables without downloading the
+#' nationwide NAD geodatabase.
 #' (Files are organized by major package version,
 #' NAD release, state, and named by county; e.g., see
 #' `list.files(tools::R_user_dir("addr", "cache"), recursive = TRUE)`)
@@ -328,9 +328,10 @@ fetch_nad_metadata <- function() {
 #' the default ("latest") fetches the most recent version available online;
 #' specify other versions by their .zip filename (see examples)
 #' @param refresh_source character, length one; choose how to refresh NAD
-#' source geodatabase on disk if not already present; "yes" wil download
-#' the geodatabase if not already present, "no" will error if file does not already
-#' exist, "force" will download and overwrite any existing geodatabase
+#' source geodatabase on disk if not already present; "yes" will download
+#' the geodatabase if not already present, "no" will error if the file does
+#' not already exist, "force" will download and overwrite any existing
+#' geodatabase
 #' @rdname nad
 nad_download <- function(
   release = "latest",

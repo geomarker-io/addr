@@ -22,16 +22,15 @@ tiger_download <- function(x, overwrite = FALSE) {
 #'
 #' @description
 #'
-#' TIGER primary feature names are read from compressed featnames databases for
-#' each county and census vintage.
-#' If not already present, compressed addrfeat shapefiles are downloaded
-#' from the census.gov FTP site to the R user's data directory for
-#' the addr package.
+#' TIGER primary feature names are read from compressed feature-name databases
+#' for each county and Census vintage.
+#' If not already present, compressed addrfeat (address feature) shapefiles are
+#' downloaded from the Census FTP site to the addr user data directory.
 #'
 #' When reading into R, the data is filtered to addressable MTFCCs
 #' (S1100, S1200, S1400, S1640) that have a name.
 #' @inheritParams tiger_addr_feat
-#' @param redownload logical, length 1; re-download the cached TIGER zip file?
+#' @param redownload logical, length 1; re-download the cached TIGER ZIP file?
 #' @returns a tibble with unique `LINEARID` and `addr` columns
 #' @export
 #' @examples
@@ -104,17 +103,16 @@ tiger_feat_names <- function(county, year, redownload = FALSE) {
 #'
 #' @description
 #'
-#' TIGER address features (i.e. street address ranges) are read from compressed
-#' addrfeat shapefiles for each county and Census vintage.
-#' If not already present, compressed addrfeat shapefiles are downloaded
-#' from the census.gov FTP site to the R user's data directory for
-#' the addr package.
+#' TIGER address features (street address ranges) are read from compressed
+#' addrfeat (address feature) shapefiles for each county and Census vintage.
+#' If not already present, compressed addrfeat shapefiles are downloaded from
+#' the Census FTP site to the addr user data directory.
 #'
-#' When reading into R, the data is converted to a "long" format by street
-#' side L/R to be used within `taf_install()` to create `taf()`.
-#' @param county character string of county identifier
-#' @param year character year of tigris product
-#' @param redownload logical, length 1; re-download the cached TIGER zip file?
+#' When reading into R, the data is converted to one row per street side
+#' (`L`/`R`) for use by `taf_install()`.
+#' @param county character string of county FIPS identifier
+#' @param year character year of the Census TIGER/Line product
+#' @param redownload logical, length 1; re-download the cached TIGER ZIP file?
 #' @returns a tibble with `LINEARID`, `FULLNAME`, `side`, `ZIP`,
 #' `FROMHN`, `TOHN`, `PARITY`, `OFFSET`, and `s2_geography` columns
 #' @export

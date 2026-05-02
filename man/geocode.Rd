@@ -70,7 +70,8 @@ to match when selecting street candidates?}
 \item{zip_variant}{character vector; zipcode variant types to use when
 \code{zip_variants} is \code{TRUE}; see \code{?zipcode_variant}}
 
-\item{year}{integer, length one; vintage of TIGER addrfeat files}
+\item{year}{integer, length one; vintage of TIGER addrfeat (address feature)
+files}
 
 \item{version}{character, length one; major version of the package
 and taf dataset schema}
@@ -126,12 +127,19 @@ with multiple ZIP codes by grouping them by ZIP code and processing
 serially.
 At a lower level, grouping addr vectors by ZIP code and applying
 \code{geocode_zip()} facilitates more control (e.g., parallel processing)
+
+\code{geocode()} andf \code{geocode_zip()} both download and install tiger address
+features for each county needed based on the ZIP codes
+(and possibly ZIP code variants) needed for addresses in x.
 }
 \examples{
+# for example purposes, only install one county
 Sys.setenv("R_USER_DATA_DIR" = tempfile())
 taf_install("39061", "2025")
+# ^ not usually necessary
 x <- as_addr(voter_addresses()[1:100])
 gcd <- geocode(x, taf_install = FALSE)
+
 
 leaflet::leaflet(wk::wk_coords(gcd$matched_geography)) |>
   leaflet::addTiles() |>

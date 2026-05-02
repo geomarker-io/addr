@@ -12,7 +12,8 @@ taf_zip(x, map = TRUE, year = as.character(2025:2011), version = "v1")
 \item{map}{logical, length 1; map street tags read from taf() data
 (type, directional, ordinal) when converting to \code{addr_street()} vector?}
 
-\item{year}{character, length 1; vintage of TIGER addrfeat files}
+\item{year}{character, length 1; vintage of TIGER addrfeat (address feature)
+files}
 
 \item{version}{character, length 1; major version of the package
 and taf dataset schema}
