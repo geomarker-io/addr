@@ -479,7 +479,7 @@ match_addr_number <- function(x, y, number_fuzzy_dist = 1L) {
 #'
 #' A single ZIP code in `y` is chosen for each ZIP code in `x`.
 #' By default, if exact matches are not found, common variants of ZIP codes
-#' in `x` are searched for in `y`.
+#' in `x` are searched for in `y` (?`zipcode_variant`)
 #' If multiple variants are present in `y`, the selected match has the lowest
 #' absolute numeric difference from the ZIP code in `x`; ties are broken by
 #' OSA string distance and then by the
@@ -543,13 +543,37 @@ match_zipcodes <- function(x, y, zip_variants = TRUE) {
   out
 }
 
-# TODO export this and link with match zipcode
-# ordered variants produced (for, e.g., 45220)
-# - minus one, plus one (45219, 45221)
-# - sub5 (45221, 45222, 45223, 45224, 45225, 45226, 45227, 45228, 45229)
-# - sub4 (45200, 45210, 45230, 45240, 45250, 45260, 45270, 45280, 45290)
-# - swap (42520)
-zipcode_variant <- function(x) {
+#' Create ZIP code variants
+#'
+#' @description
+#'
+#' An input ZIP code is used to generate variants (for, e.g., 45220):
+#' - `minus1`: substracting one from zipcode (45219)
+#' - `plus1`: adding one to zipcode (45219)
+#' - `sub5`: substituting the fifth digit of the ZIP code (45221, 45222, 45223, 45224, 45225, 45226, 45227, 45228, 45229)
+#' - `sub4`: substituting the fourth digit of the ZIP code (45200, 45210, 45230, 45240, 45250, 45260, 45270, 45280, 45290)
+#' - `swap`: swapping the second and third digits of the ZIP code (42520)
+#'
+#' More than one variant type can be created at once and variants will be
+#' returned in the same order as they were requested (see examples).
+#' @param x character length one; five digit ZIP code
+#' @param variant character one or more variants to create; see description
+#' @returns character vector of five digit ZIP code variants
+#' @export
+#' @examples
+#' zipcode_variant("45220")
+#'
+#' # order matters!
+#' zipcode_variant("45220", c("minus1", "plus1"))
+#' zipcode_variant("45220", c("plus1", "minus1"))
+#'
+#' zipcode_variant("45220", "sub5")
+#'
+#' zipcode_variant("45220", "swap")
+zipcode_variant <- function(
+  x,
+  variant = c("minus1", "plus1", "sub5", "sub4", "swap")
+) {
   stopifnot(
     "x must be a character vector" = is.character(x),
     "x must be length one" = length(x) == 1L
@@ -561,20 +585,20 @@ zipcode_variant <- function(x) {
   if (x == "") {
     return("")
   }
-  z <- strsplit(x, "")[[1]]
-  swap <- paste0(z[c(1, 3, 2, 4, 5)], collapse = "")
-  sub4 <- paste0(
-    paste0(z[1:3], collapse = ""),
-    as.character(0:9),
-    z[5]
+  variant <- match.arg(variant, several.ok = TRUE)
+  variant_fns <- list(
+    "minus1" = function(z) as.character(as.integer(x) - 1),
+    "plus1" = function(z) as.character(as.integer(x) + 1),
+    "sub4" = function(z) {
+      paste0(paste0(z[1:3], collapse = ""), as.character(0:9), z[5])
+    },
+    "sub5" = function(z) {
+      paste0(paste0(z[1:4], collapse = ""), as.character(0:9))
+    },
+    "swap" = function(z) paste0(z[c(1, 3, 2, 4, 5)], collapse = "")
   )
-  sub5 <- paste0(
-    paste0(z[1:4], collapse = ""),
-    as.character(0:9)
-  )
-  plus1 <- as.character(as.integer(x) + 1)
-  minus1 <- as.character(as.integer(x) - 1)
-  uout <- unique(c(minus1, plus1, sub5, sub4, swap))
-  out <- as.character(sort(as.integer(uout[uout != x])))
+  result <- lapply(variant, \(.) variant_fns[[.]](strsplit(x, "")[[1]]))
+  uout <- unique(do.call(c, result))
+  out <- as.character(as.integer(uout[uout != x]))
   sprintf("%05s", out)
 }

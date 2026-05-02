@@ -139,9 +139,6 @@ test_that("zipcode_variant returns known variants", {
   expect_equal(
     zipcode_variant("45220"),
     c(
-      "42520",
-      "45200",
-      "45210",
       "45219",
       "45221",
       "45222",
@@ -152,16 +149,38 @@ test_that("zipcode_variant returns known variants", {
       "45227",
       "45228",
       "45229",
+      "45200",
+      "45210",
       "45230",
       "45240",
       "45250",
       "45260",
       "45270",
       "45280",
-      "45290"
+      "45290",
+      "42520"
     )
   )
 
+  expect_equal(
+    zipcode_variant("45220", c("minus1", "plus1")),
+    c("45219", "45221")
+  )
+  expect_equal(
+    zipcode_variant("45220", "sub5"),
+    c(
+      "45221",
+      "45222",
+      "45223",
+      "45224",
+      "45225",
+      "45226",
+      "45227",
+      "45228",
+      "45229"
+    )
+  )
+  expect_equal(zipcode_variant("45220", "swap"), "42520")
   expect_equal(zipcode_variant(""), "")
   expect_equal(zipcode_variant(NA_character_), NA_character_)
 })

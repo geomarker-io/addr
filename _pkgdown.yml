@@ -30,6 +30,7 @@ reference:
       - match_addr_street
       - match_zipcodes
       - phonetic_street_key
+      - zipcode_variant
   - title: Geocoding addr
     contents:
       - geocode
