@@ -21,7 +21,9 @@
 #' @param offset number of meters to offset geocode from street line
 #' @param progress logical; show a ZIP-code progress bar while geocoding?
 #' @param taf_install logical; install missing county TAF files needed for
-#'   input ZIP codes and selected ZIP code variants before geocoding?
+#'   input ZIP codes and selected ZIP code variants before geocoding? If
+#'   `FALSE`, geocoding proceeds with installed files only and warns when
+#'   needed county files are missing.
 #' @param taf_redownload logical; re-download cached TIGER ZIP files when
 #'   installing missing TAF counties?
 #' @inheritParams match_addr_street
@@ -43,9 +45,8 @@
 #' @examples
 #' Sys.setenv("R_USER_DATA_DIR" = tempfile())
 #' taf_install("39061", "2025")
-#'
 #' x <- as_addr(voter_addresses()[1:100])
-#' gcd <- geocode(x)
+#' gcd <- geocode(x, taf_install = FALSE)
 #'
 #' leaflet::leaflet(wk::wk_coords(gcd$matched_geography)) |>
 #'   leaflet::addTiles() |>
@@ -107,6 +108,14 @@ geocode <- function(
       zip_variant = zip_variant,
       redownload = taf_redownload
     )
+  } else if (any(!missing_zip)) {
+    taf_warn_missing_counties(taf_missing_counties(
+      xu[!missing_zip],
+      year = year,
+      version = version,
+      zip_variants = zip_variants,
+      zip_variant = zip_variant
+    ))
   }
   z_list <- split(xu[!missing_zip], xu[!missing_zip]@place@zipcode)
 
@@ -129,7 +138,8 @@ geocode <- function(
       year = year,
       version = version,
       taf_install = FALSE,
-      taf_redownload = taf_redownload
+      taf_redownload = taf_redownload,
+      taf_check = FALSE
     )
   } else {
     lapply(
@@ -147,7 +157,8 @@ geocode <- function(
       year = year,
       version = version,
       taf_install = FALSE,
-      taf_redownload = taf_redownload
+      taf_redownload = taf_redownload,
+      taf_check = FALSE
     )
   }
   if (any(missing_zip)) {
@@ -229,6 +240,8 @@ geocode_no_match <- function(x) {
 
 #' @param progress_callback optional callback used internally by `geocode()`
 #'   to update progress after ZIP-code reference data is loaded
+#' @param taf_check logical; check for missing TAF counties? Used internally
+#'   by `geocode()` after checking once for the full input vector.
 #' @rdname geocode
 geocode_zip <- function(
   x,
@@ -245,7 +258,8 @@ geocode_zip <- function(
   version = "v1",
   taf_install = TRUE,
   taf_redownload = FALSE,
-  progress_callback = NULL
+  progress_callback = NULL,
+  taf_check = TRUE
 ) {
   stopifnot("x must be an addr vector" = inherits(x, "addr"))
   stopifnot(
@@ -258,6 +272,9 @@ geocode_zip <- function(
     "taf_redownload must be TRUE or FALSE" = is.logical(taf_redownload) &&
       length(taf_redownload) == 1L &&
       !is.na(taf_redownload),
+    "taf_check must be TRUE or FALSE" = is.logical(taf_check) &&
+      length(taf_check) == 1L &&
+      !is.na(taf_check),
     "version must be a character vector" = is.character(version),
     "version must be length one" = length(version) == 1L,
     "version must not be missing" = !is.na(version)
@@ -300,7 +317,7 @@ geocode_zip <- function(
     return(out)
   }
 
-  if (taf_install) {
+  if (taf_check && taf_install) {
     taf_ensure(
       x,
       year = year,
@@ -309,6 +326,14 @@ geocode_zip <- function(
       zip_variant = zip_variant,
       redownload = taf_redownload
     )
+  } else if (taf_check) {
+    taf_warn_missing_counties(taf_missing_counties(
+      x,
+      year = year,
+      version = version,
+      zip_variants = zip_variants,
+      zip_variant = zip_variant
+    ))
   }
 
   ref_exact <- taf_zip(zpcd, map = TRUE, year = year, version = version)

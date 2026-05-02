@@ -131,6 +131,10 @@ test_that("geocode validates progress argument", {
     "taf_redownload must be TRUE or FALSE"
   )
   expect_error(
+    geocode_zip(x, taf_check = NA),
+    "taf_check must be TRUE or FALSE"
+  )
+  expect_error(
     geocode(x, zip_variant = character()),
     "zip_variant must not be empty"
   )

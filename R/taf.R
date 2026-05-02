@@ -194,24 +194,18 @@ taf_ensure <- function(
     "redownload must not be missing" = !is.na(redownload)
   )
   year <- match.arg(year)
-  needed <- taf_needed_counties(
+  missing <- taf_missing_counties(
     x,
     year = year,
     version = version,
     zip_variants = zip_variants,
     zip_variant = zip_variant
   )
-  if (nrow(needed) == 0L) {
-    return(invisible(needed))
+  if (nrow(missing) == 0L) {
+    return(invisible(missing))
   }
 
-  manifest <- taf_read_county_zip_manifest(year = year, version = version)
-  missing_counties <- setdiff(
-    unique(needed$county_fips),
-    unique(manifest$county_fips)
-  )
-  missing <- needed[needed$county_fips %in% missing_counties, , drop = FALSE]
-  for (county in missing_counties) {
+  for (county in unique(missing$county_fips)) {
     taf_install(
       county = county,
       year = year,
@@ -601,6 +595,67 @@ taf_empty_needed_counties <- function() {
     source_zip = character(),
     source_zip_variant = character()
   )
+}
+
+taf_missing_counties <- function(
+  x,
+  year,
+  version,
+  zip_variants = TRUE,
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap")
+) {
+  needed <- taf_needed_counties(
+    x,
+    year = year,
+    version = version,
+    zip_variants = zip_variants,
+    zip_variant = zip_variant
+  )
+  if (nrow(needed) == 0L) {
+    return(needed)
+  }
+
+  manifest <- taf_read_county_zip_manifest(year = year, version = version)
+  missing_counties <- setdiff(
+    unique(needed$county_fips),
+    unique(manifest$county_fips)
+  )
+  needed[needed$county_fips %in% missing_counties, , drop = FALSE]
+}
+
+taf_warn_missing_counties <- function(missing) {
+  if (nrow(missing) == 0L) {
+    return(invisible(missing))
+  }
+
+  counties <- unique(missing$county_fips)
+  zip_variants <- unique(paste0(
+    missing$ZIP,
+    " (",
+    missing$source_zip_variant,
+    " from ",
+    missing$source_zip,
+    ")"
+  ))
+  warning(
+    "TAF files are missing for ",
+    length(counties),
+    " county/counties needed for geocoding; proceeding with installed files ",
+    "only because taf_install = FALSE. Missing counties: ",
+    taf_collapse_for_message(counties),
+    ". Affected ZIPs: ",
+    taf_collapse_for_message(zip_variants),
+    ".",
+    call. = FALSE
+  )
+  invisible(missing)
+}
+
+taf_collapse_for_message <- function(x, n = 8L) {
+  if (length(x) <= n) {
+    return(paste(x, collapse = ", "))
+  }
+  paste0(paste(x[seq_len(n)], collapse = ", "), ", ...")
 }
 
 taf_county_zip_manifest_rows <- function(x, county) {

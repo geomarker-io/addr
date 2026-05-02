@@ -18,8 +18,45 @@ test_that("geocode returns non-matches for missing zipcodes", {
   expect_true(all(is.na(out$s2_cell)))
 })
 
+test_that("geocode warns when taf_install is FALSE and needed counties are missing", {
+  local_mocked_bindings(
+    taf_missing_counties = function(...) {
+      tibble::tibble(
+        county_fips = "39061",
+        ZIP = "45220",
+        zip3 = "452",
+        zip2 = "20",
+        n_ranges = 10L,
+        source_zip = "45220",
+        source_zip_variant = "exact"
+      )
+    },
+    geocode_zip = function(x, offset = 0L, ...) {
+      tibble::tibble(
+        addr = x,
+        matched_zipcode = rep("45220", length(x)),
+        matched_street = x@street,
+        matched_geography = s2::as_s2_geography(
+          rep("POINT (-84.5 39.1)", length(x))
+        )
+      )
+    }
+  )
+  x <- addr(
+    addr_number(digits = "10"),
+    addr_street(name = "Main", posttype = "St"),
+    addr_place(zipcode = "45220")
+  )
+
+  expect_warning(
+    geocode(x, taf_install = FALSE, progress = FALSE),
+    "TAF files are missing for 1 county/counties needed for geocoding"
+  )
+})
+
 test_that("geocode keeps missing zipcode rows with geocoded rows", {
   local_mocked_bindings(
+    taf_missing_counties = function(...) taf_empty_needed_counties(),
     geocode_zip = function(x, offset = 0L, ...) {
       tibble::tibble(
         addr = x,
@@ -54,6 +91,7 @@ test_that("geocode keeps missing zipcode rows with geocoded rows", {
 test_that("geocode forwards street matching arguments to geocode_zip", {
   seen <- NULL
   local_mocked_bindings(
+    taf_missing_counties = function(...) taf_empty_needed_counties(),
     geocode_zip = function(
       x,
       offset = 0L,
@@ -148,6 +186,7 @@ test_that("geocode_zip forwards street matching arguments to match_addr_street",
   geocode_zip(
     x,
     taf_install = FALSE,
+    taf_check = FALSE,
     name_phonetic_dist = 0L,
     name_fuzzy_dist = 1L,
     match_street_predirectional = FALSE,
@@ -165,6 +204,45 @@ test_that("geocode_zip forwards street matching arguments to match_addr_street",
       match_street_pretype = FALSE,
       match_street_postdirectional = TRUE
     )
+  )
+})
+
+test_that("geocode_zip warns when taf_install is FALSE and needed counties are missing", {
+  local_mocked_bindings(
+    taf_missing_counties = function(...) {
+      tibble::tibble(
+        county_fips = "39061",
+        ZIP = "45220",
+        zip3 = "452",
+        zip2 = "20",
+        n_ranges = 10L,
+        source_zip = "45220",
+        source_zip_variant = "exact"
+      )
+    },
+    taf_zip = function(zipcode, map = TRUE, ...) {
+      tibble::tibble(
+        ZIP = zipcode,
+        addr_street = addr_street(name = "Main", posttype = "St"),
+        FROMHN = 1L,
+        TOHN = 99L,
+        PARITY = "B",
+        s2_geography = s2::as_s2_geography(
+          "LINESTRING (-84 39, -84.1 39.1)"
+        )
+      )
+    },
+    match_addr_street = function(x, y, ...) y[1]
+  )
+  x <- addr(
+    addr_number(digits = "10"),
+    addr_street(name = "Main", posttype = "St"),
+    addr_place(zipcode = "45220")
+  )
+
+  expect_warning(
+    geocode_zip(x, offset = 0, taf_install = FALSE),
+    "TAF files are missing for 1 county/counties needed for geocoding"
   )
 })
 
@@ -211,12 +289,19 @@ test_that("geocode_zip respects zipcode variant controls", {
     addr_place(zipcode = "45220")
   )
 
-  out_swap <- geocode_zip(x, offset = 0, zip_variant = "swap", taf_install = FALSE)
+  out_swap <- geocode_zip(
+    x,
+    offset = 0,
+    zip_variant = "swap",
+    taf_install = FALSE,
+    taf_check = FALSE
+  )
   out_none <- geocode_zip(
     x,
     offset = 0,
     zip_variants = FALSE,
-    taf_install = FALSE
+    taf_install = FALSE,
+    taf_check = FALSE
   )
 
   expect_equal(out_swap$matched_zipcode, "42520")
@@ -259,8 +344,8 @@ test_that("geocode_zip offsets matched points by TIGER side", {
     addr_place(zipcode = c("45219", "45219"))
   )
 
-  on_line <- geocode_zip(x, offset = 0, taf_install = FALSE)
-  offset <- geocode_zip(x, offset = 10, taf_install = FALSE)
+  on_line <- geocode_zip(x, offset = 0, taf_install = FALSE, taf_check = FALSE)
+  offset <- geocode_zip(x, offset = 10, taf_install = FALSE, taf_check = FALSE)
 
   expect_equal(s2::s2_y(on_line$matched_geography), c(0, 0), tolerance = 1e-8)
   expect_gt(s2::s2_y(offset$matched_geography[1]), 0)
@@ -284,6 +369,7 @@ test_that("geocode progress text shows ZIP and addr_street count", {
 
 test_that("geocode progress gets addr_street count from geocode_zip", {
   local_mocked_bindings(
+    taf_missing_counties = function(...) taf_empty_needed_counties(),
     geocode_zip = function(x, offset = 0L, progress_callback = NULL, ...) {
       progress_callback(4599L)
       tibble::tibble(
@@ -316,6 +402,7 @@ test_that("geocode progress gets addr_street count from geocode_zip", {
 
 test_that("geocode progress can be disabled", {
   local_mocked_bindings(
+    taf_missing_counties = function(...) taf_empty_needed_counties(),
     geocode_zip = function(x, offset = 0L, progress_callback = NULL, ...) {
       tibble::tibble(
         addr = x,

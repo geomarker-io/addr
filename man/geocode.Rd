@@ -38,7 +38,8 @@ geocode_zip(
   version = "v1",
   taf_install = TRUE,
   taf_redownload = FALSE,
-  progress_callback = NULL
+  progress_callback = NULL,
+  taf_check = TRUE
 )
 }
 \arguments{
@@ -75,7 +76,9 @@ to match when selecting street candidates?}
 and taf dataset schema}
 
 \item{taf_install}{logical; install missing county TAF files needed for
-input ZIP codes and selected ZIP code variants before geocoding?}
+input ZIP codes and selected ZIP code variants before geocoding? If
+\code{FALSE}, geocoding proceeds with installed files only and warns when
+needed county files are missing.}
 
 \item{taf_redownload}{logical; re-download cached TIGER ZIP files when
 installing missing TAF counties?}
@@ -86,6 +89,9 @@ installing missing TAF counties?}
 
 \item{progress_callback}{optional callback used internally by \code{geocode()}
 to update progress after ZIP-code reference data is loaded}
+
+\item{taf_check}{logical; check for missing TAF counties? Used internally
+by \code{geocode()} after checking once for the full input vector.}
 }
 \value{
 A tibble with columns \code{addr} (the input addr vector),
@@ -124,9 +130,8 @@ At a lower level, grouping addr vectors by ZIP code and applying
 \examples{
 Sys.setenv("R_USER_DATA_DIR" = tempfile())
 taf_install("39061", "2025")
-
 x <- as_addr(voter_addresses()[1:100])
-gcd <- geocode(x)
+gcd <- geocode(x, taf_install = FALSE)
 
 leaflet::leaflet(wk::wk_coords(gcd$matched_geography)) |>
   leaflet::addTiles() |>
