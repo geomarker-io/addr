@@ -10,6 +10,7 @@ addr_left_join(
   by = "addr",
   suffix = c(".x", ".y"),
   zip_variants = TRUE,
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   name_phonetic_dist = 2L,
   name_fuzzy_dist = 1L,
   number_fuzzy_dist = 1L,
@@ -30,7 +31,10 @@ character vector of \code{c(x_col, y_col)}}
 \item{suffix}{character vector of length 2 used to suffix duplicate columns}
 
 \item{zip_variants}{logical; fuzzy match to common variants of
-\code{x} in \code{y}? (for example, changing the fourth or fifth digit)}
+\code{x} in \code{y}?}
+
+\item{zip_variant}{character vector; zipcode variant types to use when
+\code{zip_variants} is \code{TRUE}; see \code{?zipcode_variant}}
 
 \item{name_phonetic_dist}{integer; maximum optimized string alignment
 distance between \code{phonetic_street_key()} of x and y to consider a possible

@@ -63,6 +63,8 @@ test_that("geocode forwards street matching arguments to geocode_zip", {
       match_street_posttype = TRUE,
       match_street_pretype = TRUE,
       match_street_postdirectional = FALSE,
+      zip_variants = TRUE,
+      zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
       ...
     ) {
       seen <<- list(
@@ -71,7 +73,9 @@ test_that("geocode forwards street matching arguments to geocode_zip", {
         match_street_predirectional = match_street_predirectional,
         match_street_posttype = match_street_posttype,
         match_street_pretype = match_street_pretype,
-        match_street_postdirectional = match_street_postdirectional
+        match_street_postdirectional = match_street_postdirectional,
+        zip_variants = zip_variants,
+        zip_variant = zip_variant
       )
       tibble::tibble(
         addr = x,
@@ -96,6 +100,8 @@ test_that("geocode forwards street matching arguments to geocode_zip", {
     match_street_posttype = FALSE,
     match_street_pretype = FALSE,
     match_street_postdirectional = TRUE,
+    zip_variants = FALSE,
+    zip_variant = "swap",
     progress = FALSE
   )
   expect_equal(
@@ -106,7 +112,9 @@ test_that("geocode forwards street matching arguments to geocode_zip", {
       match_street_predirectional = FALSE,
       match_street_posttype = FALSE,
       match_street_pretype = FALSE,
-      match_street_postdirectional = TRUE
+      match_street_postdirectional = TRUE,
+      zip_variants = FALSE,
+      zip_variant = "swap"
     )
   )
 })
@@ -156,6 +164,58 @@ test_that("geocode_zip forwards street matching arguments to match_addr_street",
       match_street_postdirectional = TRUE
     )
   )
+})
+
+test_that("geocode_zip respects zipcode variant controls", {
+  local_mocked_bindings(
+    taf_zip = function(zipcode, map = TRUE) {
+      if (identical(zipcode, "45220")) {
+        return(tibble::tibble(
+          ZIP = "45220",
+          addr_street = addr_street(name = "Elm", posttype = "St"),
+          FROMHN = 1L,
+          TOHN = 99L,
+          PARITY = "B",
+          s2_geography = s2::as_s2_geography(
+            "LINESTRING (-84 39, -84.1 39.1)"
+          )
+        ))
+      }
+      if (identical(zipcode, "42520")) {
+        return(tibble::tibble(
+          ZIP = "42520",
+          addr_street = addr_street(name = "Main", posttype = "St"),
+          FROMHN = 1L,
+          TOHN = 99L,
+          PARITY = "B",
+          s2_geography = s2::as_s2_geography(
+            "LINESTRING (-84 39, -84.1 39.1)"
+          )
+        ))
+      }
+      stop("unexpected ZIP")
+    },
+    match_addr_street = function(x, y, ...) {
+      out <- y[format(y) == format(x)]
+      if (length(out) == 0L) {
+        return(addr_street(NA_character_))
+      }
+      out
+    }
+  )
+  x <- addr(
+    addr_number(digits = "10"),
+    addr_street(name = "Main", posttype = "St"),
+    addr_place(zipcode = "45220")
+  )
+
+  out_swap <- geocode_zip(x, offset = 0, zip_variant = "swap")
+  out_none <- geocode_zip(x, offset = 0, zip_variants = FALSE)
+
+  expect_equal(out_swap$matched_zipcode, "42520")
+  expect_equal(format(out_swap$matched_street), "Main St")
+  expect_true(is.na(out_none$matched_zipcode))
+  expect_true(is.na(out_none$matched_street))
 })
 
 test_that("geocode_zip offsets matched points by TIGER side", {

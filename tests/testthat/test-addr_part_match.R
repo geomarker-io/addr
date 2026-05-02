@@ -211,6 +211,15 @@ test_that("match_zipcodes uses known zipcode examples", {
       NA_character_
     )
   )
+
+  expect_equal(
+    match_zipcodes("45220", c("42520", "45219"), zip_variant = "swap"),
+    "42520"
+  )
+  expect_equal(
+    match_zipcodes("45220", c("42520", "45219"), zip_variant = "minus1"),
+    "45219"
+  )
 })
 
 test_that("match_zipcodes rejects invalid zipcodes", {

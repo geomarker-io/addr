@@ -21,6 +21,7 @@
 #' @param offset number of meters to offset geocode from street line
 #' @param progress logical; show a ZIP-code progress bar while geocoding?
 #' @inheritParams match_addr_street
+#' @inheritParams match_zipcodes
 #' @returns A tibble with columns `addr` (the input addr vector),
 #'   `matched_zipcode` (character vector), `matched_street` (`addr_street`
 #'   vector), `matched_geography` (`s2_geography` point vector), and `s2_cell`
@@ -50,15 +51,21 @@ geocode <- function(
   match_street_posttype = TRUE,
   match_street_pretype = TRUE,
   match_street_postdirectional = FALSE,
+  zip_variants = TRUE,
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   offset = 10L,
   progress = interactive()
 ) {
   stopifnot(
     "x must be an addr vector" = inherits(x, "addr"),
+    "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
+      length(zip_variants) == 1L &&
+      !is.na(zip_variants),
     "progress must be TRUE or FALSE" = is.logical(progress) &&
       length(progress) == 1L &&
       !is.na(progress)
   )
+  zip_variant <- validate_zip_variant(zip_variant)
   validate_geocode_offset(offset)
   validate_match_addr_street_args(
     name_phonetic_dist = name_phonetic_dist,
@@ -85,7 +92,9 @@ geocode <- function(
       match_street_predirectional = match_street_predirectional,
       match_street_posttype = match_street_posttype,
       match_street_pretype = match_street_pretype,
-      match_street_postdirectional = match_street_postdirectional
+      match_street_postdirectional = match_street_postdirectional,
+      zip_variants = zip_variants,
+      zip_variant = zip_variant
     )
   } else {
     lapply(
@@ -97,7 +106,9 @@ geocode <- function(
       match_street_predirectional = match_street_predirectional,
       match_street_posttype = match_street_posttype,
       match_street_pretype = match_street_pretype,
-      match_street_postdirectional = match_street_postdirectional
+      match_street_postdirectional = match_street_postdirectional,
+      zip_variants = zip_variants,
+      zip_variant = zip_variant
     )
   }
   if (any(missing_zip)) {
@@ -189,9 +200,17 @@ geocode_zip <- function(
   match_street_posttype = TRUE,
   match_street_pretype = TRUE,
   match_street_postdirectional = FALSE,
+  zip_variants = TRUE,
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   progress_callback = NULL
 ) {
   stopifnot("x must be an addr vector" = inherits(x, "addr"))
+  stopifnot(
+    "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
+      length(zip_variants) == 1L &&
+      !is.na(zip_variants)
+  )
+  zip_variant <- validate_zip_variant(zip_variant)
   validate_geocode_offset(offset)
   validate_match_addr_street_args(
     name_phonetic_dist = name_phonetic_dist,
@@ -240,9 +259,12 @@ geocode_zip <- function(
   no <- which(is.na(out$matched_street))
   out$matched_zipcode <- zpcd
 
-  if (length(no) != 0) {
+  if (length(no) != 0 && zip_variants) {
     out$matched_zipcode[no] <- NA_character_
-    ref_variant <- taf_zip(zipcode_variant(zpcd), map = TRUE)
+    ref_variant <- taf_zip(
+      zipcode_variant(zpcd, variant = zip_variant),
+      map = TRUE
+    )
     out$matched_street[no] <- do.call(
       match_addr_street,
       c(list(x = x@street[no], y = ref_variant$addr_street), street_match_args)
@@ -256,6 +278,11 @@ geocode_zip <- function(
         "ZIP",
         drop = TRUE
       ]
+  } else if (length(no) != 0) {
+    out$matched_zipcode[no] <- NA_character_
+    ref_variant <- ref_exact[0, ]
+  } else {
+    ref_variant <- ref_exact[0, ]
   }
 
   ref_rng <-

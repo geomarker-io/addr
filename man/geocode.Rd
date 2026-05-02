@@ -13,6 +13,8 @@ geocode(
   match_street_posttype = TRUE,
   match_street_pretype = TRUE,
   match_street_postdirectional = FALSE,
+  zip_variants = TRUE,
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   offset = 10L,
   progress = interactive()
 )
@@ -26,6 +28,8 @@ geocode_zip(
   match_street_posttype = TRUE,
   match_street_pretype = TRUE,
   match_street_postdirectional = FALSE,
+  zip_variants = TRUE,
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   progress_callback = NULL
 )
 }
@@ -50,6 +54,12 @@ selecting street candidates?}
 
 \item{match_street_postdirectional}{logical; require street postdirectional
 to match when selecting street candidates?}
+
+\item{zip_variants}{logical; fuzzy match to common variants of
+\code{x} in \code{y}?}
+
+\item{zip_variant}{character vector; zipcode variant types to use when
+\code{zip_variants} is \code{TRUE}; see \code{?zipcode_variant}}
 
 \item{offset}{number of meters to offset geocode from street line}
 

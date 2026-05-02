@@ -4,13 +4,21 @@
 \alias{match_zipcodes}
 \title{Match ZIP codes}
 \usage{
-match_zipcodes(x, y, zip_variants = TRUE)
+match_zipcodes(
+  x,
+  y,
+  zip_variants = TRUE,
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap")
+)
 }
 \arguments{
 \item{x, y}{character vectors of ZIP codes to match}
 
 \item{zip_variants}{logical; fuzzy match to common variants of
-\code{x} in \code{y}? (for example, changing the fourth or fifth digit)}
+\code{x} in \code{y}?}
+
+\item{zip_variant}{character vector; zipcode variant types to use when
+\code{zip_variants} is \code{TRUE}; see \code{?zipcode_variant}}
 }
 \value{
 A character vector, the same length as \code{x}, containing the selected

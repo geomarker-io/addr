@@ -17,8 +17,8 @@ character vector of five digit ZIP code variants
 \description{
 An input ZIP code is used to generate variants (for, e.g., 45220):
 \itemize{
-\item \code{minus1}: substracting one from zipcode (45219)
-\item \code{plus1}: adding one to zipcode (45219)
+\item \code{minus1}: subtracting one from zipcode (45219)
+\item \code{plus1}: adding one to zipcode (45221)
 \item \code{sub5}: substituting the fifth digit of the ZIP code (45221, 45222, 45223, 45224, 45225, 45226, 45227, 45228, 45229)
 \item \code{sub4}: substituting the fourth digit of the ZIP code (45200, 45210, 45230, 45240, 45250, 45260, 45270, 45280, 45290)
 \item \code{swap}: swapping the second and third digits of the ZIP code (42520)

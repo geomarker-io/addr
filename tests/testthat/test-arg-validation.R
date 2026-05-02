@@ -74,6 +74,14 @@ test_that("matching helpers validate scalar tuning arguments", {
     match_zipcodes(45220, "45220"),
     "x must be a character vector"
   )
+  expect_error(
+    match_zipcodes("45220", "45220", zip_variant = character()),
+    "zip_variant must not be empty"
+  )
+  expect_error(
+    match_zipcodes("45220", "45220", zip_variant = NA_character_),
+    "zip_variant must not contain missing values"
+  )
 
   expect_error(
     addr_match_prepare(
@@ -109,6 +117,14 @@ test_that("geocode validates progress argument", {
   expect_error(
     geocode_zip(x, name_phonetic_dist = NA_integer_),
     "name_phonetic_dist must not be missing"
+  )
+  expect_error(
+    geocode_zip(x, zip_variants = NA),
+    "zip_variants must be TRUE or FALSE"
+  )
+  expect_error(
+    geocode(x, zip_variant = character()),
+    "zip_variant must not be empty"
   )
 })
 

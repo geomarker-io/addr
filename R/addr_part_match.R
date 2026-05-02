@@ -486,7 +486,9 @@ match_addr_number <- function(x, y, number_fuzzy_dist = 1L) {
 #' minimum number.
 #' @param x,y character vectors of ZIP codes to match
 #' @param zip_variants logical; fuzzy match to common variants of
-#' `x` in `y`? (for example, changing the fourth or fifth digit)
+#' `x` in `y`?
+#' @param zip_variant character vector; zipcode variant types to use when
+#'   `zip_variants` is `TRUE`; see `?zipcode_variant`
 #' @return A character vector, the same length as `x`, containing the selected
 #'   match in `y` for each ZIP code in `x`.
 #' @export
@@ -501,7 +503,12 @@ match_addr_number <- function(x, y, number_fuzzy_dist = 1L) {
 #'   c("42522", "45200", "45219", "45221", "45223", "45321", ""),
 #'   zip_variants = FALSE
 #' )
-match_zipcodes <- function(x, y, zip_variants = TRUE) {
+match_zipcodes <- function(
+  x,
+  y,
+  zip_variants = TRUE,
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap")
+) {
   stopifnot(
     "x must be a character vector" = is.character(x),
     "y must be a character vector" = is.character(y),
@@ -509,6 +516,7 @@ match_zipcodes <- function(x, y, zip_variants = TRUE) {
       length(zip_variants) == 1L &&
       !is.na(zip_variants)
   )
+  zip_variant <- validate_zip_variant(zip_variant)
   x <- addr::addr_place(zipcode = x)@zipcode
   y <- addr::addr_place(zipcode = y)@zipcode
   ux <- unique(x[!is.na(x) & x != ""])
@@ -520,7 +528,7 @@ match_zipcodes <- function(x, y, zip_variants = TRUE) {
         return(xz)
       }
       if (zip_variants) {
-        xzv <- zipcode_variant(xz)
+        xzv <- zipcode_variant(xz, variant = zip_variant)
         m <- xzv[xzv %in% uy]
         if (length(m) == 0) {
           return(NA_character_)
@@ -543,13 +551,26 @@ match_zipcodes <- function(x, y, zip_variants = TRUE) {
   out
 }
 
+zip_variant_choices <- function() {
+  c("minus1", "plus1", "sub5", "sub4", "swap")
+}
+
+validate_zip_variant <- function(zip_variant) {
+  stopifnot(
+    "zip_variant must be a character vector" = is.character(zip_variant),
+    "zip_variant must not be empty" = length(zip_variant) > 0L,
+    "zip_variant must not contain missing values" = !any(is.na(zip_variant))
+  )
+  match.arg(zip_variant, zip_variant_choices(), several.ok = TRUE)
+}
+
 #' Create ZIP code variants
 #'
 #' @description
 #'
 #' An input ZIP code is used to generate variants (for, e.g., 45220):
-#' - `minus1`: substracting one from zipcode (45219)
-#' - `plus1`: adding one to zipcode (45219)
+#' - `minus1`: subtracting one from zipcode (45219)
+#' - `plus1`: adding one to zipcode (45221)
 #' - `sub5`: substituting the fifth digit of the ZIP code (45221, 45222, 45223, 45224, 45225, 45226, 45227, 45228, 45229)
 #' - `sub4`: substituting the fourth digit of the ZIP code (45200, 45210, 45230, 45240, 45250, 45260, 45270, 45280, 45290)
 #' - `swap`: swapping the second and third digits of the ZIP code (42520)
@@ -585,7 +606,7 @@ zipcode_variant <- function(
   if (x == "") {
     return("")
   }
-  variant <- match.arg(variant, several.ok = TRUE)
+  variant <- validate_zip_variant(variant)
   variant_fns <- list(
     "minus1" = function(z) as.character(as.integer(x) - 1),
     "plus1" = function(z) as.character(as.integer(x) + 1),

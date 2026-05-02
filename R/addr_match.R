@@ -159,7 +159,13 @@ is_addr_match_index <- function(x) {
   inherits(x, "addr_match_index")
 }
 
-match_zipcodes_prepared <- function(x, y_zipcodes, zip_variants = TRUE) {
+match_zipcodes_prepared <- function(
+  x,
+  y_zipcodes,
+  zip_variants = TRUE,
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap")
+) {
+  zip_variant <- validate_zip_variant(zip_variant)
   x <- addr::addr_place(zipcode = x)@zipcode
   ux <- unique(x[!is.na(x) & x != ""])
   uy <- unique(y_zipcodes[!is.na(y_zipcodes) & y_zipcodes != ""])
@@ -170,7 +176,7 @@ match_zipcodes_prepared <- function(x, y_zipcodes, zip_variants = TRUE) {
         return(xz)
       }
       if (zip_variants) {
-        xzv <- zipcode_variant(xz)
+        xzv <- zipcode_variant(xz, variant = zip_variant)
         m <- xzv[xzv %in% uy]
         if (length(m) == 0L) {
           return(NA_character_)
@@ -367,6 +373,7 @@ addr_match <- function(
   x,
   y,
   zip_variants = TRUE,
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   name_phonetic_dist = 2L,
   name_fuzzy_dist = 1L,
   number_fuzzy_dist = 1L,
@@ -417,6 +424,7 @@ addr_match <- function(
       length(progress) == 1L &&
       !is.na(progress)
   )
+  zip_variant <- validate_zip_variant(zip_variant)
 
   if (length(x) == 0L) {
     return(x)
@@ -439,7 +447,8 @@ addr_match <- function(
   matched_zipcodes <- match_zipcodes_prepared(
     x@place@zipcode,
     y_index$zipcodes,
-    zip_variants = zip_variants
+    zip_variants = zip_variants,
+    zip_variant = zip_variant
   )
   x_by_zip <- split(seq_along(x), matched_zipcodes, drop = TRUE)
   out_df <- addr_empty_df(length(x))
