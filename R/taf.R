@@ -124,8 +124,8 @@ taf_needed_counties <- function(
   zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap")
 ) {
   stopifnot(
-    "x must be an addr vector or character vector" =
-      inherits(x, "addr") || is.character(x),
+    "x must be an addr vector or character vector" = inherits(x, "addr") ||
+      is.character(x),
     "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
       length(zip_variants) == 1L &&
       !is.na(zip_variants)
