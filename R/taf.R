@@ -61,6 +61,44 @@ taf <- function(year = as.character(2025:2011), version = "v1") {
   )
 }
 
+#' Read TIGER address feature ZIP/county catalog
+#'
+#' `taf_catalog()` reads a TIGER-derived catalog of ZIP codes present in each
+#' county's TIGER address feature file for a specific year and addr TAF schema
+#' version. The catalog is installed with the package and is used to plan which
+#' county TAF files may be needed for a set of ZIP codes. It is separate from
+#' the local install manifest, which records only files installed on the current
+#' machine.
+#'
+#' @inheritParams taf
+#' @returns a tibble with `county_fips`, `ZIP`, `zip3`, `zip2`, and `n_ranges`
+#'   columns
+#' @export
+#' @examples
+#' taf_catalog("2025")
+taf_catalog <- function(year = as.character(2025:2011), version = "v1") {
+  check_installed("arrow", "to read the taf ZIP/county catalog")
+  stopifnot(
+    "version must be a character vector" = is.character(version),
+    "version must be length one" = length(version) == 1L,
+    "version must not be missing" = !is.na(version)
+  )
+  year <- match.arg(year)
+  catalog_path <- taf_catalog_path(year = year, version = version)
+  if (catalog_path == "" || !file.exists(catalog_path)) {
+    stop(
+      "taf catalog is not installed for year `",
+      year,
+      "` and version `",
+      version,
+      "`",
+      call. = FALSE
+    )
+  }
+  arrow::read_parquet(catalog_path) |>
+    tibble::as_tibble()
+}
+
 #' @rdname taf
 #' @param county character, length 1; county FIPS code
 #' @param overwrite logical, length 1; overwrite an existing county install?
@@ -269,6 +307,50 @@ taf_county_zip_manifest_path <- function(year, version) {
   )
 }
 
+taf_catalog_path <- function(year, version) {
+  override_dir <- getOption("addr.taf_catalog_dir")
+  if (!is.null(override_dir)) {
+    return(file.path(
+      override_dir,
+      version,
+      "tiger_addr_feat_catalog",
+      year,
+      "county_zip.parquet"
+    ))
+  }
+
+  package_path <- system.file(
+    "extdata",
+    version,
+    "tiger_addr_feat_catalog",
+    year,
+    "county_zip.parquet",
+    package = "addr"
+  )
+  if (nzchar(package_path)) {
+    return(package_path)
+  }
+
+  source_path <- taf_catalog_source_path(year = year, version = version)
+  if (file.exists(source_path)) {
+    return(source_path)
+  }
+
+  ""
+}
+
+taf_catalog_source_path <- function(year, version, root = ".") {
+  file.path(
+    root,
+    "inst",
+    "extdata",
+    version,
+    "tiger_addr_feat_catalog",
+    year,
+    "county_zip.parquet"
+  )
+}
+
 taf_read_county_zip_manifest <- function(year, version) {
   manifest_path <- taf_county_zip_manifest_path(year = year, version = version)
   if (!file.exists(manifest_path)) {
@@ -302,6 +384,39 @@ taf_write_county_zip_manifest <- function(x, year, version) {
     file.copy(tmp_path, manifest_path, overwrite = TRUE)
   }
   invisible(manifest_path)
+}
+
+taf_write_catalog <- function(x, year, version, root = ".") {
+  catalog_path <- taf_catalog_source_path(
+    year = year,
+    version = version,
+    root = root
+  )
+  dir.create(dirname(catalog_path), recursive = TRUE, showWarnings = FALSE)
+  tmp_path <- tempfile(
+    pattern = "county_zip_catalog_",
+    tmpdir = dirname(catalog_path),
+    fileext = ".parquet"
+  )
+  on.exit(unlink(tmp_path, force = TRUE), add = TRUE)
+  arrow::write_parquet(taf_catalog_rows(x), tmp_path)
+  if (file.exists(catalog_path)) {
+    unlink(catalog_path, force = TRUE)
+  }
+  if (!file.rename(tmp_path, catalog_path)) {
+    file.copy(tmp_path, catalog_path, overwrite = TRUE)
+  }
+  invisible(catalog_path)
+}
+
+taf_catalog_rows <- function(x) {
+  out <- x[
+    c("county_fips", "ZIP", "zip3", "zip2", "n_ranges")
+  ]
+  out <- unique(out)
+  out <- out[order(out$ZIP, out$county_fips), , drop = FALSE]
+  row.names(out) <- NULL
+  tibble::as_tibble(out)
 }
 
 taf_county_zip_manifest_rows <- function(x, county) {

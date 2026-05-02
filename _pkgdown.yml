@@ -37,6 +37,7 @@ reference:
       - taf_zip
       - taf_install
       - taf
+      - taf_catalog
       - tiger_addr_feat
       - tiger_feat_names
       - run_geocode_explorer

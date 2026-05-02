@@ -19,4 +19,7 @@ purrr::walk(
   .progress = "creating tiger address feature dataset"
 )
 
-taf_read_county_zip_manifest(year = "2025", version = "v1")
+manifest <- taf_read_county_zip_manifest(year = "2025", version = "v1")
+taf_write_catalog(manifest, year = "2025", version = "v1")
+
+taf_catalog(year = "2025", version = "v1")
