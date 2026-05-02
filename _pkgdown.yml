@@ -38,6 +38,7 @@ reference:
       - taf_install
       - taf
       - taf_catalog
+      - taf_needed_counties
       - tiger_addr_feat
       - tiger_feat_names
       - run_geocode_explorer
@@ -57,4 +58,3 @@ reference:
       - voter_addresses
       - elh_data
       - county_fips_lookup
-      - zip_fips_lookup

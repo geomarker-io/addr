@@ -52,7 +52,6 @@ Collate:
     'extendr-wrappers.R'
     'fuzzy_match.R'
     'geocode.R'
-    'hud_usps_zip_code_crosswalk.R'
     'nad.R'
     'phonetic_street_key.R'
     'shiny_addr_explorer.R'

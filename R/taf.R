@@ -99,6 +99,130 @@ taf_catalog <- function(year = as.character(2025:2011), version = "v1") {
     tibble::as_tibble()
 }
 
+#' Find and install TAF counties needed for ZIP codes
+#'
+#' `taf_needed_counties()` uses `taf_catalog()` to identify county TAF files
+#' that may contain address ranges for ZIP codes in `x`, including selected ZIP
+#' code variants when requested. `taf_ensure()` installs any of those counties
+#' that are not already present in the local TAF manifest.
+#'
+#' @param x an addr vector (`?as_addr`) or character vector of ZIP codes
+#' @inheritParams taf
+#' @inheritParams match_zipcodes
+#' @inheritParams taf_install
+#' @returns `taf_needed_counties()` returns a tibble with catalog columns plus
+#'   `source_zip` and `source_zip_variant`. `taf_ensure()` invisibly returns the
+#'   subset of needed counties that were missing before installation.
+#' @export
+#' @examples
+#' taf_needed_counties(as_addr("10 MAIN ST CINCINNATI OH 45220"))
+taf_needed_counties <- function(
+  x,
+  year = as.character(2025:2011),
+  version = "v1",
+  zip_variants = TRUE,
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap")
+) {
+  stopifnot(
+    "x must be an addr vector or character vector" =
+      inherits(x, "addr") || is.character(x),
+    "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
+      length(zip_variants) == 1L &&
+      !is.na(zip_variants)
+  )
+  zip_variant <- validate_zip_variant(zip_variant)
+  year <- match.arg(year)
+
+  zipcodes <- taf_needed_zipcodes(
+    x,
+    zip_variants = zip_variants,
+    zip_variant = zip_variant
+  )
+  if (nrow(zipcodes) == 0L) {
+    return(taf_empty_needed_counties())
+  }
+
+  catalog <- taf_catalog(year = year, version = version)
+  out <- merge(
+    zipcodes,
+    catalog,
+    by.x = "ZIP",
+    by.y = "ZIP",
+    all = FALSE,
+    sort = FALSE
+  )
+  if (nrow(out) == 0L) {
+    return(taf_empty_needed_counties())
+  }
+
+  out <- out[
+    c(
+      "county_fips",
+      "ZIP",
+      "zip3",
+      "zip2",
+      "n_ranges",
+      "source_zip",
+      "source_zip_variant",
+      "source_zip_variant_rank"
+    )
+  ]
+  out <- unique(out)
+  out <- out[
+    order(out$source_zip, out$source_zip_variant_rank, out$county_fips),
+    ,
+    drop = FALSE
+  ]
+  out$source_zip_variant_rank <- NULL
+  row.names(out) <- NULL
+  tibble::as_tibble(out)
+}
+
+#' @rdname taf_needed_counties
+#' @export
+taf_ensure <- function(
+  x,
+  year = as.character(2025:2011),
+  version = "v1",
+  zip_variants = TRUE,
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
+  redownload = FALSE
+) {
+  stopifnot(
+    "redownload must be logical" = is.logical(redownload),
+    "redownload must be length one" = length(redownload) == 1L,
+    "redownload must not be missing" = !is.na(redownload)
+  )
+  year <- match.arg(year)
+  needed <- taf_needed_counties(
+    x,
+    year = year,
+    version = version,
+    zip_variants = zip_variants,
+    zip_variant = zip_variant
+  )
+  if (nrow(needed) == 0L) {
+    return(invisible(needed))
+  }
+
+  manifest <- taf_read_county_zip_manifest(year = year, version = version)
+  missing_counties <- setdiff(
+    unique(needed$county_fips),
+    unique(manifest$county_fips)
+  )
+  missing <- needed[needed$county_fips %in% missing_counties, , drop = FALSE]
+  for (county in missing_counties) {
+    taf_install(
+      county = county,
+      year = year,
+      version = version,
+      overwrite = FALSE,
+      redownload = redownload
+    )
+  }
+  invisible(missing)
+}
+
 #' @rdname taf
 #' @param county character, length 1; county FIPS code
 #' @param overwrite logical, length 1; overwrite an existing county install?
@@ -417,6 +541,66 @@ taf_catalog_rows <- function(x) {
   out <- out[order(out$ZIP, out$county_fips), , drop = FALSE]
   row.names(out) <- NULL
   tibble::as_tibble(out)
+}
+
+taf_needed_zipcodes <- function(
+  x,
+  zip_variants = TRUE,
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap")
+) {
+  if (inherits(x, "addr")) {
+    x <- x@place@zipcode
+  }
+  zipcodes <- addr_place(zipcode = x)@zipcode
+  zipcodes <- unique(zipcodes[!is.na(zipcodes) & zipcodes != ""])
+  if (length(zipcodes) == 0L) {
+    return(tibble::tibble(
+      source_zip = character(),
+      source_zip_variant = character(),
+      source_zip_variant_rank = integer(),
+      ZIP = character()
+    ))
+  }
+
+  exact <- tibble::tibble(
+    source_zip = zipcodes,
+    source_zip_variant = "exact",
+    source_zip_variant_rank = 0L,
+    ZIP = zipcodes
+  )
+  if (!zip_variants) {
+    return(exact)
+  }
+
+  variants <- lapply(zipcodes, function(zip) {
+    do.call(
+      vctrs::vec_rbind,
+      lapply(seq_along(zip_variant), function(i) {
+        variant <- zip_variant[[i]]
+        tibble::tibble(
+          source_zip = zip,
+          source_zip_variant = variant,
+          source_zip_variant_rank = i,
+          ZIP = zipcode_variant(zip, variant = variant)
+        )
+      })
+    )
+  }) |>
+    do.call(what = vctrs::vec_rbind)
+
+  unique(vctrs::vec_rbind(exact, variants))
+}
+
+taf_empty_needed_counties <- function() {
+  tibble::tibble(
+    county_fips = character(),
+    ZIP = character(),
+    zip3 = character(),
+    zip2 = character(),
+    n_ranges = integer(),
+    source_zip = character(),
+    source_zip_variant = character()
+  )
 }
 
 taf_county_zip_manifest_rows <- function(x, county) {

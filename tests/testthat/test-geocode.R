@@ -9,7 +9,7 @@ test_that("geocode returns non-matches for missing zipcodes", {
     ),
     addr_place(zipcode = c(NA_character_, ""))
   )
-  out <- geocode(x)
+  out <- geocode(x, taf_install = FALSE)
   expect_equal(nrow(out), 2L)
   expect_equal(out$addr, x)
   expect_true(all(is.na(out$matched_zipcode)))
@@ -41,7 +41,7 @@ test_that("geocode keeps missing zipcode rows with geocoded rows", {
     ),
     addr_place(zipcode = c(NA_character_, "45220"))
   )
-  out <- geocode(x)
+  out <- geocode(x, taf_install = FALSE)
   expect_equal(out$addr, x)
   expect_true(is.na(out$matched_zipcode[1]))
   expect_equal(out$matched_zipcode[2], "45220")
@@ -102,6 +102,7 @@ test_that("geocode forwards street matching arguments to geocode_zip", {
     match_street_postdirectional = TRUE,
     zip_variants = FALSE,
     zip_variant = "swap",
+    taf_install = FALSE,
     progress = FALSE
   )
   expect_equal(
@@ -122,7 +123,7 @@ test_that("geocode forwards street matching arguments to geocode_zip", {
 test_that("geocode_zip forwards street matching arguments to match_addr_street", {
   seen <- NULL
   local_mocked_bindings(
-    taf_zip = function(zipcode, map = TRUE) {
+    taf_zip = function(zipcode, map = TRUE, ...) {
       tibble::tibble(
         ZIP = zipcode,
         addr_street = addr_street(name = "Main", posttype = "St"),
@@ -146,6 +147,7 @@ test_that("geocode_zip forwards street matching arguments to match_addr_street",
   )
   geocode_zip(
     x,
+    taf_install = FALSE,
     name_phonetic_dist = 0L,
     name_fuzzy_dist = 1L,
     match_street_predirectional = FALSE,
@@ -168,7 +170,7 @@ test_that("geocode_zip forwards street matching arguments to match_addr_street",
 
 test_that("geocode_zip respects zipcode variant controls", {
   local_mocked_bindings(
-    taf_zip = function(zipcode, map = TRUE) {
+    taf_zip = function(zipcode, map = TRUE, ...) {
       if (identical(zipcode, "45220")) {
         return(tibble::tibble(
           ZIP = "45220",
@@ -209,8 +211,13 @@ test_that("geocode_zip respects zipcode variant controls", {
     addr_place(zipcode = "45220")
   )
 
-  out_swap <- geocode_zip(x, offset = 0, zip_variant = "swap")
-  out_none <- geocode_zip(x, offset = 0, zip_variants = FALSE)
+  out_swap <- geocode_zip(x, offset = 0, zip_variant = "swap", taf_install = FALSE)
+  out_none <- geocode_zip(
+    x,
+    offset = 0,
+    zip_variants = FALSE,
+    taf_install = FALSE
+  )
 
   expect_equal(out_swap$matched_zipcode, "42520")
   expect_equal(format(out_swap$matched_street), "Main St")
@@ -220,7 +227,7 @@ test_that("geocode_zip respects zipcode variant controls", {
 
 test_that("geocode_zip offsets matched points by TIGER side", {
   local_mocked_bindings(
-    taf_zip = function(zipcode, map = TRUE) {
+    taf_zip = function(zipcode, map = TRUE, ...) {
       tibble::tibble(
         ZIP = rep("45219", 2),
         addr_street = addr_street(
@@ -252,8 +259,8 @@ test_that("geocode_zip offsets matched points by TIGER side", {
     addr_place(zipcode = c("45219", "45219"))
   )
 
-  on_line <- geocode_zip(x, offset = 0)
-  offset <- geocode_zip(x, offset = 10)
+  on_line <- geocode_zip(x, offset = 0, taf_install = FALSE)
+  offset <- geocode_zip(x, offset = 10, taf_install = FALSE)
 
   expect_equal(s2::s2_y(on_line$matched_geography), c(0, 0), tolerance = 1e-8)
   expect_gt(s2::s2_y(offset$matched_geography[1]), 0)
@@ -299,7 +306,7 @@ test_that("geocode progress gets addr_street count from geocode_zip", {
     ),
     addr_place(zipcode = c("45219", "45219"))
   )
-  progress_output <- capture.output(geocode(x, progress = TRUE))
+  progress_output <- capture.output(geocode(x, progress = TRUE, taf_install = FALSE))
   progress_text <- paste(progress_output, collapse = "\n")
   progress_text <- gsub("\033\\[[0-9;]*[[:alpha:]]", "", progress_text)
   expect_true(
@@ -330,6 +337,10 @@ test_that("geocode progress can be disabled", {
     ),
     addr_place(zipcode = "45219")
   )
-  progress_output <- capture.output(invisible(geocode(x, progress = FALSE)))
+  progress_output <- capture.output(invisible(geocode(
+    x,
+    progress = FALSE,
+    taf_install = FALSE
+  )))
   expect_equal(progress_output, character())
 })

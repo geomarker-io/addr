@@ -20,8 +20,13 @@
 #' @param x an addr vector (`?as_addr`)
 #' @param offset number of meters to offset geocode from street line
 #' @param progress logical; show a ZIP-code progress bar while geocoding?
+#' @param taf_install logical; install missing county TAF files needed for
+#'   input ZIP codes and selected ZIP code variants before geocoding?
+#' @param taf_redownload logical; re-download cached TIGER ZIP files when
+#'   installing missing TAF counties?
 #' @inheritParams match_addr_street
 #' @inheritParams match_zipcodes
+#' @inheritParams taf
 #' @returns A tibble with columns `addr` (the input addr vector),
 #'   `matched_zipcode` (character vector), `matched_street` (`addr_street`
 #'   vector), `matched_geography` (`s2_geography` point vector), and `s2_cell`
@@ -55,6 +60,10 @@ geocode <- function(
   match_street_postdirectional = FALSE,
   zip_variants = TRUE,
   zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
+  year = as.character(2025:2011),
+  version = "v1",
+  taf_install = TRUE,
+  taf_redownload = FALSE,
   offset = 10L,
   progress = interactive()
 ) {
@@ -63,10 +72,20 @@ geocode <- function(
     "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
       length(zip_variants) == 1L &&
       !is.na(zip_variants),
+    "taf_install must be TRUE or FALSE" = is.logical(taf_install) &&
+      length(taf_install) == 1L &&
+      !is.na(taf_install),
+    "taf_redownload must be TRUE or FALSE" = is.logical(taf_redownload) &&
+      length(taf_redownload) == 1L &&
+      !is.na(taf_redownload),
+    "version must be a character vector" = is.character(version),
+    "version must be length one" = length(version) == 1L,
+    "version must not be missing" = !is.na(version),
     "progress must be TRUE or FALSE" = is.logical(progress) &&
       length(progress) == 1L &&
       !is.na(progress)
   )
+  year <- match.arg(year)
   zip_variant <- validate_zip_variant(zip_variant)
   validate_geocode_offset(offset)
   validate_match_addr_street_args(
@@ -79,6 +98,16 @@ geocode <- function(
   )
   xu <- unique(x)
   missing_zip <- is.na(xu@place@zipcode) | xu@place@zipcode == ""
+  if (taf_install && any(!missing_zip)) {
+    taf_ensure(
+      xu[!missing_zip],
+      year = year,
+      version = version,
+      zip_variants = zip_variants,
+      zip_variant = zip_variant,
+      redownload = taf_redownload
+    )
+  }
   z_list <- split(xu[!missing_zip], xu[!missing_zip]@place@zipcode)
 
   # gcd <- mirai::mirai_map(z_list, geocode_zip)[.progress, .stop]
@@ -96,7 +125,11 @@ geocode <- function(
       match_street_pretype = match_street_pretype,
       match_street_postdirectional = match_street_postdirectional,
       zip_variants = zip_variants,
-      zip_variant = zip_variant
+      zip_variant = zip_variant,
+      year = year,
+      version = version,
+      taf_install = FALSE,
+      taf_redownload = taf_redownload
     )
   } else {
     lapply(
@@ -110,7 +143,11 @@ geocode <- function(
       match_street_pretype = match_street_pretype,
       match_street_postdirectional = match_street_postdirectional,
       zip_variants = zip_variants,
-      zip_variant = zip_variant
+      zip_variant = zip_variant,
+      year = year,
+      version = version,
+      taf_install = FALSE,
+      taf_redownload = taf_redownload
     )
   }
   if (any(missing_zip)) {
@@ -204,14 +241,28 @@ geocode_zip <- function(
   match_street_postdirectional = FALSE,
   zip_variants = TRUE,
   zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
+  year = as.character(2025:2011),
+  version = "v1",
+  taf_install = TRUE,
+  taf_redownload = FALSE,
   progress_callback = NULL
 ) {
   stopifnot("x must be an addr vector" = inherits(x, "addr"))
   stopifnot(
     "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
       length(zip_variants) == 1L &&
-      !is.na(zip_variants)
+      !is.na(zip_variants),
+    "taf_install must be TRUE or FALSE" = is.logical(taf_install) &&
+      length(taf_install) == 1L &&
+      !is.na(taf_install),
+    "taf_redownload must be TRUE or FALSE" = is.logical(taf_redownload) &&
+      length(taf_redownload) == 1L &&
+      !is.na(taf_redownload),
+    "version must be a character vector" = is.character(version),
+    "version must be length one" = length(version) == 1L,
+    "version must not be missing" = !is.na(version)
   )
+  year <- match.arg(year)
   zip_variant <- validate_zip_variant(zip_variant)
   validate_geocode_offset(offset)
   validate_match_addr_street_args(
@@ -249,7 +300,18 @@ geocode_zip <- function(
     return(out)
   }
 
-  ref_exact <- taf_zip(zpcd, map = TRUE)
+  if (taf_install) {
+    taf_ensure(
+      x,
+      year = year,
+      version = version,
+      zip_variants = zip_variants,
+      zip_variant = zip_variant,
+      redownload = taf_redownload
+    )
+  }
+
+  ref_exact <- taf_zip(zpcd, map = TRUE, year = year, version = version)
   if (is.function(progress_callback)) {
     progress_callback(length(ref_exact$addr_street))
   }
@@ -265,7 +327,9 @@ geocode_zip <- function(
     out$matched_zipcode[no] <- NA_character_
     ref_variant <- taf_zip(
       zipcode_variant(zpcd, variant = zip_variant),
-      map = TRUE
+      map = TRUE,
+      year = year,
+      version = version
     )
     out$matched_street[no] <- do.call(
       match_addr_street,
