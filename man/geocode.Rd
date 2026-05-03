@@ -128,24 +128,37 @@ serially by default.
 At a lower level, grouping addr vectors by ZIP code and applying
 \code{geocode_zip()} facilitates more control (e.g., parallel processing).
 
-If the \code{mirai} package is installed and \code{mirai} daemons have already
-been configured by the caller, \code{geocode()} uses them for ZIP-code-level
+If the mirai package is installed and mirai daemons have already been
+configured by the caller, \code{geocode()} uses them for ZIP-code-level
 parallel processing. Otherwise it falls back to sequential processing.
 
-\code{geocode()} andf \code{geocode_zip()} both download and install tiger address
-features for each county needed based on the ZIP codes
-(and possibly ZIP code variants) needed for addresses in x.
+\code{geocode()} and \code{geocode_zip()} both download and install tiger address
+features by county (\code{?taf_install}) as needed based on the input addr ZIP
+codes (and possibly ZIP code variants).
 }
 \examples{
+x <- as_addr(voter_addresses()[1:100])
+
 # for example purposes, only install one county
 Sys.setenv("R_USER_DATA_DIR" = tempfile())
 taf_install("39061", "2025")
-# ^ not usually necessary
-x <- as_addr(voter_addresses()[1:100])
+# and geocode without installing other counties
 gcd <- geocode(x, taf_install = FALSE)
 
+# this is only for example purposes and usually not required; e.g.
+
+\dontrun{
+  gcd <- geocode(x)
+}
 
 leaflet::leaflet(wk::wk_coords(gcd$matched_geography)) |>
   leaflet::addTiles() |>
   leaflet::addCircleMarkers(lng = ~x, lat = ~y, label = ~feature_id)
+
+# use mirai for parallel processing
+\dontrun{
+  mirai::daemons(2)
+  geocode(x)
+  mirai::daemons(0)
+}
 }

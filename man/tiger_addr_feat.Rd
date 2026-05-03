@@ -24,7 +24,7 @@ If not already present, compressed addrfeat shapefiles are downloaded from
 the Census FTP site to the addr user data directory.
 
 When reading into R, the data is converted to one row per street side
-(\code{L}/\code{R}) for use by \code{taf_install()} when building \code{taf()} data.
+(\code{L}/\code{R}) for use by \code{taf_install()}.
 }
 \examples{
 tiger_addr_feat("39061", "2025")

@@ -215,6 +215,8 @@ geocode_map_mirai <- function(x, FUN, ...) {
   out
 }
 
+utils::globalVariables(".progress")
+
 geocode_load_dev_workers <- function() {
   requireNamespace("pkgload", quietly = TRUE) &&
     pkgload::is_dev_package("addr")
