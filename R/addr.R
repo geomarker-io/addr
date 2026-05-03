@@ -196,27 +196,20 @@ addr <- S7::new_class(
   },
   validator = function(self) {
     lens <- c(
-      number = length(self@number@digits),
-      street = length(self@street@name),
-      place = length(self@place@zipcode)
+      number = length(self@number),
+      street = length(self@street),
+      place = length(self@place)
     )
-    target <- max(lens, 0L)
-    if (target == 0L) {
-      return(NULL)
-    }
-    if (any(lens == 0L)) {
+    if (length(unique(lens)) > 1L) {
       return(
         sprintf(
-          "addr components must all be length 0 or length 1/%d",
-          target
-        )
-      )
-    }
-    if (!all(lens %in% c(1L, target))) {
-      return(
-        sprintf(
-          "addr components must have length 1 or %d for recycling",
-          target
+          paste0(
+            "addr components must all have equal lengths; ",
+            "got number=%d, street=%d, place=%d"
+          ),
+          lens[["number"]],
+          lens[["street"]],
+          lens[["place"]]
         )
       )
     }

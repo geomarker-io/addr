@@ -126,6 +126,22 @@ test_that("[<- works for addr vectors", {
   )
 })
 
+test_that("direct addr component replacement requires matching lengths", {
+  x <- as_addr(c(
+    "123 Main Street Anytown OH 45219",
+    "121 Main Street Anytown OH 45219"
+  ))
+
+  expect_error(
+    x@number <- addr_number(prefix = "", digits = "1", suffix = ""),
+    "addr components must all have equal lengths"
+  )
+
+  x@number <- addr_number(prefix = "", digits = c("1", "1"), suffix = "")
+
+  expect_equal(format(x@number), c("1", "1"))
+})
+
 test_that("addr works as a tibble and data.frame column", {
   x <- addr(
     addr_number(digits = c("1", "2")),
