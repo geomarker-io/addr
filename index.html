@@ -72,6 +72,7 @@
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">addr_vec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/as_addr.html">as_addr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"3333 Burnet Ave Cincinnati OH 45229"</span>,</span>
 <span>                      <span class="st">"5130 Rapid Run Rd Cincinnati OH 45238"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/addr_data.png"></p>
 </div>
 <div class="section level2">
 <h2 id="address-matching">Address Matching<a class="anchor" aria-label="anchor" href="#address-matching"></a>
@@ -88,6 +89,12 @@
 </div>
 <div class="section level2">
 <h2 id="geocoding">Geocoding<a class="anchor" aria-label="anchor" href="#geocoding"></a>
+</h2>
+<p>Matched NAD coordinates can be used as a geocode, but placement often varies by the contributing organization and state. If linking to parcel geographies, intersection with parcel boundaries or their centroids can be used. Street range geocoding does not use address-level data, but instead interpolates the location with possible street ranges provided by census.gov. In any case, geocoding includes (1) cleaning address text, (2) tagging the address, (3) harmonizing the address tags, (4) matching the ZIP code and street combinations. Major differences between the methods arise when placing a coordinate after matching a ZIP code - street:</p>
+<p><img src="reference/figures/geocoding_methods.png"></p>
+</div>
+<div class="section level2">
+<h2 id="street-range-geocoding">Street Range Geocoding<a class="anchor" aria-label="anchor" href="#street-range-geocoding"></a>
 </h2>
 <p><code><a href="reference/geocode.html">geocode()</a></code> converts <code><a href="reference/addr.html">addr()</a></code> vectors to point locations using Census TIGER address ranges. It matches the input street to installed TIGER address features, chooses the best address range and street side from the address number, interpolates a point along the range, and offsets that point from the street line.</p>
 <p>Geocoding returns the input address, matched ZIP code, matched street, point geography, and s2 cell. Inputs with missing or unmatched ZIP codes, streets, or address ranges return missing geographies rather than guessed coordinates.</p>
