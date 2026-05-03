@@ -22,8 +22,8 @@ fuzzy_match_addr_field(
 
 \item{y}{addr vector to match to}
 
-\item{addr_fields}{a named vector of osa_max_distances; if max distances
-for each addr tag field is not present a default will be used (see details).}
+\item{addr_fields}{a named vector of OSA maximum distances. Defaults are
+used for fields that are not supplied; see Details.}
 
 \item{addr_field}{character name of single addr field to match on}
 
@@ -35,10 +35,11 @@ a list of integer vectors representing the position of the best
 matching address(es) in \code{y} for each address in \code{x}
 }
 \description{
-\code{addr_fuzzy_match()} matches two addr vectors using more than one address tag
+\code{addr_fuzzy_match()} matches two addr vectors using more than one address
+field.
 
 \code{fuzzy_match_addr_field()} matches two addr vectors using a single address
-tag
+field.
 
 Distances between address tags are defined using optimized string alignment;
 see \code{fuzzy_match()} and \code{stringdist::stringdist()} for more details.

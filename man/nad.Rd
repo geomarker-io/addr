@@ -42,9 +42,10 @@ error if data binary is not already present, "force" will
 create the data binary and overwrite any existing data binary}
 
 \item{refresh_source}{character, length one; choose how to refresh NAD
-source geodatabase on disk if not already present; "yes" wil download
-the geodatabase if not already present, "no" will error if file does not already
-exist, "force" will download and overwrite any existing geodatabase}
+source geodatabase on disk if not already present; "yes" will download
+the geodatabase if not already present, "no" will error if the file does
+not already exist, "force" will download and overwrite any existing
+geodatabase}
 }
 \description{
 The U.S. Department of Transportation partners with address programs from
@@ -62,9 +63,9 @@ The NAD geodatabase has a very large size on disk (~10 GB).
 
 Data binaries are the cached outputs of \code{nad_read()} for each
 County/State and are created on first run with \code{nad()}.
-Download data binaries to the R_user_dir cache folder or point R
-(\code{?R_user_dir}) to these files on disk to read NAD tables without
-having to download the nationwide NAD geodatabase.
+Download data binaries to the \code{tools::R_user_dir()} cache directory, or
+point R to these files on disk, to read NAD tables without downloading the
+nationwide NAD geodatabase.
 (Files are organized by major package version,
 NAD release, state, and named by county; e.g., see
 \code{list.files(tools::R_user_dir("addr", "cache"), recursive = TRUE)})

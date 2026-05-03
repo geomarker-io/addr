@@ -266,6 +266,12 @@ test_that("addr_match honors matching tuning arguments", {
     zip_variants = FALSE,
     progress = FALSE
   )
+  zip_limited <- addr_match(
+    demo_addr("2700", "Alice", "St", "45222"),
+    y,
+    zip_variant = "swap",
+    progress = FALSE
+  )
   expect_identical(
     format(zip_true),
     "2700 ALICE St CINCINNATI OH 45221"
@@ -273,6 +279,8 @@ test_that("addr_match honors matching tuning arguments", {
   expect_identical(as.character(addr_match_stage(zip_true)), "number")
   expect_identical(format(zip_false), "")
   expect_identical(as.character(addr_match_stage(zip_false)), "none")
+  expect_identical(format(zip_limited), "")
+  expect_identical(as.character(addr_match_stage(zip_limited)), "none")
 
   fuzzy_name_on <- addr_match(
     demo_addr("10623", "Srpingfield", "Pike", "45215"),

@@ -1,9 +1,9 @@
 #' Match addr_street vectors
 #'
 #' @description
-#' A single addr_street in y is chosen for each addr_street in x.
+#' A single `addr_street` in `y` is chosen for each `addr_street` in `x`.
 #' If exact matches (using `as.character`) are not found,
-#' possible matches are chosen by
+#' candidate matches are chosen by
 #' fuzzy matching on street name (using phonetic street key and street name)
 #' and exact matching on the enabled street components.
 #' Ordinal street names use restricted phonetic candidates:
@@ -11,9 +11,10 @@
 #' ordinal neighbors such as digit shifts (`#0070`, `#0700`, `#7000`)
 #' or same-width substitutions (`#0008`, `#0009`), not arbitrary
 #' OSA-distance-one ordinal keys such as `#0017` or `#0077`.
-#' Ties are broken by .......... the first for now.
+#' If multiple candidates remain after fuzzy matching, the first candidate in
+#' `y` is returned.
 #'
-#' addr_street objects within missing or empty @name are not matched and
+#' `addr_street` objects with missing or empty `@name` are not matched and
 #' returned as missing instead.
 #' @param x,y addr_street vectors to match
 #' @param name_phonetic_dist integer; maximum optimized string alignment
@@ -29,9 +30,9 @@
 #'   selecting street candidates?
 #' @param match_street_postdirectional logical; require street postdirectional
 #'   to match when selecting street candidates?
-#' @return an addr_street vector, the same length as x, that is the
-#' best match in y for each addr_street code in x; if no best match
-#' is found a missing value is returned (`addr_street()`)
+#' @return An `addr_street` vector, the same length as `x`, containing the
+#'   selected match in `y` for each element of `x`. Unmatched elements are
+#'   returned as missing `addr_street()` values.
 #' @export
 #' @examples
 #' my_streets <- addr_street(
@@ -191,30 +192,15 @@ match_addr_street <- function(
 ) {
   stopifnot(
     "x must be an addr_street object" = inherits(x, "addr_street"),
-    "y must be an addr_street object" = inherits(y, "addr_street"),
-    "name_phonetic_dist must be an integer" = typeof(name_phonetic_dist) ==
-      "integer",
-    "name_phonetic_dist must be length one" = length(name_phonetic_dist) == 1L,
-    "name_phonetic_dist must not be missing" = !is.na(name_phonetic_dist),
-    "match_street_predirectional must be TRUE or FALSE" =
-      is.logical(match_street_predirectional) &&
-        length(match_street_predirectional) == 1L &&
-        !is.na(match_street_predirectional),
-    "name_fuzzy_dist must be an integer" = typeof(name_fuzzy_dist) == "integer",
-    "name_fuzzy_dist must be length one" = length(name_fuzzy_dist) == 1L,
-    "name_fuzzy_dist must not be missing" = !is.na(name_fuzzy_dist),
-    "match_street_posttype must be TRUE or FALSE" =
-      is.logical(match_street_posttype) &&
-        length(match_street_posttype) == 1L &&
-        !is.na(match_street_posttype),
-    "match_street_pretype must be TRUE or FALSE" =
-      is.logical(match_street_pretype) &&
-        length(match_street_pretype) == 1L &&
-        !is.na(match_street_pretype),
-    "match_street_postdirectional must be TRUE or FALSE" =
-      is.logical(match_street_postdirectional) &&
-        length(match_street_postdirectional) == 1L &&
-        !is.na(match_street_postdirectional)
+    "y must be an addr_street object" = inherits(y, "addr_street")
+  )
+  validate_match_addr_street_args(
+    name_phonetic_dist = name_phonetic_dist,
+    name_fuzzy_dist = name_fuzzy_dist,
+    match_street_predirectional = match_street_predirectional,
+    match_street_posttype = match_street_posttype,
+    match_street_pretype = match_street_pretype,
+    match_street_postdirectional = match_street_postdirectional
   )
   street_match_fields <- c(
     if (match_street_predirectional) "street_predirectional",
@@ -237,7 +223,9 @@ match_addr_street <- function(
     out <- do.call(
       paste,
       c(
-        lapply(bucket_df, \(col) ifelse(is.na(col), "", ifelse(col == "", "<EMPTY>", col))),
+        lapply(bucket_df, \(col) {
+          ifelse(is.na(col), "", ifelse(col == "", "<EMPTY>", col))
+        }),
         sep = "\r"
       )
     )
@@ -256,10 +244,19 @@ match_addr_street <- function(
   keep_ux <- !is.na(ux_df$street_name) & ux_df$street_name != ""
   ux_df <- ux_df[keep_ux, , drop = FALSE]
   ux_key <- ux_key[keep_ux]
+  if (nrow(ux_df) == 0L) {
+    return(x[rep(NA_integer_, length(x))])
+  }
 
   uy_idx <- !duplicated(y_key)
   uy_df <- y_df[uy_idx, , drop = FALSE]
   uy_key <- y_key[uy_idx]
+  keep_uy <- !is.na(uy_df$street_name) & uy_df$street_name != ""
+  uy_df <- uy_df[keep_uy, , drop = FALSE]
+  uy_key <- uy_key[keep_uy]
+  if (nrow(uy_df) == 0L) {
+    return(x[rep(NA_integer_, length(x))])
+  }
   uy_name_psk <- phonetic_street_key(uy_df$street_name)
 
   lkp <- match(
@@ -351,27 +348,67 @@ match_addr_street <- function(
   return(out)
 }
 
+validate_match_addr_street_args <- function(
+  name_phonetic_dist = 1L,
+  name_fuzzy_dist = 2L,
+  match_street_predirectional = TRUE,
+  match_street_posttype = TRUE,
+  match_street_pretype = TRUE,
+  match_street_postdirectional = FALSE
+) {
+  stopifnot(
+    "name_phonetic_dist must be an integer" = typeof(name_phonetic_dist) ==
+      "integer",
+    "name_phonetic_dist must be length one" = length(name_phonetic_dist) == 1L,
+    "name_phonetic_dist must not be missing" = !is.na(name_phonetic_dist),
+    "match_street_predirectional must be TRUE or FALSE" = is.logical(
+      match_street_predirectional
+    ) &&
+      length(match_street_predirectional) == 1L &&
+      !is.na(match_street_predirectional),
+    "name_fuzzy_dist must be an integer" = typeof(name_fuzzy_dist) == "integer",
+    "name_fuzzy_dist must be length one" = length(name_fuzzy_dist) == 1L,
+    "name_fuzzy_dist must not be missing" = !is.na(name_fuzzy_dist),
+    "match_street_posttype must be TRUE or FALSE" = is.logical(
+      match_street_posttype
+    ) &&
+      length(match_street_posttype) == 1L &&
+      !is.na(match_street_posttype),
+    "match_street_pretype must be TRUE or FALSE" = is.logical(
+      match_street_pretype
+    ) &&
+      length(match_street_pretype) == 1L &&
+      !is.na(match_street_pretype),
+    "match_street_postdirectional must be TRUE or FALSE" = is.logical(
+      match_street_postdirectional
+    ) &&
+      length(match_street_postdirectional) == 1L &&
+      !is.na(match_street_postdirectional)
+  )
+  invisible(TRUE)
+}
+
 #' Match addr_number vectors
 #'
 #' @description
-#' A single addr_number in y is chosen for each addr_number in x.
+#' A single `addr_number` in `y` is chosen for each `addr_number` in `x`.
 #' If exact matches (using `as.character`) are not found,
-#' possible matches (within `number_fuzzy_distance`) are searched for in y.
-#' If multiple matches are present in y, the best one is selected
-#' based on the lowest absolute numeric difference with the @digits in x;
-#' ties are broken by optimized string alignment (OSA) distances
-#' and then preferring the lowest value sorted in Lexicographic
+#' possible matches within `number_fuzzy_dist` are searched for in `y`.
+#' If multiple matches are present in `y`, the selected match has the
+#' lowest absolute numeric difference from `@digits` in `x`; ties are broken
+#' by optimized string alignment (OSA) distance and then by lexicographic
 #' order with digits preceding alphabetic characters.
 #'
-#' addr_number objects with missing @digits or empty strings
-#' for all of @prefix, @digits, @suffix are not matched and
+#' `addr_number` objects with missing `@digits`, or with empty strings
+#' for all of `@prefix`, `@digits`, and `@suffix`, are not matched and
 #' returned as missing instead.
 #' @param x,y addr_number vectors to match
-#' @param number_fuzzy_dist integer; maximum optimized string alignment distance
-#' between `@number` of x and y to consider a possible match
-#' @return an addr_number vector, the same length as x, that is the
-#' best match in y for each addr_number code in x; if no best match
-#' is found a missing value is returned (`addr_number()`)
+#' @param number_fuzzy_dist integer; maximum optimized string alignment
+#'   distance between `addr_number` strings in `x` and `y` to consider a
+#'   possible match.
+#' @return An `addr_number` vector, the same length as `x`, containing the
+#'   selected match in `y` for each element of `x`. Unmatched elements are
+#'   returned as missing `addr_number()` values.
 #' @export
 #' @examples
 #'  x <- addr_number(
@@ -449,18 +486,20 @@ match_addr_number <- function(x, y, number_fuzzy_dist = 1L) {
 
 #' Match ZIP codes
 #'
-#' A single ZIP code in y is chosen for each ZIP code
-#' in x. By default, if exact matches are not found, common variants
-#' of ZIP codes in x are searched for in y.
-#' If multiple variants are present in y, the best one is selected
-#' based on the lowest absolute numeric difference with the ZIP code in x;
-#' ties are broken by OSA string distances and then preferring the
+#' A single ZIP code in `y` is chosen for each ZIP code in `x`.
+#' By default, if exact matches are not found, common variants of ZIP codes
+#' in `x` are searched for in `y` (?`zipcode_variant`)
+#' If multiple variants are present in `y`, the selected match has the lowest
+#' absolute numeric difference from the ZIP code in `x`; ties are broken by
+#' OSA string distance and then by the
 #' minimum number.
 #' @param x,y character vectors of ZIP codes to match
 #' @param zip_variants logical; fuzzy match to common variants of
-#' x in y? (e.g., changing 4th or 5th digit)
-#' @return a character vector, the same length as x, that is the
-#' best match in y for each ZIP code in x
+#' `x` in `y`?
+#' @param zip_variant character vector; zipcode variant types to use when
+#'   `zip_variants` is `TRUE`; see `?zipcode_variant`
+#' @return A character vector, the same length as `x`, containing the selected
+#'   match in `y` for each ZIP code in `x`.
 #' @export
 #' @examples
 #' match_zipcodes(
@@ -473,7 +512,12 @@ match_addr_number <- function(x, y, number_fuzzy_dist = 1L) {
 #'   c("42522", "45200", "45219", "45221", "45223", "45321", ""),
 #'   zip_variants = FALSE
 #' )
-match_zipcodes <- function(x, y, zip_variants = TRUE) {
+match_zipcodes <- function(
+  x,
+  y,
+  zip_variants = TRUE,
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap")
+) {
   stopifnot(
     "x must be a character vector" = is.character(x),
     "y must be a character vector" = is.character(y),
@@ -481,6 +525,7 @@ match_zipcodes <- function(x, y, zip_variants = TRUE) {
       length(zip_variants) == 1L &&
       !is.na(zip_variants)
   )
+  zip_variant <- validate_zip_variant(zip_variant)
   x <- addr::addr_place(zipcode = x)@zipcode
   y <- addr::addr_place(zipcode = y)@zipcode
   ux <- unique(x[!is.na(x) & x != ""])
@@ -492,7 +537,7 @@ match_zipcodes <- function(x, y, zip_variants = TRUE) {
         return(xz)
       }
       if (zip_variants) {
-        xzv <- zipcode_variant(xz)
+        xzv <- zipcode_variant(xz, variant = zip_variant)
         m <- xzv[xzv %in% uy]
         if (length(m) == 0) {
           return(NA_character_)
@@ -515,7 +560,50 @@ match_zipcodes <- function(x, y, zip_variants = TRUE) {
   out
 }
 
-zipcode_variant <- function(x) {
+zip_variant_choices <- function() {
+  c("minus1", "plus1", "sub5", "sub4", "swap")
+}
+
+validate_zip_variant <- function(zip_variant) {
+  stopifnot(
+    "zip_variant must be a character vector" = is.character(zip_variant),
+    "zip_variant must not be empty" = length(zip_variant) > 0L,
+    "zip_variant must not contain missing values" = !any(is.na(zip_variant))
+  )
+  match.arg(zip_variant, zip_variant_choices(), several.ok = TRUE)
+}
+
+#' Create ZIP code variants
+#'
+#' @description
+#'
+#' An input ZIP code is used to generate variants (for, e.g., 45220):
+#' - `minus1`: subtracting one from zipcode (45219)
+#' - `plus1`: adding one to zipcode (45221)
+#' - `sub5`: substituting the fifth digit of the ZIP code (45221, 45222, 45223, 45224, 45225, 45226, 45227, 45228, 45229)
+#' - `sub4`: substituting the fourth digit of the ZIP code (45200, 45210, 45230, 45240, 45250, 45260, 45270, 45280, 45290)
+#' - `swap`: swapping the second and third digits of the ZIP code (42520)
+#'
+#' More than one variant type can be created at once and variants will be
+#' returned in the same order as they were requested (see examples).
+#' @param x character length one; five digit ZIP code
+#' @param variant character one or more variants to create; see description
+#' @returns character vector of five digit ZIP code variants
+#' @export
+#' @examples
+#' zipcode_variant("45220")
+#'
+#' # order matters!
+#' zipcode_variant("45220", c("minus1", "plus1"))
+#' zipcode_variant("45220", c("plus1", "minus1"))
+#'
+#' zipcode_variant("45220", "sub5")
+#'
+#' zipcode_variant("45220", "swap")
+zipcode_variant <- function(
+  x,
+  variant = c("minus1", "plus1", "sub5", "sub4", "swap")
+) {
   stopifnot(
     "x must be a character vector" = is.character(x),
     "x must be length one" = length(x) == 1L
@@ -527,20 +615,20 @@ zipcode_variant <- function(x) {
   if (x == "") {
     return("")
   }
-  z <- strsplit(x, "")[[1]]
-  swap <- paste0(z[c(1, 3, 2, 4, 5)], collapse = "")
-  sub4 <- paste0(
-    paste0(z[1:3], collapse = ""),
-    as.character(0:9),
-    z[5]
+  variant <- validate_zip_variant(variant)
+  variant_fns <- list(
+    "minus1" = function(z) as.character(as.integer(x) - 1),
+    "plus1" = function(z) as.character(as.integer(x) + 1),
+    "sub4" = function(z) {
+      paste0(paste0(z[1:3], collapse = ""), as.character(0:9), z[5])
+    },
+    "sub5" = function(z) {
+      paste0(paste0(z[1:4], collapse = ""), as.character(0:9))
+    },
+    "swap" = function(z) paste0(z[c(1, 3, 2, 4, 5)], collapse = "")
   )
-  sub5 <- paste0(
-    paste0(z[1:4], collapse = ""),
-    as.character(0:9)
-  )
-  plus1 <- as.character(as.integer(x) + 1)
-  minus1 <- as.character(as.integer(x) - 1)
-  uout <- unique(c(swap, sub4, sub5, plus1, minus1))
-  out <- as.character(sort(as.integer(uout[uout != x])))
+  result <- lapply(variant, \(.) variant_fns[[.]](strsplit(x, "")[[1]]))
+  uout <- unique(do.call(c, result))
+  out <- as.character(as.integer(uout[uout != x]))
   sprintf("%05s", out)
 }

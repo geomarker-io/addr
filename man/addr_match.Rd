@@ -9,6 +9,7 @@ addr_match(
   x,
   y,
   zip_variants = TRUE,
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   name_phonetic_dist = 2L,
   name_fuzzy_dist = 1L,
   number_fuzzy_dist = 1L,
@@ -28,7 +29,10 @@ addr_match_prepare(y, progress = interactive())
 created by \code{addr_match_prepare()}}
 
 \item{zip_variants}{logical; fuzzy match to common variants of
-x in y? (e.g., changing 4th or 5th digit)}
+\code{x} in \code{y}?}
+
+\item{zip_variant}{character vector; zipcode variant types to use when
+\code{zip_variants} is \code{TRUE}; see \code{?zipcode_variant}}
 
 \item{name_phonetic_dist}{integer; maximum optimized string alignment
 distance between \code{phonetic_street_key()} of x and y to consider a possible
@@ -37,8 +41,9 @@ match}
 \item{name_fuzzy_dist}{integer; maximum optimized string alignment distance
 between \verb{@name} of x and y to consider a possible match}
 
-\item{number_fuzzy_dist}{integer; maximum optimized string alignment distance
-between \verb{@number} of x and y to consider a possible match}
+\item{number_fuzzy_dist}{integer; maximum optimized string alignment
+distance between \code{addr_number} strings in \code{x} and \code{y} to consider a
+possible match.}
 
 \item{match_street_predirectional}{logical; require street predirectional to
 match when selecting street candidates?}
@@ -56,8 +61,9 @@ to match when selecting street candidates?}
 bar while preparing raw \code{y} or processing matched ZIP groups?}
 }
 \value{
-an addr vector, the same length as x, that is the best match in y
-for each addr in x. Partial matches are returned with matched ZIP code
+An addr vector, the same length as \code{x}, containing the selected
+match in \code{y} for each addr in \code{x}. Partial matches are returned with
+matched ZIP code
 and/or street fields filled when later stages do not match.
 }
 \description{

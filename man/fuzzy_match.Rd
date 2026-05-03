@@ -13,24 +13,23 @@ fuzzy_match(x, y, osa_max_dist = 1, prefilter = c("none", "psk"))
 
 \item{osa_max_dist}{maximum OSA distance to consider a match;
 \code{Inf} is a special case that avoids computing string distance by
-returning all of \code{y} instead of just the best match(es) in 'y`}
+returning all of \code{y} instead of just the best match or matches in \code{y}.}
 
-\item{prefilter}{method used to prefilter y before computing
-osa distances for fuzzy matching to speed up calculations;
-"none" does nothing, "psk" removes addrs in y that do not have
-a \code{phonetic_street_key()} in x}
+\item{prefilter}{method used to prefilter \code{y} before computing
+OSA distances; \code{"none"} does nothing, and \code{"psk"} removes values in \code{y}
+that do not share a \code{phonetic_street_key()} with any value in \code{x}.}
 }
 \value{
 a list of integer vectors representing the position of the best
 matching string(s) in \code{y} for each string in \code{x}
 }
 \description{
-Fuzzy match strings in x to y using optimized string alignment
-(ignoring capitalization).
+Fuzzy match strings in \code{x} to strings in \code{y} using optimized string
+alignment (OSA) distance and ignoring capitalization.
 }
 \details{
-If multiple strings in \code{y} are tied for the minimum osa distances with a
-string in \code{x}, then all of their indices are included in the return value.
+If multiple strings in \code{y} are tied for the minimum OSA distance from a
+string in \code{x}, all of their indices are included in the return value.
 }
 \examples{
 my_names <-

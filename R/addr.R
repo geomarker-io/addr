@@ -50,20 +50,19 @@ NULL
 #' ```
 #'
 #' @details
-#' All field values must must be a character vector of at least length one
-#' (including missing values); length one fields will be
-#' recycled to match the length of other fields.
+#' All field values must be character vectors of at least length one
+#' (including missing values). Length-one fields are recycled to match the
+#' length of other fields.
 #'
-#' @param prefix (often fractional) appears before digits
+#' @param prefix address number prefix, often a fractional or grid component
 #' @param digits primary street number for the address
-#' @param suffix (often letter/part) attached after digits
-#' @param predirectional direction before name
-#' @param premodifier descriptive modifier before name
-#' @param pretype type/classification before name
-#' @param name core street name (excluding type/directionals)
-#' @param posttype type/classification after name
-#' @param postdirectional direction after name
-#' @param name street name or city/town/municipality name
+#' @param suffix address number suffix, often a letter or unit-like component
+#' @param predirectional direction before the street name
+#' @param premodifier descriptive modifier before the street name
+#' @param pretype street type or classification before the street name
+#' @param name street name, or city/town/municipality name for `addr_place()`
+#' @param posttype street type or classification after the street name
+#' @param postdirectional direction after the street name
 #' @param state state or territory abbreviation
 #' @param zipcode ZIP code (must be five digits not starting with "000")
 #' @param map_posttype logical; map posttype to abbreviations?
@@ -99,7 +98,7 @@ NULL
 #' )
 #'
 #' # define a more complicated addr vector
-#' # and explicltly specify empty components to avoid NA
+#' # and explicitly specify empty components to avoid NA
 #' addr(
 #'   addr_number(prefix = "", digits = "200", suffix = ""),
 #'   addr_street(
@@ -268,6 +267,38 @@ S7::method(`[`, addr) <- function(x, i, ...) {
     return(x)
   }
   do.call(addr, lapply(S7::props(x), `[`, i, ...))
+}
+
+#' @method [<- addr
+#' @export
+`[<-.addr` <- function(x, i, ..., value) {
+  if (!inherits(value, "addr")) {
+    stop("`value` must be an addr vector", call. = FALSE)
+  }
+  if (length(list(...)) > 0L) {
+    stop(
+      "addr vectors only support one-dimensional subassignment",
+      call. = FALSE
+    )
+  }
+
+  x_parts <- S7::props(x)
+  value_parts <- S7::props(value)
+  has_i <- !missing(i)
+  x_parts <- Map(
+    function(old, new) {
+      if (has_i) {
+        old[i] <- new
+      } else {
+        old[] <- new
+      }
+      old
+    },
+    x_parts,
+    value_parts
+  )
+
+  do.call(addr, x_parts)
 }
 
 S7::method(unique, addr) <- function(x, ...) {

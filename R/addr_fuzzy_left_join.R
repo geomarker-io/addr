@@ -1,23 +1,21 @@
 #' Left join two data frames using fuzzy addr matching
 #'
 #' @description
-#' This wraps around the addr fuzzy matching helpers and
-#' returns a left-join style result. The addr columns are matched by index and
+#' This wraps the addr fuzzy matching helpers and returns a left-join style
+#' result. The addr columns are matched by index and
 #' rows are expanded for one-to-many or many-to-many matches.
 #'
-#' See `addr_match()` and `addr_left_join()` for an alternative strategy
-#' to matching addr and joining data frames with addr columns
-#' that is faster, but is limited to one best match instead of
-#' multi-matches.
+#' See `addr_match()` and `addr_left_join()` for a faster alternative that
+#' returns one selected match instead of all fuzzy matches.
 #'
 #' @param x,y data frames or tibbles with an addr column
 #' @param by addr column name in `x` (and `y` if the same);
 #'   or a length-2 character vector of `c(x_col, y_col)`
-#' @param addr_fields a named vector of osa_max_distances; if max distances
-#' for each addr tag field is not present a default will be used (see details).
+#' @param addr_fields a named vector of OSA maximum distances. Defaults are
+#'   used for fields that are not supplied; see Details.
 #' @details
-#' addr_fuzzy_left_join works by matching addresses grouped by ZIP codes, so specified
-#' osa_max_distances for any place fields are ignored
+#' `addr_fuzzy_left_join()` matches addresses within ZIP code groups, so
+#' maximum distances for place fields are ignored.
 #' Defaults for `addr_fields`:
 #' \itemize{
 #'   \item number_prefix: 0
