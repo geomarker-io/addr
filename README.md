@@ -1,4 +1,4 @@
-# addr
+# addr <img src="man/figures/logo.svg" align="right" height="1800" />
 
 <!-- badges: start -->
 
@@ -38,11 +38,28 @@ Installing addr from GitHub requires a working [Rust](https://www.rust-lang.org/
 addr vectors behave like standard R vectors: they recycle, subset, and combine with vctrs tooling. You can parse text into an addr vector with `as_addr()` or build one from component vectors with `addr()`.
 
 ```r
-addr_vec <- as_addr(c("3333 Burnet Ave Cincinnati OH 45229",
-                      "5130 Rapid Run Rd Cincinnati OH 45238"))
+as_addr(c("3333 Burnet Ave Cincinnati OH 45229",
+          "5130 Rapid Run Rd Cincinnati OH 45238"))
+
+#> <addr>
+#>  @ number: <addr_number> function ()
+#>  .. @ prefix: chr [1:2] "" ""
+#>  .. @ digits: chr [1:2] "3333" "5130"
+#>  .. @ suffix: chr [1:2] "" ""
+#>  @ street: <addr_street> function ()
+#>  .. @ predirectional : chr [1:2] "" ""
+#>  .. @ premodifier    : chr [1:2] "" ""
+#>  .. @ pretype        : chr [1:2] "" ""
+#>  .. @ name           : chr [1:2] "Burnet" "Rapid Run"
+#>  .. @ posttype       : chr [1:2] "Ave" "Rd"
+#>  .. @ postdirectional: chr [1:2] "" ""
+#>  @ place : <addr_place> function ()
+#>  .. @ name   : chr [1:2] "Cincinnati" "Cincinnati"
+#>  .. @ state  : chr [1:2] "OH" "OH"
+#>  .. @ zipcode: chr [1:2] "45229" "45238"
 ```
 
-![](man/figures/addr_data.png)
+<img src="./man/figures/addr_data.png" height="500" />
 
 ## Address Matching
 
