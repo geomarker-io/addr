@@ -1,6 +1,6 @@
 Package: addr
 Title: Clean, Parse, Harmonize, Match, and Geocode Messy Real-World US Addresses
-Version: 1.0.0.9000
+Version: 1.1.0.9000
 Authors@R: 
     c(person("Cole", "Brokamp", email = "cole@colebrokamp.com", role = c("aut", "cre")),
       person("Erika", "Manning", role = c("aut")))
@@ -14,6 +14,7 @@ RoxygenNote: 7.3.2
 Suggests: 
     htmltools,
     arrow,
+    dplyr,
     shiny,
     testthat (>= 3.0.0),
     jsonlite,
