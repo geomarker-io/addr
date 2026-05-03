@@ -42,6 +42,8 @@ addr_vec <- as_addr(c("3333 Burnet Ave Cincinnati OH 45229",
                       "5130 Rapid Run Rd Cincinnati OH 45238"))
 ```
 
+![](man/figures/addr_data.png)
+
 ## Address Matching
 
 `addr_match()` compares one `addr()` vector to another and returns one selected reference address for each input address. Matching is staged: ZIP codes are matched first, then streets are matched within each matched ZIP code, then address numbers are matched within each matched ZIP/street group. This keeps matching fast while still allowing common street-name, phonetic, ZIP-code, and address-number variation.
@@ -57,6 +59,12 @@ For repeated matching against the same reference addresses, prepare the referenc
 The nationwide NAD geodatabase is large, so addr caches derived county data in the R user cache directory. The package also includes `nad_example_data()` for Hamilton County, Ohio, which is useful for examples, tests, and matching workflows that should run without downloading the full NAD source first.
 
 ## Geocoding
+
+Matched NAD coordinates can be used as a geocode, but placement often varies by the contributing organization and state. If linking to parcel geographies, intersection with parcel boundaries or their centroids can be used. Street range geocoding does not use address-level data, but instead interpolates the location with possible street ranges provided by census.gov. In any case, geocoding includes (1) cleaning address text, (2) tagging the address, (3) harmonizing the address tags, (4) matching the ZIP code and street combinations. Major differences between the methods arise when placing a coordinate after matching a ZIP code - street:
+
+![](man/figures/geocoding_methods.png)
+
+## Street Range Geocoding
 
 `geocode()` converts `addr()` vectors to point locations using Census TIGER address ranges. It matches the input street to installed TIGER address features, chooses the best address range and street side from the address number, interpolates a point along the range, and offsets that point from the street line.
 
