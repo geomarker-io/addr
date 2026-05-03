@@ -74,6 +74,11 @@ NAD release, state, and named by county; e.g., see
 The NAD is downloaded from each release on the transportation.gov
 data portal:
 \url{https://data.transportation.gov/d/yw36-suxr}
+Downloads use the R \code{curl} package and resume from any interrupted
+partial download left in the addr user data directory.
+If the download cannot complete, \code{nad_download()} will also work with a
+NAD ZIP file that was downloaded another way and placed where
+\code{tools::R_user_dir("addr", "data")} can find it.
 For the original schema, see
 \url{https://www.transportation.gov/sites/dot.gov/files/2023-07/NAD_Schema_202304.pdf}
 Before downloading, please read the disclaimer here:

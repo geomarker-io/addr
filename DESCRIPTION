@@ -17,7 +17,6 @@ Suggests:
     dplyr,
     jsonlite,
     leaflet,
-    curl,
     mirai,
     pkgload,
     sf,
@@ -26,6 +25,7 @@ Suggests:
     wk,
     withr
 Imports: 
+    curl,
     s2,
     S7,
     stringdist,

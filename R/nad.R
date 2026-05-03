@@ -38,6 +38,11 @@
 #' The NAD is downloaded from each release on the transportation.gov
 #' data portal:
 #' <https://data.transportation.gov/d/yw36-suxr>
+#' Downloads use the R `curl` package and resume from any interrupted
+#' partial download left in the addr user data directory.
+#' If the download cannot complete, `nad_download()` will also work with a
+#' NAD ZIP file that was downloaded another way and placed where
+#' `tools::R_user_dir("addr", "data")` can find it.
 #' For the original schema, see
 #' <https://www.transportation.gov/sites/dot.gov/files/2023-07/NAD_Schema_202304.pdf>
 #' Before downloading, please read the disclaimer here:
@@ -347,17 +352,36 @@ nad_download <- function(
     if (release == "latest") {
       release <- nad_md$flnm
     }
-    dest <- file.path(
-      tools::R_user_dir("addr", "data"),
-      release
-    )
+    dest <- nad_data_path(release)
+    partial_dest <- nad_partial_path(dest)
+    dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
+    if (refresh_source == "force") {
+      unlink(dest)
+      unlink(partial_dest)
+    }
     if (!file.exists(dest)) {
-      tf <- tempfile()
-      utils::download.file(nad_md$dlurl, tf)
-      file.copy(tf, dest)
+      tryCatch(
+        {
+          nad_download_archive(nad_md$dlurl, partial_dest)
+          ok <- file.rename(partial_dest, dest)
+          if (!ok) {
+            stop("failed to move completed download into place")
+          }
+        },
+        error = function(e) {
+          stop(
+            nad_download_failure_message(
+              dest = dest,
+              release = release,
+              error_message = conditionMessage(e)
+            ),
+            call. = FALSE
+          )
+        }
+      )
     }
   } else {
-    dest <- file.path(tools::R_user_dir("addr", "data"), release)
+    dest <- nad_data_path(release)
     if (!file.exists(dest)) {
       stop(
         dest,
@@ -367,4 +391,74 @@ nad_download <- function(
     }
   }
   return(file.path("/vsizip", dest, sub("(_FGDB)?\\.zip$", ".gdb", release)))
+}
+
+nad_data_path <- function(release) {
+  stopifnot(
+    "release must be a character vector" = is.character(release),
+    "release must be length one" = length(release) == 1L,
+    "release must not be missing" = !is.na(release)
+  )
+  file.path(tools::R_user_dir("addr", "data"), release)
+}
+
+nad_partial_path <- function(dest) {
+  stopifnot(
+    "dest must be a character vector" = is.character(dest),
+    "dest must be length one" = length(dest) == 1L,
+    "dest must not be missing" = !is.na(dest)
+  )
+  paste0(dest, ".part")
+}
+
+nad_download_archive <- function(url, dest) {
+  stopifnot(
+    "url must be a character vector" = is.character(url),
+    "url must be length one" = length(url) == 1L,
+    "url must not be missing" = !is.na(url),
+    "dest must be a character vector" = is.character(dest),
+    "dest must be length one" = length(dest) == 1L,
+    "dest must not be missing" = !is.na(dest)
+  )
+  resume_from <- 0
+  if (file.exists(dest)) {
+    resume_from <- file.info(dest)$size[[1]]
+    if (is.na(resume_from)) {
+      resume_from <- 0
+    }
+  }
+  if (resume_from > 0) {
+    message("resuming interrupted NAD download at ", dest)
+  }
+  h <- curl::new_handle()
+  if (resume_from > 0) {
+    curl::handle_setopt(h, resume_from_large = resume_from)
+  }
+  res <- curl::curl_fetch_disk(url, dest, handle = h)
+  if (!is.null(res$status_code) && res$status_code >= 400L) {
+    stop("download returned HTTP status ", res$status_code)
+  }
+  invisible(dest)
+}
+
+nad_download_failure_message <- function(dest, release, error_message) {
+  stopifnot(
+    "dest must be a character vector" = is.character(dest),
+    "dest must be length one" = length(dest) == 1L,
+    "dest must not be missing" = !is.na(dest),
+    "release must be a character vector" = is.character(release),
+    "release must be length one" = length(release) == 1L,
+    "release must not be missing" = !is.na(release),
+    "error_message must be a character vector" = is.character(error_message),
+    "error_message must be length one" = length(error_message) == 1L,
+    "error_message must not be missing" = !is.na(error_message)
+  )
+  paste0(
+    "failed to download `", release, "` to `", dest, "`: ",
+    error_message,
+    ". If you can download it another way, place it at `", dest, "`",
+    " or set `R_USER_DATA_DIR` so ",
+    "`tools::R_user_dir(\"addr\", \"data\")` points to a directory",
+    " that already contains `", release, "`."
+  )
 }
