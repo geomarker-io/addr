@@ -47,6 +47,7 @@ addr_left_join <- function(
   by = "addr",
   suffix = c(".x", ".y"),
   zip_variants = TRUE,
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   name_phonetic_dist = 2L,
   name_fuzzy_dist = 1L,
   number_fuzzy_dist = 1L,
@@ -124,6 +125,7 @@ addr_left_join <- function(
     ) ||
       is_addr_match_index(match_prepared)
   )
+  zip_variant <- validate_zip_variant(zip_variant)
 
   if (nrow(x) == 0L) {
     y_out <- y[0, , drop = FALSE]
@@ -187,6 +189,7 @@ addr_left_join <- function(
     x = x_addr,
     y = if (is.null(match_prepared)) y_addr else match_prepared,
     zip_variants = zip_variants,
+    zip_variant = zip_variant,
     name_phonetic_dist = name_phonetic_dist,
     name_fuzzy_dist = name_fuzzy_dist,
     number_fuzzy_dist = number_fuzzy_dist,

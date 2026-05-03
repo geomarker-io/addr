@@ -10,7 +10,7 @@ elh_data()
 a tibble with 100 rows and 9 columns
 }
 \description{
-The Cincinnati Evicition Hotspots data was downloaded from
+The Cincinnati Eviction Hotspots data was downloaded from
 \href{https://evictionlab.org/uploads/cincinnati_hotspots_media_report.csv}{Eviction Labs}
 and contains characteristics of the top 100 buildings that are responsible for about 25\% of
 all eviction filings in Cincinnati (from their "current through 8-31-2024" release).

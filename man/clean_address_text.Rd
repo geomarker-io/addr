@@ -2,7 +2,7 @@
 % Please edit documentation in R/clean.R
 \name{clean_address_text}
 \alias{clean_address_text}
-\title{clean address text}
+\title{Clean address text}
 \usage{
 clean_address_text(x)
 }
@@ -13,7 +13,7 @@ clean_address_text(x)
 a vector of cleaned addresses
 }
 \description{
-remove excess whitespace; keep only letters, numbers, \verb{#}, and \code{-}
+Remove excess whitespace and keep only letters, numbers, \verb{#}, and \code{-}.
 }
 \examples{
 clean_address_text(c(

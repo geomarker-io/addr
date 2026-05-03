@@ -2,12 +2,12 @@
 #'
 #' @description
 #' An example of the data returned using `nad()` for
-#' Hamilton County, Ohio (release `NAD_r22.zip`).  See `?nad` for more information about
-#' the National Address Database.
+#' Hamilton County, Ohio (release `NAD_r22.zip`). See `?nad` for more
+#' information about the National Address Database.
 #'
 #' `nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no")`
-#' and `nad("39061", refresh_source = "no", refresh_binary = "no")`
-#' is equivalent to `nad_example_data()`
+#' and `nad("39061", refresh_source = "no", refresh_binary = "no")` are
+#' equivalent to `nad_example_data()`.
 #'
 #' @param match_prepared logical; return the example data preprocessed with
 #'   `addr_match_prepare()`?
@@ -49,11 +49,11 @@ nad_example_data <- function(match_prepared = FALSE) {
 
 #' Example addresses
 #'
-#' The voter_addresses data was generated as an example character vector of real-world addresses.
-#' These addresses were downloaded from the Hamilton County, Ohio voter registration database on 2024-09-12.
-#' See `inst/make_example_addresses.R` for more details.
-#' `AddressPreDirectional`, `AddressNumber`, `AddressStreet`, `AddressSuffix`, `CityName`, "OH", and `AddressZip`
-#' are pasted together to create 242,133 unique addresses of registered voters in Hamilton County, OH.
+#' `voter_addresses()` returns an example character vector of real-world
+#' addresses downloaded from the Hamilton County, Ohio voter registration
+#' database on 2024-09-12. `AddressPreDirectional`, `AddressNumber`,
+#' `AddressStreet`, `AddressSuffix`, `CityName`, `"OH"`, and `AddressZip`
+#' were pasted together to create 242,133 unique registered-voter addresses.
 #' @returns a character vector
 #' @export
 #' @examples
@@ -72,7 +72,7 @@ voter_addresses <- function() {
 
 #' Example line-one addresses
 #'
-#' The Cincinnati Evicition Hotspots data was downloaded from
+#' The Cincinnati Eviction Hotspots data was downloaded from
 #' [Eviction Labs](https://evictionlab.org/uploads/cincinnati_hotspots_media_report.csv)
 #' and contains characteristics of the top 100 buildings that are responsible for about 25% of
 #' all eviction filings in Cincinnati (from their "current through 8-31-2024" release).

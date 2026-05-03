@@ -11,10 +11,10 @@ stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://
 
 <!-- badges: end -->
 
-Addresses that were not validated at the time of collection are often heterogenously formatted and filled with typographical and phonetic noise, making them difficult to compare or link to other sets of addresses.
-The goal of addr is to clean, parse, standardize, and match messy, real-world US addresses in R to use for data linkages.
-addr uses the included `usaddress` library to tag address components and build vctrs-based addr vectors, including the `addr()` vector and the `addr_number()`, `addr_street()`, and `addr_place()` subclass vectors.
-Addr and addr_part vectors can be standardized and matched/joined using exact, best, or fuzzy linkages. Ultimately, this facilitates using addr vectors as a column in a data frame which allows for powerful computing on nested address structures using standard R tools.
+Addresses that were not validated at collection are often inconsistently formatted and contain typographical or phonetic noise, making them difficult to compare or link to other address data.
+The goal of addr is to clean, parse, standardize, match, and geocode messy, real-world US addresses in R.
+addr uses the included `usaddress` library to tag address components and build vctrs-based address vectors, including `addr()` vectors and the `addr_number()`, `addr_street()`, and `addr_place()` component vectors.
+These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.
 
 ## Installation
 
@@ -35,31 +35,35 @@ Installing addr from GitHub requires a working [Rust](https://www.rust-lang.org/
 
 ## Getting Started
 
-addr vectors behave like standard R vectors: they recycle, subset, and combine with vctrs tooling. You can parse text into an addr vector with `as_addr()` or build one from its subclass vectors with `addr()`.
+addr vectors behave like standard R vectors: they recycle, subset, and combine with vctrs tooling. You can parse text into an addr vector with `as_addr()` or build one from component vectors with `addr()`.
 
 ```r
 addr_vec <- as_addr(c("3333 Burnet Ave Cincinnati OH 45229",
                       "5130 Rapid Run Rd Cincinnati OH 45238"))
 ```
 
-`addr` vectors store addresses as three linked vectors (`number`, `street`, `place`).
-The structure of addr and its components was derived from the [US Thoroughfare, Landmark, and Postal Address Data Standard](https://www.fgdc.gov/standards/projects/address-data), taking what is relevant for residential, numbered thoroughfare addresses.
+## Address Matching
 
-![Diagram of the addr object structure and staged fuzzy matching](man/figures/addr_data.png)
+`addr_match()` compares one `addr()` vector to another and returns one selected reference address for each input address. Matching is staged: ZIP codes are matched first, then streets are matched within each matched ZIP code, then address numbers are matched within each matched ZIP/street group. This keeps matching fast while still allowing common street-name, phonetic, ZIP-code, and address-number variation.
 
-```r
-addr_vec
-```
+Use `addr_left_join()` when the goal is to join data frames with addr columns. It uses the same staged matching as `addr_match()` and then expands exact duplicate reference rows when more than one row in `y` has the selected address. Use `addr_fuzzy_left_join()` when you need all fuzzy candidate matches rather than one selected match.
 
-Addr in a tibble...
+For repeated matching against the same reference addresses, prepare the reference once with `addr_match_prepare()` and reuse the returned index in later `addr_match()` or `addr_left_join()` calls.
 
-## Linking to National Address Database (NAD) data
+## National Address Database
 
-## Geocoding with TIGER/Line
+`nad()` reads county-level address points from the U.S. Department of Transportation National Address Database. Counties can be requested by county name plus state, such as `"Hamilton", "OH"`, or by 5-digit county FIPS code, such as `"39061"`.
 
-> soon
+The nationwide NAD geodatabase is large, so addr caches derived county data in the R user cache directory. The package also includes `nad_example_data()` for Hamilton County, Ohio, which is useful for examples, tests, and matching workflows that should run without downloading the full NAD source first.
 
-## Code of Conduct
+## Geocoding
 
-Please note that the addr project is released with a [Contributor Code of Conduct](https://geomarker.io/addr/CODE_OF_CONDUCT.html).
-By contributing to this project, you agree to abide by its terms.
+`geocode()` converts `addr()` vectors to point locations using Census TIGER address ranges. It matches the input street to installed TIGER address features, chooses the best address range and street side from the address number, interpolates a point along the range, and offsets that point from the street line.
+
+Geocoding returns the input address, matched ZIP code, matched street, point geography, and s2 cell. Inputs with missing or unmatched ZIP codes, streets, or address ranges return missing geographies rather than guessed coordinates.
+
+## TIGER Address Features
+
+TIGER address features are Census street-segment address ranges. addr stores them as a hive-partitioned, multi-file parquet dataset, grouped by ZIP-code partitions and county files, so geocoding can read only the local files needed for the input ZIP codes.
+
+`taf_install()` installs TIGER address features for one county. `taf_needed_counties()` identifies which county files may contain the ZIP codes in an input address vector, including selected ZIP-code variants. `taf_ensure()` installs any missing county files, and `geocode()` calls it by default before geocoding. Use `taf()` to open the installed multi-file dataset with arrow and `taf_zip()` to read the address ranges for specific ZIP codes.

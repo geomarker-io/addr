@@ -139,9 +139,6 @@ test_that("zipcode_variant returns known variants", {
   expect_equal(
     zipcode_variant("45220"),
     c(
-      "42520",
-      "45200",
-      "45210",
       "45219",
       "45221",
       "45222",
@@ -152,16 +149,38 @@ test_that("zipcode_variant returns known variants", {
       "45227",
       "45228",
       "45229",
+      "45200",
+      "45210",
       "45230",
       "45240",
       "45250",
       "45260",
       "45270",
       "45280",
-      "45290"
+      "45290",
+      "42520"
     )
   )
 
+  expect_equal(
+    zipcode_variant("45220", c("minus1", "plus1")),
+    c("45219", "45221")
+  )
+  expect_equal(
+    zipcode_variant("45220", "sub5"),
+    c(
+      "45221",
+      "45222",
+      "45223",
+      "45224",
+      "45225",
+      "45226",
+      "45227",
+      "45228",
+      "45229"
+    )
+  )
+  expect_equal(zipcode_variant("45220", "swap"), "42520")
   expect_equal(zipcode_variant(""), "")
   expect_equal(zipcode_variant(NA_character_), NA_character_)
 })
@@ -191,6 +210,15 @@ test_that("match_zipcodes uses known zipcode examples", {
       NA_character_,
       NA_character_
     )
+  )
+
+  expect_equal(
+    match_zipcodes("45220", c("42520", "45219"), zip_variant = "swap"),
+    "42520"
+  )
+  expect_equal(
+    match_zipcodes("45220", c("42520", "45219"), zip_variant = "minus1"),
+    "45219"
   )
 })
 
@@ -467,6 +495,37 @@ test_that("match_addr_street leaves NA and all-empty addr_street values unmatche
       )
     )
   )
+})
+
+test_that("match_addr_street ignores unusable reference streets with empty names", {
+  x <- addr_street(
+    predirectional = c("", ""),
+    premodifier = c("", ""),
+    pretype = c("", ""),
+    name = c("WESTERN VIEW", ""),
+    posttype = c("Ct", ""),
+    postdirectional = c("", "W"),
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_pretype = FALSE,
+    map_ordinal = FALSE
+  )
+  y <- addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "",
+    posttype = "",
+    postdirectional = "W",
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_pretype = FALSE,
+    map_ordinal = FALSE
+  )
+
+  out <- match_addr_street(x, y)
+
+  expect_true(all(is.na(out)))
 })
 
 test_that("match_addr_street matches typo and phonetic street-name variants", {

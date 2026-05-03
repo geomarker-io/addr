@@ -36,23 +36,23 @@ addr_place(
 addr(number = addr_number(), street = addr_street(), place = addr_place())
 }
 \arguments{
-\item{prefix}{(often fractional) appears before digits}
+\item{prefix}{address number prefix, often a fractional or grid component}
 
 \item{digits}{primary street number for the address}
 
-\item{suffix}{(often letter/part) attached after digits}
+\item{suffix}{address number suffix, often a letter or unit-like component}
 
-\item{predirectional}{direction before name}
+\item{predirectional}{direction before the street name}
 
-\item{premodifier}{descriptive modifier before name}
+\item{premodifier}{descriptive modifier before the street name}
 
-\item{pretype}{type/classification before name}
+\item{pretype}{street type or classification before the street name}
 
-\item{name}{street name or city/town/municipality name}
+\item{name}{street name, or city/town/municipality name for \code{addr_place()}}
 
-\item{posttype}{type/classification after name}
+\item{posttype}{street type or classification after the street name}
 
-\item{postdirectional}{direction after name}
+\item{postdirectional}{direction after the street name}
 
 \item{map_posttype}{logical; map posttype to abbreviations?}
 
@@ -124,9 +124,9 @@ single addr vector:
 }\if{html}{\out{</div>}}
 }
 \details{
-All field values must must be a character vector of at least length one
-(including missing values); length one fields will be
-recycled to match the length of other fields.
+All field values must be character vectors of at least length one
+(including missing values). Length-one fields are recycled to match the
+length of other fields.
 }
 \examples{
 # define a new addr_number vector
@@ -150,7 +150,7 @@ addr(
 )
 
 # define a more complicated addr vector
-# and explicltly specify empty components to avoid NA
+# and explicitly specify empty components to avoid NA
 addr(
   addr_number(prefix = "", digits = "200", suffix = ""),
   addr_street(

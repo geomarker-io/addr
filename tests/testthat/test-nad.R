@@ -12,11 +12,11 @@ test_that("nad() uses included cached object for Hamilton, OH", {
 test_that("nad() read from gdb on disk", {
   nad_db <- file.path(
     tools::R_user_dir("addr", "data"),
-    "NAD_r21_FGDB.zip"
+    "NAD_r22_FGDB.zip"
   )
   if (!file.exists(nad_db)) {
     skip("nad gdb not installed")
   }
   skip("it takes forever")
-  d <- nad("King", "TX", release = "NAD_r21_FGDB.zip", refresh_binary = "force")
+  d <- nad("King", "TX", release = "NAD_r22_FGDB.zip", refresh_binary = "force")
 })
