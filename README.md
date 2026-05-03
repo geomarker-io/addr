@@ -1,4 +1,4 @@
-# addr <img src="man/figures/logo.svg" align="right" height="50" />
+# addr <img src="man/figures/logo.svg" align="right" height="250" />
 
 <!-- badges: start -->
 
