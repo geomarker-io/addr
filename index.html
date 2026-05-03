@@ -12,8 +12,8 @@
 <link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Clean, Parse, Harmonize, Match, and Geocode Messy Real-World US Addresses">
-<meta name="description" content="Addresses that were not validated at the time of collection are often heterogenously formatted and filled with typographical and phonetic noise, making them difficult to compare or link to other sets of addresses. The addr package is designed to clean character strings of addresses, use the `usaddress` library to tag address components, and create addr vector objects. Addr vectors are composed of addr_part vectors for number, street, and place. Addr and addr_part vectors can be standardized and matched/joined using exact, best, or fuzzy linkages. Ultimately, this facilitates using addr vectors as a column in a data frame which allows for powerful computing on nested address structures using standard R tools.">
-<meta property="og:description" content="Addresses that were not validated at the time of collection are often heterogenously formatted and filled with typographical and phonetic noise, making them difficult to compare or link to other sets of addresses. The addr package is designed to clean character strings of addresses, use the `usaddress` library to tag address components, and create addr vector objects. Addr vectors are composed of addr_part vectors for number, street, and place. Addr and addr_part vectors can be standardized and matched/joined using exact, best, or fuzzy linkages. Ultimately, this facilitates using addr vectors as a column in a data frame which allows for powerful computing on nested address structures using standard R tools.">
+<meta name="description" content="Addresses that were not validated at collection are often inconsistently formatted and contain typographical or phonetic noise, making them difficult to compare or link to other address data. The addr package cleans, parses, standardizes, matches, and geocodes messy, real-world US addresses. It uses the `usaddress` library to tag address components and build addr vector objects composed of addr_part vectors for number, street, and place. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.">
+<meta property="og:description" content="Addresses that were not validated at collection are often inconsistently formatted and contain typographical or phonetic noise, making them difficult to compare or link to other address data. The addr package cleans, parses, standardizes, matches, and geocodes messy, real-world US addresses. It uses the `usaddress` library to tag address components and build addr vector objects composed of addr_part vectors for number, street, and place. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,7 +52,7 @@
 <!-- badges: start -->
 
 <!-- badges: end -->
-<p>Addresses that were not validated at the time of collection are often heterogenously formatted and filled with typographical and phonetic noise, making them difficult to compare or link to other sets of addresses. The goal of addr is to clean, parse, standardize, and match messy, real-world US addresses in R to use for data linkages. addr uses the included <code>usaddress</code> library to tag address components and build vctrs-based addr vectors, including the <code><a href="reference/addr.html">addr()</a></code> vector and the <code><a href="reference/addr.html">addr_number()</a></code>, <code><a href="reference/addr.html">addr_street()</a></code>, and <code><a href="reference/addr.html">addr_place()</a></code> subclass vectors. Addr and addr_part vectors can be standardized and matched/joined using exact, best, or fuzzy linkages. Ultimately, this facilitates using addr vectors as a column in a data frame which allows for powerful computing on nested address structures using standard R tools.</p>
+<p>Addresses that were not validated at collection are often inconsistently formatted and contain typographical or phonetic noise, making them difficult to compare or link to other address data. The goal of addr is to clean, parse, standardize, match, and geocode messy, real-world US addresses in R. addr uses the included <code>usaddress</code> library to tag address components and build vctrs-based address vectors, including <code><a href="reference/addr.html">addr()</a></code> vectors and the <code><a href="reference/addr.html">addr_number()</a></code>, <code><a href="reference/addr.html">addr_street()</a></code>, and <code><a href="reference/addr.html">addr_place()</a></code> component vectors. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -68,10 +68,35 @@
 <div class="section level2">
 <h2 id="using">Using<a class="anchor" aria-label="anchor" href="#using"></a>
 </h2>
-<p>addr vectors behave like standard R vectors: they recycle, subset, and combine with vctrs tooling. You can parse text into an addr vector with <code><a href="reference/as_addr.html">as_addr()</a></code> or build one from its subclass vectors with <code><a href="reference/addr.html">addr()</a></code>.</p>
+<p>addr vectors behave like standard R vectors: they recycle, subset, and combine with vctrs tooling. You can parse text into an addr vector with <code><a href="reference/as_addr.html">as_addr()</a></code> or build one from component vectors with <code><a href="reference/addr.html">addr()</a></code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">addr_vec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/as_addr.html">as_addr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"3333 Burnet Ave Cincinnati OH 45229"</span>,</span>
 <span>                      <span class="st">"5130 Rapid Run Rd Cincinnati OH 45238"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="address-matching">Address Matching<a class="anchor" aria-label="anchor" href="#address-matching"></a>
+</h2>
+<p><code><a href="reference/addr_match.html">addr_match()</a></code> compares one <code><a href="reference/addr.html">addr()</a></code> vector to another and returns one selected reference address for each input address. Matching is staged: ZIP codes are matched first, then streets are matched within each matched ZIP code, then address numbers are matched within each matched ZIP/street group. This keeps matching fast while still allowing common street-name, phonetic, ZIP-code, and address-number variation.</p>
+<p>Use <code><a href="reference/addr_left_join.html">addr_left_join()</a></code> when the goal is to join data frames with addr columns. It uses the same staged matching as <code><a href="reference/addr_match.html">addr_match()</a></code> and then expands exact duplicate reference rows when more than one row in <code>y</code> has the selected address. Use <code><a href="reference/addr_fuzzy_left_join.html">addr_fuzzy_left_join()</a></code> when you need all fuzzy candidate matches rather than one selected match.</p>
+<p>For repeated matching against the same reference addresses, prepare the reference once with <code><a href="reference/addr_match.html">addr_match_prepare()</a></code> and reuse the returned index in later <code><a href="reference/addr_match.html">addr_match()</a></code> or <code><a href="reference/addr_left_join.html">addr_left_join()</a></code> calls.</p>
+</div>
+<div class="section level2">
+<h2 id="national-address-database">National Address Database<a class="anchor" aria-label="anchor" href="#national-address-database"></a>
+</h2>
+<p><code><a href="reference/nad.html">nad()</a></code> reads county-level address points from the U.S. Department of Transportation National Address Database. Counties can be requested by county name plus state, such as <code>"Hamilton", "OH"</code>, or by 5-digit county FIPS code, such as <code>"39061"</code>.</p>
+<p>The nationwide NAD geodatabase is large, so addr caches derived county data in the R user cache directory. The package also includes <code><a href="reference/nad_example_data.html">nad_example_data()</a></code> for Hamilton County, Ohio, which is useful for examples, tests, and matching workflows that should run without downloading the full NAD source first.</p>
+</div>
+<div class="section level2">
+<h2 id="geocoding">Geocoding<a class="anchor" aria-label="anchor" href="#geocoding"></a>
+</h2>
+<p><code><a href="reference/geocode.html">geocode()</a></code> converts <code><a href="reference/addr.html">addr()</a></code> vectors to point locations using Census TIGER address ranges. It matches the input street to installed TIGER address features, chooses the best address range and street side from the address number, interpolates a point along the range, and offsets that point from the street line.</p>
+<p>Geocoding returns the input address, matched ZIP code, matched street, point geography, and s2 cell. Inputs with missing or unmatched ZIP codes, streets, or address ranges return missing geographies rather than guessed coordinates.</p>
+</div>
+<div class="section level2">
+<h2 id="tiger-address-features">TIGER Address Features<a class="anchor" aria-label="anchor" href="#tiger-address-features"></a>
+</h2>
+<p>TIGER address features are Census street-segment address ranges. addr stores them as a hive-partitioned, multi-file parquet dataset, grouped by ZIP-code partitions and county files, so geocoding can read only the local files needed for the input ZIP codes.</p>
+<p><code><a href="reference/taf.html">taf_install()</a></code> installs TIGER address features for one county. <code><a href="reference/taf_needed_counties.html">taf_needed_counties()</a></code> identifies which county files may contain the ZIP codes in an input address vector, including selected ZIP-code variants. <code><a href="reference/taf_needed_counties.html">taf_ensure()</a></code> installs any missing county files, and <code><a href="reference/geocode.html">geocode()</a></code> calls it by default before geocoding. Use <code><a href="reference/taf.html">taf()</a></code> to open the installed multi-file dataset with arrow and <code><a href="reference/taf_zip.html">taf_zip()</a></code> to read the address ranges for specific ZIP codes.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

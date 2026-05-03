@@ -49,7 +49,7 @@ addr_match()."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -70,7 +70,7 @@ addr_match()."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Match addr vectors</h1>
-      <small class="dont-index">Source: <a href="https://github.com/cole-brokamp/addr/blob/v1.0.0/R/addr_match.R" class="external-link"><code>R/addr_match.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/cole-brokamp/addr/blob/main/R/addr_match.R" class="external-link"><code>R/addr_match.R</code></a></small>
       <div class="d-none name"><code>addr_match.Rd</code></div>
     </div>
 
@@ -105,6 +105,7 @@ with the same reference addresses. For a single end-to-end match, preparing
 <span>  <span class="va">x</span>,</span>
 <span>  <span class="va">y</span>,</span>
 <span>  zip_variants <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  zip_variant <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"minus1"</span>, <span class="st">"plus1"</span>, <span class="st">"sub5"</span>, <span class="st">"sub4"</span>, <span class="st">"swap"</span><span class="op">)</span>,</span>
 <span>  name_phonetic_dist <span class="op">=</span> <span class="fl">2L</span>,</span>
 <span>  name_fuzzy_dist <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  number_fuzzy_dist <span class="op">=</span> <span class="fl">1L</span>,</span>
@@ -133,7 +134,12 @@ created by <code>addr_match_prepare()</code></p></dd>
 
 <dt id="arg-zip-variants">zip_variants<a class="anchor" aria-label="anchor" href="#arg-zip-variants"></a></dt>
 <dd><p>logical; fuzzy match to common variants of
-x in y? (e.g., changing 4th or 5th digit)</p></dd>
+<code>x</code> in <code>y</code>?</p></dd>
+
+
+<dt id="arg-zip-variant">zip_variant<a class="anchor" aria-label="anchor" href="#arg-zip-variant"></a></dt>
+<dd><p>character vector; zipcode variant types to use when
+<code>zip_variants</code> is <code>TRUE</code>; see <code><a href="zipcode_variant.html">?zipcode_variant</a></code></p></dd>
 
 
 <dt id="arg-name-phonetic-dist">name_phonetic_dist<a class="anchor" aria-label="anchor" href="#arg-name-phonetic-dist"></a></dt>
@@ -148,8 +154,9 @@ between <code>@name</code> of x and y to consider a possible match</p></dd>
 
 
 <dt id="arg-number-fuzzy-dist">number_fuzzy_dist<a class="anchor" aria-label="anchor" href="#arg-number-fuzzy-dist"></a></dt>
-<dd><p>integer; maximum optimized string alignment distance
-between <code>@number</code> of x and y to consider a possible match</p></dd>
+<dd><p>integer; maximum optimized string alignment
+distance between <code>addr_number</code> strings in <code>x</code> and <code>y</code> to consider a
+possible match.</p></dd>
 
 
 <dt id="arg-match-street-predirectional">match_street_predirectional<a class="anchor" aria-label="anchor" href="#arg-match-street-predirectional"></a></dt>
@@ -179,8 +186,9 @@ bar while preparing raw <code>y</code> or processing matched ZIP groups?</p></dd
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>an addr vector, the same length as x, that is the best match in y
-for each addr in x. Partial matches are returned with matched ZIP code
+    <p>An addr vector, the same length as <code>x</code>, containing the selected
+match in <code>y</code> for each addr in <code>x</code>. Partial matches are returned with
+matched ZIP code
 and/or street fields filled when later stages do not match.</p>
     </div>
 

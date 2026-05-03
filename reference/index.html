@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,7 +66,7 @@
           <code><a href="clean_address_text.html">clean_address_text()</a></code>
 
         </dt>
-        <dd>clean address text</dd>
+        <dd>Clean address text</dd>
 
         <dt>
 
@@ -132,6 +132,101 @@
 
         </dt>
         <dd>Convert street names into phonetic matching keys</dd>
+
+        <dt>
+
+          <code><a href="zipcode_variant.html">zipcode_variant()</a></code>
+
+        </dt>
+        <dd>Create ZIP code variants</dd>
+      </dl></div><div class="section level2">
+      <h2 id="geocoding-addr">Geocoding addr<a class="anchor" aria-label="anchor" href="#geocoding-addr"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="geocode.html">geocode()</a></code> <code><a href="geocode.html">geocode_zip()</a></code>
+
+        </dt>
+        <dd>Geocode addr vectors with Census TIGER address features</dd>
+
+        <dt>
+
+          <code><a href="taf_zip.html">taf_zip()</a></code>
+
+        </dt>
+        <dd>Read taf() data for ZIP codes across all installed counties</dd>
+
+        <dt>
+
+          <code><a href="taf.html">taf()</a></code> <code><a href="taf.html">taf_install()</a></code>
+
+        </dt>
+        <dd>TIGER Address Features dataset</dd>
+
+        <dt>
+
+          <code><a href="taf_catalog.html">taf_catalog()</a></code>
+
+        </dt>
+        <dd>Read TIGER address feature ZIP/county catalog</dd>
+
+        <dt>
+
+          <code><a href="taf_needed_counties.html">taf_needed_counties()</a></code> <code><a href="taf_needed_counties.html">taf_ensure()</a></code>
+
+        </dt>
+        <dd>Find and install TAF counties needed for ZIP codes</dd>
+
+        <dt>
+
+          <code><a href="tiger_addr_feat.html">tiger_addr_feat()</a></code>
+
+        </dt>
+        <dd>Get s2_geography for tiger street ranges</dd>
+
+        <dt>
+
+          <code><a href="tiger_feat_names.html">tiger_feat_names()</a></code>
+
+        </dt>
+        <dd>Get names for tiger street ranges</dd>
+
+        <dt>
+
+          <code><a href="run_geocode_explorer.html">run_geocode_explorer()</a></code>
+
+        </dt>
+        <dd>Launch the address geocoding explorer</dd>
+      </dl></div><div class="section level2">
+      <h2 id="national-address-database">National Address Database<a class="anchor" aria-label="anchor" href="#national-address-database"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="nad.html">nad()</a></code> <code><a href="nad.html">nad_read()</a></code> <code><a href="nad.html">nad_download()</a></code>
+
+        </dt>
+        <dd>Read National Address Database (NAD) tables into R</dd>
+
+        <dt>
+
+          <code><a href="nad_example_data.html">nad_example_data()</a></code>
+
+        </dt>
+        <dd>Example National Address Database addresses</dd>
       </dl></div><div class="section level2">
       <h2 id="fuzzy-join-addr">Fuzzy join addr<a class="anchor" aria-label="anchor" href="#fuzzy-join-addr"></a></h2>
 
@@ -163,52 +258,6 @@
         </dt>
         <dd>Fuzzy match</dd>
       </dl></div><div class="section level2">
-      <h2 id="national-address-database">National Address Database<a class="anchor" aria-label="anchor" href="#national-address-database"></a></h2>
-
-
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="nad.html">nad()</a></code> <code><a href="nad.html">nad_read()</a></code> <code><a href="nad.html">nad_download()</a></code>
-
-        </dt>
-        <dd>Read National Address Database (NAD) tables into R</dd>
-
-        <dt>
-
-          <code><a href="nad_example_data.html">nad_example_data()</a></code>
-
-        </dt>
-        <dd>Example National Address Database addresses</dd>
-      </dl></div><div class="section level2">
-      <h2 id="geocoding-addr">Geocoding addr<a class="anchor" aria-label="anchor" href="#geocoding-addr"></a></h2>
-
-
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="geocode_tiger.html">geocode_tiger()</a></code>
-
-        </dt>
-        <dd>Geocode using TIGER address features</dd>
-
-        <dt>
-
-          <code><a href="tiger_addr_feat.html">tiger_addr_feat()</a></code>
-
-        </dt>
-        <dd>Get s2_geography for tiger street ranges</dd>
-      </dl></div><div class="section level2">
       <h2 id="examples-helpers">Examples &amp; Helpers<a class="anchor" aria-label="anchor" href="#examples-helpers"></a></h2>
 
 
@@ -238,13 +287,6 @@
 
         </dt>
         <dd>Translate county names and county FIPS identifiers</dd>
-
-        <dt>
-
-          <code><a href="zip_fips_lookup.html">zip_fips_lookup()</a></code>
-
-        </dt>
-        <dd>Translate ZIP codes and county FIPS identifiers</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

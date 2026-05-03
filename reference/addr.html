@@ -85,7 +85,7 @@ single addr vector:
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -106,7 +106,7 @@ single addr vector:
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>addr classes</h1>
-      <small class="dont-index">Source: <a href="https://github.com/cole-brokamp/addr/blob/v1.0.0/R/addr_part.R" class="external-link"><code>R/addr_part.R</code></a>, <a href="https://github.com/cole-brokamp/addr/blob/v1.0.0/R/addr.R" class="external-link"><code>R/addr.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/cole-brokamp/addr/blob/main/R/addr_part.R" class="external-link"><code>R/addr_part.R</code></a>, <a href="https://github.com/cole-brokamp/addr/blob/main/R/addr.R" class="external-link"><code>R/addr.R</code></a></small>
       <div class="d-none name"><code>addr.Rd</code></div>
     </div>
 
@@ -187,7 +187,7 @@ single addr vector:</p>
 
 
 <dl><dt id="arg-prefix">prefix<a class="anchor" aria-label="anchor" href="#arg-prefix"></a></dt>
-<dd><p>(often fractional) appears before digits</p></dd>
+<dd><p>address number prefix, often a fractional or grid component</p></dd>
 
 
 <dt id="arg-digits">digits<a class="anchor" aria-label="anchor" href="#arg-digits"></a></dt>
@@ -195,31 +195,31 @@ single addr vector:</p>
 
 
 <dt id="arg-suffix">suffix<a class="anchor" aria-label="anchor" href="#arg-suffix"></a></dt>
-<dd><p>(often letter/part) attached after digits</p></dd>
+<dd><p>address number suffix, often a letter or unit-like component</p></dd>
 
 
 <dt id="arg-predirectional">predirectional<a class="anchor" aria-label="anchor" href="#arg-predirectional"></a></dt>
-<dd><p>direction before name</p></dd>
+<dd><p>direction before the street name</p></dd>
 
 
 <dt id="arg-premodifier">premodifier<a class="anchor" aria-label="anchor" href="#arg-premodifier"></a></dt>
-<dd><p>descriptive modifier before name</p></dd>
+<dd><p>descriptive modifier before the street name</p></dd>
 
 
 <dt id="arg-pretype">pretype<a class="anchor" aria-label="anchor" href="#arg-pretype"></a></dt>
-<dd><p>type/classification before name</p></dd>
+<dd><p>street type or classification before the street name</p></dd>
 
 
 <dt id="arg-name">name<a class="anchor" aria-label="anchor" href="#arg-name"></a></dt>
-<dd><p>street name or city/town/municipality name</p></dd>
+<dd><p>street name, or city/town/municipality name for <code>addr_place()</code></p></dd>
 
 
 <dt id="arg-posttype">posttype<a class="anchor" aria-label="anchor" href="#arg-posttype"></a></dt>
-<dd><p>type/classification after name</p></dd>
+<dd><p>street type or classification after the street name</p></dd>
 
 
 <dt id="arg-postdirectional">postdirectional<a class="anchor" aria-label="anchor" href="#arg-postdirectional"></a></dt>
-<dd><p>direction after name</p></dd>
+<dd><p>direction after the street name</p></dd>
 
 
 <dt id="arg-map-posttype">map_posttype<a class="anchor" aria-label="anchor" href="#arg-map-posttype"></a></dt>
@@ -269,9 +269,9 @@ to abbreviations?</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>All field values must must be a character vector of at least length one
-(including missing values); length one fields will be
-recycled to match the length of other fields.</p>
+    <p>All field values must be character vectors of at least length one
+(including missing values). Length-one fields are recycled to match the
+length of other fields.</p>
     </div>
 
     <div class="section level2">
@@ -339,7 +339,7 @@ recycled to match the length of other fields.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ zipcode: chr "45229"</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># define a more complicated addr vector</span></span></span>
-<span class="r-in"><span><span class="co"># and explicltly specify empty components to avoid NA</span></span></span>
+<span class="r-in"><span><span class="co"># and explicitly specify empty components to avoid NA</span></span></span>
 <span class="r-in"><span><span class="fu">addr</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  <span class="fu">addr_number</span><span class="op">(</span>prefix <span class="op">=</span> <span class="st">""</span>, digits <span class="op">=</span> <span class="st">"200"</span>, suffix <span class="op">=</span> <span class="st">""</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  <span class="fu">addr_street</span><span class="op">(</span></span></span>

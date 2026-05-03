@@ -12,9 +12,9 @@ resolved internally and still determine the cache path and source query.
 The NAD geodatabase has a very large size on disk (~10 GB).
 Data binaries are the cached outputs of nad_read() for each
 County/State and are created on first run with nad().
-Download data binaries to the R_user_dir cache folder or point R
-(?R_user_dir) to these files on disk to read NAD tables without
-having to download the nationwide NAD geodatabase.
+Download data binaries to the tools::R_user_dir() cache directory, or
+point R to these files on disk, to read NAD tables without downloading the
+nationwide NAD geodatabase.
 (Files are organized by major package version,
 NAD release, state, and named by county; e.g., see
 list.files(tools::R_user_dir(&quot;addr&quot;, &quot;cache&quot;), recursive = TRUE))"><meta property="og:description" content="The U.S. Department of Transportation partners with address programs from
@@ -30,9 +30,9 @@ resolved internally and still determine the cache path and source query.
 The NAD geodatabase has a very large size on disk (~10 GB).
 Data binaries are the cached outputs of nad_read() for each
 County/State and are created on first run with nad().
-Download data binaries to the R_user_dir cache folder or point R
-(?R_user_dir) to these files on disk to read NAD tables without
-having to download the nationwide NAD geodatabase.
+Download data binaries to the tools::R_user_dir() cache directory, or
+point R to these files on disk, to read NAD tables without downloading the
+nationwide NAD geodatabase.
 (Files are organized by major package version,
 NAD release, state, and named by county; e.g., see
 list.files(tools::R_user_dir(&quot;addr&quot;, &quot;cache&quot;), recursive = TRUE))"></head><body>
@@ -43,7 +43,7 @@ list.files(tools::R_user_dir(&quot;addr&quot;, &quot;cache&quot;), recursive = T
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -64,7 +64,7 @@ list.files(tools::R_user_dir(&quot;addr&quot;, &quot;cache&quot;), recursive = T
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Read National Address Database (NAD) tables into R</h1>
-      <small class="dont-index">Source: <a href="https://github.com/cole-brokamp/addr/blob/v1.0.0/R/nad.R" class="external-link"><code>R/nad.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/cole-brokamp/addr/blob/main/R/nad.R" class="external-link"><code>R/nad.R</code></a></small>
       <div class="d-none name"><code>nad.Rd</code></div>
     </div>
 
@@ -82,9 +82,9 @@ resolved internally and still determine the cache path and source query.
 The NAD geodatabase has a very large size on disk (~10 GB).</p>
 <p>Data binaries are the cached outputs of <code>nad_read()</code> for each
 County/State and are created on first run with <code>nad()</code>.
-Download data binaries to the R_user_dir cache folder or point R
-(<code>?R_user_dir</code>) to these files on disk to read NAD tables without
-having to download the nationwide NAD geodatabase.
+Download data binaries to the <code><a href="https://rdrr.io/r/tools/userdir.html" class="external-link">tools::R_user_dir()</a></code> cache directory, or
+point R to these files on disk, to read NAD tables without downloading the
+nationwide NAD geodatabase.
 (Files are organized by major package version,
 NAD release, state, and named by county; e.g., see
 <code>list.files(tools::R_user_dir("addr", "cache"), recursive = TRUE)</code>)</p>
@@ -141,9 +141,10 @@ create the data binary and overwrite any existing data binary</p></dd>
 
 <dt id="arg-refresh-source">refresh_source<a class="anchor" aria-label="anchor" href="#arg-refresh-source"></a></dt>
 <dd><p>character, length one; choose how to refresh NAD
-source geodatabase on disk if not already present; "yes" wil download
-the geodatabase if not already present, "no" will error if file does not already
-exist, "force" will download and overwrite any existing geodatabase</p></dd>
+source geodatabase on disk if not already present; "yes" will download
+the geodatabase if not already present, "no" will error if the file does
+not already exist, "force" will download and overwrite any existing
+geodatabase</p></dd>
 
 </dl></div>
     <div class="section level2">

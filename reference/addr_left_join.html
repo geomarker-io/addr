@@ -15,7 +15,7 @@ selects a single best address before this wrapper expands exact duplicates."></h
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,7 +36,7 @@ selects a single best address before this wrapper expands exact duplicates."></h
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Left join two data frames using addr matching</h1>
-      <small class="dont-index">Source: <a href="https://github.com/cole-brokamp/addr/blob/v1.0.0/R/addr_left_join.R" class="external-link"><code>R/addr_left_join.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/cole-brokamp/addr/blob/main/R/addr_left_join.R" class="external-link"><code>R/addr_left_join.R</code></a></small>
       <div class="d-none name"><code>addr_left_join.Rd</code></div>
     </div>
 
@@ -56,6 +56,7 @@ selects a single best address before this wrapper expands exact duplicates.</p>
 <span>  by <span class="op">=</span> <span class="st">"addr"</span>,</span>
 <span>  suffix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">".x"</span>, <span class="st">".y"</span><span class="op">)</span>,</span>
 <span>  zip_variants <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  zip_variant <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"minus1"</span>, <span class="st">"plus1"</span>, <span class="st">"sub5"</span>, <span class="st">"sub4"</span>, <span class="st">"swap"</span><span class="op">)</span>,</span>
 <span>  name_phonetic_dist <span class="op">=</span> <span class="fl">2L</span>,</span>
 <span>  name_fuzzy_dist <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  number_fuzzy_dist <span class="op">=</span> <span class="fl">1L</span>,</span>
@@ -87,7 +88,12 @@ character vector of <code>c(x_col, y_col)</code></p></dd>
 
 <dt id="arg-zip-variants">zip_variants<a class="anchor" aria-label="anchor" href="#arg-zip-variants"></a></dt>
 <dd><p>logical; fuzzy match to common variants of
-x in y? (e.g., changing 4th or 5th digit)</p></dd>
+<code>x</code> in <code>y</code>?</p></dd>
+
+
+<dt id="arg-zip-variant">zip_variant<a class="anchor" aria-label="anchor" href="#arg-zip-variant"></a></dt>
+<dd><p>character vector; zipcode variant types to use when
+<code>zip_variants</code> is <code>TRUE</code>; see <code><a href="zipcode_variant.html">?zipcode_variant</a></code></p></dd>
 
 
 <dt id="arg-name-phonetic-dist">name_phonetic_dist<a class="anchor" aria-label="anchor" href="#arg-name-phonetic-dist"></a></dt>
@@ -102,8 +108,9 @@ between <code>@name</code> of x and y to consider a possible match</p></dd>
 
 
 <dt id="arg-number-fuzzy-dist">number_fuzzy_dist<a class="anchor" aria-label="anchor" href="#arg-number-fuzzy-dist"></a></dt>
-<dd><p>integer; maximum optimized string alignment distance
-between <code>@number</code> of x and y to consider a possible match</p></dd>
+<dd><p>integer; maximum optimized string alignment
+distance between <code>addr_number</code> strings in <code>x</code> and <code>y</code> to consider a
+possible match.</p></dd>
 
 
 <dt id="arg-match-street-predirectional">match_street_predirectional<a class="anchor" aria-label="anchor" href="#arg-match-street-predirectional"></a></dt>
