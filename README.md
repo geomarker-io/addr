@@ -33,7 +33,7 @@ pak::pak("cole-brokamp/addr")
 
 Installing addr from GitHub requires a working [Rust](https://www.rust-lang.org/learn/get-started) toolchain; install one using [rustup](https://www.rust-lang.org/tools/install).
 
-## Using
+## Getting Started
 
 addr vectors behave like standard R vectors: they recycle, subset, and combine with vctrs tooling. You can parse text into an addr vector with `as_addr()` or build one from component vectors with `addr()`.
 
