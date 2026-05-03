@@ -497,6 +497,37 @@ test_that("match_addr_street leaves NA and all-empty addr_street values unmatche
   )
 })
 
+test_that("match_addr_street ignores unusable reference streets with empty names", {
+  x <- addr_street(
+    predirectional = c("", ""),
+    premodifier = c("", ""),
+    pretype = c("", ""),
+    name = c("WESTERN VIEW", ""),
+    posttype = c("Ct", ""),
+    postdirectional = c("", "W"),
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_pretype = FALSE,
+    map_ordinal = FALSE
+  )
+  y <- addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "",
+    posttype = "",
+    postdirectional = "W",
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_pretype = FALSE,
+    map_ordinal = FALSE
+  )
+
+  out <- match_addr_street(x, y)
+
+  expect_true(all(is.na(out)))
+})
+
 test_that("match_addr_street matches typo and phonetic street-name variants", {
   the_streets <- nad_example_data()$nad_addr@street
   x <- addr_street(

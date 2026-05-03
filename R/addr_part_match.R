@@ -244,10 +244,19 @@ match_addr_street <- function(
   keep_ux <- !is.na(ux_df$street_name) & ux_df$street_name != ""
   ux_df <- ux_df[keep_ux, , drop = FALSE]
   ux_key <- ux_key[keep_ux]
+  if (nrow(ux_df) == 0L) {
+    return(x[rep(NA_integer_, length(x))])
+  }
 
   uy_idx <- !duplicated(y_key)
   uy_df <- y_df[uy_idx, , drop = FALSE]
   uy_key <- y_key[uy_idx]
+  keep_uy <- !is.na(uy_df$street_name) & uy_df$street_name != ""
+  uy_df <- uy_df[keep_uy, , drop = FALSE]
+  uy_key <- uy_key[keep_uy]
+  if (nrow(uy_df) == 0L) {
+    return(x[rep(NA_integer_, length(x))])
+  }
   uy_name_psk <- phonetic_street_key(uy_df$street_name)
 
   lkp <- match(

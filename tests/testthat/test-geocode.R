@@ -392,7 +392,214 @@ test_that("geocode progress gets addr_street count from geocode_zip", {
     ),
     addr_place(zipcode = c("45219", "45219"))
   )
-  progress_output <- capture.output(geocode(x, progress = TRUE, taf_install = FALSE))
+  progress_output <- capture.output(geocode(
+    x,
+    progress = TRUE,
+    taf_install = FALSE
+  ))
+  progress_text <- paste(progress_output, collapse = "\n")
+  progress_text <- gsub("\033\\[[0-9;]*[[:alpha:]]", "", progress_text)
+  expect_true(
+    grepl("geocoding 45219 \\(2 addr to 4,599 addr_street\\)", progress_text)
+  )
+})
+
+test_that("geocode uses mirai mapping when daemons are configured", {
+  used_mirai <- FALSE
+  local_mocked_bindings(
+    taf_missing_counties = function(...) taf_empty_needed_counties(),
+    geocode_use_mirai = function() TRUE,
+    geocode_map_mirai = function(x, FUN, ...) {
+      used_mirai <<- TRUE
+      lapply(x, FUN, ...)
+    },
+    geocode_zip = function(x, offset = 0L, progress_callback = NULL, ...) {
+      tibble::tibble(
+        addr = x,
+        matched_zipcode = rep("45219", length(x)),
+        matched_street = x@street,
+        matched_geography = s2::as_s2_geography(
+          rep("POINT (-84.5 39.1)", length(x))
+        )
+      )
+    }
+  )
+  x <- addr(
+    addr_number(digits = c("1", "2")),
+    addr_street(
+      name = c("Main", "Elm"),
+      map_posttype = FALSE,
+      map_pretype = FALSE,
+      map_directional = FALSE
+    ),
+    addr_place(zipcode = c("45219", "45220"))
+  )
+  progress_output <- capture.output(invisible(geocode(
+    x,
+    progress = TRUE,
+    taf_install = FALSE
+  )))
+  expect_true(used_mirai)
+  expect_equal(progress_output, character())
+})
+
+test_that("geocode works with mirai daemons on voter addresses", {
+  skip_if_not_installed("arrow")
+  skip_if_not_installed("mirai")
+  skip_if_not_installed("pkgload")
+
+  temp_root <- tempfile("addr-mirai-geocode-")
+  dir.create(temp_root, recursive = TRUE, showWarnings = FALSE)
+  withr::local_envvar(c(R_USER_DATA_DIR = temp_root))
+  withr::local_options(
+    addr.taf_catalog_dir = file.path(temp_root, "inst", "extdata")
+  )
+
+  year <- "2025"
+  version <- "v1"
+  county <- "39061"
+  taf_dataset_path <- getFromNamespace("taf_dataset_path", ns = "addr")
+  taf_write_catalog <- getFromNamespace("taf_write_catalog", ns = "addr")
+  taf_write_county_zip_manifest <- getFromNamespace(
+    "taf_write_county_zip_manifest",
+    ns = "addr"
+  )
+  taf_county_zip_manifest_rows <- getFromNamespace(
+    "taf_county_zip_manifest_rows",
+    ns = "addr"
+  )
+
+  x <- as_addr(voter_addresses()[1:100])
+  zip_ok <- !is.na(x@place@zipcode) & x@place@zipcode != ""
+  x_ref <- x[zip_ok]
+  ref_df <- unique(data.frame(
+    FULLNAME = format(x_ref@street),
+    ZIP = x_ref@place@zipcode,
+    street_predirectional = x_ref@street@predirectional,
+    street_premodifier = x_ref@street@premodifier,
+    street_pretype = x_ref@street@pretype,
+    street_name = x_ref@street@name,
+    street_posttype = x_ref@street@posttype,
+    street_postdirectional = x_ref@street@postdirectional,
+    stringsAsFactors = FALSE
+  ))
+
+  n_ref <- nrow(ref_df)
+  ref_df$LINEARID <- sprintf("L%05d", seq_len(n_ref))
+  ref_df$side <- rep("L", n_ref)
+  ref_df$FROMHN <- rep(1L, n_ref)
+  ref_df$TOHN <- rep(99999L, n_ref)
+  ref_df$PARITY <- rep("B", n_ref)
+  ref_df$OFFSET <- rep(0, n_ref)
+  ref_df$geometry_wkt <- rep(
+    "LINESTRING (-84.5 39.1, -84.49 39.11)",
+    n_ref
+  )
+  ref_df$street_tag_parsed <- rep(FALSE, n_ref)
+  ref_df$county_fips <- county
+  ref_df$zip3 <- substr(ref_df$ZIP, 1, 3)
+  ref_df$zip2 <- substr(ref_df$ZIP, 4, 5)
+  ref_df <- ref_df[
+    c(
+      "LINEARID",
+      "FULLNAME",
+      "side",
+      "ZIP",
+      "FROMHN",
+      "TOHN",
+      "PARITY",
+      "OFFSET",
+      "geometry_wkt",
+      "street_predirectional",
+      "street_premodifier",
+      "street_pretype",
+      "street_name",
+      "street_posttype",
+      "street_postdirectional",
+      "street_tag_parsed",
+      "county_fips",
+      "zip3",
+      "zip2"
+    )
+  ]
+  ref_tbl <- tibble::as_tibble(ref_df)
+
+  by_zip <- split(ref_tbl, ref_tbl$ZIP)
+  dataset_path <- taf_dataset_path(year = year, version = version)
+  for (zip in names(by_zip)) {
+    zip_rows <- by_zip[[zip]]
+    out_dir <- file.path(
+      dataset_path,
+      sprintf("zip3=%s", zip_rows$zip3[[1]]),
+      sprintf("zip2=%s", zip_rows$zip2[[1]])
+    )
+    dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+    arrow::write_parquet(
+      zip_rows[, setdiff(names(zip_rows), c("zip3", "zip2")), drop = FALSE],
+      file.path(out_dir, sprintf("%s.parquet", county))
+    )
+  }
+
+  manifest <- taf_county_zip_manifest_rows(ref_tbl, county = county)
+  taf_write_county_zip_manifest(manifest, year = year, version = version)
+  taf_write_catalog(manifest, year = year, version = version, root = temp_root)
+
+  mirai::daemons(2)
+  on.exit(mirai::daemons(0), add = TRUE)
+
+  out <- geocode(
+    x,
+    year = year,
+    version = version,
+    taf_install = FALSE,
+    progress = FALSE
+  )
+
+  has_number <- !is.na(x@number@digits) & x@number@digits != ""
+  has_street_name <- !is.na(x@street@name) & x@street@name != ""
+  expect_s3_class(out, "tbl_df")
+  expect_equal(nrow(out), 100L)
+  expect_equal(out$addr, x)
+  expect_equal(sum(!is.na(out$matched_zipcode)), sum(has_street_name))
+  expect_equal(sum(!is.na(out$matched_street)), sum(has_street_name))
+  expect_equal(
+    sum(!is.na(out$matched_geography)),
+    sum(has_number & has_street_name)
+  )
+  expect_equal(sum(!is.na(out$s2_cell)), sum(has_number & has_street_name))
+})
+
+test_that("geocode falls back to the default progress bar when mirai is unavailable", {
+  local_mocked_bindings(
+    taf_missing_counties = function(...) taf_empty_needed_counties(),
+    geocode_use_mirai = function() FALSE,
+    geocode_zip = function(x, offset = 0L, progress_callback = NULL, ...) {
+      progress_callback(4599L)
+      tibble::tibble(
+        addr = x,
+        matched_zipcode = rep("45219", length(x)),
+        matched_street = x@street,
+        matched_geography = s2::as_s2_geography(
+          rep("POINT (-84.5 39.1)", length(x))
+        )
+      )
+    }
+  )
+  x <- addr(
+    addr_number(digits = c("1", "2")),
+    addr_street(
+      name = c("Main", "Elm"),
+      map_posttype = FALSE,
+      map_pretype = FALSE,
+      map_directional = FALSE
+    ),
+    addr_place(zipcode = c("45219", "45219"))
+  )
+  progress_output <- capture.output(invisible(geocode(
+    x,
+    progress = TRUE,
+    taf_install = FALSE
+  )))
   progress_text <- paste(progress_output, collapse = "\n")
   progress_text <- gsub("\033\\[[0-9;]*[[:alpha:]]", "", progress_text)
   expect_true(

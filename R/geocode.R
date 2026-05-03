@@ -37,9 +37,13 @@
 #' `geocode_zip()` is the workhorse function and operates on addr vectors
 #' with the same ZIP code; use `geocode()` to geocode an addr vector
 #' with multiple ZIP codes by grouping them by ZIP code and processing
-#' serially.
+#' serially by default.
 #' At a lower level, grouping addr vectors by ZIP code and applying
 #' `geocode_zip()` facilitates more control (e.g., parallel processing).
+#'
+#' If the mirai package is installed and mirai daemons have already been
+#' configured by the caller, `geocode()` uses them for ZIP-code-level
+#' parallel processing. Otherwise it falls back to sequential processing.
 #'
 #' `geocode()` and `geocode_zip()` both download and install tiger address
 #' features by county (`?taf_install`) as needed based on the input addr ZIP
@@ -47,17 +51,30 @@
 #'
 #' @export
 #' @examples
+#' x <- as_addr(voter_addresses()[1:100])
+#'
 #' # for example purposes, only install one county
 #' Sys.setenv("R_USER_DATA_DIR" = tempfile())
 #' taf_install("39061", "2025")
-#' # ^ not usually necessary
-#' x <- as_addr(voter_addresses()[1:100])
+#' # and geocode without installing other counties
 #' gcd <- geocode(x, taf_install = FALSE)
 #'
+#' # this is only for example purposes and usually not required; e.g.
+#'
+#' \dontrun{
+#'   gcd <- geocode(x)
+#' }
 #'
 #' leaflet::leaflet(wk::wk_coords(gcd$matched_geography)) |>
 #'   leaflet::addTiles() |>
 #'   leaflet::addCircleMarkers(lng = ~x, lat = ~y, label = ~feature_id)
+#'
+#' # use mirai for parallel processing
+#' \dontrun{
+#'   mirai::daemons(2)
+#'   geocode(x)
+#'   mirai::daemons(0)
+#' }
 geocode <- function(
   x,
   name_phonetic_dist = 1L,
@@ -126,48 +143,25 @@ geocode <- function(
   }
   z_list <- split(xu[!missing_zip], xu[!missing_zip]@place@zipcode)
 
-  # gcd <- mirai::mirai_map(z_list, geocode_zip)[.progress, .stop]
-  gcd <- if (length(z_list) == 0L) {
-    list()
-  } else if (progress) {
-    lapply_pb(
-      z_list,
-      geocode_zip,
-      offset = offset,
-      name_phonetic_dist = name_phonetic_dist,
-      name_fuzzy_dist = name_fuzzy_dist,
-      match_street_predirectional = match_street_predirectional,
-      match_street_posttype = match_street_posttype,
-      match_street_pretype = match_street_pretype,
-      match_street_postdirectional = match_street_postdirectional,
-      zip_variants = zip_variants,
-      zip_variant = zip_variant,
-      year = year,
-      version = version,
-      taf_install = FALSE,
-      taf_redownload = taf_redownload,
-      taf_check = FALSE
-    )
-  } else {
-    lapply(
-      z_list,
-      geocode_zip,
-      offset = offset,
-      name_phonetic_dist = name_phonetic_dist,
-      name_fuzzy_dist = name_fuzzy_dist,
-      match_street_predirectional = match_street_predirectional,
-      match_street_posttype = match_street_posttype,
-      match_street_pretype = match_street_pretype,
-      match_street_postdirectional = match_street_postdirectional,
-      zip_variants = zip_variants,
-      zip_variant = zip_variant,
-      year = year,
-      version = version,
-      taf_install = FALSE,
-      taf_redownload = taf_redownload,
-      taf_check = FALSE
-    )
-  }
+  gcd <- geocode_map(
+    z_list,
+    geocode_zip,
+    progress = progress,
+    offset = offset,
+    name_phonetic_dist = name_phonetic_dist,
+    name_fuzzy_dist = name_fuzzy_dist,
+    match_street_predirectional = match_street_predirectional,
+    match_street_posttype = match_street_posttype,
+    match_street_pretype = match_street_pretype,
+    match_street_postdirectional = match_street_postdirectional,
+    zip_variants = zip_variants,
+    zip_variant = zip_variant,
+    year = year,
+    version = version,
+    taf_install = FALSE,
+    taf_redownload = taf_redownload,
+    taf_check = FALSE
+  )
   if (any(missing_zip)) {
     gcd <- c(gcd, list(missing_zip = geocode_no_match(xu[missing_zip])))
   }
@@ -179,6 +173,107 @@ geocode <- function(
   out <- gcd[match(format(x), format(gcd$addr)), ]
   out$s2_cell <- s2::as_s2_cell(out$matched_geography)
   return(out)
+}
+
+geocode_map <- function(x, FUN, progress, ...) {
+  if (length(x) == 0L) {
+    return(list())
+  }
+  if (geocode_use_mirai()) {
+    return(geocode_map_mirai(x, FUN, ...))
+  }
+  if (progress) {
+    return(lapply_pb(x, FUN, ...))
+  }
+  lapply(x, FUN, ...)
+}
+
+geocode_use_mirai <- function() {
+  requireNamespace("mirai", quietly = TRUE) &&
+    mirai::daemons_set()
+}
+
+geocode_map_mirai <- function(x, FUN, ...) {
+  geocode_args <- list(...)
+  load_dev <- geocode_load_dev_workers()
+  package_path <- if (load_dev) {
+    getNamespaceInfo(asNamespace("addr"), "path")
+  } else {
+    NULL
+  }
+  out <- mirai::mirai_map(
+    x,
+    geocode_worker,
+    .args = list(
+      geocode_args = geocode_args,
+      package_path = package_path,
+      load_dev = load_dev
+    )
+  )[.progress]
+  geocode_check_parallel_results(out)
+  out <- lapply(out, geocode_restore_parallel_result)
+  out
+}
+
+geocode_load_dev_workers <- function() {
+  requireNamespace("pkgload", quietly = TRUE) &&
+    pkgload::is_dev_package("addr")
+}
+
+geocode_worker <- function(
+  x,
+  geocode_args,
+  package_path = NULL,
+  load_dev = FALSE
+) {
+  if (load_dev) {
+    if (!requireNamespace("pkgload", quietly = TRUE)) {
+      stop(
+        "pkgload must be installed to use mirai workers with a dev-loaded addr package",
+        call. = FALSE
+      )
+    }
+    pkgload::load_all(
+      path = package_path,
+      reset = TRUE,
+      compile = NA,
+      attach = FALSE,
+      export_all = FALSE,
+      export_imports = FALSE,
+      helpers = FALSE,
+      attach_testthat = FALSE,
+      quiet = TRUE,
+      recompile = FALSE,
+      warn_conflicts = FALSE
+    )
+  }
+  ns <- loadNamespace("addr")
+  geocode_zip_fn <- get("geocode_zip", envir = ns, inherits = FALSE)
+  out <- do.call(geocode_zip_fn, c(list(x), geocode_args))
+  out$matched_geography <- s2::s2_as_text(out$matched_geography)
+  out
+}
+
+geocode_check_parallel_results <- function(x) {
+  err <- vapply(x, inherits, logical(1), "miraiError")
+  if (!any(err)) {
+    return(invisible(x))
+  }
+  first_err <- x[[which(err)[1]]]
+  msg <- attr(first_err, "message", exact = TRUE)
+  if (is.null(msg) || !length(msg)) {
+    msg <- as.character(first_err[[1]])
+  }
+  stop(
+    "parallel geocoding failed in a mirai worker: ",
+    msg,
+    call. = FALSE
+  )
+}
+
+geocode_restore_parallel_result <- function(x) {
+  x$matched_geography <- s2::as_s2_geography(x$matched_geography)
+  x
 }
 
 lapply_pb <- function(x, FUN, ...) {

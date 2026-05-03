@@ -15,12 +15,13 @@ Suggests:
     htmltools,
     arrow,
     dplyr,
-    shiny,
-    testthat (>= 3.0.0),
     jsonlite,
-    sf,
     leaflet,
     curl,
+    mirai,
+    sf,
+    shiny,
+    testthat (>= 3.0.0),
     wk,
     withr
 Imports: 

@@ -124,9 +124,13 @@ return \code{NA}.
 \code{geocode_zip()} is the workhorse function and operates on addr vectors
 with the same ZIP code; use \code{geocode()} to geocode an addr vector
 with multiple ZIP codes by grouping them by ZIP code and processing
-serially.
+serially by default.
 At a lower level, grouping addr vectors by ZIP code and applying
-\code{geocode_zip()} facilitates more control (e.g., parallel processing)
+\code{geocode_zip()} facilitates more control (e.g., parallel processing).
+
+If the \code{mirai} package is installed and \code{mirai} daemons have already
+been configured by the caller, \code{geocode()} uses them for ZIP-code-level
+parallel processing. Otherwise it falls back to sequential processing.
 
 \code{geocode()} andf \code{geocode_zip()} both download and install tiger address
 features for each county needed based on the ZIP codes
