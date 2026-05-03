@@ -151,6 +151,11 @@ geodatabase</p></dd>
     <p>The NAD is downloaded from each release on the transportation.gov
 data portal:
 <a href="https://data.transportation.gov/d/yw36-suxr" class="external-link">https://data.transportation.gov/d/yw36-suxr</a>
+Downloads use the R <code>curl</code> package and resume from any interrupted
+partial download left in the addr user data directory.
+If the download cannot complete, <code>nad_download()</code> will also work with a
+NAD ZIP file that was downloaded another way and placed where
+<code>tools::R_user_dir("addr", "data")</code> can find it.
 For the original schema, see
 <a href="https://www.transportation.gov/sites/dot.gov/files/2023-07/NAD_Schema_202304.pdf" class="external-link">https://www.transportation.gov/sites/dot.gov/files/2023-07/NAD_Schema_202304.pdf</a>
 Before downloading, please read the disclaimer here:
