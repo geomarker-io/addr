@@ -60,7 +60,14 @@
 <!-- badges: start -->
 
 <!-- badges: end -->
-<p>Addresses that were not validated at collection are often inconsistently formatted and contain typographical or phonetic noise, making them difficult to compare or link to other address data. The goal of addr is to clean, parse, standardize, match, and geocode messy, real-world US addresses in R. addr uses the included <code>usaddress</code> library to tag address components and build vctrs-based address vectors, including <code><a href="reference/addr.html">addr()</a></code> vectors and the <code><a href="reference/addr.html">addr_number()</a></code>, <code><a href="reference/addr.html">addr_street()</a></code>, and <code><a href="reference/addr.html">addr_place()</a></code> component vectors. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.</p>
+<div class="section level2">
+<h2 id="about">About<a class="anchor" aria-label="anchor" href="#about"></a>
+</h2>
+<p>Addresses not validated at collection are often inconsistently formatted and standardized, making them difficult to compare or link to other address data. The goal of addr is to clean, parse, standardize, match, and geocode real-world, noisy US addresses in R.</p>
+<p>addr tags address components and builds vctrs-based address vectors, including <code><a href="reference/addr.html">addr()</a></code> vectors and the <code><a href="reference/addr.html">addr_number()</a></code>, <code><a href="reference/addr.html">addr_street()</a></code>, and <code><a href="reference/addr.html">addr_place()</a></code> component vectors. Each are structured to reuse reuse the United States Thoroughfare, Landmark, and Postal Address Data Standard from the US Federal Geographic Data Committee.</p>
+<p><img src="./reference/figures/addr_data.png" height="430"></p>
+<p>The standard also facilitates efficient operations with the Department of Transportation’s National Address Database for address matching and with the Census TIGER/Line Shapefiles for street-range geocoding. Address vectors (<code>addr</code>) can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.</p>
+</div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -74,8 +81,11 @@
 <p>Installing addr from GitHub requires a working <a href="https://www.rust-lang.org/learn/get-started" class="external-link">Rust</a> toolchain; install one using <a href="https://www.rust-lang.org/tools/install" class="external-link">rustup</a>.</p>
 </div>
 <div class="section level2">
-<h2 id="getting-started">Getting Started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
+<h2 id="getting-started">Getting started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
 </h2>
+<div class="section level3">
+<h3 id="addr-vectors">addr vectors<a class="anchor" aria-label="anchor" href="#addr-vectors"></a>
+</h3>
 <p>addr vectors behave like standard R vectors: they recycle, subset, and combine with vctrs tooling. You can parse text into an addr vector with <code><a href="reference/as_addr.html">as_addr()</a></code> or build one from component vectors with <code><a href="reference/addr.html">addr()</a></code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/as_addr.html">as_addr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"3333 Burnet Ave Cincinnati OH 45229"</span>,</span>
@@ -97,38 +107,34 @@
 <span><span class="co">#&gt;  .. @ name   : chr [1:2] "Cincinnati" "Cincinnati"</span></span>
 <span><span class="co">#&gt;  .. @ state  : chr [1:2] "OH" "OH"</span></span>
 <span><span class="co">#&gt;  .. @ zipcode: chr [1:2] "45229" "45238"</span></span></code></pre></div>
-<p><img src="./reference/figures/addr_data.png" height="500"></p>
 </div>
-<div class="section level2">
-<h2 id="address-matching">Address Matching<a class="anchor" aria-label="anchor" href="#address-matching"></a>
-</h2>
-<p><code><a href="reference/addr_match.html">addr_match()</a></code> compares one <code><a href="reference/addr.html">addr()</a></code> vector to another and returns one selected reference address for each input address. Matching is staged: ZIP codes are matched first, then streets are matched within each matched ZIP code, then address numbers are matched within each matched ZIP/street group. This keeps matching fast while still allowing common street-name, phonetic, ZIP-code, and address-number variation.</p>
-<p>Use <code><a href="reference/addr_left_join.html">addr_left_join()</a></code> when the goal is to join data frames with addr columns. It uses the same staged matching as <code><a href="reference/addr_match.html">addr_match()</a></code> and then expands exact duplicate reference rows when more than one row in <code>y</code> has the selected address. Use <code><a href="reference/addr_fuzzy_left_join.html">addr_fuzzy_left_join()</a></code> when you need all fuzzy candidate matches rather than one selected match.</p>
+<div class="section level3">
+<h3 id="address-matching">Address Matching<a class="anchor" aria-label="anchor" href="#address-matching"></a>
+</h3>
+<p><code><a href="reference/addr_match.html">addr_match()</a></code> compares one <code>addr</code> vector to another and returns one selected reference address for each input address. Matching is staged: ZIP codes are matched first, then streets are matched within each matched ZIP code, then address numbers are matched within each matched ZIP/street group. This keeps matching fast while still allowing common street-name, phonetic, ZIP-code, and address-number variation.</p>
+<p>Use <code><a href="reference/addr_left_join.html">addr_left_join()</a></code> when the goal is to join data frames with <code>addr</code> columns. It uses the same staged matching as <code><a href="reference/addr_match.html">addr_match()</a></code> and then expands exact duplicate reference rows when more than one row in <code>y</code> has the selected address. Use <code><a href="reference/addr_fuzzy_left_join.html">addr_fuzzy_left_join()</a></code> when you need all fuzzy candidate matches rather than one selected match.</p>
 <p>For repeated matching against the same reference addresses, prepare the reference once with <code><a href="reference/addr_match.html">addr_match_prepare()</a></code> and reuse the returned index in later <code><a href="reference/addr_match.html">addr_match()</a></code> or <code><a href="reference/addr_left_join.html">addr_left_join()</a></code> calls.</p>
-</div>
-<div class="section level2">
-<h2 id="national-address-database">National Address Database<a class="anchor" aria-label="anchor" href="#national-address-database"></a>
-</h2>
+<div class="section level4">
+<h4 id="national-address-database">National Address Database<a class="anchor" aria-label="anchor" href="#national-address-database"></a>
+</h4>
 <p><code><a href="reference/nad.html">nad()</a></code> reads county-level address points from the U.S. Department of Transportation National Address Database. Counties can be requested by county name plus state, such as <code>"Hamilton", "OH"</code>, or by 5-digit county FIPS code, such as <code>"39061"</code>.</p>
-<p>The nationwide NAD geodatabase is large, so addr caches derived county data in the R user cache directory. The package also includes <code><a href="reference/nad_example_data.html">nad_example_data()</a></code> for Hamilton County, Ohio, which is useful for examples, tests, and matching workflows that should run without downloading the full NAD source first.</p>
+<p>The nationwide NAD geodatabase is large and county-based extracts are computationally expensive, so addr caches derived county data in the R user cache directory. The package also includes <code><a href="reference/nad_example_data.html">nad_example_data()</a></code> for Hamilton County, Ohio, which is useful for examples, tests, and matching workflows that should run without downloading the full NAD source first.</p>
 </div>
-<div class="section level2">
-<h2 id="geocoding">Geocoding<a class="anchor" aria-label="anchor" href="#geocoding"></a>
-</h2>
-<p>Matched NAD coordinates can be used as a geocode, but placement often varies by the contributing organization and state. If linking to parcel geographies, intersection with parcel boundaries or their centroids can be used. Street range geocoding does not use address-level data, but instead interpolates the location with possible street ranges provided by census.gov. In any case, geocoding includes (1) cleaning address text, (2) tagging the address, (3) harmonizing the address tags, (4) matching the ZIP code and street combinations. Major differences between the methods arise when placing a coordinate after matching a ZIP code - street:</p>
+</div>
+<div class="section level3">
+<h3 id="geocoding">Geocoding<a class="anchor" aria-label="anchor" href="#geocoding"></a>
+</h3>
+<p>Matched NAD coordinates can be used as a geocode, but placement often varies by the contributing organization and state. If linking to parcel geographies, intersection with parcel boundaries or their centroids can be used. Street range geocoding does not use address-level data, but instead interpolates the location with possible street ranges provided by census.gov.</p>
+<p>In any case, geocoding includes (1) cleaning address text, (2) tagging the address, (3) harmonizing the address tags, (4) matching the ZIP code and street combinations. Any differences between the methods arise when placing a coordinate after matching the ZIP code and street</p>
 <p><img src="reference/figures/geocoding_methods.png"></p>
-</div>
-<div class="section level2">
-<h2 id="street-range-geocoding">Street Range Geocoding<a class="anchor" aria-label="anchor" href="#street-range-geocoding"></a>
-</h2>
-<p><code><a href="reference/geocode.html">geocode()</a></code> converts <code><a href="reference/addr.html">addr()</a></code> vectors to point locations using Census TIGER address ranges. It matches the input street to installed TIGER address features, chooses the best address range and street side from the address number, interpolates a point along the range, and offsets that point from the street line.</p>
-<p>Geocoding returns the input address, matched ZIP code, matched street, point geography, and s2 cell. Inputs with missing or unmatched ZIP codes, streets, or address ranges return missing geographies rather than guessed coordinates.</p>
-</div>
-<div class="section level2">
-<h2 id="tiger-address-features">TIGER Address Features<a class="anchor" aria-label="anchor" href="#tiger-address-features"></a>
-</h2>
+<p><code><a href="reference/geocode.html">geocode()</a></code> converts <code><a href="reference/addr.html">addr()</a></code> vectors to point locations using Census TIGER address ranges. It matches the input street to installed TIGER address features, chooses the best address range and street side from the address number, interpolates a point along the range, and offsets that point from the street line. Geocoding returns the input address, matched ZIP code, matched street, point s2 geography, and s2 cell. Inputs with missing or unmatched ZIP codes, streets, or address ranges return missing geographies rather than centroids of larger areas.</p>
+<div class="section level4">
+<h4 id="tiger-address-features">TIGER Address Features<a class="anchor" aria-label="anchor" href="#tiger-address-features"></a>
+</h4>
 <p>TIGER address features are Census street-segment address ranges. addr stores them as a hive-partitioned, multi-file parquet dataset, grouped by ZIP-code partitions and county files, so geocoding can read only the local files needed for the input ZIP codes.</p>
-<p><code><a href="reference/taf.html">taf_install()</a></code> installs TIGER address features for one county. <code><a href="reference/taf_needed_counties.html">taf_needed_counties()</a></code> identifies which county files may contain the ZIP codes in an input address vector, including selected ZIP-code variants. <code><a href="reference/taf_needed_counties.html">taf_ensure()</a></code> installs any missing county files, and <code><a href="reference/geocode.html">geocode()</a></code> calls it by default before geocoding. Use <code><a href="reference/taf.html">taf()</a></code> to open the installed multi-file dataset with arrow and <code><a href="reference/taf_zip.html">taf_zip()</a></code> to read the address ranges for specific ZIP codes.</p>
+<p><code><a href="reference/taf.html">taf_install()</a></code> installs TIGER address features for one county; however, <code><a href="reference/geocode.html">geocode()</a></code> installs all county files that may contain the ZIP codes in an input address vector as needed. Read TIGER address features for one or more ZIP codes with <code><a href="reference/taf_zip.html">taf_zip()</a></code>. <code><a href="reference/taf_needed_counties.html">taf_needed_counties()</a></code> identifies which county files may contain the ZIP codes in an input address vector, including selected ZIP-code variants. <code><a href="reference/taf_needed_counties.html">taf_ensure()</a></code> installs any missing county files, and <code><a href="reference/geocode.html">geocode()</a></code> calls it by default before geocoding. Use <code><a href="reference/taf.html">taf()</a></code> to open the installed multi-file dataset with arrow and <code><a href="reference/taf_zip.html">taf_zip()</a></code> to read the address ranges for specific ZIP codes.</p>
+</div>
+</div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
