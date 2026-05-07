@@ -114,4 +114,4 @@ addr stores them as a hive-partitioned, multi-file parquet dataset, grouped by Z
 `taf_install()` installs TIGER address features for one county; however, `geocode()` installs all county files that may contain the ZIP codes in an input address vector as needed.
 Read TIGER address features for one or more ZIP codes with `taf_zip()`.
 `taf_needed_counties()` identifies which county files may contain the ZIP codes in an input address vector, including selected ZIP-code variants.
-`taf_ensure()` installs any missing county files, and `geocode()` calls it by default before geocoding. Use `taf()` to open the installed multi-file dataset with arrow and `taf_zip()` to read the address ranges for specific ZIP codes.
+`taf_ensure()` installs any missing county files, and `geocode()` calls it by default before geocoding. addr uses nanoparquet for flat parquet reads and writes in these geocoding helpers. Use `taf()` to open the installed multi-file dataset with arrow for advanced lazy dataset queries; arrow is optional and is only required for `taf()`.

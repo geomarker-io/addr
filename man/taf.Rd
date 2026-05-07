@@ -38,6 +38,9 @@ of TIGER address features in the addr user data directory.
 Arrow \code{FileSystemDataset} objects are database-like backends for
 larger-than-memory datasets and support dplyr syntax for data manipulation;
 see \url{https://arrow.apache.org/docs/r/articles/data_wrangling.html}.
+Other TAF helpers such as \code{taf_catalog()}, \code{taf_install()}, and \code{taf_zip()}
+use nanoparquet directly for flat parquet file reads and writes. Arrow is
+only required for the advanced dataset interface returned by \code{taf()}.
 
 \code{taf_install()} downloads and links TIGER address features and
 feature names for a specific year and county, installing the resulting

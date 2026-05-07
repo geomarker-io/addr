@@ -26,6 +26,7 @@ Suggests:
     withr
 Imports: 
     curl,
+    nanoparquet,
     s2,
     S7,
     stringdist,
@@ -34,7 +35,7 @@ Imports:
 SystemRequirements: Cargo (Rust's package manager), rustc
 Config/testthat/edition: 3
 Depends: 
-    R (>= 3.5.0)
+    R (>= 4.0.0)
 Config/rextendr/version: 0.4.2
 Remotes:
    geomarker-io/codec

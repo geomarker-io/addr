@@ -20,8 +20,17 @@ test_that("tiger_addr_feat() can download addr feat from tiger", {
   expect_s3_class(d$s2_geography, "s2_geography")
 })
 
+test_that("taf requires arrow for the dataset interface", {
+  local_mocked_bindings(
+    check_installed = function(pkg, reason = NULL) {
+      stop(paste(pkg, reason), call. = FALSE)
+    }
+  )
+
+  expect_error(taf("2025"), "arrow.*multi-file taf dataset")
+})
+
 test_that("taf_catalog reads installed ZIP county catalog", {
-  skip_if_not_installed("arrow")
   catalog_root <- tempfile()
   withr::local_options(list(
     addr.taf_catalog_dir = file.path(catalog_root, "inst", "extdata")
@@ -50,7 +59,6 @@ test_that("taf_catalog reads installed ZIP county catalog", {
 })
 
 test_that("taf_needed_counties uses catalog and selected ZIP variants", {
-  skip_if_not_installed("arrow")
   catalog_root <- tempfile()
   withr::local_options(list(
     addr.taf_catalog_dir = file.path(catalog_root, "inst", "extdata")
@@ -89,7 +97,6 @@ test_that("taf_needed_counties uses catalog and selected ZIP variants", {
 })
 
 test_that("taf_ensure installs only missing needed counties", {
-  skip_if_not_installed("arrow")
   catalog_root <- tempfile()
   withr::local_options(list(
     addr.taf_catalog_dir = file.path(catalog_root, "inst", "extdata")

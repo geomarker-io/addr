@@ -7,6 +7,9 @@
 #' Arrow `FileSystemDataset` objects are database-like backends for
 #' larger-than-memory datasets and support dplyr syntax for data manipulation;
 #' see <https://arrow.apache.org/docs/r/articles/data_wrangling.html>.
+#' Other TAF helpers such as `taf_catalog()`, `taf_install()`, and `taf_zip()`
+#' use nanoparquet directly for flat parquet file reads and writes. Arrow is
+#' only required for the advanced dataset interface returned by `taf()`.
 #'
 #' `taf_install()` downloads and links TIGER address features and
 #' feature names for a specific year and county, installing the resulting
@@ -78,7 +81,6 @@ taf <- function(year = as.character(2025:2011), version = "v1") {
 #' @examples
 #' taf_catalog("2025")
 taf_catalog <- function(year = as.character(2025:2011), version = "v1") {
-  check_installed("arrow", "to read the taf ZIP/county catalog")
   stopifnot(
     "version must be a character vector" = is.character(version),
     "version must be length one" = length(version) == 1L,
@@ -96,7 +98,7 @@ taf_catalog <- function(year = as.character(2025:2011), version = "v1") {
       call. = FALSE
     )
   }
-  arrow::read_parquet(catalog_path) |>
+  nanoparquet::read_parquet(catalog_path) |>
     tibble::as_tibble()
 }
 
@@ -233,7 +235,6 @@ taf_install <- function(
   overwrite = FALSE,
   redownload = FALSE
 ) {
-  check_installed("arrow", "to write to the multi-file taf dataset")
   stopifnot(
     "county must be a character vector" = is.character(county),
     "county must be length one" = length(county) == 1L,
@@ -316,7 +317,7 @@ taf_install <- function(
     if (file.exists(out_file)) {
       file.remove(out_file)
     }
-    arrow::write_parquet(out_part, out_file)
+    nanoparquet::write_parquet(out_part, out_file)
   }
   manifest <- taf_read_county_zip_manifest(year = year, version = version)
   manifest <- manifest[manifest$county_fips != county, , drop = FALSE]
@@ -352,7 +353,6 @@ taf_zip <- function(
   year = as.character(2025:2011),
   version = "v1"
 ) {
-  check_installed("arrow", "to read from the multi-file taf dataset")
   stopifnot(is.character(x), length(x) > 0, !any(is.na(x)))
   stopifnot(
     "version must be a character vector" = is.character(version),
@@ -377,7 +377,7 @@ taf_zip <- function(
       d <- taf_empty_zip_tibble()
     } else {
       d <- lapply(file_paths, function(path) {
-        arrow::read_parquet(path) |>
+        nanoparquet::read_parquet(path) |>
           tibble::as_tibble()
       }) |>
         do.call(what = vctrs::vec_rbind)
@@ -483,7 +483,7 @@ taf_read_county_zip_manifest <- function(year, version) {
       installed_at = character()
     ))
   }
-  arrow::read_parquet(manifest_path) |>
+  nanoparquet::read_parquet(manifest_path) |>
     tibble::as_tibble()
 }
 
@@ -496,7 +496,7 @@ taf_write_county_zip_manifest <- function(x, year, version) {
     fileext = ".parquet"
   )
   on.exit(unlink(tmp_path, force = TRUE), add = TRUE)
-  arrow::write_parquet(x, tmp_path)
+  nanoparquet::write_parquet(x, tmp_path)
   if (file.exists(manifest_path)) {
     unlink(manifest_path, force = TRUE)
   }
@@ -519,7 +519,7 @@ taf_write_catalog <- function(x, year, version, root = ".") {
     fileext = ".parquet"
   )
   on.exit(unlink(tmp_path, force = TRUE), add = TRUE)
-  arrow::write_parquet(taf_catalog_rows(x), tmp_path)
+  nanoparquet::write_parquet(taf_catalog_rows(x), tmp_path)
   if (file.exists(catalog_path)) {
     unlink(catalog_path, force = TRUE)
   }

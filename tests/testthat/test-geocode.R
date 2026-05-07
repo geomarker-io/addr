@@ -444,7 +444,6 @@ test_that("geocode uses mirai mapping when daemons are configured", {
 })
 
 test_that("geocode works with mirai daemons on voter addresses", {
-  skip_if_not_installed("arrow")
   skip_if_not_installed("mirai")
   skip_if_not_installed("pkgload")
 
@@ -534,7 +533,7 @@ test_that("geocode works with mirai daemons on voter addresses", {
       sprintf("zip2=%s", zip_rows$zip2[[1]])
     )
     dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
-    arrow::write_parquet(
+    nanoparquet::write_parquet(
       zip_rows[, setdiff(names(zip_rows), c("zip3", "zip2")), drop = FALSE],
       file.path(out_dir, sprintf("%s.parquet", county))
     )
