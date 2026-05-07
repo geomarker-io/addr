@@ -4,6 +4,9 @@ of TIGER address features in the addr user data directory.
 Arrow FileSystemDataset objects are database-like backends for
 larger-than-memory datasets and support dplyr syntax for data manipulation;
 see https://arrow.apache.org/docs/r/articles/data_wrangling.html.
+Other TAF helpers such as taf_catalog(), taf_install(), and taf_zip()
+use nanoparquet directly for flat parquet file reads and writes. Arrow is
+only required for the advanced dataset interface returned by taf().
 taf_install() downloads and links TIGER address features and
 feature names for a specific year and county, installing the resulting
 file in the addr user data directory.
@@ -14,6 +17,9 @@ of TIGER address features in the addr user data directory.
 Arrow FileSystemDataset objects are database-like backends for
 larger-than-memory datasets and support dplyr syntax for data manipulation;
 see https://arrow.apache.org/docs/r/articles/data_wrangling.html.
+Other TAF helpers such as taf_catalog(), taf_install(), and taf_zip()
+use nanoparquet directly for flat parquet file reads and writes. Arrow is
+only required for the advanced dataset interface returned by taf().
 taf_install() downloads and links TIGER address features and
 feature names for a specific year and county, installing the resulting
 file in the addr user data directory.
@@ -56,7 +62,10 @@ which case the column, street_tag_parsed will be TRUE."><meta property="og:image
 of TIGER address features in the addr user data directory.
 Arrow <code>FileSystemDataset</code> objects are database-like backends for
 larger-than-memory datasets and support dplyr syntax for data manipulation;
-see <a href="https://arrow.apache.org/docs/r/articles/data_wrangling.html" class="external-link">https://arrow.apache.org/docs/r/articles/data_wrangling.html</a>.</p>
+see <a href="https://arrow.apache.org/docs/r/articles/data_wrangling.html" class="external-link">https://arrow.apache.org/docs/r/articles/data_wrangling.html</a>.
+Other TAF helpers such as <code><a href="taf_catalog.html">taf_catalog()</a></code>, <code>taf_install()</code>, and <code><a href="taf_zip.html">taf_zip()</a></code>
+use nanoparquet directly for flat parquet file reads and writes. Arrow is
+only required for the advanced dataset interface returned by <code>taf()</code>.</p>
 <p><code>taf_install()</code> downloads and links TIGER address features and
 feature names for a specific year and county, installing the resulting
 file in the addr user data directory.
@@ -119,23 +128,23 @@ verbs to query the data and get results, see examples</p>
 <span class="r-in"><span><span class="fu">taf</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> FileSystemDataset with 63 Parquet files</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 19 columns</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> LINEARID: string</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> FULLNAME: string</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> side: string</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ZIP: string</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> FROMHN: int32</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> TOHN: int32</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> PARITY: string</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> OFFSET: string</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> street_predirectional: string</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> street_premodifier: string</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> street_pretype: string</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> street_name: string</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> street_posttype: string</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> street_postdirectional: string</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> county_fips: string</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> street_tag_parsed: bool</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> geometry_wkt: string</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LINEARID: string not null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> FULLNAME: string not null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> side: string not null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ZIP: string not null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> FROMHN: int32 not null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TOHN: int32 not null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> PARITY: string not null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> OFFSET: string not null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> street_predirectional: string not null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> street_premodifier: string not null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> street_pretype: string not null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> street_name: string not null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> street_posttype: string not null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> street_postdirectional: string not null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> county_fips: string not null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> street_tag_parsed: bool not null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> geometry_wkt: string not null</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> zip3: string</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> zip2: string</span>
 <span class="r-in"><span></span></span>
