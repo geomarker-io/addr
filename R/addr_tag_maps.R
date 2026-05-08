@@ -2,7 +2,7 @@
 # observed in NAD/TAF source data that are accepted as-is.
 # https://pe.usps.com/text/pub28/28apc_002.htm
 valid_street_name_post_types <- list(
-  "Access" = "Access",
+  "Accss" = c("Access", "Acc"),
   "Access Road" = "Access Road",
   "Acres" = "Acres",
   "Abbey" = "Abbey",
@@ -32,7 +32,7 @@ valid_street_name_post_types <- list(
   Cswy = c("Causeway", "Causwa"),
   Ctr = c("Center", "Cen", "Ctr", "Centr", "Centre", "Cntr", "Cent"),
   Ctrs = "Centers",
-  Cir = c("Circle", "Cir", "Circ", "Circl", "Crcle", "Cr", "Crcl"),
+  Cir = c("Circle", "Cir", "Circ", "Circl", "Crcle", "Cr", "Crcl", "Ci"),
   Cirs = "Circles",
   Clf = "Cliff",
   Clfs = "Cliffs",
@@ -138,7 +138,7 @@ valid_street_name_post_types <- list(
   Lcks = "Locks",
   Ldg = c("Ldge", "Lodg", "Lodge"),
   Ledge = "Ledge",
-  Loop = "Loop",
+  Loop = c("Loop", "Lp"),
   Mall = "Mall",
   Mnr = "Manor",
   Mnrs = "Manors",
@@ -173,6 +173,7 @@ valid_street_name_post_types <- list(
   Pt = c("Point", "Pointe", "Pte"),
   Pts = "Points",
   Prt = "Port",
+  Promenade = c("Prom", "Promen"),
   Prts = "Ports",
   Pr = c("Prarie", "Prr"),
   Radl = c("Rad", "Radial", "Radiel"),
@@ -197,7 +198,7 @@ valid_street_name_post_types <- list(
   Shr = c("Shore", "Shoar"),
   Shrs = c("Shores", "Shoars"),
   Skwy = "Skyway",
-  Spg = c("Spring", "Spng", "Sprng"),
+  Spg = c("Spring", "Spng", "Sprng", "Spr"),
   Spgs = c("Spngs", "Springs", "Sprngs"),
   Spur = "Spur",
   Spurs = "Spurs",
@@ -208,6 +209,7 @@ valid_street_name_post_types <- list(
   Strm = c("Stream", "Streme"),
   St = c("Street", "Strt", "Str"),
   Sts = c("Streets"),
+  Strp = "Strip",
   Smt = c("Sumit", "Sumitt", "Summit"),
   Taxiway = "Taxiway",
   Ter = c("Terrace", "Terr"),
@@ -271,8 +273,7 @@ valid_street_name_pre_types <- list(
     "Farm to Market Road",
     "Farm-to-Market Rd",
     "Farm to Market Rd",
-    "F-M Rd",
-    "FMRd"
+    "F-M Rd"
   ),
   "Ranch Rd" = c("Ranch Road", "Ranch Rd"),
   "R-M Rd" = c(
@@ -283,7 +284,7 @@ valid_street_name_pre_types <- list(
   ),
   "Res Hwy" = c("Reservation Highway", "Reservation Hwy", "Res Hwy", "ResH"),
   "Sv Rte" = c("Service Route", "Service Rte", "Sv Rte", "SvRt"),
-  "Srv Rd" = c("Service Road", "Service Rd", "Srv Rd", "SrvR"),
+  "Srv Rd" = c("Service Road", "Service Rd", "Srv Rd", "SrvR", "Svc Rd"),
   "Lg Rd" = c("Logging Road", "Logging Rd", "Lg Rd", "LgRd"),
   "FR Rd" = c("Fire Road", "Fire Rd", "FR Rd", "FRRd"),
   "FR Rte" = c("Fire Route", "Fire Rte", "FR Rte", "FRRt"),

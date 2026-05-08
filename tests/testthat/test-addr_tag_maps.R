@@ -1,3 +1,29 @@
+tag_map_collisions <- function(x) {
+  token_map <- do.call(
+    rbind,
+    Map(function(canonical, aliases) {
+      tokens <- unique(tolower(trimws(c(canonical, as.character(aliases)))))
+      data.frame(
+        token = tokens,
+        canonical = canonical,
+        stringsAsFactors = FALSE
+      )
+    }, names(x), x)
+  )
+  token_map <- unique(token_map)
+  canonical_by_token <- split(token_map$canonical, token_map$token)
+  collisions <- lapply(canonical_by_token, unique)
+  collisions[lengths(collisions) > 1L]
+}
+
+test_that("tag maps have exclusive normalized input tokens", {
+  no_collisions <- setNames(list(), character())
+  expect_equal(tag_map_collisions(valid_street_name_post_types), no_collisions)
+  expect_equal(tag_map_collisions(valid_street_name_pre_types), no_collisions)
+  expect_equal(tag_map_collisions(valid_directions), no_collisions)
+  expect_equal(tag_map_collisions(valid_states), no_collisions)
+})
+
 test_that("map_street_name_post_type maps variants and preserves blanks", {
   expect_warning(
     out <- map_street_name_post_type(c("foofy", "st", "lane")),
