@@ -63,12 +63,12 @@ The NAD geodatabase has a very large size on disk (~10 GB).
 
 Data binaries are the cached outputs of \code{nad_read()} for each
 County/State and are created on first run with \code{nad()}.
-Download data binaries to the \code{tools::R_user_dir()} cache directory, or
+Download data binaries to the \code{tools::R_user_dir()} data directory, or
 point R to these files on disk, to read NAD tables without downloading the
 nationwide NAD geodatabase.
 (Files are organized by major package version,
 NAD release, state, and named by county; e.g., see
-\code{list.files(tools::R_user_dir("addr", "cache"), recursive = TRUE)})
+\code{list.files(tools::R_user_dir("addr", "data"), recursive = TRUE)})
 }
 \details{
 The NAD is downloaded from each release on the transportation.gov

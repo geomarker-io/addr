@@ -16,12 +16,12 @@
 #'
 #' Data binaries are the cached outputs of `nad_read()` for each
 #' County/State and are created on first run with `nad()`.
-#' Download data binaries to the `tools::R_user_dir()` cache directory, or
+#' Download data binaries to the `tools::R_user_dir()` data directory, or
 #' point R to these files on disk, to read NAD tables without downloading the
 #' nationwide NAD geodatabase.
 #' (Files are organized by major package version,
 #' NAD release, state, and named by county; e.g., see
-#' `list.files(tools::R_user_dir("addr", "cache"), recursive = TRUE)`)
+#' `list.files(tools::R_user_dir("addr", "data"), recursive = TRUE)`)
 #'
 #' @param county character, length one; county name or 5-digit county FIPS
 #'   identifier
@@ -183,7 +183,7 @@ nad_sd_path <- function(county, state, release) {
     "state must not be missing" = !is.na(state)
   )
   file.path(
-    tools::R_user_dir("addr", "cache"),
+    tools::R_user_dir("addr", "data"),
     "v1",
     sub("^(NAD_r[0-9]+)(_FGDB)?\\.zip$", "\\1", release),
     state,
@@ -385,7 +385,7 @@ nad_download <- function(
     if (!file.exists(dest)) {
       stop(
         dest,
-        " does not exist; set `refresh = 'yes'`",
+        " does not exist; set `refresh_source = 'yes'`",
         " to download the most recent version of the NAD geodatabase"
       )
     }
@@ -454,11 +454,19 @@ nad_download_failure_message <- function(dest, release, error_message) {
     "error_message must not be missing" = !is.na(error_message)
   )
   paste0(
-    "failed to download `", release, "` to `", dest, "`: ",
+    "failed to download `",
+    release,
+    "` to `",
+    dest,
+    "`: ",
     error_message,
-    ". If you can download it another way, place it at `", dest, "`",
+    ". If you can download it another way, place it at `",
+    dest,
+    "`",
     " or set `R_USER_DATA_DIR` so ",
     "`tools::R_user_dir(\"addr\", \"data\")` points to a directory",
-    " that already contains `", release, "`."
+    " that already contains `",
+    release,
+    "`."
   )
 }
