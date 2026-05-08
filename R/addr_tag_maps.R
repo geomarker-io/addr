@@ -1,6 +1,11 @@
-# from USPS Publication 28, Appendix C1
+# Based on USPS Publication 28, Appendix C1, plus additional post types
+# observed in NAD/TAF source data that are accepted as-is.
 # https://pe.usps.com/text/pub28/28apc_002.htm
 valid_street_name_post_types <- list(
+  "Access" = "Access",
+  "Access Road" = "Access Road",
+  "Acres" = "Acres",
+  "Abbey" = "Abbey",
   Aly = c("Allee", "Alley", "Ally", "Al"),
   Anx = c("Anex", "Annex", "Annx"),
   Arc = "Arcade",
@@ -11,14 +16,16 @@ valid_street_name_post_types <- list(
   Blf = c("Bluff", "Bluf"),
   Blfs = "Bluffs",
   Btm = c("Bot", "Bottm", "Bottom"),
-  Blvd = c("Boulevard", "Boulv", "Blvrd", "Boulv", "Bv"),
+  Blvd = c("Boulevard", "Boulv", "Blvrd", "Boulv", "Bv", "Bl"),
   Br = c("Branch", "Brnch"),
   Brg = c("Bridge", "Brdge"),
   Brk = "Brook",
   Brks = "Brooks",
+  Bay = "Bay",
   Bg = "Burg",
   Bgs = "Burgs",
   Byp = c("Bypass", "Bypa", "Bypas", "Byps"),
+  Chase = "Chase",
   Cp = c("Camp", "Cmp"),
   Cyn = c("Canyon", "Cnyn", "Canyn"),
   Cpe = "Cape",
@@ -41,7 +48,11 @@ valid_street_name_post_types <- list(
   Cvs = "Coves",
   Crk = "Creek",
   Cres = c("Crescent", "Crsent", "Crsnt", "Crsc"),
+  Close = "Close",
+  Concourse = "Concourse",
+  Connector = "Connector",
   Crst = "Crest",
+  Cutoff = "Cutoff",
   Xing = c("Crossing", "Crssng"),
   Xrd = "Crossroad",
   Xrds = "Crossroads",
@@ -51,8 +62,12 @@ valid_street_name_post_types <- list(
   Dv = c("Divide", "Div", "Dvd"),
   Dr = c("Drive", "Driv", "Drv"),
   Drs = "Drives",
+  Downs = "Downs",
+  Edge = "Edge",
   Est = "Estate",
   Ests = "Estates",
+  End = "End",
+  Exit = "Exit",
   Expy = c("Expressway", "Exp", "Expr", "Express", "Expw"),
   Ext = c("Extension", "Extn", "Extnsn"),
   Exts = "Extensions",
@@ -75,6 +90,7 @@ valid_street_name_post_types <- list(
   Gdn = c("Garden", "Gardn", "Grden", "Grdn"),
   Gdns = c("Gardens", "Grdns"),
   Gtwy = c("Gateway", "Gatewy", "Gatway", "Gtway"),
+  Gate = "Gate",
   Gln = "Glen",
   Glns = "Glens",
   Grn = "Green",
@@ -108,17 +124,20 @@ valid_street_name_post_types <- list(
   Ky = "Key",
   Kys = "Keys",
   Knl = c("Knoll", "Knol"),
+  Knls = "Knolls",
   Lk = "Lake",
   Lks = "Lakes",
   Land = "Land",
   Lndg = c("Landing", "Lndng"),
-  Ln = "Lane",
+  Lair = "Lair",
+  Ln = c("Lane", "La"),
   Lgt = "Light",
   Lgts = "Lights",
   Lf = "Loaf",
   Lck = "Lock",
   Lcks = "Locks",
   Ldg = c("Ldge", "Lodg", "Lodge"),
+  Ledge = "Ledge",
   Loop = "Loop",
   Mall = "Mall",
   Mnr = "Manor",
@@ -134,8 +153,10 @@ valid_street_name_post_types <- list(
   Mtn = c("Mntain", "Mntn", "Mountain", "Mountin", "Mtin"),
   Mnts = "Mountains",
   Nck = "Neck",
+  Nook = "Nook",
   Orch = c("Orchard", "Orchrd"),
   Oval = "Ovl",
+  Overlook = "Overlook",
   Opas = "Overpass",
   Park = c("Prk", "Parks"),
   Pkwy = c("Parkway", "Parkwy", "Pkway", "Pky", "Parkways", "Pkwys"),
@@ -160,11 +181,13 @@ valid_street_name_post_types <- list(
   Rpd = "Rapid",
   Rpds = "Rapids",
   Rst = "Rest",
+  Retreat = "Retreat",
   Rdg = c("Rdge", "Ridge"),
   Rdgs = "Ridges",
   Riv = c("River", "Rvr", "Rivr"),
   Rd = "Road",
   Rds = "Roads",
+  Rise = "Rise",
   Rte = "Route",
   Row = "Row",
   Rue = "Rue",
@@ -186,6 +209,7 @@ valid_street_name_post_types <- list(
   St = c("Street", "Strt", "Str"),
   Sts = c("Streets"),
   Smt = c("Sumit", "Sumitt", "Summit"),
+  Taxiway = "Taxiway",
   Ter = c("Terrace", "Terr"),
   Trwy = "Throughway",
   Trce = c("Trace", "Traces"),
@@ -212,8 +236,10 @@ valid_street_name_post_types <- list(
   Wall = "Wall",
   Way = "Wy",
   Ways = "Ways",
+  Wharf = "Wharf",
   Wl = "Well",
-  Wls = "Wells"
+  Wls = "Wells",
+  Woods = "Woods"
 )
 
 valid_street_name_pre_types <- list(
@@ -286,7 +312,8 @@ map_street_name_post_type <- function(x) {
     return(NA_character_)
   }
   x_chr <- as.character(x)
-  x_norm <- tolower(trimws(x_chr))
+  x_trim <- trimws(x_chr)
+  x_norm <- tolower(x_trim)
 
   type_names <- names(valid_street_name_post_types)
   type_norm <- tolower(type_names)
@@ -295,8 +322,9 @@ map_street_name_post_type <- function(x) {
   })
 
   vapply(
-    x_norm,
-    function(val) {
+    seq_along(x_norm),
+    function(i) {
+      val <- x_norm[[i]]
       if (is.na(val)) {
         return(NA_character_)
       }
@@ -320,7 +348,7 @@ map_street_name_post_type <- function(x) {
         val,
         call. = FALSE
       )
-      NA_character_
+      x_trim[[i]]
     },
     character(1),
     USE.NAMES = FALSE
@@ -332,7 +360,8 @@ map_street_name_pre_type <- function(x) {
     return(NA_character_)
   }
   x_chr <- as.character(x)
-  x_norm <- tolower(trimws(x_chr))
+  x_trim <- trimws(x_chr)
+  x_norm <- tolower(x_trim)
 
   type_names <- names(valid_street_name_pre_types)
   type_norm <- tolower(type_names)
@@ -341,8 +370,9 @@ map_street_name_pre_type <- function(x) {
   })
 
   vapply(
-    x_norm,
-    function(val) {
+    seq_along(x_norm),
+    function(i) {
+      val <- x_norm[[i]]
       if (is.na(val)) {
         return(NA_character_)
       }
@@ -361,7 +391,7 @@ map_street_name_pre_type <- function(x) {
       if (any(hit_vals)) {
         return(type_names[which(hit_vals)[1]])
       }
-      NA_character_
+      x_trim[[i]]
     },
     character(1),
     USE.NAMES = FALSE
@@ -373,7 +403,8 @@ map_direction <- function(x) {
     return(NA_character_)
   }
   x_chr <- as.character(x)
-  x_norm <- tolower(trimws(x_chr))
+  x_trim <- trimws(x_chr)
+  x_norm <- tolower(x_trim)
 
   dir_names <- names(valid_directions)
   dir_norm <- tolower(dir_names)
@@ -382,8 +413,9 @@ map_direction <- function(x) {
   })
 
   vapply(
-    x_norm,
-    function(val) {
+    seq_along(x_norm),
+    function(i) {
+      val <- x_norm[[i]]
       if (is.na(val)) {
         return(NA_character_)
       }
@@ -402,7 +434,12 @@ map_direction <- function(x) {
       if (any(hit_vals)) {
         return(dir_names[which(hit_vals)[1]])
       }
-      NA_character_
+      warning(
+        "street name directional not mapped: ",
+        val,
+        call. = FALSE
+      )
+      x_trim[[i]]
     },
     character(1),
     USE.NAMES = FALSE

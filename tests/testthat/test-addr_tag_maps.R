@@ -1,10 +1,13 @@
 test_that("map_street_name_post_type maps variants and preserves blanks", {
-  map_street_name_post_type(c("foofy", "st", "lane")) |>
-    expect_warning("foofy")
+  expect_warning(
+    out <- map_street_name_post_type(c("foofy", "st", "lane")),
+    "foofy"
+  )
+  expect_equal(out, c("foofy", "St", "Ln"))
   suppressWarnings(
     expect_equal(
       map_street_name_post_type(c("Avenue", "Avnue", "Blvrd", "", NA, "Woop")),
-      c("Ave", "Ave", "Blvd", "", NA, NA)
+      c("Ave", "Ave", "Blvd", "", NA, "Woop")
     )
   )
 })
@@ -17,10 +20,28 @@ test_that("map_street_name_post_type handles NULL and trims", {
   )
 })
 
+test_that("map_street_name_post_type maps observed official-source suffixes", {
+  expect_equal(
+    map_street_name_post_type(c("woods", "knls", "bl", "la", "ledge", "end")),
+    c("Woods", "Knls", "Blvd", "Ln", "Ledge", "End")
+  )
+  expect_equal(
+    map_street_name_post_type(c(
+      "close",
+      "cutoff",
+      "acres",
+      "taxiway",
+      "access road",
+      "overlook"
+    )),
+    c("Close", "Cutoff", "Acres", "Taxiway", "Access Road", "Overlook")
+  )
+})
+
 test_that("map_street_name_pre_type maps variants and preserves blanks", {
   expect_equal(
     map_street_name_pre_type(c("US", "U.S.", "I-", "", NA, "Nope")),
-    c("US Hwy", "US Hwy", "I-", "", NA, NA)
+    c("US Hwy", "US Hwy", "I-", "", NA, "Nope")
   )
 })
 
@@ -33,10 +54,11 @@ test_that("map_street_name_pre_type handles NULL and trims", {
 })
 
 test_that("map_direction maps variants and preserves blanks", {
-  expect_equal(
-    map_direction(c("North", "N.E.", "south west", "", NA, "Nope")),
-    c("N", "NE", "SW", "", NA, NA)
+  expect_warning(
+    out <- map_direction(c("North", "N.E.", "south west", "", NA, "Nope")),
+    "nope"
   )
+  expect_equal(out, c("N", "NE", "SW", "", NA, "Nope"))
 })
 
 test_that("map_direction handles NULL and trims", {
