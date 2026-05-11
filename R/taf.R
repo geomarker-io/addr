@@ -278,14 +278,18 @@ taf_install <- function(
   idn <- match(d_geom$LINEARID, d_names$LINEARID)
   lid_no_name <- which(is.na(idn))
   if (length(lid_no_name) > 0) {
-    warning(
-      "Parsed ",
-      format(length(lid_no_name), big.mark = ","),
-      " addr_street",
-      "without a matching feature name in county: ",
-      county,
-      call. = FALSE
-    )
+    # warning(
+    #   "Parsed ",
+    #   format(
+    #     length(unique(d_geom[lid_no_name, "FULLNAME", drop = TRUE])),
+    #     big.mark = ","
+    #   ),
+    #   " addr_street ",
+    #   "without matching feature names (county ",
+    #   county,
+    #   ")",
+    #   call. = FALSE
+    # )
     lid_no_name_parse <-
       d_geom[lid_no_name, "FULLNAME", drop = TRUE] |>
       paste("3", street = _, "Anytown", "OHIO", "45000") |>
