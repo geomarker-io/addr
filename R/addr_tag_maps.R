@@ -159,7 +159,7 @@ valid_street_name_post_types <- list(
   Overlook = "Overlook",
   Opas = "Overpass",
   Park = c("Prk", "Parks"),
-  Pkwy = c("Parkway", "Parkwy", "Pkway", "Pky", "Parkways", "Pkwys"),
+  Pkwy = c("Parkway", "Parkwy", "Pkway", "Pky", "Parkways", "Pkwys", "Prkwy"),
   Pass = "Pass",
   Psge = "Passage",
   Path = c("Path", "Paths"),
