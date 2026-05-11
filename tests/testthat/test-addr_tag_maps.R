@@ -89,6 +89,27 @@ test_that("map_street_name_post_type maps observed official-source suffixes", {
   )
 })
 
+test_that("map_street_name_post_type maps NAD schema post type codes", {
+  expect_equal(
+    map_street_name_post_type(c(
+      "esplanade",
+      "County Road",
+      "Bureau of Indian Affairs Highway",
+      "National Forest Development Road",
+      "Street Passway",
+      "Way Terrace"
+    )),
+    c(
+      "Esplanade",
+      "County Road",
+      "Bureau of Indian Affairs Highway",
+      "National Forest Development Road",
+      "Street Passway",
+      "Way Terrace"
+    )
+  )
+})
+
 test_that("map_street_name_pre_type maps variants and preserves blanks", {
   expect_equal(
     map_street_name_pre_type(c("US", "U.S.", "I-", "", NA, "Nope")),
