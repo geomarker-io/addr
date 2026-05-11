@@ -321,8 +321,12 @@ map_street_name_post_type <- function(x) {
   type_values_norm <- lapply(valid_street_name_post_types, function(vals) {
     tolower(trimws(as.character(vals)))
   })
+  valid_tokens <- unique(c(
+    type_norm,
+    unlist(type_values_norm, use.names = FALSE)
+  ))
 
-  vapply(
+  out <- vapply(
     seq_along(x_norm),
     function(i) {
       val <- x_norm[[i]]
@@ -344,16 +348,16 @@ map_street_name_post_type <- function(x) {
       if (any(hit_vals)) {
         return(type_names[which(hit_vals)[1]])
       }
-      warning(
-        "street name post type not mapped: ",
-        val,
-        call. = FALSE
-      )
       x_trim[[i]]
     },
     character(1),
     USE.NAMES = FALSE
   )
+  unmapped <- x_norm[
+    !is.na(x_norm) & x_norm != "" & !(x_norm %in% valid_tokens)
+  ]
+  warn_unmapped_tags(unmapped, "street name post type")
+  out
 }
 
 map_street_name_pre_type <- function(x) {
@@ -412,8 +416,12 @@ map_direction <- function(x) {
   dir_values_norm <- lapply(valid_directions, function(vals) {
     tolower(trimws(as.character(vals)))
   })
+  valid_tokens <- unique(c(
+    dir_norm,
+    unlist(dir_values_norm, use.names = FALSE)
+  ))
 
-  vapply(
+  out <- vapply(
     seq_along(x_norm),
     function(i) {
       val <- x_norm[[i]]
@@ -435,16 +443,41 @@ map_direction <- function(x) {
       if (any(hit_vals)) {
         return(dir_names[which(hit_vals)[1]])
       }
-      warning(
-        "street name directional not mapped: ",
-        val,
-        call. = FALSE
-      )
       x_trim[[i]]
     },
     character(1),
     USE.NAMES = FALSE
   )
+  unmapped <- x_norm[
+    !is.na(x_norm) & x_norm != "" & !(x_norm %in% valid_tokens)
+  ]
+  warn_unmapped_tags(unmapped, "street name directional")
+  out
+}
+
+warn_unmapped_tags <- function(tags, label) {
+  if (length(tags) == 0L) {
+    return(invisible(tags))
+  }
+
+  unique_tags <- unique(tags)
+  counts <- tabulate(match(tags, unique_tags), nbins = length(unique_tags))
+  tag_summary <- paste0(
+    unique_tags,
+    ifelse(
+      counts == 1L,
+      "",
+      paste0(" (", counts, " times)")
+    )
+  )
+
+  warning(
+    label,
+    if (length(unique_tags) == 1L) " not mapped: " else "s not mapped: ",
+    paste(tag_summary, collapse = ", "),
+    call. = FALSE
+  )
+  invisible(tags)
 }
 
 valid_states <- list(

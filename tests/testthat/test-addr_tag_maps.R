@@ -16,6 +16,18 @@ tag_map_collisions <- function(x) {
   collisions[lengths(collisions) > 1L]
 }
 
+capture_warning_messages <- function(expr) {
+  warnings <- character()
+  value <- withCallingHandlers(
+    expr,
+    warning = function(w) {
+      warnings <<- c(warnings, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  list(value = value, warnings = warnings)
+}
+
 test_that("tag maps have exclusive normalized input tokens", {
   no_collisions <- setNames(list(), character())
   expect_equal(tag_map_collisions(valid_street_name_post_types), no_collisions)
@@ -35,6 +47,19 @@ test_that("map_street_name_post_type maps variants and preserves blanks", {
       map_street_name_post_type(c("Avenue", "Avnue", "Blvrd", "", NA, "Woop")),
       c("Ave", "Ave", "Blvd", "", NA, "Woop")
     )
+  )
+})
+
+test_that("map_street_name_post_type summarizes unmapped duplicate tags", {
+  res <- capture_warning_messages(
+    map_street_name_post_type(c("FooFy", "st", " foofy ", "Woop"))
+  )
+
+  expect_equal(res$value, c("FooFy", "St", "foofy", "Woop"))
+  expect_length(res$warnings, 1L)
+  expect_match(
+    res$warnings,
+    "street name post types not mapped: foofy \\(2 times\\), woop"
   )
 })
 
@@ -85,6 +110,19 @@ test_that("map_direction maps variants and preserves blanks", {
     "nope"
   )
   expect_equal(out, c("N", "NE", "SW", "", NA, "Nope"))
+})
+
+test_that("map_direction summarizes unmapped duplicate tags", {
+  res <- capture_warning_messages(
+    map_direction(c("Nope", "N", " nope ", "Elsewhere"))
+  )
+
+  expect_equal(res$value, c("Nope", "N", "nope", "Elsewhere"))
+  expect_length(res$warnings, 1L)
+  expect_match(
+    res$warnings,
+    "street name directionals not mapped: nope \\(2 times\\), elsewhere"
+  )
 })
 
 test_that("map_direction handles NULL and trims", {
