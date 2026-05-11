@@ -38,7 +38,8 @@ addr(number = addr_number(), street = addr_street(), place = addr_place())
 \arguments{
 \item{prefix}{address number prefix, often a fractional or grid component}
 
-\item{digits}{primary street number for the address}
+\item{digits}{primary street number for the address; must be between 0 and
+999999}
 
 \item{suffix}{address number suffix, often a letter or unit-like component}
 
