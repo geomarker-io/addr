@@ -61,14 +61,14 @@
 #' @examples
 #' # read data from NAD, caching output on first run
 #' \dontrun{
-#'   nad("Hamilton", "OH")
-#'   nad("39061")
+#'   nad("Butler", "OH")
+#'   nad("39017")
 #' }
 #'
 #' # example data preloaded for Hamilton County, OH
 #' # works without downloading NAD gdb first
-#' nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no")
-#' nad("39061", refresh_source = "no", refresh_binary = "no")
+#' nad("Hamilton", "OH")
+#' nad("39061")
 #'
 #' # some older releases can still be downloaded
 #' \dontrun{
