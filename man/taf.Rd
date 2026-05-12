@@ -41,13 +41,14 @@ see \url{https://arrow.apache.org/docs/r/articles/data_wrangling.html}.
 Other TAF helpers such as \code{taf_catalog()}, \code{taf_install()}, and \code{taf_zip()}
 use nanoparquet directly for flat parquet file reads and writes. Arrow is
 only required for the advanced dataset interface returned by \code{taf()}.
-
+}
+\details{
 \code{taf_install()} downloads and links TIGER address features and
 feature names for a specific year and county, installing the resulting
 file in the addr user data directory.
-If an address feature does not have a corresponding LINEARID with a
-feature name, then the street tags are parsed from the full name, in
-which case the column, \code{street_tag_parsed} will be TRUE.
+About 6\% of ADDRFEAT rows do not have a county-local primary FEATNAMES
+match by LINEARID. In these cases, street tags are parsed from the
+ADDRFEAT full name, and the \code{street_tag_parsed} column is set to TRUE.
 }
 \examples{
 Sys.setenv("R_USER_DATA_DIR" = tempfile())

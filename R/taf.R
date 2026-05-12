@@ -11,12 +11,13 @@
 #' use nanoparquet directly for flat parquet file reads and writes. Arrow is
 #' only required for the advanced dataset interface returned by `taf()`.
 #'
+#' @details
 #' `taf_install()` downloads and links TIGER address features and
 #' feature names for a specific year and county, installing the resulting
 #' file in the addr user data directory.
-#' If an address feature does not have a corresponding LINEARID with a
-#' feature name, then the street tags are parsed from the full name, in
-#' which case the column, `street_tag_parsed` will be TRUE.
+#' About 6% of ADDRFEAT rows do not have a county-local primary FEATNAMES
+#' match by LINEARID. In these cases, street tags are parsed from the
+#' ADDRFEAT full name, and the `street_tag_parsed` column is set to TRUE.
 #'
 #' @param year integer, length one; vintage of TIGER addrfeat (address feature)
 #'   files
@@ -277,11 +278,18 @@ taf_install <- function(
   idn <- match(d_geom$LINEARID, d_names$LINEARID)
   lid_no_name <- which(is.na(idn))
   if (length(lid_no_name) > 0) {
-    warning(
-      "structured street name info not found for ",
-      length(lid_no_name),
-      " ranges"
-    )
+    # warning(
+    #   "Parsed ",
+    #   format(
+    #     length(unique(d_geom[lid_no_name, "FULLNAME", drop = TRUE])),
+    #     big.mark = ","
+    #   ),
+    #   " addr_street ",
+    #   "without matching feature names (county ",
+    #   county,
+    #   ")",
+    #   call. = FALSE
+    # )
     lid_no_name_parse <-
       d_geom[lid_no_name, "FULLNAME", drop = TRUE] |>
       paste("3", street = _, "Anytown", "OHIO", "45000") |>

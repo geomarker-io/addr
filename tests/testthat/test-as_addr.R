@@ -100,6 +100,22 @@ test_that("as_addr maps abbreviations for data.frame inputs", {
   )
 })
 
+test_that("as_addr preserves unmapped street tags for data.frame inputs", {
+  df <- data.frame(
+    number_digits = "200",
+    street_name = "Main",
+    street_posttype = "Foofy",
+    place_zipcode = "45220",
+    stringsAsFactors = FALSE
+  )
+
+  expect_warning(
+    mapped <- as_addr(df),
+    "foofy"
+  )
+  expect_equal(mapped@street@posttype, "Foofy")
+})
+
 test_that("as_addr handles NA and empty inputs", {
   na_addr <- as_addr(NA_character_)
   expect_equal(

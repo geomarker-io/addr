@@ -1,25 +1,18 @@
 devtools::load_all()
 
-nad_release <- "NAD_r22.zip"
-
-nad_gdb_file <- nad_download(release = nad_release, refresh = "yes")
+nad_gdb_file <- nad_download(
+  version = 22L,
+  refresh_source = "no"
+)
 
 cnty_fips <- c(
+  "39061",
   "39017",
   "39015",
-  "39001",
-  "39071",
-  "39027",
   "39061",
-  "39025",
-  "39165",
   "21117",
-  "21081",
-  "21015",
   "21037",
-  "18137",
-  "18047",
-  "18029"
+  "18137"
 )
 # cnty_fips <- county_fips_reference$county_fips
 

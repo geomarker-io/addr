@@ -131,7 +131,14 @@ addr_number <- S7::new_class(
       self@digits != "" &
       !grepl("^[0-9]+$", self@digits)
     if (any(bad)) {
-      "@digits must contain only numeric characters"
+      return("@digits must contain only numeric characters")
+    }
+    digits <- suppressWarnings(as.numeric(self@digits))
+    out_of_range <- !is.na(self@digits) &
+      self@digits != "" &
+      (digits < 0 | digits > 999999)
+    if (any(out_of_range)) {
+      return("@digits must be between 0 and 999999")
     }
   }
 )

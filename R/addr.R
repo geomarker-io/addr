@@ -55,7 +55,8 @@ NULL
 #' length of other fields.
 #'
 #' @param prefix address number prefix, often a fractional or grid component
-#' @param digits primary street number for the address
+#' @param digits primary street number for the address; must be between 0 and
+#' 999999
 #' @param suffix address number suffix, often a letter or unit-like component
 #' @param predirectional direction before the street name
 #' @param premodifier descriptive modifier before the street name

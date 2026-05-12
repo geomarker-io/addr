@@ -60,6 +60,12 @@ test_that("addr_number() validates digits", {
     ),
     "@digits must contain only numeric characters"
   )
+
+  expect_no_error(addr_number(digits = c("0", "999999")))
+  expect_error(
+    addr_number(digits = "1000000"),
+    "@digits must be between 0 and 999999"
+  )
 })
 
 test_that("addr_number() rejects mismatched lengths", {

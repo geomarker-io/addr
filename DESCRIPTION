@@ -4,9 +4,9 @@ Version: 1.1.0.9000
 Authors@R: 
     c(person("Cole", "Brokamp", email = "cole@colebrokamp.com", role = c("aut", "cre")),
       person("Erika", "Manning", role = c("aut")))
-Description: Addresses that were not validated at collection are often inconsistently formatted and contain typographical or phonetic noise, making them difficult to compare or link to other address data. The addr package cleans, parses, standardizes, matches, and geocodes messy, real-world US addresses. It uses the `usaddress` library to tag address components and build addr vector objects composed of addr_part vectors for number, street, and place. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures. 
-URL: https://github.com/geomarker-io/addr, https://geomarker.io/addr
-BugReports: https://github.com/cole-brokamp/addr/issues
+Description: Clean, parses, standardize, match, and geocodes messy, real-world US addresses. Use the included `usaddress` library to tag address components and build addr vector objects composed of addr_part vectors for number, street, and place. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures. 
+URL: https://github.com/geomarker-io/addr/, https://geomarker.io/addr/
+BugReports: https://github.com/geomarker-io/addr/issues/
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -15,7 +15,6 @@ Suggests:
     htmltools,
     arrow,
     dplyr,
-    jsonlite,
     leaflet,
     mirai,
     pkgload,
@@ -37,8 +36,6 @@ Config/testthat/edition: 3
 Depends: 
     R (>= 4.0.0)
 Config/rextendr/version: 0.4.2
-Remotes:
-   geomarker-io/codec
 Collate: 
     'addr_helpers.R'
     'addr_part.R'

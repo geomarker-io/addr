@@ -9,19 +9,19 @@
 nad(
   county,
   state = NULL,
-  release = "latest",
+  version = 22L,
   refresh_binary = c("yes", "no", "force"),
-  refresh_source = c("yes", "no", "force")
+  refresh_source = c("no", "yes", "force")
 )
 
 nad_read(
   county,
   state = NULL,
-  release = "latest",
-  refresh_source = c("yes", "no", "force")
+  version = 22L,
+  refresh_source = c("no", "yes", "force")
 )
 
-nad_download(release = "latest", refresh_source = c("yes", "no", "force"))
+nad_download(version = 22L, refresh_source = c("yes", "no", "force"))
 }
 \arguments{
 \item{county}{character, length one; county name or 5-digit county FIPS
@@ -31,9 +31,8 @@ identifier}
 when \code{county} is a county name; ignored when \code{county} is a 5-digit county
 FIPS identifier}
 
-\item{release}{character, length 1; revision of the NAD;
-the default ("latest") fetches the most recent version available online;
-specify other versions by their .zip filename (see examples)}
+\item{version}{integer, length one; NAD revision to use. Defaults to \code{22L},
+revision 22 of the National Address Database.}
 
 \item{refresh_binary}{character, length one; choose how to refresh NAD
 data binaries cached on disk if not already present; "yes" will
@@ -54,8 +53,8 @@ into a database. Find more information here:
 \url{https://www.transportation.gov/gis/national-address-database}
 
 \code{nad_read()} reads data from the NAD geodatabase by county,
-downloading it first to the R user's data directory for the addr package
-if not already downloaded with \code{nad_download()}, and readies it for R.
+using source data already downloaded with \code{nad_download()} or downloading
+it when \code{refresh_source = "yes"}, and readies it for R.
 Counties can be identified either by county name plus state, or by a
 5-digit county FIPS identifier. County names and state abbreviations are
 resolved internally and still determine the cache path and source query.
@@ -63,16 +62,16 @@ The NAD geodatabase has a very large size on disk (~10 GB).
 
 Data binaries are the cached outputs of \code{nad_read()} for each
 County/State and are created on first run with \code{nad()}.
-Download data binaries to the \code{tools::R_user_dir()} cache directory, or
+Download data binaries to the \code{tools::R_user_dir()} data directory, or
 point R to these files on disk, to read NAD tables without downloading the
 nationwide NAD geodatabase.
 (Files are organized by major package version,
-NAD release, state, and named by county; e.g., see
-\code{list.files(tools::R_user_dir("addr", "cache"), recursive = TRUE)})
+NAD version, state, and named by county; e.g., see
+\code{list.files(tools::R_user_dir("addr", "data"), recursive = TRUE)})
 }
 \details{
-The NAD is downloaded from each release on the transportation.gov
-data portal:
+NAD source geodatabases are downloaded from the transportation.gov data
+portal:
 \url{https://data.transportation.gov/d/yw36-suxr}
 Downloads use the R \code{curl} package and resume from any interrupted
 partial download left in the addr user data directory.
@@ -94,24 +93,16 @@ and ZIP code.
 Addresses with malformed ZIP codes are removed.
 }
 \examples{
-# read data from NAD, caching output on first run
+# explicitly download source data, then cache county output on first read
 \dontrun{
-  nad("Hamilton", "OH")
-  nad("39061")
+  nad_download(version = 22L)
+  nad("Butler", "OH")
+  nad("39017")
 }
 
 # example data preloaded for Hamilton County, OH
 # works without downloading NAD gdb first
+Sys.setenv(R_USER_DATA_DIR = tempfile())
 nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no")
 nad("39061", refresh_source = "no", refresh_binary = "no")
-
-# some older releases can still be downloaded
-\dontrun{
-  nad_download(release = "NAD_r21_FGDB.zip")
-}
-# can also point to older releases if they are already downloaded
-# or if data binaries are installed
-\dontrun{
-  nad_download(release = "NAD_r21_FGDB.zip", refresh_source = "no")
-}
 }

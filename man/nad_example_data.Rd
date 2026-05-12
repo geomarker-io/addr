@@ -16,7 +16,7 @@ columns. If \code{match_prepared = TRUE}, an \code{addr_match_index}.
 }
 \description{
 An example of the data returned using \code{nad()} for
-Hamilton County, Ohio (release \code{NAD_r22.zip}). See \code{?nad} for more
+Hamilton County, Ohio (NAD version \code{22L}). See \code{?nad} for more
 information about the National Address Database.
 
 \code{nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no")}

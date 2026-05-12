@@ -20,10 +20,14 @@ test_that("nad-family functions validate county inputs and path scalars", {
     nad_read(
       "Hamilton",
       NA_character_,
-      release = "NAD_r22.zip",
+      version = 22L,
       refresh_source = "no"
     ),
     "state must be NULL or not missing"
+  )
+  expect_error(
+    nad_download(version = "latest", refresh_source = "no"),
+    "version must be an integer vector"
   )
   expect_error(
     nad_sd_path(1, "OH"),

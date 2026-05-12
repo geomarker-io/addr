@@ -1,6 +1,11 @@
-# from USPS Publication 28, Appendix C1
+# Based on USPS Publication 28, Appendix C1, plus additional post types
+# observed in NAD/TAF source data that are accepted as-is.
 # https://pe.usps.com/text/pub28/28apc_002.htm
 valid_street_name_post_types <- list(
+  "Accss" = c("Access", "Acc"),
+  "Access Road" = "Access Road",
+  "Acres" = "Acres",
+  "Abbey" = "Abbey",
   Aly = c("Allee", "Alley", "Ally", "Al"),
   Anx = c("Anex", "Annex", "Annx"),
   Arc = "Arcade",
@@ -11,21 +16,23 @@ valid_street_name_post_types <- list(
   Blf = c("Bluff", "Bluf"),
   Blfs = "Bluffs",
   Btm = c("Bot", "Bottm", "Bottom"),
-  Blvd = c("Boulevard", "Boulv", "Blvrd", "Boulv", "Bv"),
+  Blvd = c("Boulevard", "Boulv", "Blvrd", "Boulv", "Bv", "Bl"),
   Br = c("Branch", "Brnch"),
   Brg = c("Bridge", "Brdge"),
   Brk = "Brook",
   Brks = "Brooks",
+  Bay = "Bay",
   Bg = "Burg",
   Bgs = "Burgs",
   Byp = c("Bypass", "Bypa", "Bypas", "Byps"),
+  Chase = "Chase",
   Cp = c("Camp", "Cmp"),
   Cyn = c("Canyon", "Cnyn", "Canyn"),
   Cpe = "Cape",
   Cswy = c("Causeway", "Causwa"),
   Ctr = c("Center", "Cen", "Ctr", "Centr", "Centre", "Cntr", "Cent"),
   Ctrs = "Centers",
-  Cir = c("Circle", "Cir", "Circ", "Circl", "Crcle", "Cr", "Crcl"),
+  Cir = c("Circle", "Cir", "Circ", "Circl", "Crcle", "Cr", "Crcl", "Ci"),
   Cirs = "Circles",
   Clf = "Cliff",
   Clfs = "Cliffs",
@@ -41,7 +48,11 @@ valid_street_name_post_types <- list(
   Cvs = "Coves",
   Crk = "Creek",
   Cres = c("Crescent", "Crsent", "Crsnt", "Crsc"),
+  Close = "Close",
+  Concourse = "Concourse",
+  Connector = "Connector",
   Crst = "Crest",
+  Cutoff = "Cutoff",
   Xing = c("Crossing", "Crssng"),
   Xrd = "Crossroad",
   Xrds = "Crossroads",
@@ -51,8 +62,12 @@ valid_street_name_post_types <- list(
   Dv = c("Divide", "Div", "Dvd"),
   Dr = c("Drive", "Driv", "Drv"),
   Drs = "Drives",
+  Downs = "Downs",
+  Edge = "Edge",
   Est = "Estate",
   Ests = "Estates",
+  End = "End",
+  Exit = "Exit",
   Expy = c("Expressway", "Exp", "Expr", "Express", "Expw"),
   Ext = c("Extension", "Extn", "Extnsn"),
   Exts = "Extensions",
@@ -75,6 +90,7 @@ valid_street_name_post_types <- list(
   Gdn = c("Garden", "Gardn", "Grden", "Grdn"),
   Gdns = c("Gardens", "Grdns"),
   Gtwy = c("Gateway", "Gatewy", "Gatway", "Gtway"),
+  Gate = "Gate",
   Gln = "Glen",
   Glns = "Glens",
   Grn = "Green",
@@ -108,18 +124,21 @@ valid_street_name_post_types <- list(
   Ky = "Key",
   Kys = "Keys",
   Knl = c("Knoll", "Knol"),
+  Knls = "Knolls",
   Lk = "Lake",
   Lks = "Lakes",
   Land = "Land",
   Lndg = c("Landing", "Lndng"),
-  Ln = "Lane",
+  Lair = "Lair",
+  Ln = c("Lane", "La"),
   Lgt = "Light",
   Lgts = "Lights",
   Lf = "Loaf",
   Lck = "Lock",
   Lcks = "Locks",
   Ldg = c("Ldge", "Lodg", "Lodge"),
-  Loop = "Loop",
+  Ledge = "Ledge",
+  Loop = c("Loop", "Lp"),
   Mall = "Mall",
   Mnr = "Manor",
   Mnrs = "Manors",
@@ -134,11 +153,13 @@ valid_street_name_post_types <- list(
   Mtn = c("Mntain", "Mntn", "Mountain", "Mountin", "Mtin"),
   Mnts = "Mountains",
   Nck = "Neck",
+  Nook = "Nook",
   Orch = c("Orchard", "Orchrd"),
   Oval = "Ovl",
+  Overlook = "Overlook",
   Opas = "Overpass",
   Park = c("Prk", "Parks"),
-  Pkwy = c("Parkway", "Parkwy", "Pkway", "Pky", "Parkways", "Pkwys"),
+  Pkwy = c("Parkway", "Parkwy", "Pkway", "Pky", "Parkways", "Pkwys", "Prkwy"),
   Pass = "Pass",
   Psge = "Passage",
   Path = c("Path", "Paths"),
@@ -152,6 +173,7 @@ valid_street_name_post_types <- list(
   Pt = c("Point", "Pointe", "Pte"),
   Pts = "Points",
   Prt = "Port",
+  Promenade = c("Prom", "Promen"),
   Prts = "Ports",
   Pr = c("Prarie", "Prr"),
   Radl = c("Rad", "Radial", "Radiel"),
@@ -160,11 +182,13 @@ valid_street_name_post_types <- list(
   Rpd = "Rapid",
   Rpds = "Rapids",
   Rst = "Rest",
+  Retreat = "Retreat",
   Rdg = c("Rdge", "Ridge"),
   Rdgs = "Ridges",
   Riv = c("River", "Rvr", "Rivr"),
   Rd = "Road",
   Rds = "Roads",
+  Rise = "Rise",
   Rte = "Route",
   Row = "Row",
   Rue = "Rue",
@@ -174,7 +198,7 @@ valid_street_name_post_types <- list(
   Shr = c("Shore", "Shoar"),
   Shrs = c("Shores", "Shoars"),
   Skwy = "Skyway",
-  Spg = c("Spring", "Spng", "Sprng"),
+  Spg = c("Spring", "Spng", "Sprng", "Spr"),
   Spgs = c("Spngs", "Springs", "Sprngs"),
   Spur = "Spur",
   Spurs = "Spurs",
@@ -185,7 +209,9 @@ valid_street_name_post_types <- list(
   Strm = c("Stream", "Streme"),
   St = c("Street", "Strt", "Str"),
   Sts = c("Streets"),
+  Strp = "Strip",
   Smt = c("Sumit", "Sumitt", "Summit"),
+  Taxiway = "Taxiway",
   Ter = c("Terrace", "Terr"),
   Trwy = "Throughway",
   Trce = c("Trace", "Traces"),
@@ -212,9 +238,219 @@ valid_street_name_post_types <- list(
   Wall = "Wall",
   Way = "Wy",
   Ways = "Ways",
+  Wharf = "Wharf",
   Wl = "Well",
-  Wls = "Wells"
+  Wls = "Wells",
+  Woods = "Woods"
 )
+
+# NAD Schema April 2023 StreetName_Type domain values not already covered by
+# USPS Publication 28 aliases above. NAD codes and names are identical.
+valid_street_name_post_types <- c(valid_street_name_post_types, list(
+  "Airport" = "Airport",
+  "Alcove" = "Alcove",
+  "Alle" = "Alle",
+  "Approach" = "Approach",
+  "Arch" = "Arch",
+  "Arroyo" = "Arroyo",
+  "Avenida" = "Avenida",
+  "Avenue Circle" = "Avenue Circle",
+  "Avenue Court" = "Avenue Court",
+  "Avenue Drive" = "Avenue Drive",
+  "Avenue Footway" = "Avenue Footway",
+  "Avenue Lane" = "Avenue Lane",
+  "Avenue Loop" = "Avenue Loop",
+  "Avenue Path" = "Avenue Path",
+  "Avenue Place" = "Avenue Place",
+  "Avenue Terrace" = "Avenue Terrace",
+  "Avenue Way" = "Avenue Way",
+  "Bahia" = "Bahia",
+  "Bank" = "Bank",
+  "Bayway" = "Bayway",
+  "Boardwalk" = "Boardwalk",
+  "Bureau of Indian Affairs Highway" = "Bureau of Indian Affairs Highway",
+  "Bureau of Indian Affairs Route" = "Bureau of Indian Affairs Route",
+  "Byway" = "Byway",
+  "Calle" = "Calle",
+  "Caminito" = "Caminito",
+  "Camino" = "Camino",
+  "Cartway" = "Cartway",
+  "Cerrada" = "Cerrada",
+  "Channel" = "Channel",
+  "Chemin" = "Chemin",
+  "Circle Drive" = "Circle Drive",
+  "Circuit" = "Circuit",
+  "Circulo" = "Circulo",
+  "Circus" = "Circus",
+  "Cluster" = "Cluster",
+  "Coast Highway" = "Coast Highway",
+  "Connect" = "Connect",
+  "Corridor" = "Corridor",
+  "Corso" = "Corso",
+  "Corta" = "Corta",
+  "Corte" = "Corte",
+  "County Forest Road" = "County Forest Road",
+  "County Highway" = "County Highway",
+  "County Road" = "County Road",
+  "County Route" = "County Route",
+  "County State Aid Highway" = "County State Aid Highway",
+  "Cours" = "Cours",
+  "Court Circle" = "Court Circle",
+  "Court Place" = "Court Place",
+  "Court Street" = "Court Street",
+  "Court Terrace" = "Court Terrace",
+  "Court Way" = "Court Way",
+  "Cross" = "Cross",
+  "Crossings" = "Crossings",
+  "Crossway" = "Crossway",
+  "Cutoff Road" = "Cutoff Road",
+  "Cutting" = "Cutting",
+  "Dell" = "Dell",
+  "Dock" = "Dock",
+  "Down" = "Down",
+  "Draw" = "Draw",
+  "Drift" = "Drift",
+  "Drive Circle" = "Drive Circle",
+  "Drive Lane" = "Drive Lane",
+  "Drive Road" = "Drive Road",
+  "Driveway" = "Driveway",
+  "Echo" = "Echo",
+  "Entrada" = "Entrada",
+  "Entrance" = "Entrance",
+  "Entry" = "Entry",
+  "Esplanade" = "Esplanade",
+  "Exchange" = "Exchange",
+  "Fairway" = "Fairway",
+  "Fare" = "Fare",
+  "Farm" = "Farm",
+  "Farm to Market" = "Farm to Market",
+  "Federal-Aid Secondary Highway" = "Federal-Aid Secondary Highway",
+  "Fire Road" = "Fire Road",
+  "Flowage" = "Flowage",
+  "Flyway" = "Flyway",
+  "Fordway" = "Fordway",
+  "Forest Highway" = "Forest Highway",
+  "Forest Road" = "Forest Road",
+  "Front" = "Front",
+  "Furlong" = "Furlong",
+  "Gables" = "Gables",
+  "Garth" = "Garth",
+  "Gates" = "Gates",
+  "Glade" = "Glade",
+  "Gorge" = "Gorge",
+  "Grade" = "Grade",
+  "Greenway" = "Greenway",
+  "Harbour" = "Harbour",
+  "Haul Road" = "Haul Road",
+  "Hayway" = "Hayway",
+  "Heath" = "Heath",
+  "Highlands" = "Highlands",
+  "Hillway" = "Hillway",
+  "Horn" = "Horn",
+  "Horseshoe" = "Horseshoe",
+  "Indian Service Road" = "Indian Service Road",
+  "Interstate" = "Interstate",
+  "Interval" = "Interval",
+  "J-Turn" = "J-Turn",
+  "Keep" = "Keep",
+  "Knob" = "Knob",
+  "Lane Avenue" = "Lane Avenue",
+  "Lane Circle" = "Lane Circle",
+  "Lane Court" = "Lane Court",
+  "Lane Drive" = "Lane Drive",
+  "Lane Road" = "Lane Road",
+  "Lane Way" = "Lane Way",
+  "Lateral" = "Lateral",
+  "Line" = "Line",
+  "Lookout" = "Lookout",
+  "Loop Road" = "Loop Road",
+  "Market" = "Market",
+  "Narrows" = "Narrows",
+  "National Forest Development Road" = "National Forest Development Road",
+  "Old County Road" = "Old County Road",
+  "Park Drive" = "Park Drive",
+  "Parke" = "Parke",
+  "Paseo" = "Paseo",
+  "Passway" = "Passway",
+  "Pathway" = "Pathway",
+  "Peninsula" = "Peninsula",
+  "Piazza" = "Piazza",
+  "Placita" = "Placita",
+  "Platz" = "Platz",
+  "Prairie" = "Prairie",
+  "Private Road" = "Private Road",
+  "Quarter" = "Quarter",
+  "Quay" = "Quay",
+  "Ranch Road" = "Ranch Road",
+  "Ranch to Market" = "Ranch to Market",
+  "Rancho" = "Rancho",
+  "Reach" = "Reach",
+  "Recreational Road" = "Recreational Road",
+  "River Road" = "River Road",
+  "Road Avenue" = "Road Avenue",
+  "Road Branch" = "Road Branch",
+  "Road Bypass" = "Road Bypass",
+  "Road Circle" = "Road Circle",
+  "Road Court" = "Road Court",
+  "Road Cutoff" = "Road Cutoff",
+  "Road Drive" = "Road Drive",
+  "Road Estates" = "Road Estates",
+  "Road Landing" = "Road Landing",
+  "Road Lane" = "Road Lane",
+  "Road Place" = "Road Place",
+  "Road Terrace" = "Road Terrace",
+  "Road Way" = "Road Way",
+  "Round" = "Round",
+  "Runne" = "Runne",
+  "Runway" = "Runway",
+  "Rural Route" = "Rural Route",
+  "Skies" = "Skies",
+  "Slip" = "Slip",
+  "State Highway" = "State Highway",
+  "State Park Road" = "State Park Road",
+  "State Parkway" = "State Parkway",
+  "State Road" = "State Road",
+  "State Route" = "State Route",
+  "State Secondary" = "State Secondary",
+  "State Spur" = "State Spur",
+  "Strand" = "Strand",
+  "Strasse" = "Strasse",
+  "Street Annex" = "Street Annex",
+  "Street Avenue" = "Street Avenue",
+  "Street Bypass" = "Street Bypass",
+  "Street Circle" = "Street Circle",
+  "Street Court" = "Street Court",
+  "Street Crossing" = "Street Crossing",
+  "Street Drive" = "Street Drive",
+  "Street Lane" = "Street Lane",
+  "Street Loop" = "Street Loop",
+  "Street Park" = "Street Park",
+  "Street Parkway" = "Street Parkway",
+  "Street Passway" = "Street Passway",
+  "Street Path" = "Street Path",
+  "Street Place" = "Street Place",
+  "Street Road" = "Street Road",
+  "Street Terrace" = "Street Terrace",
+  "Street Way" = "Street Way",
+  "Terminal" = "Terminal",
+  "Tern" = "Tern",
+  "Thruway" = "Thruway",
+  "Timber Road" = "Timber Road",
+  "Township Road" = "Township Road",
+  "Triangle" = "Triangle",
+  "Truck Trail" = "Truck Trail",
+  "United States Forest Service Road" = "United States Forest Service Road",
+  "United States Highway" = "United States Highway",
+  "United States Route" = "United States Route",
+  "Vereda" = "Vereda",
+  "Villa" = "Villa",
+  "Waddy" = "Waddy",
+  "Way Loop" = "Way Loop",
+  "Way Terrace" = "Way Terrace",
+  "Weeg" = "Weeg",
+  "Wye" = "Wye",
+  "Wynd" = "Wynd"
+))
 
 valid_street_name_pre_types <- list(
   "Ave" = c("Ave", "Av", "Avenue"),
@@ -245,8 +481,7 @@ valid_street_name_pre_types <- list(
     "Farm to Market Road",
     "Farm-to-Market Rd",
     "Farm to Market Rd",
-    "F-M Rd",
-    "FMRd"
+    "F-M Rd"
   ),
   "Ranch Rd" = c("Ranch Road", "Ranch Rd"),
   "R-M Rd" = c(
@@ -257,7 +492,7 @@ valid_street_name_pre_types <- list(
   ),
   "Res Hwy" = c("Reservation Highway", "Reservation Hwy", "Res Hwy", "ResH"),
   "Sv Rte" = c("Service Route", "Service Rte", "Sv Rte", "SvRt"),
-  "Srv Rd" = c("Service Road", "Service Rd", "Srv Rd", "SrvR"),
+  "Srv Rd" = c("Service Road", "Service Rd", "Srv Rd", "SrvR", "Svc Rd"),
   "Lg Rd" = c("Logging Road", "Logging Rd", "Lg Rd", "LgRd"),
   "FR Rd" = c("Fire Road", "Fire Rd", "FR Rd", "FRRd"),
   "FR Rte" = c("Fire Route", "Fire Rte", "FR Rte", "FRRt"),
@@ -286,17 +521,23 @@ map_street_name_post_type <- function(x) {
     return(NA_character_)
   }
   x_chr <- as.character(x)
-  x_norm <- tolower(trimws(x_chr))
+  x_trim <- trimws(x_chr)
+  x_norm <- tolower(x_trim)
 
   type_names <- names(valid_street_name_post_types)
   type_norm <- tolower(type_names)
   type_values_norm <- lapply(valid_street_name_post_types, function(vals) {
     tolower(trimws(as.character(vals)))
   })
+  valid_tokens <- unique(c(
+    type_norm,
+    unlist(type_values_norm, use.names = FALSE)
+  ))
 
-  vapply(
-    x_norm,
-    function(val) {
+  out <- vapply(
+    seq_along(x_norm),
+    function(i) {
+      val <- x_norm[[i]]
       if (is.na(val)) {
         return(NA_character_)
       }
@@ -315,16 +556,16 @@ map_street_name_post_type <- function(x) {
       if (any(hit_vals)) {
         return(type_names[which(hit_vals)[1]])
       }
-      warning(
-        "street name post type not mapped: ",
-        val,
-        call. = FALSE
-      )
-      NA_character_
+      x_trim[[i]]
     },
     character(1),
     USE.NAMES = FALSE
   )
+  unmapped <- x_norm[
+    !is.na(x_norm) & x_norm != "" & !(x_norm %in% valid_tokens)
+  ]
+  warn_unmapped_tags(unmapped, "street name post type")
+  out
 }
 
 map_street_name_pre_type <- function(x) {
@@ -332,7 +573,8 @@ map_street_name_pre_type <- function(x) {
     return(NA_character_)
   }
   x_chr <- as.character(x)
-  x_norm <- tolower(trimws(x_chr))
+  x_trim <- trimws(x_chr)
+  x_norm <- tolower(x_trim)
 
   type_names <- names(valid_street_name_pre_types)
   type_norm <- tolower(type_names)
@@ -341,8 +583,9 @@ map_street_name_pre_type <- function(x) {
   })
 
   vapply(
-    x_norm,
-    function(val) {
+    seq_along(x_norm),
+    function(i) {
+      val <- x_norm[[i]]
       if (is.na(val)) {
         return(NA_character_)
       }
@@ -361,7 +604,7 @@ map_street_name_pre_type <- function(x) {
       if (any(hit_vals)) {
         return(type_names[which(hit_vals)[1]])
       }
-      NA_character_
+      x_trim[[i]]
     },
     character(1),
     USE.NAMES = FALSE
@@ -373,17 +616,23 @@ map_direction <- function(x) {
     return(NA_character_)
   }
   x_chr <- as.character(x)
-  x_norm <- tolower(trimws(x_chr))
+  x_trim <- trimws(x_chr)
+  x_norm <- tolower(x_trim)
 
   dir_names <- names(valid_directions)
   dir_norm <- tolower(dir_names)
   dir_values_norm <- lapply(valid_directions, function(vals) {
     tolower(trimws(as.character(vals)))
   })
+  valid_tokens <- unique(c(
+    dir_norm,
+    unlist(dir_values_norm, use.names = FALSE)
+  ))
 
-  vapply(
-    x_norm,
-    function(val) {
+  out <- vapply(
+    seq_along(x_norm),
+    function(i) {
+      val <- x_norm[[i]]
       if (is.na(val)) {
         return(NA_character_)
       }
@@ -402,11 +651,41 @@ map_direction <- function(x) {
       if (any(hit_vals)) {
         return(dir_names[which(hit_vals)[1]])
       }
-      NA_character_
+      x_trim[[i]]
     },
     character(1),
     USE.NAMES = FALSE
   )
+  unmapped <- x_norm[
+    !is.na(x_norm) & x_norm != "" & !(x_norm %in% valid_tokens)
+  ]
+  warn_unmapped_tags(unmapped, "street name directional")
+  out
+}
+
+warn_unmapped_tags <- function(tags, label) {
+  if (length(tags) == 0L) {
+    return(invisible(tags))
+  }
+
+  unique_tags <- unique(tags)
+  counts <- tabulate(match(tags, unique_tags), nbins = length(unique_tags))
+  tag_summary <- paste0(
+    unique_tags,
+    ifelse(
+      counts == 1L,
+      "",
+      paste0(" (", counts, " times)")
+    )
+  )
+
+  warning(
+    label,
+    if (length(unique_tags) == 1L) " not mapped: " else "s not mapped: ",
+    paste(tag_summary, collapse = ", "),
+    call. = FALSE
+  )
+  invisible(tags)
 }
 
 valid_states <- list(

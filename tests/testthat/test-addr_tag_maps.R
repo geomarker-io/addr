@@ -1,11 +1,65 @@
+tag_map_collisions <- function(x) {
+  token_map <- do.call(
+    rbind,
+    Map(function(canonical, aliases) {
+      tokens <- unique(tolower(trimws(c(canonical, as.character(aliases)))))
+      data.frame(
+        token = tokens,
+        canonical = canonical,
+        stringsAsFactors = FALSE
+      )
+    }, names(x), x)
+  )
+  token_map <- unique(token_map)
+  canonical_by_token <- split(token_map$canonical, token_map$token)
+  collisions <- lapply(canonical_by_token, unique)
+  collisions[lengths(collisions) > 1L]
+}
+
+capture_warning_messages <- function(expr) {
+  warnings <- character()
+  value <- withCallingHandlers(
+    expr,
+    warning = function(w) {
+      warnings <<- c(warnings, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  list(value = value, warnings = warnings)
+}
+
+test_that("tag maps have exclusive normalized input tokens", {
+  no_collisions <- setNames(list(), character())
+  expect_equal(tag_map_collisions(valid_street_name_post_types), no_collisions)
+  expect_equal(tag_map_collisions(valid_street_name_pre_types), no_collisions)
+  expect_equal(tag_map_collisions(valid_directions), no_collisions)
+  expect_equal(tag_map_collisions(valid_states), no_collisions)
+})
+
 test_that("map_street_name_post_type maps variants and preserves blanks", {
-  map_street_name_post_type(c("foofy", "st", "lane")) |>
-    expect_warning("foofy")
+  expect_warning(
+    out <- map_street_name_post_type(c("foofy", "st", "lane")),
+    "foofy"
+  )
+  expect_equal(out, c("foofy", "St", "Ln"))
   suppressWarnings(
     expect_equal(
       map_street_name_post_type(c("Avenue", "Avnue", "Blvrd", "", NA, "Woop")),
-      c("Ave", "Ave", "Blvd", "", NA, NA)
+      c("Ave", "Ave", "Blvd", "", NA, "Woop")
     )
+  )
+})
+
+test_that("map_street_name_post_type summarizes unmapped duplicate tags", {
+  res <- capture_warning_messages(
+    map_street_name_post_type(c("FooFy", "st", " foofy ", "Woop"))
+  )
+
+  expect_equal(res$value, c("FooFy", "St", "foofy", "Woop"))
+  expect_length(res$warnings, 1L)
+  expect_match(
+    res$warnings,
+    "street name post types not mapped: foofy \\(2 times\\), woop"
   )
 })
 
@@ -17,10 +71,49 @@ test_that("map_street_name_post_type handles NULL and trims", {
   )
 })
 
+test_that("map_street_name_post_type maps observed official-source suffixes", {
+  expect_equal(
+    map_street_name_post_type(c("woods", "knls", "bl", "la", "ledge", "end")),
+    c("Woods", "Knls", "Blvd", "Ln", "Ledge", "End")
+  )
+  expect_equal(
+    map_street_name_post_type(c(
+      "close",
+      "cutoff",
+      "acres",
+      "taxiway",
+      "access road",
+      "overlook"
+    )),
+    c("Close", "Cutoff", "Acres", "Taxiway", "Access Road", "Overlook")
+  )
+})
+
+test_that("map_street_name_post_type maps NAD schema post type codes", {
+  expect_equal(
+    map_street_name_post_type(c(
+      "esplanade",
+      "County Road",
+      "Bureau of Indian Affairs Highway",
+      "National Forest Development Road",
+      "Street Passway",
+      "Way Terrace"
+    )),
+    c(
+      "Esplanade",
+      "County Road",
+      "Bureau of Indian Affairs Highway",
+      "National Forest Development Road",
+      "Street Passway",
+      "Way Terrace"
+    )
+  )
+})
+
 test_that("map_street_name_pre_type maps variants and preserves blanks", {
   expect_equal(
     map_street_name_pre_type(c("US", "U.S.", "I-", "", NA, "Nope")),
-    c("US Hwy", "US Hwy", "I-", "", NA, NA)
+    c("US Hwy", "US Hwy", "I-", "", NA, "Nope")
   )
 })
 
@@ -33,9 +126,23 @@ test_that("map_street_name_pre_type handles NULL and trims", {
 })
 
 test_that("map_direction maps variants and preserves blanks", {
-  expect_equal(
-    map_direction(c("North", "N.E.", "south west", "", NA, "Nope")),
-    c("N", "NE", "SW", "", NA, NA)
+  expect_warning(
+    out <- map_direction(c("North", "N.E.", "south west", "", NA, "Nope")),
+    "nope"
+  )
+  expect_equal(out, c("N", "NE", "SW", "", NA, "Nope"))
+})
+
+test_that("map_direction summarizes unmapped duplicate tags", {
+  res <- capture_warning_messages(
+    map_direction(c("Nope", "N", " nope ", "Elsewhere"))
+  )
+
+  expect_equal(res$value, c("Nope", "N", "nope", "Elsewhere"))
+  expect_length(res$warnings, 1L)
+  expect_match(
+    res$warnings,
+    "street name directionals not mapped: nope \\(2 times\\), elsewhere"
   )
 })
 

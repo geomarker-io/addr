@@ -7,8 +7,8 @@
 #' <https://www.transportation.gov/gis/national-address-database>
 #'
 #' `nad_read()` reads data from the NAD geodatabase by county,
-#' downloading it first to the R user's data directory for the addr package
-#' if not already downloaded with `nad_download()`, and readies it for R.
+#' using source data already downloaded with `nad_download()` or downloading
+#' it when `refresh_source = "yes"`, and readies it for R.
 #' Counties can be identified either by county name plus state, or by a
 #' 5-digit county FIPS identifier. County names and state abbreviations are
 #' resolved internally and still determine the cache path and source query.
@@ -16,18 +16,20 @@
 #'
 #' Data binaries are the cached outputs of `nad_read()` for each
 #' County/State and are created on first run with `nad()`.
-#' Download data binaries to the `tools::R_user_dir()` cache directory, or
+#' Download data binaries to the `tools::R_user_dir()` data directory, or
 #' point R to these files on disk, to read NAD tables without downloading the
 #' nationwide NAD geodatabase.
 #' (Files are organized by major package version,
-#' NAD release, state, and named by county; e.g., see
-#' `list.files(tools::R_user_dir("addr", "cache"), recursive = TRUE)`)
+#' NAD version, state, and named by county; e.g., see
+#' `list.files(tools::R_user_dir("addr", "data"), recursive = TRUE)`)
 #'
 #' @param county character, length one; county name or 5-digit county FIPS
 #'   identifier
 #' @param state character, length one; name or abbreviation of state. Required
 #'   when `county` is a county name; ignored when `county` is a 5-digit county
 #'   FIPS identifier
+#' @param version integer, length one; NAD revision to use. Defaults to `22L`,
+#'   revision 22 of the National Address Database.
 #' @param refresh_binary character, length one; choose how to refresh NAD
 #' data binaries cached on disk if not already present; "yes" will
 #' create data binary if not already present, "no" will
@@ -35,8 +37,8 @@
 #' create the data binary and overwrite any existing data binary
 #'
 #' @details
-#' The NAD is downloaded from each release on the transportation.gov
-#' data portal:
+#' NAD source geodatabases are downloaded from the transportation.gov data
+#' portal:
 #' <https://data.transportation.gov/d/yw36-suxr>
 #' Downloads use the R `curl` package and resume from any interrupted
 #' partial download left in the addr user data directory.
@@ -59,32 +61,24 @@
 #'
 #' @export
 #' @examples
-#' # read data from NAD, caching output on first run
+#' # explicitly download source data, then cache county output on first read
 #' \dontrun{
-#'   nad("Hamilton", "OH")
-#'   nad("39061")
+#'   nad_download(version = 22L)
+#'   nad("Butler", "OH")
+#'   nad("39017")
 #' }
 #'
 #' # example data preloaded for Hamilton County, OH
 #' # works without downloading NAD gdb first
+#' Sys.setenv(R_USER_DATA_DIR = tempfile())
 #' nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no")
 #' nad("39061", refresh_source = "no", refresh_binary = "no")
-#'
-#' # some older releases can still be downloaded
-#' \dontrun{
-#'   nad_download(release = "NAD_r21_FGDB.zip")
-#' }
-#' # can also point to older releases if they are already downloaded
-#' # or if data binaries are installed
-#' \dontrun{
-#'   nad_download(release = "NAD_r21_FGDB.zip", refresh_source = "no")
-#' }
 nad <- function(
   county,
   state = NULL,
-  release = "latest",
+  version = 22L,
   refresh_binary = c("yes", "no", "force"),
-  refresh_source = c("yes", "no", "force")
+  refresh_source = c("no", "yes", "force")
 ) {
   stopifnot(
     "county must be a character vector" = is.character(county),
@@ -94,6 +88,9 @@ nad <- function(
       is.character(state),
     "state must be NULL or length one" = is.null(state) || length(state) == 1L,
     "state must be NULL or not missing" = is.null(state) || !is.na(state),
+    "version must be an integer vector" = is.integer(version),
+    "version must be length one" = length(version) == 1L,
+    "version must not be missing" = !is.na(version),
     "refresh_binary must be a character vector" = is.character(refresh_binary),
     "refresh_binary must not contain missing values" = !any(is.na(
       refresh_binary
@@ -106,13 +103,11 @@ nad <- function(
   refresh_binary <- match.arg(refresh_binary)
   refresh_source <- match.arg(refresh_source)
   county_info <- nad_county_info(county, state)
-  if (release == "latest") {
-    release <- fetch_nad_metadata()$flnm
-  }
+  nad_version_metadata(version)
   nad_sd <- nad_sd_path(
     county = county_info$county,
     state = county_info$state,
-    release = release
+    version = version
   )
   if (
     county_info$county_fips == "39061" &&
@@ -125,9 +120,8 @@ nad <- function(
     if (refresh_binary == "no") {
       stop(
         nad_sd,
-        " does not exist; set `refresh = 'yes'`",
-        " to install from source NAD,",
-        " or use ... to download data binary."
+        " does not exist; set `refresh_binary = 'yes'`",
+        " to install from source NAD"
       )
     }
     if (refresh_binary == "yes") {
@@ -139,12 +133,47 @@ nad <- function(
     d <- nad_read(
       county = county,
       state = state,
-      release = release,
+      version = version,
       refresh_source = refresh_source
     )
     saveRDS(d, file = nad_sd)
   }
   readRDS(nad_sd)
+}
+
+nad_version_metadata <- function(version = 22L) {
+  stopifnot(
+    "version must be an integer vector" = is.integer(version),
+    "version must be length one" = length(version) == 1L,
+    "version must not be missing" = !is.na(version)
+  )
+
+  metadata <- switch(
+    as.character(version),
+    "22" = list(
+      flnm = "NAD_r22.zip",
+      flid = "1900bfb9-7fcb-4367-96c4-e9b10642dd8d",
+      flsz = "10.1 Gb",
+      fldt = as.POSIXct("2026-05-06 12:15:49", tz = "UTC"),
+      dlurl = paste0(
+        "https://data.transportation.gov/api/views/yw36-suxr/files/",
+        "1900bfb9-7fcb-4367-96c4-e9b10642dd8d",
+        "?download=true&filename=NAD_r22.zip"
+      )
+    ),
+    NULL
+  )
+
+  if (is.null(metadata)) {
+    stop(
+      "NAD version `",
+      version,
+      "` is not supported; supported versions: 22",
+      call. = FALSE
+    )
+  }
+
+  metadata
 }
 
 nad_county_info <- function(county, state = NULL) {
@@ -173,7 +202,7 @@ nad_county_info <- function(county, state = NULL) {
   )
 }
 
-nad_sd_path <- function(county, state, release) {
+nad_sd_path <- function(county, state, version = 22L) {
   stopifnot(
     "county must be a character vector" = is.character(county),
     "county must be length one" = length(county) == 1L,
@@ -182,10 +211,11 @@ nad_sd_path <- function(county, state, release) {
     "state must be length one" = length(state) == 1L,
     "state must not be missing" = !is.na(state)
   )
+  source_file <- nad_version_metadata(version)$flnm
   file.path(
-    tools::R_user_dir("addr", "cache"),
+    tools::R_user_dir("addr", "data"),
     "v1",
-    sub("^(NAD_r[0-9]+)(_FGDB)?\\.zip$", "\\1", release),
+    sub("^(NAD_r[0-9]+)(_FGDB)?\\.zip$", "\\1", source_file),
     state,
     sprintf("%s.rds", county)
   )
@@ -196,8 +226,8 @@ nad_sd_path <- function(county, state, release) {
 nad_read <- function(
   county,
   state = NULL,
-  release = "latest",
-  refresh_source = c("yes", "no", "force")
+  version = 22L,
+  refresh_source = c("no", "yes", "force")
 ) {
   stopifnot(
     "county must be a character vector" = is.character(county),
@@ -206,9 +236,13 @@ nad_read <- function(
     "state must be NULL or a character vector" = is.null(state) ||
       is.character(state),
     "state must be NULL or length one" = is.null(state) || length(state) == 1L,
-    "state must be NULL or not missing" = is.null(state) || !is.na(state)
+    "state must be NULL or not missing" = is.null(state) || !is.na(state),
+    "version must be an integer vector" = is.integer(version),
+    "version must be length one" = length(version) == 1L,
+    "version must not be missing" = !is.na(version)
   )
   county_info <- nad_county_info(county, state)
+  nad_version_metadata(version)
   check_installed("sf", "to read from the NAD geodatabase")
   nad_fields <- c(
     "AddNum_Pre",
@@ -231,13 +265,13 @@ nad_read <- function(
     "Longitude",
     "Parcel_ID",
     "DateUpdate",
+    "NatGrid",
+    "Placement",
+    "AddrClass",
     "Addr_Type"
   )
-  if (release == "latest") {
-    release <- fetch_nad_metadata()$flnm
-  }
   nad_gdb_file <- nad_download(
-    release = release,
+    version = version,
     refresh_source = refresh_source
   )
   nad_layer_name <- sf::st_layers(nad_gdb_file)[1, "name"]
@@ -303,35 +337,6 @@ nad_read <- function(
   return(out)
 }
 
-fetch_nad_metadata <- function() {
-  txt <- readLines(
-    "https://data.transportation.gov/api/views/yw36-suxr",
-    warn = FALSE,
-    encoding = "UTF-8"
-  )
-  check_installed("jsonlite", "to read downloaded NAD metadata")
-
-  d <- jsonlite::fromJSON(paste(txt, collapse = "\n"), simplifyVector = TRUE)
-  list(
-    flnm = d$blobFilename,
-    flid = d$blobId,
-    flsz = format(
-      structure(d$blobFileSize, class = "object_size"),
-      units = "auto"
-    ),
-    fldt = as.POSIXct(d$viewLastModified, origin = "1970-01-01", tz = "UTC"),
-    dlurl = sprintf(
-      "https://data.transportation.gov/api/views/%s/files/%s?download=true&filename=%s",
-      d$id,
-      d$blobId,
-      utils::URLencode(d$blobFilename, reserved = TRUE)
-    )
-  )
-}
-
-#' @param release character, length 1; revision of the NAD;
-#' the default ("latest") fetches the most recent version available online;
-#' specify other versions by their .zip filename (see examples)
 #' @param refresh_source character, length one; choose how to refresh NAD
 #' source geodatabase on disk if not already present; "yes" will download
 #' the geodatabase if not already present, "no" will error if the file does
@@ -339,20 +344,18 @@ fetch_nad_metadata <- function() {
 #' geodatabase
 #' @rdname nad
 nad_download <- function(
-  release = "latest",
+  version = 22L,
   refresh_source = c("yes", "no", "force")
 ) {
   refresh_source <- match.arg(refresh_source)
+  nad_md <- nad_version_metadata(version)
+  source_file <- nad_md$flnm
   old_timeout <- options("timeout")$timeout
   new_timeout <- max(old_timeout, 2500)
   options(timeout = new_timeout)
   on.exit(options(timeout = old_timeout))
   if (refresh_source %in% c("yes", "force")) {
-    nad_md <- fetch_nad_metadata()
-    if (release == "latest") {
-      release <- nad_md$flnm
-    }
-    dest <- nad_data_path(release)
+    dest <- nad_data_path(version)
     partial_dest <- nad_partial_path(dest)
     dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
     if (refresh_source == "force") {
@@ -372,7 +375,7 @@ nad_download <- function(
           stop(
             nad_download_failure_message(
               dest = dest,
-              release = release,
+              version = version,
               error_message = conditionMessage(e)
             ),
             call. = FALSE
@@ -381,25 +384,30 @@ nad_download <- function(
       )
     }
   } else {
-    dest <- nad_data_path(release)
+    dest <- nad_data_path(version)
     if (!file.exists(dest)) {
       stop(
         dest,
-        " does not exist; set `refresh = 'yes'`",
-        " to download the most recent version of the NAD geodatabase"
+        " does not exist; set `refresh_source = 'yes'`",
+        " to download NAD version ",
+        version
       )
     }
   }
-  return(file.path("/vsizip", dest, sub("(_FGDB)?\\.zip$", ".gdb", release)))
+  return(
+    file.path(
+      "/vsizip",
+      dest,
+      sub("(_FGDB)?\\.zip$", ".gdb", source_file)
+    )
+  )
 }
 
-nad_data_path <- function(release) {
-  stopifnot(
-    "release must be a character vector" = is.character(release),
-    "release must be length one" = length(release) == 1L,
-    "release must not be missing" = !is.na(release)
+nad_data_path <- function(version = 22L) {
+  file.path(
+    tools::R_user_dir("addr", "data"),
+    nad_version_metadata(version)$flnm
   )
-  file.path(tools::R_user_dir("addr", "data"), release)
 }
 
 nad_partial_path <- function(dest) {
@@ -441,24 +449,35 @@ nad_download_archive <- function(url, dest) {
   invisible(dest)
 }
 
-nad_download_failure_message <- function(dest, release, error_message) {
+nad_download_failure_message <- function(dest, version, error_message) {
   stopifnot(
     "dest must be a character vector" = is.character(dest),
     "dest must be length one" = length(dest) == 1L,
     "dest must not be missing" = !is.na(dest),
-    "release must be a character vector" = is.character(release),
-    "release must be length one" = length(release) == 1L,
-    "release must not be missing" = !is.na(release),
+    "version must be an integer vector" = is.integer(version),
+    "version must be length one" = length(version) == 1L,
+    "version must not be missing" = !is.na(version),
     "error_message must be a character vector" = is.character(error_message),
     "error_message must be length one" = length(error_message) == 1L,
     "error_message must not be missing" = !is.na(error_message)
   )
+  source_file <- nad_version_metadata(version)$flnm
   paste0(
-    "failed to download `", release, "` to `", dest, "`: ",
+    "failed to download NAD version `",
+    version,
+    "` (`",
+    source_file,
+    "`) to `",
+    dest,
+    "`: ",
     error_message,
-    ". If you can download it another way, place it at `", dest, "`",
+    ". If you can download it another way, place it at `",
+    dest,
+    "`",
     " or set `R_USER_DATA_DIR` so ",
     "`tools::R_user_dir(\"addr\", \"data\")` points to a directory",
-    " that already contains `", release, "`."
+    " that already contains `",
+    source_file,
+    "`."
   )
 }

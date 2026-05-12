@@ -49,6 +49,20 @@ test_that("addr_street() can skip mapping", {
   )
 })
 
+test_that("addr_street() preserves unmapped street tags", {
+  expect_warning(
+    street <- addr_street(name = "Main", posttype = "Foofy"),
+    "foofy"
+  )
+  expect_equal(street@posttype, "Foofy")
+
+  expect_warning(
+    street <- addr_street(predirectional = "Uphill", name = "Main"),
+    "uphill"
+  )
+  expect_equal(street@predirectional, "Uphill")
+})
+
 test_that("addr_street() rejects mismatched lengths", {
   expect_error(
     addr_street(

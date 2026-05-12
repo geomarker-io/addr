@@ -2,7 +2,7 @@
 #'
 #' @description
 #' An example of the data returned using `nad()` for
-#' Hamilton County, Ohio (release `NAD_r22.zip`). See `?nad` for more
+#' Hamilton County, Ohio (NAD version `22L`). See `?nad` for more
 #' information about the National Address Database.
 #'
 #' `nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no")`
