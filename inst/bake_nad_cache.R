@@ -1,10 +1,7 @@
 devtools::load_all()
 
-fetch_nad_metadata()
-# latest currently is r22
-
 nad_gdb_file <- nad_download(
-  release = fetch_nad_metadata()$flnm,
+  version = 22L,
   refresh_source = "no"
 )
 

@@ -15,7 +15,6 @@ Suggests:
     htmltools,
     arrow,
     dplyr,
-    jsonlite,
     leaflet,
     mirai,
     pkgload,
