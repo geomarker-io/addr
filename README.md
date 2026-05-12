@@ -16,13 +16,13 @@ stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://
 Addresses not validated at collection are often inconsistently formatted and standardized, making them difficult to compare or link to other address data.
 The goal of addr is to clean, parse, standardize, match, and geocode real-world, noisy US addresses in R.
 
-addr tags address components and builds vctrs-based address vectors, including `addr()` vectors and the `addr_number()`, `addr_street()`, and `addr_place()` component vectors.
-Each are structured to reuse reuse the United States Thoroughfare, Landmark, and Postal Address Data Standard from the US Federal Geographic Data Committee.
+`addr` can parse address components from strings and build vctrs-based address vectors, including `addr()` vectors and the `addr_number()`, `addr_street()`, and `addr_place()` component vectors.
+Each are structured to reuse the United States Thoroughfare, Landmark, and Postal Address Data Standard from the US Federal Geographic Data Committee.
 
 <img src="./man/figures/addr_data.png" height="430" />
 
 The standard also facilitates efficient operations with the Department of Transportation's National Address Database for address matching and with the Census TIGER/Line Shapefiles for street-range geocoding.
-Address vectors (`addr`) can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.
+Address vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.
 
 ## Installation
 
