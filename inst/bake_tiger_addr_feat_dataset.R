@@ -1,8 +1,12 @@
 devtools::load_all()
+
 cnty_fips <- county_fips_reference$county_fips
 cnty_fips <- cnty_fips[
   !substr(cnty_fips, 1, 2) %in% c("60", "66", "69", "72", "78")
 ]
+
+options(nwarnings = 10000)
+
 for (yr in as.character(c(2024:2025))) {
   purrr::walk(
     cnty_fips,
