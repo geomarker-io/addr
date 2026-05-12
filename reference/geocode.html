@@ -50,7 +50,7 @@ return NA."><meta property="og:image" content="https://geomarker.io/addr/logo.sv
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/cole-brokamp/addr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/geomarker-io/addr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -59,7 +59,7 @@ return NA."><meta property="og:image" content="https://geomarker.io/addr/logo.sv
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Geocode addr vectors with Census TIGER address features</h1>
-      <small class="dont-index">Source: <a href="https://github.com/cole-brokamp/addr/blob/main/R/geocode.R" class="external-link"><code>R/geocode.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/geomarker-io/addr/blob/main/R/geocode.R" class="external-link"><code>R/geocode.R</code></a></small>
       <div class="d-none name"><code>geocode.Rd</code></div>
     </div>
 
@@ -239,7 +239,6 @@ codes (and possibly ZIP code variants).</p>
 <span class="r-in"><span><span class="co"># for example purposes, only install one county</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span><span class="st">"R_USER_DATA_DIR"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="taf.html">taf_install</a></span><span class="op">(</span><span class="st">"39061"</span>, <span class="st">"2025"</span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>structured street name info not found for 1216 ranges</span>
 <span class="r-in"><span><span class="co"># and geocode without installing other counties</span></span></span>
 <span class="r-in"><span><span class="va">gcd</span> <span class="op">&lt;-</span> <span class="fu">geocode</span><span class="op">(</span><span class="va">x</span>, taf_install <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>TAF files are missing for 23 county/counties needed for geocoding; proceeding with installed files only because taf_install = FALSE. Missing counties: 18161, 39017, 39135, 39113, 39165, 21067, 39025, 18025, .... Affected ZIPs: 45003 (plus1 from 45002), 45003 (sub5 from 45002), 45004 (sub5 from 45002), 45005 (sub5 from 45002), 45042 (sub4 from 45002), 45062 (sub4 from 45002), 45032 (sub4 from 45002), 40502 (swap from 45002), ....</span>

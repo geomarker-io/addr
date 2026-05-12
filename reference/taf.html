@@ -6,26 +6,14 @@ larger-than-memory datasets and support dplyr syntax for data manipulation;
 see https://arrow.apache.org/docs/r/articles/data_wrangling.html.
 Other TAF helpers such as taf_catalog(), taf_install(), and taf_zip()
 use nanoparquet directly for flat parquet file reads and writes. Arrow is
-only required for the advanced dataset interface returned by taf().
-taf_install() downloads and links TIGER address features and
-feature names for a specific year and county, installing the resulting
-file in the addr user data directory.
-If an address feature does not have a corresponding LINEARID with a
-feature name, then the street tags are parsed from the full name, in
-which case the column, street_tag_parsed will be TRUE."><meta property="og:description" content="taf() uses the arrow package to open the hive-partitioned parquet dataset
+only required for the advanced dataset interface returned by taf()."><meta property="og:description" content="taf() uses the arrow package to open the hive-partitioned parquet dataset
 of TIGER address features in the addr user data directory.
 Arrow FileSystemDataset objects are database-like backends for
 larger-than-memory datasets and support dplyr syntax for data manipulation;
 see https://arrow.apache.org/docs/r/articles/data_wrangling.html.
 Other TAF helpers such as taf_catalog(), taf_install(), and taf_zip()
 use nanoparquet directly for flat parquet file reads and writes. Arrow is
-only required for the advanced dataset interface returned by taf().
-taf_install() downloads and links TIGER address features and
-feature names for a specific year and county, installing the resulting
-file in the addr user data directory.
-If an address feature does not have a corresponding LINEARID with a
-feature name, then the street tags are parsed from the full name, in
-which case the column, street_tag_parsed will be TRUE."><meta property="og:image" content="https://geomarker.io/addr/logo.svg"></head><body>
+only required for the advanced dataset interface returned by taf()."><meta property="og:image" content="https://geomarker.io/addr/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -44,7 +32,7 @@ which case the column, street_tag_parsed will be TRUE."><meta property="og:image
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/cole-brokamp/addr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/geomarker-io/addr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -53,7 +41,7 @@ which case the column, street_tag_parsed will be TRUE."><meta property="og:image
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>TIGER Address Features dataset</h1>
-      <small class="dont-index">Source: <a href="https://github.com/cole-brokamp/addr/blob/main/R/taf.R" class="external-link"><code>R/taf.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/geomarker-io/addr/blob/main/R/taf.R" class="external-link"><code>R/taf.R</code></a></small>
       <div class="d-none name"><code>taf.Rd</code></div>
     </div>
 
@@ -66,12 +54,6 @@ see <a href="https://arrow.apache.org/docs/r/articles/data_wrangling.html" class
 Other TAF helpers such as <code><a href="taf_catalog.html">taf_catalog()</a></code>, <code>taf_install()</code>, and <code><a href="taf_zip.html">taf_zip()</a></code>
 use nanoparquet directly for flat parquet file reads and writes. Arrow is
 only required for the advanced dataset interface returned by <code>taf()</code>.</p>
-<p><code>taf_install()</code> downloads and links TIGER address features and
-feature names for a specific year and county, installing the resulting
-file in the addr user data directory.
-If an address feature does not have a corresponding LINEARID with a
-feature name, then the street tags are parsed from the full name, in
-which case the column, <code>street_tag_parsed</code> will be TRUE.</p>
     </div>
 
     <div class="section level2">
@@ -118,12 +100,20 @@ and taf dataset schema</p></dd>
     <p>a Dataset R6 object (see <code><a href="https://arrow.apache.org/docs/r/reference/open_dataset.html" class="external-link">?arrow::open_dataset</a></code>); use <code>dplyr</code>
 verbs to query the data and get results, see examples</p>
     </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p><code>taf_install()</code> downloads and links TIGER address features and
+feature names for a specific year and county, installing the resulting
+file in the addr user data directory.
+About 6% of ADDRFEAT rows do not have a county-local primary FEATNAMES
+match by LINEARID. In these cases, street tags are parsed from the
+ADDRFEAT full name, and the <code>street_tag_parsed</code> column is set to TRUE.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span><span class="st">"R_USER_DATA_DIR"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">taf_install</span><span class="op">(</span><span class="st">"39061"</span>, <span class="st">"2025"</span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>structured street name info not found for 1216 ranges</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">taf</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> FileSystemDataset with 63 Parquet files</span>
@@ -177,7 +167,6 @@ verbs to query the data and get results, see examples</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> Kemper      Rd                   8      231</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span><span class="st">"R_USER_DATA_DIR"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">taf_install</span><span class="op">(</span><span class="st">"39061"</span>, <span class="st">"2025"</span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>structured street name info not found for 1216 ranges</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

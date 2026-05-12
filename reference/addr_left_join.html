@@ -26,7 +26,7 @@ selects a single best address before this wrapper expands exact duplicates."><me
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/cole-brokamp/addr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/geomarker-io/addr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -35,7 +35,7 @@ selects a single best address before this wrapper expands exact duplicates."><me
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Left join two data frames using addr matching</h1>
-      <small class="dont-index">Source: <a href="https://github.com/cole-brokamp/addr/blob/main/R/addr_left_join.R" class="external-link"><code>R/addr_left_join.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/geomarker-io/addr/blob/main/R/addr_left_join.R" class="external-link"><code>R/addr_left_join.R</code></a></small>
       <div class="d-none name"><code>addr_left_join.Rd</code></div>
     </div>
 
@@ -152,7 +152,8 @@ street-only matches do not expand to multiple candidate rows in <code>y</code>.<
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">the_addr</span> <span class="op">&lt;-</span> <span class="fu"><a href="nad.html">nad</a></span><span class="op">(</span><span class="st">"Hamilton"</span>, <span class="st">"OH"</span>, refresh_source <span class="op">=</span> <span class="st">"no"</span>, refresh_binary <span class="op">=</span> <span class="st">"no"</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">the_addr</span> <span class="op">&lt;-</span> <span class="fu"><a href="nad.html">nad</a></span><span class="op">(</span><span class="st">"Hamilton"</span>, <span class="st">"OH"</span>,</span></span>
+<span class="r-in"><span>                refresh_binary <span class="op">=</span> <span class="st">"no"</span>, refresh_source <span class="op">=</span> <span class="st">"no"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">my_addr</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  addr <span class="op">=</span> <span class="fu"><a href="as_addr.html">as_addr</a></span><span class="op">(</span><span class="fu"><a href="voter_addresses.html">voter_addresses</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span><span class="op">]</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">100</span></span></span>

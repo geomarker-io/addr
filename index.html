@@ -17,8 +17,8 @@
 <link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Clean, Parse, Harmonize, Match, and Geocode Messy Real-World US Addresses">
-<meta name="description" content="Addresses that were not validated at collection are often inconsistently formatted and contain typographical or phonetic noise, making them difficult to compare or link to other address data. The addr package cleans, parses, standardizes, matches, and geocodes messy, real-world US addresses. It uses the `usaddress` library to tag address components and build addr vector objects composed of addr_part vectors for number, street, and place. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.">
-<meta property="og:description" content="Addresses that were not validated at collection are often inconsistently formatted and contain typographical or phonetic noise, making them difficult to compare or link to other address data. The addr package cleans, parses, standardizes, matches, and geocodes messy, real-world US addresses. It uses the `usaddress` library to tag address components and build addr vector objects composed of addr_part vectors for number, street, and place. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.">
+<meta name="description" content="Clean, parses, standardize, match, and geocodes messy, real-world US addresses. Use the included `usaddress` library to tag address components and build addr vector objects composed of addr_part vectors for number, street, and place. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.">
+<meta property="og:description" content="Clean, parses, standardize, match, and geocodes messy, real-world US addresses. Use the included `usaddress` library to tag address components and build addr vector objects composed of addr_part vectors for number, street, and place. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.">
 <meta property="og:image" content="https://geomarker.io/addr/logo.svg">
 </head>
 <body>
@@ -44,7 +44,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/cole-brokamp/addr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/geomarker-io/addr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -64,9 +64,9 @@
 <h2 id="about">About<a class="anchor" aria-label="anchor" href="#about"></a>
 </h2>
 <p>Addresses not validated at collection are often inconsistently formatted and standardized, making them difficult to compare or link to other address data. The goal of addr is to clean, parse, standardize, match, and geocode real-world, noisy US addresses in R.</p>
-<p>addr tags address components and builds vctrs-based address vectors, including <code><a href="reference/addr.html">addr()</a></code> vectors and the <code><a href="reference/addr.html">addr_number()</a></code>, <code><a href="reference/addr.html">addr_street()</a></code>, and <code><a href="reference/addr.html">addr_place()</a></code> component vectors. Each are structured to reuse reuse the United States Thoroughfare, Landmark, and Postal Address Data Standard from the US Federal Geographic Data Committee.</p>
+<p><code>addr</code> can parse address components from strings and build vctrs-based address vectors, including <code><a href="reference/addr.html">addr()</a></code> vectors and the <code><a href="reference/addr.html">addr_number()</a></code>, <code><a href="reference/addr.html">addr_street()</a></code>, and <code><a href="reference/addr.html">addr_place()</a></code> component vectors. Each are structured to reuse the United States Thoroughfare, Landmark, and Postal Address Data Standard from the US Federal Geographic Data Committee.</p>
 <p><img src="./reference/figures/addr_data.png" height="430"></p>
-<p>The standard also facilitates efficient operations with the Department of Transportation’s National Address Database for address matching and with the Census TIGER/Line Shapefiles for street-range geocoding. Address vectors (<code>addr</code>) can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.</p>
+<p>The standard also facilitates efficient operations with the Department of Transportation’s National Address Database for address matching and with the Census TIGER/Line Shapefiles for street-range geocoding. Address vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -140,8 +140,8 @@
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/cole-brokamp/addr/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/cole-brokamp/addr/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/geomarker-io/addr/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/geomarker-io/addr/issues/" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 

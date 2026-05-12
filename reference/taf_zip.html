@@ -22,7 +22,7 @@ vectors in the returned data frame."><meta property="og:image" content="https://
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/cole-brokamp/addr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/geomarker-io/addr/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -31,7 +31,7 @@ vectors in the returned data frame."><meta property="og:image" content="https://
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Read taf() data for ZIP codes across all installed counties</h1>
-      <small class="dont-index">Source: <a href="https://github.com/cole-brokamp/addr/blob/main/R/taf.R" class="external-link"><code>R/taf.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/geomarker-io/addr/blob/main/R/taf.R" class="external-link"><code>R/taf.R</code></a></small>
       <div class="d-none name"><code>taf_zip.Rd</code></div>
     </div>
 
@@ -80,7 +80,6 @@ and taf dataset schema</p></dd>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span><span class="st">"R_USER_DATA_DIR"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="taf.html">taf_install</a></span><span class="op">(</span><span class="st">"39061"</span>, <span class="st">"2025"</span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>structured street name info not found for 1216 ranges</span>
 <span class="r-in"><span><span class="fu">taf_zip</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"45249"</span>, <span class="st">"45230"</span>, <span class="st">"45220"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 3,734 × 12</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    LINEARID      FULLNAME     side  ZIP   FROMHN  TOHN PARITY OFFSET county_fips</span>
