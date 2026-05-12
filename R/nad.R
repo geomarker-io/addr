@@ -107,6 +107,12 @@ nad <- function(
   refresh_source <- match.arg(refresh_source)
   county_info <- nad_county_info(county, state)
   if (release == "latest") {
+    if (refresh_binary == "no" || refresh_source == "no") {
+      stop(
+        "Specify a `release` other than 'latest' when `refresh_binary` or `refresh_source` are 'no'",
+        call. = FALSE
+      )
+    }
     release <- fetch_nad_metadata()$flnm
   }
   nad_sd <- nad_sd_path(
