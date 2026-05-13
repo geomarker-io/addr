@@ -64,7 +64,9 @@ and then tagged using <code><a href="usaddress_tag.html">usaddress_tag()</a></co
 by passing all <code>map_*</code> arguments to <code><a href="addr.html">addr_street()</a></code> or <code><a href="addr.html">addr_place()</a></code>;
 ZIP codes parsed with more than five characters are truncated
 with a warning; non-numeric characters in parsed
-address number digits will be removed with a warning</p></li>
+address number digits will be removed with a warning; parsed address number
+digits greater than 999999 are truncated to the first six digits with a
+warning</p></li>
 <li><p><code>data.frame</code>: must have columns named according to fields in
 <code><a href="addr.html">addr_number()</a></code>, <code><a href="addr.html">addr_street()</a></code>, or <code><a href="addr.html">addr_place()</a></code>; also passes
 the <code>map_*</code> arguments to <code><a href="addr.html">addr_street()</a></code> and <code><a href="addr.html">addr_place()</a></code></p></li>
