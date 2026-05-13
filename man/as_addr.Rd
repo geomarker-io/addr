@@ -23,7 +23,9 @@ and then tagged using \code{usaddress_tag()}; tags are normalized to abbreviatio
 by passing all \verb{map_*} arguments to \code{addr_street()} or \code{addr_place()};
 ZIP codes parsed with more than five characters are truncated
 with a warning; non-numeric characters in parsed
-address number digits will be removed with a warning
+address number digits will be removed with a warning; parsed address number
+digits greater than 999999 are truncated to the first six digits with a
+warning
 \item \code{data.frame}: must have columns named according to fields in
 \code{addr_number()}, \code{addr_street()}, or \code{addr_place()}; also passes
 the \verb{map_*} arguments to \code{addr_street()} and \code{addr_place()}
