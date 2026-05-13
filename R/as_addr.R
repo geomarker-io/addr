@@ -10,7 +10,8 @@ NULL
 #' and then tagged using `usaddress_tag()`; tags are normalized to abbreviations
 #' by passing all `map_*` arguments to `addr_street()` or `addr_place()`;
 #' ZIP codes parsed with more than five characters are truncated
-#' with a warning; non-numeric characters in parsed
+#' with a warning, and malformed parsed ZIP codes are set to missing with a
+#' warning; non-numeric characters in parsed
 #' address number digits will be removed with a warning; parsed address number
 #' digits greater than 999999 are truncated to the first six digits with a
 #' warning
@@ -185,6 +186,22 @@ S7::method(as_addr, S7::class_character) <- function(
       call. = FALSE
     )
     place_zip[bad_zips] <- substr(place_zip[bad_zips], 1, 5)
+  }
+
+  malformed_zips <- which(
+    !is.na(place_zip) &
+      place_zip != "" &
+      (!grepl("^[0-9]{5}$", place_zip) | grepl("^000", place_zip))
+  )
+
+  if (length(malformed_zips) > 0) {
+    warning(
+      "Setting ",
+      length(malformed_zips),
+      " malformed parsed ZIP codes to missing.",
+      call. = FALSE
+    )
+    place_zip[malformed_zips] <- NA_character_
   }
 
   addr(

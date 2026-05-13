@@ -169,6 +169,27 @@ test_that("as_addr tries to fix zipcodes", {
     expect_warning("Truncating 1 parsed ZIP codes to the first five characters")
 })
 
+test_that("as_addr makes malformed parsed zipcodes missing", {
+  expect_warning(
+    expect_warning(
+      x <- as_addr(c(
+        "123 Main Street Anytown IL 1234",
+        "123 Main Street Anytown IL 00021",
+        "123 Main Street Anytown IL 1234A",
+        "123 Main Street Anytown IL 00021-1234",
+        "123 Main Street Anytown IL 45220"
+      )),
+      "Setting 4 malformed parsed ZIP codes to missing"
+    ),
+    "Truncating 1 parsed ZIP codes to the first five characters"
+  )
+
+  expect_equal(
+    x@place@zipcode,
+    c(NA_character_, NA_character_, NA_character_, NA_character_, "45220")
+  )
+})
+
 test_that("as_addr deals with some seriously messy addresses", {
   as_addr(c(
     "1234Main St Cincinnati OH 45229",

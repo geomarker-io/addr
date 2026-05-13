@@ -22,7 +22,8 @@ See \code{?addr} for more details on its structure.
 and then tagged using \code{usaddress_tag()}; tags are normalized to abbreviations
 by passing all \verb{map_*} arguments to \code{addr_street()} or \code{addr_place()};
 ZIP codes parsed with more than five characters are truncated
-with a warning; non-numeric characters in parsed
+with a warning, and malformed parsed ZIP codes are set to missing with a
+warning; non-numeric characters in parsed
 address number digits will be removed with a warning; parsed address number
 digits greater than 999999 are truncated to the first six digits with a
 warning
