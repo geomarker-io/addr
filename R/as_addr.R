@@ -11,7 +11,9 @@ NULL
 #' by passing all `map_*` arguments to `addr_street()` or `addr_place()`;
 #' ZIP codes parsed with more than five characters are truncated
 #' with a warning; non-numeric characters in parsed
-#' address number digits will be removed with a warning
+#' address number digits will be removed with a warning; parsed address number
+#' digits greater than 999999 are truncated to the first six digits with a
+#' warning
 #' - `data.frame`: must have columns named according to fields in
 #' `addr_number()`, `addr_street()`, or `addr_place()`; also passes
 #' the `map_*` arguments to `addr_street()` and `addr_place()`
@@ -157,6 +159,20 @@ S7::method(as_addr, S7::class_character) <- function(
       call. = FALSE
     )
     digits[bad_digits] <- gsub("\\D", "", digits[bad_digits], perl = TRUE)
+  }
+
+  digits_num <- suppressWarnings(as.numeric(digits))
+  long_digits <- which(!is.na(digits_num) & digits_num > 999999)
+
+  if (length(long_digits) > 0) {
+    warning(
+      "Truncating ",
+      length(long_digits),
+      " parsed address number digits greater than 999999 to the first ",
+      "six digits.",
+      call. = FALSE
+    )
+    digits[long_digits] <- substr(digits[long_digits], 1, 6)
   }
 
   bad_zips <- which(nchar(place_zip) > 5)

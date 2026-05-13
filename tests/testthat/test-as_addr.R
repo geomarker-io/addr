@@ -179,3 +179,16 @@ test_that("as_addr deals with some seriously messy addresses", {
       "Removing non-numeric characters from parsed address number digits in 2 addresses"
     )
 })
+
+test_that("as_addr truncates parsed address numbers above the NAD maximum", {
+  expect_warning(
+    x <- as_addr(c(
+      "1000000 Main St Cincinnati OH 45220",
+      "999999 Main St Cincinnati OH 45220",
+      "1234567 Main St Cincinnati OH 45220"
+    )),
+    "Truncating 2 parsed address number digits greater than 999999 to the first six digits"
+  )
+
+  expect_equal(x@number@digits, c("100000", "999999", "123456"))
+})
