@@ -63,7 +63,8 @@ See <code><a href="addr.html">?addr</a></code> for more details on its structure
 and then tagged using <code><a href="usaddress_tag.html">usaddress_tag()</a></code>; tags are normalized to abbreviations
 by passing all <code>map_*</code> arguments to <code><a href="addr.html">addr_street()</a></code> or <code><a href="addr.html">addr_place()</a></code>;
 ZIP codes parsed with more than five characters are truncated
-with a warning; non-numeric characters in parsed
+with a warning, and malformed parsed ZIP codes are set to missing with a
+warning; non-numeric characters in parsed
 address number digits will be removed with a warning; parsed address number
 digits greater than 999999 are truncated to the first six digits with a
 warning</p></li>
