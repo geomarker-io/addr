@@ -360,6 +360,50 @@ test_that("geocode_zip offsets matched points by TIGER side", {
   )
 })
 
+test_that("geocode_zip ignores matched TAF ranges with missing endpoints", {
+  local_mocked_bindings(
+    taf_zip = function(zipcode, map = TRUE, ...) {
+      tibble::tibble(
+        ZIP = rep(zipcode, 4),
+        addr_street = addr_street(
+          predirectional = rep("", 4),
+          premodifier = rep("", 4),
+          pretype = rep("", 4),
+          name = rep("Barren River", 4),
+          posttype = rep("Dr", 4),
+          postdirectional = rep("", 4)
+        ),
+        side = rep("L", 4),
+        FROMHN = c(101L, NA_integer_, NA_integer_, 147L),
+        TOHN = c(143L, NA_integer_, NA_integer_, 153L),
+        PARITY = rep("O", 4),
+        OFFSET = rep("N", 4),
+        s2_geography = s2::as_s2_geography(
+          rep("LINESTRING (-84 39, -84.1 39.1)", 4)
+        )
+      )
+    },
+    match_addr_street = function(x, y, ...) y[1]
+  )
+  x <- addr(
+    addr_number(digits = "145"),
+    addr_street(name = "Barren River", posttype = "Dr"),
+    addr_place(zipcode = "41018")
+  )
+
+  out <- geocode_zip(
+    x,
+    offset = 0,
+    zip_variants = FALSE,
+    taf_install = FALSE,
+    taf_check = FALSE
+  )
+
+  expect_equal(out$matched_zipcode, "41018")
+  expect_equal(format(out$matched_street), "Barren River Dr")
+  expect_true(is.na(out$matched_geography))
+})
+
 test_that("geocode progress text shows ZIP and addr_street count", {
   expect_equal(
     geocode_progress_text("45219", 1234L, 56789L),
