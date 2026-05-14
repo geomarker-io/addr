@@ -509,7 +509,9 @@ geocode_zip <- function(
       }
       sn_par <- ifelse(sn %% 2 == 0, "E", "O")
       cand0 <- ref_rng[[.i]]
-      cand0$in_range <- sn >= pmin(cand0$FROMHN, cand0$TOHN) &
+      has_range <- !is.na(cand0$FROMHN) & !is.na(cand0$TOHN)
+      cand0$in_range <- has_range &
+        sn >= pmin(cand0$FROMHN, cand0$TOHN) &
         sn <= pmax(cand0$FROMHN, cand0$TOHN)
       cand0$par_ok <- cand0$in_range &
         (is.na(cand0$PARITY) | cand0$PARITY %in% c("B", sn_par))
@@ -554,6 +556,9 @@ validate_geocode_offset <- function(offset) {
 }
 
 geocode_range_fraction <- function(number, from, to) {
+  if (is.na(number) || is.na(from) || is.na(to)) {
+    return(NA_real_)
+  }
   if (from == to) {
     return(0.5)
   }
