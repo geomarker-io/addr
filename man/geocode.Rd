@@ -9,10 +9,8 @@ geocode(
   x,
   name_phonetic_dist = 1L,
   name_fuzzy_dist = 2L,
-  match_street_predirectional = TRUE,
-  match_street_posttype = TRUE,
-  match_street_pretype = TRUE,
-  match_street_postdirectional = FALSE,
+  match_street_type = c("exact", "swap", "ignore"),
+  match_street_directional = c("exact", "swap", "ignore"),
   zip_variants = TRUE,
   zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   year = as.character(2025:2011),
@@ -28,10 +26,8 @@ geocode_zip(
   offset = 10L,
   name_phonetic_dist = 1L,
   name_fuzzy_dist = 2L,
-  match_street_predirectional = TRUE,
-  match_street_posttype = TRUE,
-  match_street_pretype = TRUE,
-  match_street_postdirectional = FALSE,
+  match_street_type = c("exact", "swap", "ignore"),
+  match_street_directional = c("exact", "swap", "ignore"),
   zip_variants = TRUE,
   zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   year = as.character(2025:2011),
@@ -52,17 +48,19 @@ match}
 \item{name_fuzzy_dist}{integer; maximum optimized string alignment distance
 between \verb{@name} of x and y to consider a possible match}
 
-\item{match_street_predirectional}{logical; require street predirectional to
-match when selecting street candidates?}
+\item{match_street_type}{character; how to compare street pretype and
+posttype when selecting street candidates. \code{"exact"} requires pretype to
+match pretype and posttype to match posttype; \code{"swap"} also permits pretype
+to match posttype and posttype to match pretype; \code{"ignore"} does not use
+street type fields when selecting candidates.}
 
-\item{match_street_posttype}{logical; require street posttype to match when
-selecting street candidates?}
-
-\item{match_street_pretype}{logical; require street pretype to match when
-selecting street candidates?}
-
-\item{match_street_postdirectional}{logical; require street postdirectional
-to match when selecting street candidates?}
+\item{match_street_directional}{character; how to compare street
+predirectional and postdirectional when selecting street candidates.
+\code{"exact"} requires predirectional to match predirectional and
+postdirectional to match postdirectional; \code{"swap"} also permits
+predirectional to match postdirectional and postdirectional to match
+predirectional; \code{"ignore"} does not use street directional fields when
+selecting candidates.}
 
 \item{zip_variants}{logical; fuzzy match to common variants of
 \code{x} in \code{y}?}
