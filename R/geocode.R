@@ -79,10 +79,8 @@ geocode <- function(
   x,
   name_phonetic_dist = 1L,
   name_fuzzy_dist = 2L,
-  match_street_predirectional = TRUE,
-  match_street_posttype = TRUE,
-  match_street_pretype = TRUE,
-  match_street_postdirectional = FALSE,
+  match_street_type = c("exact", "swap", "ignore"),
+  match_street_directional = c("exact", "swap", "ignore"),
   zip_variants = TRUE,
   zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   year = as.character(2025:2011),
@@ -113,13 +111,11 @@ geocode <- function(
   year <- match.arg(year)
   zip_variant <- validate_zip_variant(zip_variant)
   validate_geocode_offset(offset)
-  validate_match_addr_street_args(
+  match_args <- validate_match_addr_street_args(
     name_phonetic_dist = name_phonetic_dist,
     name_fuzzy_dist = name_fuzzy_dist,
-    match_street_predirectional = match_street_predirectional,
-    match_street_posttype = match_street_posttype,
-    match_street_pretype = match_street_pretype,
-    match_street_postdirectional = match_street_postdirectional
+    match_street_type = match_street_type,
+    match_street_directional = match_street_directional
   )
   xu <- unique(x)
   missing_zip <- is.na(xu@place@zipcode) | xu@place@zipcode == ""
@@ -150,10 +146,8 @@ geocode <- function(
     offset = offset,
     name_phonetic_dist = name_phonetic_dist,
     name_fuzzy_dist = name_fuzzy_dist,
-    match_street_predirectional = match_street_predirectional,
-    match_street_posttype = match_street_posttype,
-    match_street_pretype = match_street_pretype,
-    match_street_postdirectional = match_street_postdirectional,
+    match_street_type = match_args$match_street_type,
+    match_street_directional = match_args$match_street_directional,
     zip_variants = zip_variants,
     zip_variant = zip_variant,
     year = year,
@@ -352,10 +346,8 @@ geocode_zip <- function(
   offset = 10L,
   name_phonetic_dist = 1L,
   name_fuzzy_dist = 2L,
-  match_street_predirectional = TRUE,
-  match_street_posttype = TRUE,
-  match_street_pretype = TRUE,
-  match_street_postdirectional = FALSE,
+  match_street_type = c("exact", "swap", "ignore"),
+  match_street_directional = c("exact", "swap", "ignore"),
   zip_variants = TRUE,
   zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   year = as.character(2025:2011),
@@ -386,21 +378,17 @@ geocode_zip <- function(
   year <- match.arg(year)
   zip_variant <- validate_zip_variant(zip_variant)
   validate_geocode_offset(offset)
-  validate_match_addr_street_args(
+  match_args <- validate_match_addr_street_args(
     name_phonetic_dist = name_phonetic_dist,
     name_fuzzy_dist = name_fuzzy_dist,
-    match_street_predirectional = match_street_predirectional,
-    match_street_posttype = match_street_posttype,
-    match_street_pretype = match_street_pretype,
-    match_street_postdirectional = match_street_postdirectional
+    match_street_type = match_street_type,
+    match_street_directional = match_street_directional
   )
   street_match_args <- list(
     name_phonetic_dist = name_phonetic_dist,
     name_fuzzy_dist = name_fuzzy_dist,
-    match_street_predirectional = match_street_predirectional,
-    match_street_posttype = match_street_posttype,
-    match_street_pretype = match_street_pretype,
-    match_street_postdirectional = match_street_postdirectional
+    match_street_type = match_args$match_street_type,
+    match_street_directional = match_args$match_street_directional
   )
   zpcd <- unique(x@place@zipcode)
   if (length(zpcd) != 1) {

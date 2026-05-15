@@ -97,10 +97,8 @@ test_that("geocode forwards street matching arguments to geocode_zip", {
       offset = 0L,
       name_phonetic_dist = 1L,
       name_fuzzy_dist = 2L,
-      match_street_predirectional = TRUE,
-      match_street_posttype = TRUE,
-      match_street_pretype = TRUE,
-      match_street_postdirectional = FALSE,
+      match_street_type = c("exact", "swap", "ignore"),
+      match_street_directional = c("exact", "swap", "ignore"),
       zip_variants = TRUE,
       zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
       ...
@@ -108,10 +106,8 @@ test_that("geocode forwards street matching arguments to geocode_zip", {
       seen <<- list(
         name_phonetic_dist = name_phonetic_dist,
         name_fuzzy_dist = name_fuzzy_dist,
-        match_street_predirectional = match_street_predirectional,
-        match_street_posttype = match_street_posttype,
-        match_street_pretype = match_street_pretype,
-        match_street_postdirectional = match_street_postdirectional,
+        match_street_type = match_street_type,
+        match_street_directional = match_street_directional,
         zip_variants = zip_variants,
         zip_variant = zip_variant
       )
@@ -134,10 +130,8 @@ test_that("geocode forwards street matching arguments to geocode_zip", {
     x,
     name_phonetic_dist = 0L,
     name_fuzzy_dist = 1L,
-    match_street_predirectional = FALSE,
-    match_street_posttype = FALSE,
-    match_street_pretype = FALSE,
-    match_street_postdirectional = TRUE,
+    match_street_type = "ignore",
+    match_street_directional = "swap",
     zip_variants = FALSE,
     zip_variant = "swap",
     taf_install = FALSE,
@@ -148,10 +142,8 @@ test_that("geocode forwards street matching arguments to geocode_zip", {
     list(
       name_phonetic_dist = 0L,
       name_fuzzy_dist = 1L,
-      match_street_predirectional = FALSE,
-      match_street_posttype = FALSE,
-      match_street_pretype = FALSE,
-      match_street_postdirectional = TRUE,
+      match_street_type = "ignore",
+      match_street_directional = "swap",
       zip_variants = FALSE,
       zip_variant = "swap"
     )
@@ -189,20 +181,16 @@ test_that("geocode_zip forwards street matching arguments to match_addr_street",
     taf_check = FALSE,
     name_phonetic_dist = 0L,
     name_fuzzy_dist = 1L,
-    match_street_predirectional = FALSE,
-    match_street_posttype = FALSE,
-    match_street_pretype = FALSE,
-    match_street_postdirectional = TRUE
+    match_street_type = "ignore",
+    match_street_directional = "swap"
   )
   expect_equal(
     seen,
     list(
       name_phonetic_dist = 0L,
       name_fuzzy_dist = 1L,
-      match_street_predirectional = FALSE,
-      match_street_posttype = FALSE,
-      match_street_pretype = FALSE,
-      match_street_postdirectional = TRUE
+      match_street_type = "ignore",
+      match_street_directional = "swap"
     )
   )
 })

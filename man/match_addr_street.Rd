@@ -9,10 +9,8 @@ match_addr_street(
   y,
   name_phonetic_dist = 1L,
   name_fuzzy_dist = 2L,
-  match_street_predirectional = TRUE,
-  match_street_posttype = TRUE,
-  match_street_pretype = TRUE,
-  match_street_postdirectional = FALSE
+  match_street_type = c("exact", "swap", "ignore"),
+  match_street_directional = c("exact", "swap", "ignore")
 )
 }
 \arguments{
@@ -25,17 +23,19 @@ match}
 \item{name_fuzzy_dist}{integer; maximum optimized string alignment distance
 between \verb{@name} of x and y to consider a possible match}
 
-\item{match_street_predirectional}{logical; require street predirectional to
-match when selecting street candidates?}
+\item{match_street_type}{character; how to compare street pretype and
+posttype when selecting street candidates. \code{"exact"} requires pretype to
+match pretype and posttype to match posttype; \code{"swap"} also permits pretype
+to match posttype and posttype to match pretype; \code{"ignore"} does not use
+street type fields when selecting candidates.}
 
-\item{match_street_posttype}{logical; require street posttype to match when
-selecting street candidates?}
-
-\item{match_street_pretype}{logical; require street pretype to match when
-selecting street candidates?}
-
-\item{match_street_postdirectional}{logical; require street postdirectional
-to match when selecting street candidates?}
+\item{match_street_directional}{character; how to compare street
+predirectional and postdirectional when selecting street candidates.
+\code{"exact"} requires predirectional to match predirectional and
+postdirectional to match postdirectional; \code{"swap"} also permits
+predirectional to match postdirectional and postdirectional to match
+predirectional; \code{"ignore"} does not use street directional fields when
+selecting candidates.}
 }
 \value{
 An \code{addr_street} vector, the same length as \code{x}, containing the
@@ -47,7 +47,8 @@ A single \code{addr_street} in \code{y} is chosen for each \code{addr_street} in
 If exact matches (using \code{as.character}) are not found,
 candidate matches are chosen by
 fuzzy matching on street name (using phonetic street key and street name)
-and exact matching on the enabled street components.
+and matching the street type and directional components according to
+\code{match_street_type} and \code{match_street_directional}.
 Ordinal street names use restricted phonetic candidates:
 an ordinal phonetic key like \verb{#0007} may fuzzy match only to plausible
 ordinal neighbors such as digit shifts (\verb{#0070}, \verb{#0700}, \verb{#7000})
@@ -85,7 +86,7 @@ toggle_y <- addr_street(
   map_ordinal = FALSE
 )
 
-# predirectional is required by default, so blank "14th St" stays unmatched
+# directionals are required by default, so blank "14th St" stays unmatched
 format(match_addr_street(
   addr_street(
     predirectional = "",
@@ -115,10 +116,10 @@ format(match_addr_street(
     map_ordinal = FALSE
   ),
   toggle_y,
-  match_street_predirectional = FALSE
+  match_street_directional = "ignore"
 ))
 
-# posttype can also be made optional during fuzzy street-name matching
+# type can also be ignored during fuzzy street-name matching
 format(match_addr_street(
   addr_street(
     predirectional = "",
@@ -150,10 +151,10 @@ format(match_addr_street(
   ),
   toggle_y,
   name_fuzzy_dist = 1L,
-  match_street_posttype = FALSE
+  match_street_type = "ignore"
 ))
 
-# pretype is required by default; postdirectional can also be required
+# type and directional matching can be relaxed independently
 format(match_addr_street(
   addr_street(
     predirectional = "E",
@@ -168,7 +169,7 @@ format(match_addr_street(
     map_ordinal = FALSE
   ),
   toggle_y,
-  match_street_pretype = FALSE,
+  match_street_type = "ignore",
   name_fuzzy_dist = 1L
 ))
 format(match_addr_street(
@@ -202,7 +203,7 @@ format(match_addr_street(
   ),
   toggle_y,
   name_fuzzy_dist = 1L,
-  match_street_pretype = TRUE,
-  match_street_postdirectional = TRUE
+  match_street_type = "exact",
+  match_street_directional = "exact"
 ))
 }

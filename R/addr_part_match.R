@@ -5,7 +5,8 @@
 #' If exact matches (using `as.character`) are not found,
 #' candidate matches are chosen by
 #' fuzzy matching on street name (using phonetic street key and street name)
-#' and exact matching on the enabled street components.
+#' and matching the street type and directional components according to
+#' `match_street_type` and `match_street_directional`.
 #' Ordinal street names use restricted phonetic candidates:
 #' an ordinal phonetic key like `#0007` may fuzzy match only to plausible
 #' ordinal neighbors such as digit shifts (`#0070`, `#0700`, `#7000`)
@@ -22,14 +23,18 @@
 #' match
 #' @param name_fuzzy_dist integer; maximum optimized string alignment distance
 #' between `@name` of x and y to consider a possible match
-#' @param match_street_predirectional logical; require street predirectional to
-#'   match when selecting street candidates?
-#' @param match_street_posttype logical; require street posttype to match when
-#'   selecting street candidates?
-#' @param match_street_pretype logical; require street pretype to match when
-#'   selecting street candidates?
-#' @param match_street_postdirectional logical; require street postdirectional
-#'   to match when selecting street candidates?
+#' @param match_street_type character; how to compare street pretype and
+#'   posttype when selecting street candidates. `"exact"` requires pretype to
+#'   match pretype and posttype to match posttype; `"swap"` also permits pretype
+#'   to match posttype and posttype to match pretype; `"ignore"` does not use
+#'   street type fields when selecting candidates.
+#' @param match_street_directional character; how to compare street
+#'   predirectional and postdirectional when selecting street candidates.
+#'   `"exact"` requires predirectional to match predirectional and
+#'   postdirectional to match postdirectional; `"swap"` also permits
+#'   predirectional to match postdirectional and postdirectional to match
+#'   predirectional; `"ignore"` does not use street directional fields when
+#'   selecting candidates.
 #' @return An `addr_street` vector, the same length as `x`, containing the
 #'   selected match in `y` for each element of `x`. Unmatched elements are
 #'   returned as missing `addr_street()` values.
@@ -60,7 +65,7 @@
 #'   map_ordinal = FALSE
 #' )
 #'
-#' # predirectional is required by default, so blank "14th St" stays unmatched
+#' # directionals are required by default, so blank "14th St" stays unmatched
 #' format(match_addr_street(
 #'   addr_street(
 #'     predirectional = "",
@@ -90,10 +95,10 @@
 #'     map_ordinal = FALSE
 #'   ),
 #'   toggle_y,
-#'   match_street_predirectional = FALSE
+#'   match_street_directional = "ignore"
 #' ))
 #'
-#' # posttype can also be made optional during fuzzy street-name matching
+#' # type can also be ignored during fuzzy street-name matching
 #' format(match_addr_street(
 #'   addr_street(
 #'     predirectional = "",
@@ -125,10 +130,10 @@
 #'   ),
 #'   toggle_y,
 #'   name_fuzzy_dist = 1L,
-#'   match_street_posttype = FALSE
+#'   match_street_type = "ignore"
 #' ))
 #'
-#' # pretype is required by default; postdirectional can also be required
+#' # type and directional matching can be relaxed independently
 #' format(match_addr_street(
 #'   addr_street(
 #'     predirectional = "E",
@@ -143,7 +148,7 @@
 #'     map_ordinal = FALSE
 #'   ),
 #'   toggle_y,
-#'   match_street_pretype = FALSE,
+#'   match_street_type = "ignore",
 #'   name_fuzzy_dist = 1L
 #' ))
 #' format(match_addr_street(
@@ -177,99 +182,69 @@
 #'   ),
 #'   toggle_y,
 #'   name_fuzzy_dist = 1L,
-#'   match_street_pretype = TRUE,
-#'   match_street_postdirectional = TRUE
+#'   match_street_type = "exact",
+#'   match_street_directional = "exact"
 #' ))
 match_addr_street <- function(
   x,
   y,
   name_phonetic_dist = 1L,
   name_fuzzy_dist = 2L,
-  match_street_predirectional = TRUE,
-  match_street_posttype = TRUE,
-  match_street_pretype = TRUE,
-  match_street_postdirectional = FALSE
+  match_street_type = c("exact", "swap", "ignore"),
+  match_street_directional = c("exact", "swap", "ignore")
 ) {
   stopifnot(
     "x must be an addr_street object" = inherits(x, "addr_street"),
     "y must be an addr_street object" = inherits(y, "addr_street")
   )
-  validate_match_addr_street_args(
+  match_args <- validate_match_addr_street_args(
     name_phonetic_dist = name_phonetic_dist,
     name_fuzzy_dist = name_fuzzy_dist,
-    match_street_predirectional = match_street_predirectional,
-    match_street_posttype = match_street_posttype,
-    match_street_pretype = match_street_pretype,
-    match_street_postdirectional = match_street_postdirectional
+    match_street_type = match_street_type,
+    match_street_directional = match_street_directional
   )
-  street_match_fields <- c(
-    if (match_street_predirectional) "street_predirectional",
-    if (match_street_pretype) "street_pretype",
-    if (match_street_posttype) "street_posttype",
-    if (match_street_postdirectional) "street_postdirectional"
-  )
-  street_key <- function(df) {
-    parts <- lapply(
-      df[c("street_premodifier", "street_name", street_match_fields)],
-      \(col) ifelse(is.na(col) | col == "", "", col)
-    )
-    trimws(gsub(" +", " ", do.call(paste, c(parts, sep = " "))))
-  }
-  street_bucket_key <- function(df) {
-    if (length(street_match_fields) == 0L) {
-      return(rep("", nrow(df)))
-    }
-    bucket_df <- df[street_match_fields]
-    out <- do.call(
-      paste,
-      c(
-        lapply(bucket_df, \(col) {
-          ifelse(is.na(col), "", ifelse(col == "", "<EMPTY>", col))
-        }),
-        sep = "\r"
-      )
-    )
-    out[rowSums(is.na(bucket_df)) > 0L] <- NA_character_
-    out
-  }
+  match_street_type <- match_args$match_street_type
+  match_street_directional <- match_args$match_street_directional
 
   x_df <- as.data.frame(x)
   y_df <- as.data.frame(y)
-  x_key <- tolower(street_key(x_df))
-  y_key <- tolower(street_key(y_df))
 
-  ux_idx <- !duplicated(x_key)
-  ux_df <- x_df[ux_idx, , drop = FALSE]
-  ux_key <- x_key[ux_idx]
-  keep_ux <- !is.na(ux_df$street_name) & ux_df$street_name != ""
-  ux_df <- ux_df[keep_ux, , drop = FALSE]
-  ux_key <- ux_key[keep_ux]
+  keep_ux <- !is.na(x_df$street_name) & x_df$street_name != ""
+  ux_df <- x_df[keep_ux, , drop = FALSE]
   if (nrow(ux_df) == 0L) {
     return(x[rep(NA_integer_, length(x))])
   }
 
-  uy_idx <- !duplicated(y_key)
-  uy_df <- y_df[uy_idx, , drop = FALSE]
-  uy_key <- y_key[uy_idx]
-  keep_uy <- !is.na(uy_df$street_name) & uy_df$street_name != ""
-  uy_df <- uy_df[keep_uy, , drop = FALSE]
-  uy_key <- uy_key[keep_uy]
+  keep_uy <- !is.na(y_df$street_name) & y_df$street_name != ""
+  uy_df <- y_df[keep_uy, , drop = FALSE]
   if (nrow(uy_df) == 0L) {
     return(x[rep(NA_integer_, length(x))])
   }
   uy_name_psk <- phonetic_street_key(uy_df$street_name)
 
-  lkp <- match(
-    ux_key,
-    uy_key,
-    incomparables = c("", NA)
+  x_key_variants <- street_match_key_variants(
+    ux_df,
+    type = match_street_type,
+    directional = match_street_directional,
+    include_name = TRUE
   )
+  y_key_variants <- street_match_key_variants(
+    uy_df,
+    type = match_street_type,
+    directional = match_street_directional,
+    include_name = TRUE
+  )
+  lkp <- street_ranked_key_match(x_key_variants, y_key_variants, nrow(ux_df))
 
-  uy_bucket_key <- street_bucket_key(uy_df)
+  uy_bucket_variants <- street_match_key_variants(
+    uy_df,
+    type = match_street_type,
+    directional = match_street_directional,
+    include_name = FALSE
+  )
   uy_bucket_idx <- split(
-    seq_len(nrow(uy_df)),
-    uy_bucket_key,
-    drop = TRUE
+    seq_len(nrow(uy_bucket_variants)),
+    uy_bucket_variants$key
   )
 
   if (any(is.na(lkp))) {
@@ -277,18 +252,28 @@ match_addr_street <- function(
     nomatch_df <- ux_df[nomatch_idx, , drop = FALSE]
     nomatch_name_psk <- phonetic_street_key(nomatch_df$street_name)
     nomatch_is_ordinal <- is_ordinal_street_number(nomatch_df$street_name)
-    nomatch_bucket_key <- street_bucket_key(nomatch_df)
-    m <- replicate(nrow(nomatch_df), integer(0), simplify = FALSE)
+    nomatch_bucket_variants <- street_match_key_variants(
+      nomatch_df,
+      type = match_street_type,
+      directional = match_street_directional,
+      include_name = FALSE
+    )
+    ranked_matches <- list()
 
-    for (bucket_key in unique(nomatch_bucket_key[!is.na(nomatch_bucket_key)])) {
-      bucket_idx <- uy_bucket_idx[[bucket_key]]
-      if (is.null(bucket_idx) || length(bucket_idx) == 0) {
+    for (bucket_key in unique(nomatch_bucket_variants$key)) {
+      y_variant_idx <- uy_bucket_idx[[bucket_key]]
+      if (is.null(y_variant_idx) || length(y_variant_idx) == 0) {
         next
       }
-      bucket_nomatch_idx <- which(nomatch_bucket_key == bucket_key)
+      x_variant_idx <- which(nomatch_bucket_variants$key == bucket_key)
+      y_variants <- uy_bucket_variants[y_variant_idx, , drop = FALSE]
+      x_variants <- nomatch_bucket_variants[x_variant_idx, , drop = FALSE]
+
+      bucket_idx <- y_variants$row
       bucket_uy_names <- uy_df$street_name[bucket_idx]
       bucket_uy_psk <- uy_name_psk[bucket_idx]
 
+      bucket_nomatch_idx <- x_variants$row
       bucket_nomatch_names <- nomatch_df$street_name[bucket_nomatch_idx]
       bucket_nomatch_name_psk <- nomatch_name_psk[bucket_nomatch_idx]
       bucket_nomatch_psk <-
@@ -319,73 +304,245 @@ match_addr_street <- function(
       bucket_fuzzy_matches[
         nomatch_is_ordinal[bucket_nomatch_idx] & is.na(bucket_nomatch_psk)
       ] <- list(integer(0))
-      bucket_matches <-
-        mapply(
-          union,
-          bucket_fuzzy_matches,
-          bucket_phonetic_matches,
-          SIMPLIFY = FALSE,
-          USE.NAMES = FALSE
-        )
 
-      m[bucket_nomatch_idx] <- lapply(
-        bucket_matches,
-        \(idx) bucket_idx[idx[!is.na(idx)]]
+      bucket_matches <- lapply(seq_along(bucket_fuzzy_matches), \(i) {
+        fuzzy_idx <- bucket_fuzzy_matches[[i]]
+        phonetic_idx <- setdiff(bucket_phonetic_matches[[i]], fuzzy_idx)
+        idx <- c(fuzzy_idx, phonetic_idx)
+        idx <- idx[!is.na(idx)]
+        if (length(idx) == 0L) {
+          return(NULL)
+        }
+        data.frame(
+          x = bucket_nomatch_idx[[i]],
+          y = bucket_idx[idx],
+          component_rank = x_variants$rank[[i]] + y_variants$rank[idx],
+          name_rank = c(
+            rep(0L, length(fuzzy_idx)),
+            rep(1L, length(phonetic_idx))
+          )[seq_along(idx)],
+          stringsAsFactors = FALSE
+        )
+      })
+      ranked_matches <- c(ranked_matches, bucket_matches)
+    }
+
+    ranked_matches <-
+      ranked_matches[!vapply(ranked_matches, is.null, logical(1))]
+    if (length(ranked_matches) > 0L) {
+      ranked_matches <- do.call(rbind, ranked_matches)
+      ranked_matches <- ranked_matches[order(
+        ranked_matches$x,
+        ranked_matches$component_rank,
+        ranked_matches$name_rank,
+        ranked_matches$y
+      ), , drop = FALSE]
+      first <- !duplicated(ranked_matches$x)
+      lkp[nomatch_idx[ranked_matches$x[first]]] <- ranked_matches$y[first]
+    }
+  }
+
+  out_idx <- rep(NA_integer_, nrow(x_df))
+  out_idx[keep_ux] <- which(keep_uy)[lkp]
+  out <- y_df[out_idx, , drop = FALSE] |>
+    vec_restore(to = addr::addr_street())
+  return(out)
+}
+
+street_match_modes <- c("exact", "swap", "ignore")
+
+validate_street_match_mode <- function(x, arg) {
+  tryCatch(
+    match.arg(x, street_match_modes),
+    error = function(e) {
+      stop(
+        arg,
+        " must be one of \"exact\", \"swap\", or \"ignore\"",
+        call. = FALSE
       )
     }
-    # take first in multiple matches (prefers fuzzy match)
-    lkp[nomatch_idx] <- vapply(
-      m,
-      \(idx) if (length(idx) == 0) NA_integer_ else idx[1],
-      integer(1)
+  )
+}
+
+street_match_empty <- function(x) {
+  is.na(x) | x == ""
+}
+
+street_match_token <- function(x) {
+  ifelse(street_match_empty(x), "<EMPTY>", x)
+}
+
+street_match_pair_variants <- function(pre, post, mode) {
+  n <- length(pre)
+  row <- seq_len(n)
+  if (mode == "ignore") {
+    return(data.frame(
+      row = row,
+      key = rep("", n),
+      rank = rep(0L, n),
+      stringsAsFactors = FALSE
+    ))
+  }
+
+  pre_key <- street_match_token(pre)
+  post_key <- street_match_token(post)
+  has_info <- !(street_match_empty(pre) & street_match_empty(post))
+  out <- data.frame(
+    row = row,
+    key = paste(pre_key, post_key, sep = "\r"),
+    rank = ifelse(has_info, 0L, 2L),
+    stringsAsFactors = FALSE
+  )
+
+  if (mode == "swap") {
+    out <- rbind(
+      out,
+      data.frame(
+        row = row,
+        key = paste(post_key, pre_key, sep = "\r"),
+        rank = ifelse(has_info, 1L, 2L),
+        stringsAsFactors = FALSE
+      )
     )
   }
 
-  names(lkp) <- ux_key
-  out_idx <- unname(lkp[x_key])
-  out <- uy_df[out_idx, , drop = FALSE] |>
-    vec_restore(to = addr::addr_street())
-  return(out)
+  out <- out[order(out$row, out$key, out$rank), , drop = FALSE]
+  out[!duplicated(paste(out$row, out$key, sep = "\r")), , drop = FALSE]
+}
+
+street_match_key_variants <- function(
+  df,
+  type = c("exact", "swap", "ignore"),
+  directional = c("exact", "swap", "ignore"),
+  include_name = TRUE
+) {
+  type <- validate_street_match_mode(type, "match_street_type")
+  directional <- validate_street_match_mode(
+    directional,
+    "match_street_directional"
+  )
+  n <- nrow(df)
+  if (n == 0L) {
+    return(data.frame(
+      row = integer(),
+      key = character(),
+      rank = integer(),
+      stringsAsFactors = FALSE
+    ))
+  }
+
+  type_variants <- street_match_pair_variants(
+    df$street_pretype,
+    df$street_posttype,
+    type
+  )
+  directional_variants <- street_match_pair_variants(
+    df$street_predirectional,
+    df$street_postdirectional,
+    directional
+  )
+  names(type_variants)[names(type_variants) == "key"] <- "type_key"
+  names(type_variants)[names(type_variants) == "rank"] <- "type_rank"
+  names(directional_variants)[names(directional_variants) == "key"] <-
+    "directional_key"
+  names(directional_variants)[names(directional_variants) == "rank"] <-
+    "directional_rank"
+
+  out <- merge(
+    type_variants,
+    directional_variants,
+    by = "row",
+    all = FALSE,
+    sort = FALSE
+  )
+  base <- if (include_name) {
+    paste(
+      street_match_token(df$street_premodifier),
+      street_match_token(df$street_name),
+      sep = "\r"
+    )
+  } else {
+    rep("", n)
+  }
+  out$key <- tolower(paste(
+    base[out$row],
+    out$type_key,
+    out$directional_key,
+    sep = "\r"
+  ))
+  out$rank <- out$type_rank + out$directional_rank
+  out <- out[order(
+    out$row,
+    out$key,
+    out$rank,
+    out$type_rank,
+    out$directional_rank
+  ), , drop = FALSE]
+  out <- out[
+    !duplicated(paste(out$row, out$key, sep = "\r")),
+    ,
+    drop = FALSE
+  ]
+  out[c("row", "key", "rank", "type_rank", "directional_rank")]
+}
+
+street_ranked_key_match <- function(x_keys, y_keys, n_x) {
+  out <- rep(NA_integer_, n_x)
+  if (nrow(x_keys) == 0L || nrow(y_keys) == 0L) {
+    return(out)
+  }
+
+  hits <- merge(
+    x_keys,
+    y_keys,
+    by = "key",
+    suffixes = c("_x", "_y"),
+    sort = FALSE
+  )
+  if (nrow(hits) == 0L) {
+    return(out)
+  }
+
+  hits$rank <- hits$rank_x + hits$rank_y
+  hits$type_rank <- hits$type_rank_x + hits$type_rank_y
+  hits$directional_rank <- hits$directional_rank_x + hits$directional_rank_y
+  hits <- hits[order(
+    hits$row_x,
+    hits$rank,
+    hits$type_rank,
+    hits$directional_rank,
+    hits$row_y
+  ), , drop = FALSE]
+  first <- !duplicated(hits$row_x)
+  out[hits$row_x[first]] <- hits$row_y[first]
+  out
 }
 
 validate_match_addr_street_args <- function(
   name_phonetic_dist = 1L,
   name_fuzzy_dist = 2L,
-  match_street_predirectional = TRUE,
-  match_street_posttype = TRUE,
-  match_street_pretype = TRUE,
-  match_street_postdirectional = FALSE
+  match_street_type = c("exact", "swap", "ignore"),
+  match_street_directional = c("exact", "swap", "ignore")
 ) {
   stopifnot(
     "name_phonetic_dist must be an integer" = typeof(name_phonetic_dist) ==
       "integer",
     "name_phonetic_dist must be length one" = length(name_phonetic_dist) == 1L,
     "name_phonetic_dist must not be missing" = !is.na(name_phonetic_dist),
-    "match_street_predirectional must be TRUE or FALSE" = is.logical(
-      match_street_predirectional
-    ) &&
-      length(match_street_predirectional) == 1L &&
-      !is.na(match_street_predirectional),
     "name_fuzzy_dist must be an integer" = typeof(name_fuzzy_dist) == "integer",
     "name_fuzzy_dist must be length one" = length(name_fuzzy_dist) == 1L,
-    "name_fuzzy_dist must not be missing" = !is.na(name_fuzzy_dist),
-    "match_street_posttype must be TRUE or FALSE" = is.logical(
-      match_street_posttype
-    ) &&
-      length(match_street_posttype) == 1L &&
-      !is.na(match_street_posttype),
-    "match_street_pretype must be TRUE or FALSE" = is.logical(
-      match_street_pretype
-    ) &&
-      length(match_street_pretype) == 1L &&
-      !is.na(match_street_pretype),
-    "match_street_postdirectional must be TRUE or FALSE" = is.logical(
-      match_street_postdirectional
-    ) &&
-      length(match_street_postdirectional) == 1L &&
-      !is.na(match_street_postdirectional)
+    "name_fuzzy_dist must not be missing" = !is.na(name_fuzzy_dist)
   )
-  invisible(TRUE)
+  invisible(list(
+    match_street_type = validate_street_match_mode(
+      match_street_type,
+      "match_street_type"
+    ),
+    match_street_directional = validate_street_match_mode(
+      match_street_directional,
+      "match_street_directional"
+    )
+  ))
 }
 
 #' Match addr_number vectors

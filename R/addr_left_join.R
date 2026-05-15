@@ -52,13 +52,17 @@ addr_left_join <- function(
   name_phonetic_dist = 2L,
   name_fuzzy_dist = 1L,
   number_fuzzy_dist = 1L,
-  match_street_predirectional = TRUE,
-  match_street_posttype = TRUE,
-  match_street_pretype = TRUE,
-  match_street_postdirectional = FALSE,
+  match_street_type = c("exact", "swap", "ignore"),
+  match_street_directional = c("exact", "swap", "ignore"),
   progress = interactive(),
   match_prepared = NULL
 ) {
+  match_args <- validate_match_addr_street_args(
+    name_phonetic_dist = name_phonetic_dist,
+    name_fuzzy_dist = name_fuzzy_dist,
+    match_street_type = match_street_type,
+    match_street_directional = match_street_directional
+  )
   stopifnot(
     "by must be a character vector" = is.character(by),
     "by must have length 1 or 2" = length(by) %in% c(1L, 2L),
@@ -98,26 +102,6 @@ addr_left_join <- function(
       "integer" &&
       length(number_fuzzy_dist) == 1L &&
       !is.na(number_fuzzy_dist),
-    "match_street_predirectional must be TRUE or FALSE" = is.logical(
-      match_street_predirectional
-    ) &&
-      length(match_street_predirectional) == 1L &&
-      !is.na(match_street_predirectional),
-    "match_street_posttype must be TRUE or FALSE" = is.logical(
-      match_street_posttype
-    ) &&
-      length(match_street_posttype) == 1L &&
-      !is.na(match_street_posttype),
-    "match_street_pretype must be TRUE or FALSE" = is.logical(
-      match_street_pretype
-    ) &&
-      length(match_street_pretype) == 1L &&
-      !is.na(match_street_pretype),
-    "match_street_postdirectional must be TRUE or FALSE" = is.logical(
-      match_street_postdirectional
-    ) &&
-      length(match_street_postdirectional) == 1L &&
-      !is.na(match_street_postdirectional),
     "progress must be TRUE or FALSE" = is.logical(progress) &&
       length(progress) == 1L &&
       !is.na(progress),
@@ -194,10 +178,8 @@ addr_left_join <- function(
     name_phonetic_dist = name_phonetic_dist,
     name_fuzzy_dist = name_fuzzy_dist,
     number_fuzzy_dist = number_fuzzy_dist,
-    match_street_predirectional = match_street_predirectional,
-    match_street_posttype = match_street_posttype,
-    match_street_pretype = match_street_pretype,
-    match_street_postdirectional = match_street_postdirectional,
+    match_street_type = match_args$match_street_type,
+    match_street_directional = match_args$match_street_directional,
     progress = progress
   )
 

@@ -235,25 +235,17 @@ addr_explorer_app <- function() {
           step = 1
         ),
         shiny::tags$hr(),
-        shiny::checkboxInput(
-          "match_street_predirectional",
-          "Require street predirectional",
-          value = TRUE
+        shiny::selectInput(
+          "match_street_type",
+          "Street type matching",
+          choices = street_match_modes,
+          selected = "exact"
         ),
-        shiny::checkboxInput(
-          "match_street_posttype",
-          "Require street posttype",
-          value = TRUE
-        ),
-        shiny::checkboxInput(
-          "match_street_pretype",
-          "Require street pretype",
-          value = TRUE
-        ),
-        shiny::checkboxInput(
-          "match_street_postdirectional",
-          "Require street postdirectional",
-          value = FALSE
+        shiny::selectInput(
+          "match_street_directional",
+          "Street directional matching",
+          choices = street_match_modes,
+          selected = "exact"
         )
       ),
       shiny::mainPanel(
@@ -307,14 +299,8 @@ addr_explorer_app <- function() {
             name_phonetic_dist = as.integer(input$name_phonetic_dist),
             name_fuzzy_dist = as.integer(input$name_fuzzy_dist),
             number_fuzzy_dist = as.integer(input$number_fuzzy_dist),
-            match_street_predirectional = isTRUE(
-              input$match_street_predirectional
-            ),
-            match_street_posttype = isTRUE(input$match_street_posttype),
-            match_street_pretype = isTRUE(input$match_street_pretype),
-            match_street_postdirectional = isTRUE(
-              input$match_street_postdirectional
-            )
+            match_street_type = input$match_street_type,
+            match_street_directional = input$match_street_directional
           )
 
           list(
@@ -608,11 +594,15 @@ addr_explorer_match_diagnostics <- function(
   name_phonetic_dist = 2L,
   name_fuzzy_dist = 1L,
   number_fuzzy_dist = 1L,
-  match_street_predirectional = TRUE,
-  match_street_posttype = TRUE,
-  match_street_pretype = TRUE,
-  match_street_postdirectional = FALSE
+  match_street_type = c("exact", "swap", "ignore"),
+  match_street_directional = c("exact", "swap", "ignore")
 ) {
+  match_args <- validate_match_addr_street_args(
+    name_phonetic_dist = name_phonetic_dist,
+    name_fuzzy_dist = name_fuzzy_dist,
+    match_street_type = match_street_type,
+    match_street_directional = match_street_directional
+  )
   stopifnot(inherits(parsed, "addr"), length(parsed) == 1L)
 
   matched_zipcode <- match_zipcodes_prepared(
@@ -642,10 +632,8 @@ addr_explorer_match_diagnostics <- function(
       zip_data$y@street,
       name_phonetic_dist = as.integer(name_phonetic_dist),
       name_fuzzy_dist = as.integer(name_fuzzy_dist),
-      match_street_predirectional = match_street_predirectional,
-      match_street_posttype = match_street_posttype,
-      match_street_pretype = match_street_pretype,
-      match_street_postdirectional = match_street_postdirectional
+      match_street_type = match_args$match_street_type,
+      match_street_directional = match_args$match_street_directional
     )
     street_matched <- !is.na(street_match)
 
@@ -683,10 +671,8 @@ addr_explorer_match_diagnostics <- function(
     name_phonetic_dist = as.integer(name_phonetic_dist),
     name_fuzzy_dist = as.integer(name_fuzzy_dist),
     number_fuzzy_dist = as.integer(number_fuzzy_dist),
-    match_street_predirectional = match_street_predirectional,
-    match_street_posttype = match_street_posttype,
-    match_street_pretype = match_street_pretype,
-    match_street_postdirectional = match_street_postdirectional,
+    match_street_type = match_args$match_street_type,
+    match_street_directional = match_args$match_street_directional,
     progress = FALSE
   )
 
