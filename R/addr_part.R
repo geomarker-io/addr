@@ -28,8 +28,10 @@ S7::method(`[`, addr_part) <- function(x, i, ...) {
 #' @method [<- addr_part
 #' @export
 `[<-.addr_part` <- function(x, i, ..., value) {
-  if (!inherits(value, "addr_part") ||
-    which_addr_part(value) != which_addr_part(x)) {
+  if (
+    !inherits(value, "addr_part") ||
+      which_addr_part(value) != which_addr_part(x)
+  ) {
     stop(
       "`value` must be an addr_",
       which_addr_part(x),
@@ -38,7 +40,8 @@ S7::method(`[`, addr_part) <- function(x, i, ...) {
     )
   }
   if (length(list(...)) > 0L) {
-    stop("addr_part vectors only support one-dimensional subassignment",
+    stop(
+      "addr_part vectors only support one-dimensional subassignment",
       call. = FALSE
     )
   }

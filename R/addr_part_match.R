@@ -347,7 +347,10 @@ match_addr_street <- function(
         fuzzy_idx <- bucket_fuzzy_matches[[i]]
         phonetic_idx <- setdiff(bucket_phonetic_matches[[i]], fuzzy_idx)
         idx <- c(fuzzy_idx, phonetic_idx)
-        name_rank <- c(rep(0L, length(fuzzy_idx)), rep(1L, length(phonetic_idx)))
+        name_rank <- c(
+          rep(0L, length(fuzzy_idx)),
+          rep(1L, length(phonetic_idx))
+        )
         keep_idx <- !is.na(idx)
         idx <- idx[keep_idx]
         name_rank <- name_rank[keep_idx]
@@ -373,10 +376,9 @@ match_addr_street <- function(
         data.frame(
           x = bucket_nomatch_idx[[i]],
           y = bucket_idx[idx],
-          component_rank =
-            type_rank +
-              x_variants$directional_rank[[i]] +
-              y_variants$directional_rank[idx],
+          component_rank = type_rank +
+            x_variants$directional_rank[[i]] +
+            y_variants$directional_rank[idx],
           name_rank = name_rank,
           stringsAsFactors = FALSE
         )
@@ -388,12 +390,16 @@ match_addr_street <- function(
       ranked_matches[!vapply(ranked_matches, is.null, logical(1))]
     if (length(ranked_matches) > 0L) {
       ranked_matches <- do.call(rbind, ranked_matches)
-      ranked_matches <- ranked_matches[order(
-        ranked_matches$x,
-        ranked_matches$component_rank,
-        ranked_matches$name_rank,
-        ranked_matches$y
-      ), , drop = FALSE]
+      ranked_matches <- ranked_matches[
+        order(
+          ranked_matches$x,
+          ranked_matches$component_rank,
+          ranked_matches$name_rank,
+          ranked_matches$y
+        ),
+        ,
+        drop = FALSE
+      ]
       first <- !duplicated(ranked_matches$x)
       lkp[nomatch_idx[ranked_matches$x[first]]] <- ranked_matches$y[first]
     }
@@ -491,12 +497,12 @@ street_type_compatible_rank <- function(x_pre, x_post, y_pre, y_post) {
   y_has_type <- !y_pre_empty | !y_post_empty
   same_position_overlap <-
     (!x_pre_empty & !y_pre_empty & x_pre_key == y_pre_key) |
-      (!x_post_empty & !y_post_empty & x_post_key == y_post_key)
+    (!x_post_empty & !y_post_empty & x_post_key == y_post_key)
   any_position_overlap <-
     (!x_pre_empty & !y_pre_empty & x_pre_key == y_pre_key) |
-      (!x_pre_empty & !y_post_empty & x_pre_key == y_post_key) |
-      (!x_post_empty & !y_pre_empty & x_post_key == y_pre_key) |
-      (!x_post_empty & !y_post_empty & x_post_key == y_post_key)
+    (!x_pre_empty & !y_post_empty & x_pre_key == y_post_key) |
+    (!x_post_empty & !y_pre_empty & x_post_key == y_pre_key) |
+    (!x_post_empty & !y_post_empty & x_post_key == y_post_key)
 
   ok <- !pre_conflict &
     !post_conflict &
@@ -590,13 +596,17 @@ street_match_key_variants <- function(
     sep = "\r"
   ))
   out$rank <- out$type_rank + out$directional_rank
-  out <- out[order(
-    out$row,
-    out$key,
-    out$rank,
-    out$type_rank,
-    out$directional_rank
-  ), , drop = FALSE]
+  out <- out[
+    order(
+      out$row,
+      out$key,
+      out$rank,
+      out$type_rank,
+      out$directional_rank
+    ),
+    ,
+    drop = FALSE
+  ]
   out <- out[
     !duplicated(paste(out$row, out$key, sep = "\r")),
     ,
@@ -644,13 +654,17 @@ street_ranked_key_match <- function(
   }
   hits$directional_rank <- hits$directional_rank_x + hits$directional_rank_y
   hits$rank <- hits$type_rank + hits$directional_rank
-  hits <- hits[order(
-    hits$row_x,
-    hits$rank,
-    hits$type_rank,
-    hits$directional_rank,
-    hits$row_y
-  ), , drop = FALSE]
+  hits <- hits[
+    order(
+      hits$row_x,
+      hits$rank,
+      hits$type_rank,
+      hits$directional_rank,
+      hits$row_y
+    ),
+    ,
+    drop = FALSE
+  ]
   first <- !duplicated(hits$row_x)
   out[hits$row_x[first]] <- hits$row_y[first]
   out
