@@ -13,7 +13,7 @@ addr_match(
   name_phonetic_dist = 2L,
   name_fuzzy_dist = 1L,
   number_fuzzy_dist = 1L,
-  match_street_type = c("exact", "swap", "ignore"),
+  match_street_type = c("exact", "compatible", "ignore"),
   match_street_directional = c("exact", "swap", "ignore"),
   progress = interactive()
 )
@@ -45,9 +45,10 @@ possible match.}
 
 \item{match_street_type}{character; how to compare street pretype and
 posttype when selecting street candidates. \code{"exact"} requires pretype to
-match pretype and posttype to match posttype; \code{"swap"} also permits pretype
-to match posttype and posttype to match pretype; \code{"ignore"} does not use
-street type fields when selecting candidates.}
+match pretype and posttype to match posttype; \code{"compatible"} treats blank
+type fields as unknown but rejects candidates when known type information
+conflicts; \code{"ignore"} does not use street type fields when selecting
+candidates.}
 
 \item{match_street_directional}{character; how to compare street
 predirectional and postdirectional when selecting street candidates.

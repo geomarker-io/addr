@@ -115,6 +115,10 @@ test_that("geocode validates progress argument", {
     "match_street_type must be one of"
   )
   expect_error(
+    geocode(x, match_street_type = "swap"),
+    "match_street_type must be one of \"exact\", \"compatible\", \"ignore\""
+  )
+  expect_error(
     geocode_zip(x, offset = NA_real_),
     "offset must not be missing"
   )

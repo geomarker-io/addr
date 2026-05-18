@@ -9,7 +9,7 @@ match_addr_street(
   y,
   name_phonetic_dist = 1L,
   name_fuzzy_dist = 2L,
-  match_street_type = c("exact", "swap", "ignore"),
+  match_street_type = c("exact", "compatible", "ignore"),
   match_street_directional = c("exact", "swap", "ignore")
 )
 }
@@ -25,9 +25,10 @@ between \verb{@name} of x and y to consider a possible match}
 
 \item{match_street_type}{character; how to compare street pretype and
 posttype when selecting street candidates. \code{"exact"} requires pretype to
-match pretype and posttype to match posttype; \code{"swap"} also permits pretype
-to match posttype and posttype to match pretype; \code{"ignore"} does not use
-street type fields when selecting candidates.}
+match pretype and posttype to match posttype; \code{"compatible"} treats blank
+type fields as unknown but rejects candidates when known type information
+conflicts; \code{"ignore"} does not use street type fields when selecting
+candidates.}
 
 \item{match_street_directional}{character; how to compare street
 predirectional and postdirectional when selecting street candidates.
@@ -152,6 +153,36 @@ format(match_addr_street(
   toggle_y,
   name_fuzzy_dist = 1L,
   match_street_type = "ignore"
+))
+
+# compatible type matching allows blanks to stand in for unknown type fields
+type_y <- addr_street(
+  predirectional = "",
+  premodifier = "",
+  pretype = c("Ave", "Rd"),
+  name = "Main",
+  posttype = "",
+  postdirectional = "",
+  map_pretype = FALSE,
+  map_posttype = FALSE,
+  map_directional = FALSE,
+  map_ordinal = FALSE
+)
+format(match_addr_street(
+  addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "Main",
+    posttype = "Ave",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  ),
+  type_y,
+  match_street_type = "compatible"
 ))
 
 # type and directional matching can be relaxed independently

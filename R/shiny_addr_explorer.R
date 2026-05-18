@@ -238,13 +238,13 @@ addr_explorer_app <- function() {
         shiny::selectInput(
           "match_street_type",
           "Street type matching",
-          choices = street_match_modes,
+          choices = street_type_match_modes,
           selected = "exact"
         ),
         shiny::selectInput(
           "match_street_directional",
           "Street directional matching",
-          choices = street_match_modes,
+          choices = street_directional_match_modes,
           selected = "exact"
         )
       ),
@@ -594,7 +594,7 @@ addr_explorer_match_diagnostics <- function(
   name_phonetic_dist = 2L,
   name_fuzzy_dist = 1L,
   number_fuzzy_dist = 1L,
-  match_street_type = c("exact", "swap", "ignore"),
+  match_street_type = c("exact", "compatible", "ignore"),
   match_street_directional = c("exact", "swap", "ignore")
 ) {
   match_args <- validate_match_addr_street_args(

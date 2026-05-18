@@ -412,6 +412,108 @@ test_that("match_addr_street can ignore street type", {
   expect_identical(out_optional@posttype, "Rd")
 })
 
+test_that("match_addr_street can require compatible street type", {
+  x <- addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "Main",
+    posttype = "Ave",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  )
+  y <- addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = c("", "Ave", "Rd", ""),
+    name = "Main",
+    posttype = c("", "", "", "Ave"),
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  )
+
+  out_exact <- match_addr_street(x, y[2])
+  out_cross_position <- match_addr_street(
+    x,
+    y[2],
+    match_street_type = "compatible"
+  )
+  out_conflict <- match_addr_street(
+    x,
+    y[3],
+    match_street_type = "compatible"
+  )
+  out_blank <- match_addr_street(
+    x,
+    y[1],
+    match_street_type = "compatible"
+  )
+  out_prefer_exact <- match_addr_street(
+    x,
+    y,
+    match_street_type = "compatible"
+  )
+
+  expect_true(is.na(out_exact))
+  expect_identical(out_cross_position@pretype, "Ave")
+  expect_true(is.na(out_conflict))
+  expect_identical(out_blank@pretype, "")
+  expect_identical(out_blank@posttype, "")
+  expect_identical(out_prefer_exact@pretype, "")
+  expect_identical(out_prefer_exact@posttype, "Ave")
+})
+
+test_that("match_addr_street applies compatible type during fuzzy name matching", {
+  x <- addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = "",
+    name = "Mian",
+    posttype = "Ave",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  )
+  y <- addr_street(
+    predirectional = "",
+    premodifier = "",
+    pretype = c("Rd", "Ave"),
+    name = "Main",
+    posttype = "",
+    postdirectional = "",
+    map_pretype = FALSE,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_ordinal = FALSE
+  )
+
+  out_exact <- match_addr_street(
+    x,
+    y,
+    name_phonetic_dist = 0L,
+    name_fuzzy_dist = 1L
+  )
+  out_compatible <- match_addr_street(
+    x,
+    y,
+    name_phonetic_dist = 0L,
+    name_fuzzy_dist = 1L,
+    match_street_type = "compatible"
+  )
+
+  expect_true(is.na(out_exact))
+  expect_identical(out_compatible@pretype, "Ave")
+  expect_identical(out_compatible@name, "Main")
+})
+
 test_that("match_addr_street can ignore type and directionals", {
   y <- addr_street(
     predirectional = "",
@@ -454,43 +556,6 @@ test_that("match_addr_street can ignore type and directionals", {
   expect_identical(out_relaxed@postdirectional, c("", ""))
   expect_identical(out_default@pretype, c("US Hwy", "US Hwy"))
   expect_identical(out_default@postdirectional, c("E", "E"))
-})
-
-test_that("match_addr_street matches swapped street type candidates", {
-  x <- addr_street(
-    predirectional = "",
-    premodifier = "",
-    pretype = "",
-    name = "Main",
-    posttype = "Ave",
-    postdirectional = "",
-    map_pretype = FALSE,
-    map_posttype = FALSE,
-    map_directional = FALSE,
-    map_ordinal = FALSE
-  )
-  y <- addr_street(
-    predirectional = "",
-    premodifier = "",
-    pretype = c("Ave", ""),
-    name = "Main",
-    posttype = c("", "Ave"),
-    postdirectional = "",
-    map_pretype = FALSE,
-    map_posttype = FALSE,
-    map_directional = FALSE,
-    map_ordinal = FALSE
-  )
-
-  out_exact <- match_addr_street(x, y[1])
-  out_swap_only <- match_addr_street(x, y[1], match_street_type = "swap")
-  out_swap_prefer_exact <- match_addr_street(x, y, match_street_type = "swap")
-
-  expect_true(is.na(out_exact))
-  expect_identical(out_swap_only@pretype, "Ave")
-  expect_identical(out_swap_only@posttype, "")
-  expect_identical(out_swap_prefer_exact@pretype, "")
-  expect_identical(out_swap_prefer_exact@posttype, "Ave")
 })
 
 test_that("match_addr_street matches swapped directional candidates", {

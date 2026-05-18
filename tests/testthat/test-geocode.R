@@ -97,7 +97,7 @@ test_that("geocode forwards street matching arguments to geocode_zip", {
       offset = 0L,
       name_phonetic_dist = 1L,
       name_fuzzy_dist = 2L,
-      match_street_type = c("exact", "swap", "ignore"),
+      match_street_type = c("exact", "compatible", "ignore"),
       match_street_directional = c("exact", "swap", "ignore"),
       zip_variants = TRUE,
       zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),

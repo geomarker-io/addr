@@ -52,7 +52,7 @@ addr_left_join <- function(
   name_phonetic_dist = 2L,
   name_fuzzy_dist = 1L,
   number_fuzzy_dist = 1L,
-  match_street_type = c("exact", "swap", "ignore"),
+  match_street_type = c("exact", "compatible", "ignore"),
   match_street_directional = c("exact", "swap", "ignore"),
   progress = interactive(),
   match_prepared = NULL

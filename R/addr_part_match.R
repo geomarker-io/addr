@@ -25,9 +25,10 @@
 #' between `@name` of x and y to consider a possible match
 #' @param match_street_type character; how to compare street pretype and
 #'   posttype when selecting street candidates. `"exact"` requires pretype to
-#'   match pretype and posttype to match posttype; `"swap"` also permits pretype
-#'   to match posttype and posttype to match pretype; `"ignore"` does not use
-#'   street type fields when selecting candidates.
+#'   match pretype and posttype to match posttype; `"compatible"` treats blank
+#'   type fields as unknown but rejects candidates when known type information
+#'   conflicts; `"ignore"` does not use street type fields when selecting
+#'   candidates.
 #' @param match_street_directional character; how to compare street
 #'   predirectional and postdirectional when selecting street candidates.
 #'   `"exact"` requires predirectional to match predirectional and
@@ -133,6 +134,36 @@
 #'   match_street_type = "ignore"
 #' ))
 #'
+#' # compatible type matching allows blanks to stand in for unknown type fields
+#' type_y <- addr_street(
+#'   predirectional = "",
+#'   premodifier = "",
+#'   pretype = c("Ave", "Rd"),
+#'   name = "Main",
+#'   posttype = "",
+#'   postdirectional = "",
+#'   map_pretype = FALSE,
+#'   map_posttype = FALSE,
+#'   map_directional = FALSE,
+#'   map_ordinal = FALSE
+#' )
+#' format(match_addr_street(
+#'   addr_street(
+#'     predirectional = "",
+#'     premodifier = "",
+#'     pretype = "",
+#'     name = "Main",
+#'     posttype = "Ave",
+#'     postdirectional = "",
+#'     map_pretype = FALSE,
+#'     map_posttype = FALSE,
+#'     map_directional = FALSE,
+#'     map_ordinal = FALSE
+#'   ),
+#'   type_y,
+#'   match_street_type = "compatible"
+#' ))
+#'
 #' # type and directional matching can be relaxed independently
 #' format(match_addr_street(
 #'   addr_street(
@@ -190,7 +221,7 @@ match_addr_street <- function(
   y,
   name_phonetic_dist = 1L,
   name_fuzzy_dist = 2L,
-  match_street_type = c("exact", "swap", "ignore"),
+  match_street_type = c("exact", "compatible", "ignore"),
   match_street_directional = c("exact", "swap", "ignore")
 ) {
   stopifnot(
@@ -234,7 +265,14 @@ match_addr_street <- function(
     directional = match_street_directional,
     include_name = TRUE
   )
-  lkp <- street_ranked_key_match(x_key_variants, y_key_variants, nrow(ux_df))
+  lkp <- street_ranked_key_match(
+    x_key_variants,
+    y_key_variants,
+    nrow(ux_df),
+    x_df = ux_df,
+    y_df = uy_df,
+    type = match_street_type
+  )
 
   uy_bucket_variants <- street_match_key_variants(
     uy_df,
@@ -309,18 +347,37 @@ match_addr_street <- function(
         fuzzy_idx <- bucket_fuzzy_matches[[i]]
         phonetic_idx <- setdiff(bucket_phonetic_matches[[i]], fuzzy_idx)
         idx <- c(fuzzy_idx, phonetic_idx)
-        idx <- idx[!is.na(idx)]
+        name_rank <- c(rep(0L, length(fuzzy_idx)), rep(1L, length(phonetic_idx)))
+        keep_idx <- !is.na(idx)
+        idx <- idx[keep_idx]
+        name_rank <- name_rank[keep_idx]
         if (length(idx) == 0L) {
           return(NULL)
         }
+        type_rank <- street_type_match_rank(
+          nomatch_df$street_pretype[bucket_nomatch_idx[[i]]],
+          nomatch_df$street_posttype[bucket_nomatch_idx[[i]]],
+          uy_df$street_pretype[bucket_idx[idx]],
+          uy_df$street_posttype[bucket_idx[idx]],
+          match_street_type,
+          x_rank = x_variants$type_rank[[i]],
+          y_rank = y_variants$type_rank[idx]
+        )
+        keep <- !is.na(type_rank)
+        if (!any(keep)) {
+          return(NULL)
+        }
+        idx <- idx[keep]
+        name_rank <- name_rank[keep]
+        type_rank <- type_rank[keep]
         data.frame(
           x = bucket_nomatch_idx[[i]],
           y = bucket_idx[idx],
-          component_rank = x_variants$rank[[i]] + y_variants$rank[idx],
-          name_rank = c(
-            rep(0L, length(fuzzy_idx)),
-            rep(1L, length(phonetic_idx))
-          )[seq_along(idx)],
+          component_rank =
+            type_rank +
+              x_variants$directional_rank[[i]] +
+              y_variants$directional_rank[idx],
+          name_rank = name_rank,
           stringsAsFactors = FALSE
         )
       })
@@ -349,15 +406,17 @@ match_addr_street <- function(
   return(out)
 }
 
-street_match_modes <- c("exact", "swap", "ignore")
+street_type_match_modes <- c("exact", "compatible", "ignore")
+street_directional_match_modes <- c("exact", "swap", "ignore")
 
-validate_street_match_mode <- function(x, arg) {
+validate_street_match_mode <- function(x, arg, choices) {
   tryCatch(
-    match.arg(x, street_match_modes),
+    match.arg(x, choices),
     error = function(e) {
       stop(
         arg,
-        " must be one of \"exact\", \"swap\", or \"ignore\"",
+        " must be one of ",
+        paste(sprintf("\"%s\"", choices), collapse = ", "),
         call. = FALSE
       )
     }
@@ -410,16 +469,75 @@ street_match_pair_variants <- function(pre, post, mode) {
   out[!duplicated(paste(out$row, out$key, sep = "\r")), , drop = FALSE]
 }
 
+street_type_compatible_rank <- function(x_pre, x_post, y_pre, y_post) {
+  n <- max(length(x_pre), length(x_post), length(y_pre), length(y_post))
+  x_pre <- rep(x_pre, length.out = n)
+  x_post <- rep(x_post, length.out = n)
+  y_pre <- rep(y_pre, length.out = n)
+  y_post <- rep(y_post, length.out = n)
+
+  x_pre_empty <- street_match_empty(x_pre)
+  x_post_empty <- street_match_empty(x_post)
+  y_pre_empty <- street_match_empty(y_pre)
+  y_post_empty <- street_match_empty(y_post)
+  x_pre_key <- tolower(x_pre)
+  x_post_key <- tolower(x_post)
+  y_pre_key <- tolower(y_pre)
+  y_post_key <- tolower(y_post)
+
+  pre_conflict <- !x_pre_empty & !y_pre_empty & x_pre_key != y_pre_key
+  post_conflict <- !x_post_empty & !y_post_empty & x_post_key != y_post_key
+  x_has_type <- !x_pre_empty | !x_post_empty
+  y_has_type <- !y_pre_empty | !y_post_empty
+  same_position_overlap <-
+    (!x_pre_empty & !y_pre_empty & x_pre_key == y_pre_key) |
+      (!x_post_empty & !y_post_empty & x_post_key == y_post_key)
+  any_position_overlap <-
+    (!x_pre_empty & !y_pre_empty & x_pre_key == y_pre_key) |
+      (!x_pre_empty & !y_post_empty & x_pre_key == y_post_key) |
+      (!x_post_empty & !y_pre_empty & x_post_key == y_pre_key) |
+      (!x_post_empty & !y_post_empty & x_post_key == y_post_key)
+
+  ok <- !pre_conflict &
+    !post_conflict &
+    (!x_has_type | !y_has_type | any_position_overlap)
+  rank <- rep(NA_integer_, n)
+  rank[ok & same_position_overlap] <- 0L
+  rank[ok & is.na(rank) & x_has_type & y_has_type] <- 1L
+  rank[ok & is.na(rank)] <- 2L
+  rank
+}
+
+street_type_match_rank <- function(
+  x_pre,
+  x_post,
+  y_pre,
+  y_post,
+  mode,
+  x_rank,
+  y_rank
+) {
+  if (mode == "compatible") {
+    return(street_type_compatible_rank(x_pre, x_post, y_pre, y_post))
+  }
+  x_rank + y_rank
+}
+
 street_match_key_variants <- function(
   df,
-  type = c("exact", "swap", "ignore"),
+  type = c("exact", "compatible", "ignore"),
   directional = c("exact", "swap", "ignore"),
   include_name = TRUE
 ) {
-  type <- validate_street_match_mode(type, "match_street_type")
+  type <- validate_street_match_mode(
+    type,
+    "match_street_type",
+    street_type_match_modes
+  )
   directional <- validate_street_match_mode(
     directional,
-    "match_street_directional"
+    "match_street_directional",
+    street_directional_match_modes
   )
   n <- nrow(df)
   if (n == 0L) {
@@ -431,10 +549,11 @@ street_match_key_variants <- function(
     ))
   }
 
+  type_key_mode <- if (type == "compatible") "ignore" else type
   type_variants <- street_match_pair_variants(
     df$street_pretype,
     df$street_posttype,
-    type
+    type_key_mode
   )
   directional_variants <- street_match_pair_variants(
     df$street_predirectional,
@@ -486,7 +605,14 @@ street_match_key_variants <- function(
   out[c("row", "key", "rank", "type_rank", "directional_rank")]
 }
 
-street_ranked_key_match <- function(x_keys, y_keys, n_x) {
+street_ranked_key_match <- function(
+  x_keys,
+  y_keys,
+  n_x,
+  x_df,
+  y_df,
+  type
+) {
   out <- rep(NA_integer_, n_x)
   if (nrow(x_keys) == 0L || nrow(y_keys) == 0L) {
     return(out)
@@ -503,9 +629,21 @@ street_ranked_key_match <- function(x_keys, y_keys, n_x) {
     return(out)
   }
 
-  hits$rank <- hits$rank_x + hits$rank_y
-  hits$type_rank <- hits$type_rank_x + hits$type_rank_y
+  hits$type_rank <- street_type_match_rank(
+    x_df$street_pretype[hits$row_x],
+    x_df$street_posttype[hits$row_x],
+    y_df$street_pretype[hits$row_y],
+    y_df$street_posttype[hits$row_y],
+    type,
+    x_rank = hits$type_rank_x,
+    y_rank = hits$type_rank_y
+  )
+  hits <- hits[!is.na(hits$type_rank), , drop = FALSE]
+  if (nrow(hits) == 0L) {
+    return(out)
+  }
   hits$directional_rank <- hits$directional_rank_x + hits$directional_rank_y
+  hits$rank <- hits$type_rank + hits$directional_rank
   hits <- hits[order(
     hits$row_x,
     hits$rank,
@@ -521,7 +659,7 @@ street_ranked_key_match <- function(x_keys, y_keys, n_x) {
 validate_match_addr_street_args <- function(
   name_phonetic_dist = 1L,
   name_fuzzy_dist = 2L,
-  match_street_type = c("exact", "swap", "ignore"),
+  match_street_type = c("exact", "compatible", "ignore"),
   match_street_directional = c("exact", "swap", "ignore")
 ) {
   stopifnot(
@@ -536,11 +674,13 @@ validate_match_addr_street_args <- function(
   invisible(list(
     match_street_type = validate_street_match_mode(
       match_street_type,
-      "match_street_type"
+      "match_street_type",
+      street_type_match_modes
     ),
     match_street_directional = validate_street_match_mode(
       match_street_directional,
-      "match_street_directional"
+      "match_street_directional",
+      street_directional_match_modes
     )
   ))
 }
