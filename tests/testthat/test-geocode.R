@@ -174,6 +174,95 @@ test_that("geocode keeps missing zipcode rows with geocoded rows", {
   expect_false(is.na(out$s2_cell[2]))
 })
 
+test_that("geocode_stage classifies staged geocode results", {
+  x <- as_addr(c(
+    "10 Main St Cincinnati OH 45220",
+    "11 Main St Cincinnati OH 45220",
+    "12 Main St Cincinnati OH 45220",
+    "13 Main St Cincinnati OH 45220",
+    "14 Main St Cincinnati OH 45220",
+    "15 Main St"
+  ))
+  matched_street <- addr_street(
+    name = c("Main", "Main", "Main", "Main", NA_character_, "Main"),
+    posttype = c("St", "St", "St", "St", NA_character_, "St")
+  )
+  s2_cell <- s2::as_s2_cell(c(
+    "808fbfffffffffff",
+    NA_character_,
+    "808fbfffffffffff",
+    NA_character_,
+    NA_character_,
+    "808fbfffffffffff"
+  ))
+  gcd <- tibble::tibble(
+    addr = x,
+    matched_zipcode = c(
+      "45220",
+      "45220",
+      "45221",
+      "45221",
+      NA_character_,
+      NA_character_
+    ),
+    matched_street = matched_street,
+    s2_cell = s2_cell
+  )
+
+  expect_equal(
+    geocode_stage(gcd),
+    ordered(
+      c("range", "street", "range_variant", "street_variant", "none", "none"),
+      levels = c("none", "street_variant", "street", "range_variant", "range")
+    )
+  )
+})
+
+test_that("geocode_table returns a JSON-safe flat table", {
+  x <- as_addr(c(
+    "10 Main St Cincinnati OH 45220",
+    "11 Oak Rd Cincinnati OH 45221"
+  ))
+  matched_street <- addr_street(
+    name = c("Main", NA_character_),
+    posttype = c("St", NA_character_)
+  )
+  s2_cell <- s2::as_s2_cell(c(
+    "808fbfffffffffff",
+    NA_character_
+  ))
+  gcd <- tibble::tibble(
+    addr = x,
+    matched_zipcode = c("45220", NA_character_),
+    matched_street = matched_street,
+    s2_cell = s2_cell
+  )
+
+  out <- geocode_table(gcd)
+  expected_names <- c(
+    "addr",
+    "geocode_stage",
+    "matched_zipcode",
+    "matched_street",
+    "s2_cell"
+  )
+
+  expect_s3_class(out, "tbl_df")
+  expect_equal(names(out), expected_names)
+  expect_equal(out$addr, as.character(x))
+  expect_equal(out$geocode_stage, c("range", "none"))
+  expect_equal(out$matched_zipcode, c("45220", NA_character_))
+  expect_equal(out$matched_street, as.character(matched_street))
+  expect_type(out$s2_cell, "character")
+  expect_equal(out$s2_cell, as.character(s2_cell))
+  expect_true(is.na(out$s2_cell[[2]]))
+  expect_true(all(vapply(out, is.atomic, logical(1))))
+  expect_false(any(vapply(out, inherits, logical(1), "addr")))
+  expect_false(any(vapply(out, inherits, logical(1), "addr_street")))
+  expect_false(any(vapply(out, inherits, logical(1), "s2_geography")))
+  expect_false(any(vapply(out, inherits, logical(1), "s2_cell")))
+})
+
 test_that("geocode forwards street matching arguments to geocode_zip", {
   seen <- NULL
   local_mocked_bindings(

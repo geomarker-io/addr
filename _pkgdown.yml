@@ -31,17 +31,21 @@ reference:
       - match_zipcodes
       - phonetic_street_key
       - zipcode_variant
-  - title: Geocoding addr
+  - title: Geocode addr
     contents:
       - geocode
-      - taf_zip
-      - taf_install
+      - geocode_table
+      - geocode_stage
+      - run_geocode_explorer
+  - title: Tiger Address Features
+    contents:
       - taf
+      - taf_install
+      - taf_zip
       - taf_catalog
       - taf_needed_counties
       - tiger_addr_feat
       - tiger_feat_names
-      - run_geocode_explorer
   - title: National Address Database
     contents:
       - nad

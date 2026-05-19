@@ -326,6 +326,107 @@ geocode_no_match <- function(x) {
   )
 }
 
+#' Convert geocode objects to JSON-safe tables
+#'
+#' @description
+#' `geocode_table()` converts the rich output from [geocode()] to a flat table
+#' with only JSON-safe column types.
+#'
+#' @param x a data frame returned by [geocode()]
+#' @returns A tibble with atomic columns suitable for JSON serialization.
+#'   `geocode_table()` includes the input address, geocode stage, matched ZIP
+#'   code, matched street, and S2 cell as character columns.
+#' @export
+#' @examples
+#' \dontrun{
+#'   geocode(as_addr("3333 Burnet Ave Cincinnati OH 45229")) |>
+#'     geocode_table()
+#' }
+geocode_table <- function(x) {
+  stopifnot(
+    "x must be a data frame" = is.data.frame(x),
+    "x must contain an addr column" = "addr" %in% names(x),
+    "x$addr must be an addr vector" = inherits(x$addr, "addr"),
+    "x must contain a matched_zipcode column" = "matched_zipcode" %in% names(x),
+    "x must contain a matched_street column" = "matched_street" %in% names(x),
+    "x$matched_street must be an addr_street vector" = inherits(
+      x$matched_street,
+      "addr_street"
+    ),
+    "x must contain an s2_cell column" = "s2_cell" %in% names(x),
+    "x$s2_cell must be an s2_cell vector" = inherits(x$s2_cell, "s2_cell")
+  )
+
+  out <- data.frame(
+    addr = as.character(x$addr),
+    geocode_stage = as.character(geocode_stage(x)),
+    matched_zipcode = x$matched_zipcode,
+    matched_street = as.character(x$matched_street),
+    s2_cell = as.character(x$s2_cell),
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  tibble::as_tibble(out)
+}
+
+#' Classify geocode stage
+#'
+#' Classify geocode results into staged outcomes returned by [geocode()]:
+#' no match, street match, or interpolated range match, distinguishing exact
+#' ZIP-code matches from ZIP-code variant matches.
+#'
+#' @param x a data frame returned by [geocode()]
+#' @return an ordered factor with levels `none`, `street_variant`, `street`,
+#'   `range_variant`, `range`
+#' @export
+#' @examples
+#' \dontrun{
+#'   geocode(as_addr("3333 Burnet Ave Cincinnati OH 45229")) |>
+#'     geocode_stage()
+#' }
+geocode_stage <- function(x) {
+  stopifnot(
+    "x must be a data frame" = is.data.frame(x),
+    "x must contain an addr column" = "addr" %in% names(x),
+    "x$addr must be an addr vector" = inherits(x$addr, "addr"),
+    "x must contain a matched_zipcode column" = "matched_zipcode" %in% names(x),
+    "x must contain a matched_street column" = "matched_street" %in% names(x),
+    "x$matched_street must be an addr_street vector" = inherits(
+      x$matched_street,
+      "addr_street"
+    ),
+    "x must contain an s2_cell column" = "s2_cell" %in% names(x),
+    "x$s2_cell must be an s2_cell vector" = inherits(x$s2_cell, "s2_cell")
+  )
+
+  matched_street <- as.character(x$matched_street)
+  input_zipcode <- x$addr@place@zipcode
+  has_zipcode <- !is.na(x$matched_zipcode) & x$matched_zipcode != ""
+  has_street <- has_zipcode & !is.na(matched_street) & matched_street != ""
+  has_range <- has_street & !is.na(x$s2_cell)
+  has_exact_zipcode <- has_street &
+    !is.na(input_zipcode) &
+    input_zipcode != "" &
+    x$matched_zipcode == input_zipcode
+  has_variant <- has_street & !has_exact_zipcode
+
+  out <- rep("none", nrow(x))
+  out[has_street] <- "street"
+  out[has_street & has_variant] <- "street_variant"
+  out[has_range] <- "range"
+  out[has_range & has_variant] <- "range_variant"
+  ordered(
+    out,
+    levels = c(
+      "none",
+      "street_variant",
+      "street",
+      "range_variant",
+      "range"
+    )
+  )
+}
+
 geocode_prepare_taf <- function(
   x,
   year,
