@@ -224,7 +224,9 @@ configured by the caller, <code>geocode()</code> uses them for ZIP-code-level
 parallel processing. Otherwise it falls back to sequential processing.</p>
 <p><code>geocode()</code> and <code>geocode_zip()</code> both download and install tiger address
 features by county (<code><a href="taf.html">?taf_install</a></code>) as needed based on the input addr ZIP
-codes (and possibly ZIP code variants).</p>
+codes (and possibly ZIP code variants). TAF install checks run before
+reading TAF ZIP files so parallel geocoding workers do not try to download
+county files at the same time.</p>
     </div>
 
     <div class="section level2">
