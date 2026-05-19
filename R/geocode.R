@@ -47,7 +47,9 @@
 #'
 #' `geocode()` and `geocode_zip()` both download and install tiger address
 #' features by county (`?taf_install`) as needed based on the input addr ZIP
-#' codes (and possibly ZIP code variants).
+#' codes (and possibly ZIP code variants). TAF install checks run before
+#' reading TAF ZIP files so parallel geocoding workers do not try to download
+#' county files at the same time.
 #'
 #' @export
 #' @examples
@@ -119,23 +121,16 @@ geocode <- function(
   )
   xu <- unique(x)
   missing_zip <- is.na(xu@place@zipcode) | xu@place@zipcode == ""
-  if (taf_install && any(!missing_zip)) {
-    taf_ensure(
+  if (any(!missing_zip)) {
+    geocode_prepare_taf(
       xu[!missing_zip],
       year = year,
       version = version,
       zip_variants = zip_variants,
       zip_variant = zip_variant,
-      redownload = taf_redownload
+      taf_install = taf_install,
+      taf_redownload = taf_redownload
     )
-  } else if (any(!missing_zip)) {
-    taf_warn_missing_counties(taf_missing_counties(
-      xu[!missing_zip],
-      year = year,
-      version = version,
-      zip_variants = zip_variants,
-      zip_variant = zip_variant
-    ))
   }
   z_list <- split(xu[!missing_zip], xu[!missing_zip]@place@zipcode)
 
@@ -331,6 +326,70 @@ geocode_no_match <- function(x) {
   )
 }
 
+geocode_prepare_taf <- function(
+  x,
+  year,
+  version,
+  zip_variants,
+  zip_variant,
+  taf_install,
+  taf_redownload
+) {
+  if (length(x) == 0L) {
+    return(invisible(NULL))
+  }
+
+  missing_args <- list(
+    x = x,
+    year = year,
+    version = version,
+    zip_variants = zip_variants,
+    zip_variant = zip_variant
+  )
+
+  if (taf_install) {
+    taf_ensure_serial(
+      x,
+      year = year,
+      version = version,
+      zip_variants = zip_variants,
+      zip_variant = zip_variant,
+      redownload = taf_redownload
+    )
+    geocode_require_taf_installed(do.call(taf_missing_counties, missing_args))
+  } else {
+    taf_warn_missing_counties(do.call(taf_missing_counties, missing_args))
+  }
+
+  invisible(NULL)
+}
+
+geocode_require_taf_installed <- function(missing) {
+  if (nrow(missing) == 0L) {
+    return(invisible(missing))
+  }
+
+  counties <- unique(missing$county_fips)
+  zip_variants <- unique(paste0(
+    missing$ZIP,
+    " (",
+    missing$source_zip_variant,
+    " from ",
+    missing$source_zip,
+    ")"
+  ))
+  stop(
+    "TAF files are still missing after installation for ",
+    length(counties),
+    " county/counties; geocoding cannot continue. Missing counties: ",
+    taf_collapse_for_message(counties),
+    ". Affected ZIPs: ",
+    taf_collapse_for_message(zip_variants),
+    ".",
+    call. = FALSE
+  )
+}
+
 
 # # convert s2 cell and point geographies to text
 # gcd_tbl$s2_cell <- as.character(gcd_tbl$s2_cell)
@@ -409,23 +468,16 @@ geocode_zip <- function(
     return(out)
   }
 
-  if (taf_check && taf_install) {
-    taf_ensure(
+  if (taf_check) {
+    geocode_prepare_taf(
       x,
       year = year,
       version = version,
       zip_variants = zip_variants,
       zip_variant = zip_variant,
-      redownload = taf_redownload
+      taf_install = taf_install,
+      taf_redownload = taf_redownload
     )
-  } else if (taf_check) {
-    taf_warn_missing_counties(taf_missing_counties(
-      x,
-      year = year,
-      version = version,
-      zip_variants = zip_variants,
-      zip_variant = zip_variant
-    ))
   }
 
   ref_exact <- taf_zip(zpcd, map = TRUE, year = year, version = version)

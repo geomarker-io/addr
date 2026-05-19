@@ -133,7 +133,9 @@ parallel processing. Otherwise it falls back to sequential processing.
 
 \code{geocode()} and \code{geocode_zip()} both download and install tiger address
 features by county (\code{?taf_install}) as needed based on the input addr ZIP
-codes (and possibly ZIP code variants).
+codes (and possibly ZIP code variants). TAF install checks run before
+reading TAF ZIP files so parallel geocoding workers do not try to download
+county files at the same time.
 }
 \examples{
 x <- as_addr(voter_addresses()[1:100])

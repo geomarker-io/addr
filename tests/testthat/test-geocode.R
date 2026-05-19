@@ -54,6 +54,92 @@ test_that("geocode warns when taf_install is FALSE and needed counties are missi
   )
 })
 
+test_that("geocode installs and verifies TAF before ZIP geocoding", {
+  installed <- FALSE
+  read_started <- FALSE
+  local_mocked_bindings(
+    taf_with_install_lock = function(year, version, expr) {
+      eval(substitute(expr), parent.frame())
+    },
+    taf_ensure = function(...) {
+      expect_false(read_started)
+      installed <<- TRUE
+      invisible(taf_empty_needed_counties())
+    },
+    taf_missing_counties = function(...) {
+      if (installed) {
+        return(taf_empty_needed_counties())
+      }
+      tibble::tibble(
+        county_fips = "39061",
+        ZIP = "45220",
+        zip3 = "452",
+        zip2 = "20",
+        n_ranges = 10L,
+        source_zip = "45220",
+        source_zip_variant = "exact"
+      )
+    },
+    geocode_zip = function(x, offset = 0L, ...) {
+      expect_true(installed)
+      read_started <<- TRUE
+      tibble::tibble(
+        addr = x,
+        matched_zipcode = rep("45220", length(x)),
+        matched_street = x@street,
+        matched_geography = s2::as_s2_geography(
+          rep("POINT (-84.5 39.1)", length(x))
+        )
+      )
+    }
+  )
+  x <- addr(
+    addr_number(digits = "10"),
+    addr_street(name = "Main", posttype = "St"),
+    addr_place(zipcode = "45220")
+  )
+
+  geocode(x, progress = FALSE)
+
+  expect_true(read_started)
+})
+
+test_that("geocode stops before ZIP geocoding when TAF remains missing", {
+  read_started <- FALSE
+  local_mocked_bindings(
+    taf_with_install_lock = function(year, version, expr) {
+      eval(substitute(expr), parent.frame())
+    },
+    taf_ensure = function(...) invisible(taf_empty_needed_counties()),
+    taf_missing_counties = function(...) {
+      tibble::tibble(
+        county_fips = "39061",
+        ZIP = "45220",
+        zip3 = "452",
+        zip2 = "20",
+        n_ranges = 10L,
+        source_zip = "45220",
+        source_zip_variant = "exact"
+      )
+    },
+    geocode_zip = function(...) {
+      read_started <<- TRUE
+      stop("should not read TAF ZIP files")
+    }
+  )
+  x <- addr(
+    addr_number(digits = "10"),
+    addr_street(name = "Main", posttype = "St"),
+    addr_place(zipcode = "45220")
+  )
+
+  expect_error(
+    geocode(x, progress = FALSE),
+    "TAF files are still missing after installation"
+  )
+  expect_false(read_started)
+})
+
 test_that("geocode keeps missing zipcode rows with geocoded rows", {
   local_mocked_bindings(
     taf_missing_counties = function(...) taf_empty_needed_counties(),
@@ -232,6 +318,61 @@ test_that("geocode_zip warns when taf_install is FALSE and needed counties are m
     geocode_zip(x, offset = 0, taf_install = FALSE),
     "TAF files are missing for 1 county/counties needed for geocoding"
   )
+})
+
+test_that("geocode_zip serializes TAF install before reading ZIP files", {
+  lock_used <- FALSE
+  installed <- FALSE
+  local_mocked_bindings(
+    taf_with_install_lock = function(year, version, expr) {
+      lock_used <<- TRUE
+      eval(substitute(expr), parent.frame())
+    },
+    taf_ensure = function(...) {
+      installed <<- TRUE
+      invisible(taf_empty_needed_counties())
+    },
+    taf_missing_counties = function(...) {
+      if (installed) {
+        return(taf_empty_needed_counties())
+      }
+      tibble::tibble(
+        county_fips = "39061",
+        ZIP = "45220",
+        zip3 = "452",
+        zip2 = "20",
+        n_ranges = 10L,
+        source_zip = "45220",
+        source_zip_variant = "exact"
+      )
+    },
+    taf_zip = function(zipcode, map = TRUE, ...) {
+      expect_true(lock_used)
+      expect_true(installed)
+      tibble::tibble(
+        ZIP = zipcode,
+        addr_street = addr_street(name = "Main", posttype = "St"),
+        side = "L",
+        FROMHN = 1L,
+        TOHN = 99L,
+        PARITY = "B",
+        OFFSET = 0,
+        s2_geography = s2::as_s2_geography(
+          "LINESTRING (-84 39, -84.1 39.1)"
+        )
+      )
+    },
+    match_addr_street = function(x, y, ...) y[1]
+  )
+  x <- addr(
+    addr_number(digits = "10"),
+    addr_street(name = "Main", posttype = "St"),
+    addr_place(zipcode = "45220")
+  )
+
+  geocode_zip(x, offset = 0)
+
+  expect_true(lock_used)
 })
 
 test_that("geocode_zip respects zipcode variant controls", {

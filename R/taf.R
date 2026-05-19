@@ -221,6 +221,120 @@ taf_ensure <- function(
   invisible(missing)
 }
 
+taf_ensure_serial <- function(
+  x,
+  year,
+  version,
+  zip_variants,
+  zip_variant,
+  redownload
+) {
+  missing <- taf_missing_counties(
+    x,
+    year = year,
+    version = version,
+    zip_variants = zip_variants,
+    zip_variant = zip_variant
+  )
+  if (nrow(missing) == 0L) {
+    return(invisible(missing))
+  }
+
+  taf_with_install_lock(year, version, {
+    taf_ensure(
+      x,
+      year = year,
+      version = version,
+      zip_variants = zip_variants,
+      zip_variant = zip_variant,
+      redownload = redownload
+    )
+  })
+}
+
+taf_with_install_lock <- function(year, version, expr) {
+  lock_dir <- taf_install_lock_dir(year = year, version = version)
+  timeout <- as.numeric(getOption("addr.taf_install_lock_timeout", 600))
+  poll <- as.numeric(getOption("addr.taf_install_lock_poll", 0.25))
+  stale_after <- as.numeric(
+    getOption("addr.taf_install_lock_stale_after", 3600)
+  )
+  if (is.na(timeout) || timeout < 0) {
+    timeout <- 600
+  }
+  if (is.na(poll) || poll <= 0) {
+    poll <- 0.25
+  }
+  if (is.na(stale_after) || stale_after <= 0) {
+    stale_after <- Inf
+  }
+
+  dir.create(dirname(lock_dir), recursive = TRUE, showWarnings = FALSE)
+  token <- paste(
+    Sys.getpid(),
+    format(Sys.time(), "%Y%m%d%H%M%OS6", tz = "UTC"),
+    sep = "-"
+  )
+  token_path <- file.path(lock_dir, "owner")
+  start <- Sys.time()
+  acquired <- FALSE
+
+  repeat {
+    acquired <- dir.create(lock_dir, showWarnings = FALSE)
+    if (isTRUE(acquired)) {
+      writeLines(token, token_path)
+      break
+    }
+
+    if (!dir.exists(lock_dir)) {
+      next
+    }
+
+    lock_info <- file.info(lock_dir)
+    lock_age <- as.numeric(difftime(
+      Sys.time(),
+      lock_info$mtime,
+      units = "secs"
+    ))
+    if (is.finite(stale_after) && !is.na(lock_age) && lock_age > stale_after) {
+      unlink(lock_dir, recursive = TRUE, force = TRUE)
+      next
+    }
+
+    elapsed <- as.numeric(difftime(Sys.time(), start, units = "secs"))
+    if (is.finite(timeout) && elapsed >= timeout) {
+      stop(
+        "timed out waiting for TAF install lock at `",
+        lock_dir,
+        "`",
+        call. = FALSE
+      )
+    }
+    Sys.sleep(poll)
+  }
+
+  on.exit({
+    if (acquired && file.exists(token_path)) {
+      owner <- readLines(token_path, warn = FALSE, n = 1L)
+      if (identical(owner, token)) {
+        unlink(lock_dir, recursive = TRUE, force = TRUE)
+      }
+    }
+  }, add = TRUE)
+
+  eval(substitute(expr), parent.frame())
+}
+
+taf_install_lock_dir <- function(year, version) {
+  file.path(
+    tools::R_user_dir("addr", "data"),
+    version,
+    "tiger_addr_feat_locks",
+    year,
+    "install.lock"
+  )
+}
+
 #' @rdname taf
 #' @param county character, length 1; county FIPS code
 #' @param overwrite logical, length 1; overwrite an existing county install?
