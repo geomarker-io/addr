@@ -152,6 +152,12 @@ gcd <- geocode(x, taf_install = FALSE)
   gcd <- geocode(x)
 }
 
+gcd
+
+table(geocode_stage(gcd))
+
+geocode_table(gcd)
+
 leaflet::leaflet(wk::wk_coords(gcd$matched_geography)) |>
   leaflet::addTiles() |>
   leaflet::addCircleMarkers(lng = ~x, lat = ~y, label = ~feature_id)

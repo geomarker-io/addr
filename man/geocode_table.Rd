@@ -18,9 +18,3 @@ code, matched street, and S2 cell as character columns.
 \code{geocode_table()} converts the rich output from \code{\link[=geocode]{geocode()}} to a flat table
 with only JSON-safe column types.
 }
-\examples{
-\dontrun{
-  geocode(as_addr("3333 Burnet Ave Cincinnati OH 45229")) |>
-    geocode_table()
-}
-}

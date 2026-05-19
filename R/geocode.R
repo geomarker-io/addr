@@ -67,6 +67,12 @@
 #'   gcd <- geocode(x)
 #' }
 #'
+#' gcd
+#'
+#' table(geocode_stage(gcd))
+#'
+#' geocode_table(gcd)
+#'
 #' leaflet::leaflet(wk::wk_coords(gcd$matched_geography)) |>
 #'   leaflet::addTiles() |>
 #'   leaflet::addCircleMarkers(lng = ~x, lat = ~y, label = ~feature_id)
@@ -337,11 +343,6 @@ geocode_no_match <- function(x) {
 #'   `geocode_table()` includes the input address, geocode stage, matched ZIP
 #'   code, matched street, and S2 cell as character columns.
 #' @export
-#' @examples
-#' \dontrun{
-#'   geocode(as_addr("3333 Burnet Ave Cincinnati OH 45229")) |>
-#'     geocode_table()
-#' }
 geocode_table <- function(x) {
   stopifnot(
     "x must be a data frame" = is.data.frame(x),
@@ -379,11 +380,6 @@ geocode_table <- function(x) {
 #' @return an ordered factor with levels `none`, `street_variant`, `street`,
 #'   `range_variant`, `range`
 #' @export
-#' @examples
-#' \dontrun{
-#'   geocode(as_addr("3333 Burnet Ave Cincinnati OH 45229")) |>
-#'     geocode_stage()
-#' }
 geocode_stage <- function(x) {
   stopifnot(
     "x must be a data frame" = is.data.frame(x),

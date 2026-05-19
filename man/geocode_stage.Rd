@@ -18,9 +18,3 @@ Classify geocode results into staged outcomes returned by \code{\link[=geocode]{
 no match, street match, or interpolated range match, distinguishing exact
 ZIP-code matches from ZIP-code variant matches.
 }
-\examples{
-\dontrun{
-  geocode(as_addr("3333 Burnet Ave Cincinnati OH 45229")) |>
-    geocode_stage()
-}
-}
