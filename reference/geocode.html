@@ -39,7 +39,7 @@ return NA."><meta property="og:image" content="https://geomarker.io/addr/logo.sv
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -245,6 +245,43 @@ county files at the same time.</p>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span>  <span class="va">gcd</span> <span class="op">&lt;-</span> <span class="fu">geocode</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">gcd</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 100 × 5</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    addr                 matched_zipcode matched_street matched_geography s2_cell</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;addr&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;addr_str&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;s2_geography&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;s2cel&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 3359 QUEEN CITY Ave… 45238           Queen City Ave POINT (-84.61106… 8841ca…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> 1040 KREIS Ln CINCI… 45205           Kreis Ln       POINT (-84.58899… 8841b6…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> 9960 DALY Rd CINCIN… 45231           Daly Rd        POINT (-84.52779… 88404b…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 413 VOLKERT Pl CINC… 45219           Volkert Pl     POINT (-84.52570… 8841b4…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 8519 LINDERWOOD Ln … 45255           Linderwood Ln  POINT (-84.31725… 8841a9…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> 6361 BEECHMONT Ave … 45230           Beechmont Ave  POINT (-84.38246… 8841ae…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 10466 ADVENTURE Ln … 45242           Adventure Ln   POINT (-84.35959… 884053…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> 3156 LOOKOUT Cir CI… 45208           Lookout Cir    POINT (-84.42829… 8841ad…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 310 WYOMING Ave CIN… 45215           Wyoming Ave    POINT (-84.46793… 88404d…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 118 SPRINGFIELD Pik… 45215           Springfield P… POINT (-84.47321… 88404d…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 90 more rows</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu"><a href="geocode_stage.html">geocode_stage</a></span><span class="op">(</span><span class="va">gcd</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           none street_variant         street  range_variant          range </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              9              1              2              0             88 </span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="geocode_table.html">geocode_table</a></span><span class="op">(</span><span class="va">gcd</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 100 × 5</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    addr                     geocode_stage matched_zipcode matched_street s2_cell</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 3359 QUEEN CITY Ave CIN… range         45238           Queen City Ave 8841ca…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> 1040 KREIS Ln CINCINNAT… range         45205           Kreis Ln       8841b6…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> 9960 DALY Rd CINCINNATI… range         45231           Daly Rd        88404b…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 413 VOLKERT Pl CINCINNA… range         45219           Volkert Pl     8841b4…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 8519 LINDERWOOD Ln CINC… range         45255           Linderwood Ln  8841a9…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> 6361 BEECHMONT Ave CINC… range         45230           Beechmont Ave  8841ae…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 10466 ADVENTURE Ln CINC… range         45242           Adventure Ln   884053…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> 3156 LOOKOUT Cir CINCIN… range         45208           Lookout Cir    8841ad…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 310 WYOMING Ave CINCINN… range         45215           Wyoming Ave    88404d…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 118 SPRINGFIELD Pike CI… range         45215           Springfield P… 88404d…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 90 more rows</span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">leaflet</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/leaflet/reference/leaflet.html" class="external-link">leaflet</a></span><span class="op">(</span><span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_vertices.html" class="external-link">wk_coords</a></span><span class="op">(</span><span class="va">gcd</span><span class="op">$</span><span class="va">matched_geography</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu">leaflet</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/leaflet/reference/map-layers.html" class="external-link">addTiles</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
