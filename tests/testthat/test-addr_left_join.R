@@ -88,12 +88,13 @@ test_that("addr_left_join forwards addr_match tuning arguments", {
     y_id = c(101L, 202L)
   )
 
-  out_pretype_optional <- addr_left_join(
+  out_relaxed <- addr_left_join(
     x,
     y,
     name_phonetic_dist = 0L,
     name_fuzzy_dist = 1L,
-    match_street_pretype = FALSE,
+    match_street_type = "ignore",
+    match_street_directional = "ignore",
     progress = FALSE
   )
   out_default <- addr_left_join(
@@ -103,18 +104,19 @@ test_that("addr_left_join forwards addr_match tuning arguments", {
     name_fuzzy_dist = 1L,
     progress = FALSE
   )
-  out_required <- addr_left_join(
+  out_explicit_exact <- addr_left_join(
     x,
     y,
     name_phonetic_dist = 0L,
     name_fuzzy_dist = 1L,
-    match_street_postdirectional = TRUE,
+    match_street_type = "exact",
+    match_street_directional = "exact",
     progress = FALSE
   )
 
-  expect_equal(out_pretype_optional$y_id, 101L)
+  expect_equal(out_relaxed$y_id, 101L)
   expect_equal(out_default$y_id, 202L)
-  expect_equal(out_required$y_id, 202L)
+  expect_equal(out_explicit_exact$y_id, 202L)
 })
 
 test_that("addr_left_join can reuse a prepared match index for y", {

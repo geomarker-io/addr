@@ -1,14 +1,18 @@
 tag_map_collisions <- function(x) {
   token_map <- do.call(
     rbind,
-    Map(function(canonical, aliases) {
-      tokens <- unique(tolower(trimws(c(canonical, as.character(aliases)))))
-      data.frame(
-        token = tokens,
-        canonical = canonical,
-        stringsAsFactors = FALSE
-      )
-    }, names(x), x)
+    Map(
+      function(canonical, aliases) {
+        tokens <- unique(tolower(trimws(c(canonical, as.character(aliases)))))
+        data.frame(
+          token = tokens,
+          canonical = canonical,
+          stringsAsFactors = FALSE
+        )
+      },
+      names(x),
+      x
+    )
   )
   token_map <- unique(token_map)
   canonical_by_token <- split(token_map$canonical, token_map$token)

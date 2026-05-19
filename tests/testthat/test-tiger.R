@@ -44,7 +44,12 @@ test_that("taf_catalog reads installed ZIP county catalog", {
     n_ranges = c(10L, 4L),
     installed_at = c("2026-01-01 UTC", "2026-01-01 UTC")
   )
-  taf_write_catalog(manifest, year = "2025", version = "v1", root = catalog_root)
+  taf_write_catalog(
+    manifest,
+    year = "2025",
+    version = "v1",
+    root = catalog_root
+  )
 
   expect_equal(
     taf_catalog(year = "2025", version = "v1"),

@@ -385,7 +385,7 @@ test_that("addr_match honors matching tuning arguments", {
   expect_identical(as.character(addr_match_stage(fuzzy_number_off)), "street")
 })
 
-test_that("addr_match honors pretype and postdirectional matching toggles", {
+test_that("addr_match honors street type and directional matching modes", {
   demo_addr <- function(number, name, pretype = "", postdirectional = "") {
     addr(
       addr_number(prefix = "", digits = number, suffix = ""),
@@ -411,12 +411,13 @@ test_that("addr_match honors pretype and postdirectional matching toggles", {
   )
   x <- demo_addr("10", "Mian", pretype = "US Hwy", postdirectional = "E")
 
-  out_pretype_optional <- addr_match(
+  out_relaxed <- addr_match(
     x,
     y,
     name_phonetic_dist = 0L,
     name_fuzzy_dist = 1L,
-    match_street_pretype = FALSE,
+    match_street_type = "ignore",
+    match_street_directional = "ignore",
     progress = FALSE
   )
   out_default <- addr_match(
@@ -426,17 +427,18 @@ test_that("addr_match honors pretype and postdirectional matching toggles", {
     name_fuzzy_dist = 1L,
     progress = FALSE
   )
-  out_postdir_required <- addr_match(
+  out_explicit_exact <- addr_match(
     x,
     y,
     name_phonetic_dist = 0L,
     name_fuzzy_dist = 1L,
-    match_street_postdirectional = TRUE,
+    match_street_type = "exact",
+    match_street_directional = "exact",
     progress = FALSE
   )
 
   expect_identical(
-    format(out_pretype_optional),
+    format(out_relaxed),
     "10 Main Rd Testville OH 45220"
   )
   expect_identical(
@@ -444,12 +446,12 @@ test_that("addr_match honors pretype and postdirectional matching toggles", {
     "10 US Hwy Main Rd E Testville OH 45220"
   )
   expect_identical(
-    format(out_postdir_required),
+    format(out_explicit_exact),
     "10 US Hwy Main Rd E Testville OH 45220"
   )
 })
 
-test_that("addr_match can make predirectional and posttype optional", {
+test_that("addr_match can ignore directionals and street type", {
   demo_addr <- function(name, type = "Rd", predirectional = "") {
     addr(
       addr_number(prefix = "", digits = "10", suffix = ""),
@@ -476,7 +478,7 @@ test_that("addr_match can make predirectional and posttype optional", {
   out_pred_optional <- addr_match(
     x_pred,
     y_pred,
-    match_street_predirectional = FALSE,
+    match_street_directional = "ignore",
     progress = FALSE
   )
 
@@ -498,7 +500,7 @@ test_that("addr_match can make predirectional and posttype optional", {
     y_type,
     name_phonetic_dist = 0L,
     name_fuzzy_dist = 1L,
-    match_street_posttype = FALSE,
+    match_street_type = "ignore",
     progress = FALSE
   )
 
