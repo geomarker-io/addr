@@ -675,7 +675,23 @@ geocode_zip <- function(
         fraction
       )
       # TIGER side is relative to the digitized street line direction.
-      geocode_offset_point(point, brm$s2_geography, fraction, brm$side, offset)
+      range_offset <- if (
+        "OFFSET" %in% names(brm) &&
+          length(brm$OFFSET) == 1L &&
+          !is.na(brm$OFFSET) &&
+          brm$OFFSET == "Y"
+      ) {
+        0
+      } else {
+        offset
+      }
+      geocode_offset_point(
+        point,
+        brm$s2_geography,
+        fraction,
+        brm$side,
+        range_offset
+      )
     }) |>
     do.call(c, args = _)
 
