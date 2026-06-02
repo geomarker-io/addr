@@ -1,4 +1,5 @@
 ^LICENSE\.md$
+^\.git$
 ^src/\.cargo$
 ^\.github$
 ^README\.Rmd$

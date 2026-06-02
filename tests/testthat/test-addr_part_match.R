@@ -185,6 +185,11 @@ test_that("zipcode_variant returns known variants", {
   expect_equal(zipcode_variant(NA_character_), NA_character_)
 })
 
+test_that("zipcode_variant omits generated invalid ZIP codes", {
+  expect_equal(zipcode_variant("00100", "minus1"), character())
+  expect_false("00099" %in% zipcode_variant("00100"))
+})
+
 test_that("match_zipcodes uses known zipcode examples", {
   x <- c("45222", "45219", "45219", "45220", "45220", "", NA_character_)
   y <- c("42522", "45200", "45219", "45221", "45223", "45321", "")

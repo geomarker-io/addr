@@ -190,6 +190,16 @@ test_that("as_addr makes malformed parsed zipcodes missing", {
   )
 })
 
+test_that("as_addr malformed zipcode warning identifies affected inputs", {
+  expect_warning(
+    as_addr(c(
+      "123 Main Street Anytown IL 00021",
+      "123 Main Street Anytown IL 45220"
+    )),
+    "Affected address examples: 1:"
+  )
+})
+
 test_that("as_addr deals with some seriously messy addresses", {
   as_addr(c(
     "1234Main St Cincinnati OH 45229",

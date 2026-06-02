@@ -180,7 +180,7 @@ geocode_map <- function(x, FUN, progress, ...) {
   if (progress) {
     return(lapply_pb(x, FUN, ...))
   }
-  lapply(x, FUN, ...)
+  lapply(x, function(.x) geocode_call_with_context(.x, FUN, ...))
 }
 
 geocode_use_mirai <- function() {
@@ -246,7 +246,17 @@ geocode_worker <- function(
   }
   ns <- loadNamespace("addr")
   geocode_zip_fn <- get("geocode_zip", envir = ns, inherits = FALSE)
-  out <- do.call(geocode_zip_fn, c(list(x), geocode_args))
+  context_message_fn <- get(
+    "geocode_context_error_message",
+    envir = ns,
+    inherits = FALSE
+  )
+  out <- tryCatch(
+    do.call(geocode_zip_fn, c(list(x), geocode_args)),
+    error = function(cnd) {
+      stop(context_message_fn(x, cnd), call. = FALSE)
+    }
+  )
   out$matched_geography <- s2::s2_as_text(out$matched_geography)
   out
 }
@@ -271,6 +281,40 @@ geocode_check_parallel_results <- function(x) {
 geocode_restore_parallel_result <- function(x) {
   x$matched_geography <- s2::as_s2_geography(x$matched_geography)
   x
+}
+
+geocode_call_with_context <- function(x, FUN, ...) {
+  tryCatch(
+    FUN(x, ...),
+    error = function(cnd) {
+      stop(geocode_context_error_message(x, cnd), call. = FALSE)
+    }
+  )
+}
+
+geocode_context_error_message <- function(x, cnd) {
+  zip <- unique(x@place@zipcode)
+  zip <- zip[!is.na(zip) & zip != ""]
+  zip <- if (length(zip) == 0L) {
+    "<missing>"
+  } else {
+    paste(zip, collapse = ", ")
+  }
+  n_addr <- length(x)
+  noun <- if (n_addr == 1L) "address" else "addresses"
+  examples <- addr_problem_examples(format(x), seq_along(x))
+  paste0(
+    "geocoding failed for ZIP ",
+    zip,
+    " (",
+    n_addr,
+    " input ",
+    noun,
+    "). Affected address examples: ",
+    examples,
+    ". Original error: ",
+    conditionMessage(cnd)
+  )
 }
 
 lapply_pb <- function(x, FUN, ...) {
@@ -302,7 +346,12 @@ lapply_pb <- function(x, FUN, ...) {
     if ("progress_callback" %in% names(formals(FUN))) {
       args$progress_callback <- progress_callback
     }
-    out[[i]] <- do.call(FUN, args)
+    out[[i]] <- tryCatch(
+      do.call(FUN, args),
+      error = function(cnd) {
+        stop(geocode_context_error_message(x[[i]], cnd), call. = FALSE)
+      }
+    )
     processed <- processed + x_n
     addr_progress_update(
       processed,
@@ -589,10 +638,16 @@ geocode_zip <- function(
   no <- which(is.na(out$matched_street))
   out$matched_zipcode <- zpcd
 
-  if (length(no) != 0 && zip_variants) {
+  variant_zipcodes <- if (zip_variants) {
+    zipcode_variant(zpcd, variant = zip_variant)
+  } else {
+    character()
+  }
+
+  if (length(no) != 0 && zip_variants && length(variant_zipcodes) > 0L) {
     out$matched_zipcode[no] <- NA_character_
     ref_variant <- taf_zip(
-      zipcode_variant(zpcd, variant = zip_variant),
+      variant_zipcodes,
       map = TRUE,
       year = year,
       version = version

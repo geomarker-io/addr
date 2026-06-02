@@ -528,6 +528,73 @@ test_that("geocode_zip respects zipcode variant controls", {
   expect_true(is.na(out_none$matched_street))
 })
 
+test_that("geocode_zip skips generated invalid zipcode variants", {
+  taf_zip_calls <- list()
+  local_mocked_bindings(
+    taf_zip = function(zipcode, map = TRUE, ...) {
+      taf_zip_calls <<- c(taf_zip_calls, list(zipcode))
+      expect_false(any(is_invalid_zipcode(zipcode)))
+      tibble::tibble(
+        ZIP = character(),
+        addr_street = addr_street()[0],
+        FROMHN = integer(),
+        TOHN = integer(),
+        PARITY = character(),
+        side = character(),
+        OFFSET = numeric(),
+        s2_geography = s2::as_s2_geography(character())
+      )
+    },
+    match_addr_street = function(x, y, ...) {
+      addr_street(rep(NA_character_, length(x)))
+    }
+  )
+  x <- addr(
+    addr_number(digits = "10"),
+    addr_street(name = "Main", posttype = "St"),
+    addr_place(zipcode = "00100")
+  )
+
+  out <- geocode_zip(
+    x,
+    offset = 0,
+    zip_variant = "minus1",
+    taf_install = FALSE,
+    taf_check = FALSE
+  )
+
+  expect_length(taf_zip_calls, 1L)
+  expect_equal(taf_zip_calls[[1]], "00100")
+  expect_true(is.na(out$matched_zipcode))
+  expect_true(is.na(out$matched_street))
+})
+
+test_that("geocode reports ZIP and address context for ZIP-level errors", {
+  local_mocked_bindings(
+    taf_missing_counties = function(...) taf_empty_needed_counties(),
+    geocode_use_mirai = function() FALSE,
+    geocode_zip = function(...) {
+      stop("boom", call. = FALSE)
+    }
+  )
+  x <- addr(
+    addr_number(digits = "10"),
+    addr_street(name = "Main", posttype = "St"),
+    addr_place(zipcode = "45220")
+  )
+
+  err <- tryCatch(
+    geocode(x, taf_install = FALSE, progress = FALSE),
+    error = function(cnd) cnd
+  )
+  msg <- conditionMessage(err)
+
+  expect_s3_class(err, "error")
+  expect_match(msg, "geocoding failed for ZIP 45220", fixed = TRUE)
+  expect_match(msg, "Affected address examples:", fixed = TRUE)
+  expect_match(msg, "Original error: boom", fixed = TRUE)
+})
+
 test_that("geocode_zip offsets matched points by TIGER side", {
   local_mocked_bindings(
     taf_zip = function(zipcode, map = TRUE, ...) {

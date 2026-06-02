@@ -54,22 +54,22 @@ ADDRFEAT full name, and the \code{street_tag_parsed} column is set to TRUE.
 Sys.setenv("R_USER_DATA_DIR" = tempfile())
 taf_install("39061", "2025")
 
-taf()
+if (requireNamespace("arrow", quietly = TRUE) &&
+  requireNamespace("dplyr", quietly = TRUE)) {
+  taf()
 
-# use dplyr verbs to query
-library(dplyr, warn.conflicts = FALSE)
-
-# find top ten most frequent street name-posttype combinations
-taf() |>
-  group_by(street_name, street_posttype) |>
-  summarize(
-    n_zips = n_distinct(ZIP),
-    n_ranges = n(),
-    .groups = "drop"
-  ) |>
-  arrange(desc(n_zips), desc(n_ranges)) |>
-  collect() |>
-  slice(1:10)
+  # find top ten most frequent street name-posttype combinations
+  taf() |>
+    dplyr::group_by(street_name, street_posttype) |>
+    dplyr::summarize(
+      n_zips = dplyr::n_distinct(ZIP),
+      n_ranges = dplyr::n(),
+      .groups = "drop"
+    ) |>
+    dplyr::arrange(dplyr::desc(n_zips), dplyr::desc(n_ranges)) |>
+    dplyr::collect() |>
+    dplyr::slice(1:10)
+}
 Sys.setenv("R_USER_DATA_DIR" = tempfile())
 taf_install("39061", "2025")
 }
