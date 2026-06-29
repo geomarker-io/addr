@@ -30,22 +30,22 @@
 #' Sys.setenv("R_USER_DATA_DIR" = tempfile())
 #' taf_install("39061", "2025")
 #'
-#' taf()
+#' if (requireNamespace("arrow", quietly = TRUE) &&
+#'   requireNamespace("dplyr", quietly = TRUE)) {
+#'   taf()
 #'
-#' # use dplyr verbs to query
-#' library(dplyr, warn.conflicts = FALSE)
-#'
-#' # find top ten most frequent street name-posttype combinations
-#' taf() |>
-#'   group_by(street_name, street_posttype) |>
-#'   summarize(
-#'     n_zips = n_distinct(ZIP),
-#'     n_ranges = n(),
-#'     .groups = "drop"
-#'   ) |>
-#'   arrange(desc(n_zips), desc(n_ranges)) |>
-#'   collect() |>
-#'   slice(1:10)
+#'   # find top ten most frequent street name-posttype combinations
+#'   taf() |>
+#'     dplyr::group_by(street_name, street_posttype) |>
+#'     dplyr::summarize(
+#'       n_zips = dplyr::n_distinct(ZIP),
+#'       n_ranges = dplyr::n(),
+#'       .groups = "drop"
+#'     ) |>
+#'     dplyr::arrange(dplyr::desc(n_zips), dplyr::desc(n_ranges)) |>
+#'     dplyr::collect() |>
+#'     dplyr::slice(1:10)
+#' }
 taf <- function(year = as.character(2025:2011), version = "v1") {
   check_installed("arrow", "to open the multi-file taf dataset")
   stopifnot(
@@ -695,11 +695,20 @@ taf_needed_zipcodes <- function(
       vctrs::vec_rbind,
       lapply(seq_along(zip_variant), function(i) {
         variant <- zip_variant[[i]]
+        ZIP <- zipcode_variant(zip, variant = variant)
+        if (length(ZIP) == 0L) {
+          return(tibble::tibble(
+            source_zip = character(),
+            source_zip_variant = character(),
+            source_zip_variant_rank = integer(),
+            ZIP = character()
+          ))
+        }
         tibble::tibble(
           source_zip = zip,
           source_zip_variant = variant,
           source_zip_variant_rank = i,
-          ZIP = zipcode_variant(zip, variant = variant)
+          ZIP = ZIP
         )
       })
     )

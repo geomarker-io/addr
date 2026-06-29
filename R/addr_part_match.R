@@ -940,6 +940,6 @@ zipcode_variant <- function(
   )
   result <- lapply(variant, \(.) variant_fns[[.]](strsplit(x, "")[[1]]))
   uout <- unique(do.call(c, result))
-  out <- as.character(as.integer(uout[uout != x]))
-  sprintf("%05s", out)
+  out <- sprintf("%05d", as.integer(uout[uout != x]))
+  out[is_valid_zipcode(out)]
 }

@@ -183,22 +183,24 @@ S7::method(as_addr, S7::class_character) <- function(
       "Truncating ",
       length(bad_zips),
       " parsed ZIP codes to the first five characters.",
+      " Affected address examples: ",
+      addr_problem_examples(x, bad_zips),
+      ".",
       call. = FALSE
     )
     place_zip[bad_zips] <- substr(place_zip[bad_zips], 1, 5)
   }
 
-  malformed_zips <- which(
-    !is.na(place_zip) &
-      place_zip != "" &
-      (!grepl("^[0-9]{5}$", place_zip) | grepl("^000", place_zip))
-  )
+  malformed_zips <- which(is_invalid_zipcode(place_zip))
 
   if (length(malformed_zips) > 0) {
     warning(
       "Setting ",
       length(malformed_zips),
       " malformed parsed ZIP codes to missing.",
+      " Affected address examples: ",
+      addr_problem_examples(x, malformed_zips),
+      ".",
       call. = FALSE
     )
     place_zip[malformed_zips] <- NA_character_

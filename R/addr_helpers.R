@@ -9,6 +9,39 @@ is_zip5 <- function(x) {
   is.character(x) && length(x) == 1 && grepl("^[0-9]{5}$", x)
 }
 
+is_valid_zipcode <- function(x) {
+  out <- rep(FALSE, length(x))
+  present <- !is.na(x) & x != ""
+  out[present] <- grepl("^[0-9]{5}$", x[present]) &
+    !grepl("^000", x[present])
+  out
+}
+
+is_invalid_zipcode <- function(x) {
+  !is.na(x) & x != "" & !is_valid_zipcode(x)
+}
+
+addr_problem_examples <- function(x, i, n = 5L, width = 120L) {
+  i <- i[!is.na(i)]
+  if (length(i) == 0L) {
+    return("")
+  }
+  i_show <- utils::head(i, n)
+  values <- as.character(x[i_show])
+  values[is.na(values)] <- "<NA>"
+  values <- gsub("[\r\n\t]+", " ", values)
+  long <- nchar(values, type = "width") > width
+  values[long] <- paste0(substr(values[long], 1L, width - 3L), "...")
+  out <- paste(
+    sprintf("%s: %s", i_show, encodeString(values, quote = "\"")),
+    collapse = ", "
+  )
+  if (length(i) > n) {
+    out <- paste0(out, ", ... and ", length(i) - n, " more")
+  }
+  out
+}
+
 recycle_fields <- function(fields, class_name) {
   lens <- vapply(fields, length, integer(1))
   target <- max(lens, 0L)
