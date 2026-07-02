@@ -18,6 +18,7 @@ geocode(
   taf_install = TRUE,
   taf_redownload = FALSE,
   offset = 10L,
+  add_s2_cell = TRUE,
   progress = interactive()
 )
 
@@ -85,6 +86,10 @@ installing missing TAF counties?}
 
 \item{offset}{number of meters to offset geocode from street line}
 
+\item{add_s2_cell}{logical; add an \code{s2_cell} column computed from matched
+geographies? Defaults to \code{TRUE}; set to \code{FALSE} to skip this final
+computation.}
+
 \item{progress}{logical; show progress messages and a ZIP-code progress bar
 while geocoding?}
 
@@ -97,8 +102,9 @@ by \code{geocode()} after checking once for the full input vector.}
 \value{
 A tibble with columns \code{addr} (the input addr vector),
 \code{matched_zipcode} (character vector), \code{matched_street} (\code{addr_street}
-vector), \code{matched_geography} (\code{s2_geography} point vector), and \code{s2_cell}
-(\code{s2_cell} vector).
+vector), and \code{matched_geography} (\code{s2_geography} point vector). When
+\code{add_s2_cell = TRUE}, the tibble also includes \code{s2_cell} (\code{s2_cell}
+vector).
 }
 \description{
 \code{geocode()} geocodes addr vectors using Census TIGER address
