@@ -19,7 +19,8 @@
 #' return `NA`.
 #' @param x an addr vector (`?as_addr`)
 #' @param offset number of meters to offset geocode from street line
-#' @param progress logical; show a ZIP-code progress bar while geocoding?
+#' @param progress logical; show progress messages and a ZIP-code progress bar
+#'   while geocoding?
 #' @param taf_install logical; install missing county TAF files needed for
 #'   input ZIP codes and selected ZIP code variants before geocoding? If
 #'   `FALSE`, geocoding proceeds with installed files only and warns when
@@ -125,9 +126,25 @@ geocode <- function(
     match_street_type = match_street_type,
     match_street_directional = match_street_directional
   )
+  if (progress) {
+    geocode_progress_message(
+      "preparing geocoding input (",
+      geocode_format_count(length(x)),
+      " addr)"
+    )
+  }
   xu <- unique(x)
   missing_zip <- is.na(xu@place@zipcode) | xu@place@zipcode == ""
   if (any(!missing_zip)) {
+    if (progress) {
+      geocode_progress_message(
+        geocode_prepare_taf_progress_text(
+          xu[!missing_zip],
+          taf_install = taf_install,
+          zip_variants = zip_variants
+        )
+      )
+    }
     geocode_prepare_taf(
       xu[!missing_zip],
       year = year,
@@ -137,8 +154,14 @@ geocode <- function(
       taf_install = taf_install,
       taf_redownload = taf_redownload
     )
+    if (progress) {
+      geocode_progress_message("TIGER address feature file check complete")
+    }
   }
   z_list <- split(xu[!missing_zip], xu[!missing_zip]@place@zipcode)
+  if (progress) {
+    geocode_progress_message(geocode_group_progress_text(z_list))
+  }
 
   gcd <- geocode_map(
     z_list,
@@ -175,7 +198,10 @@ geocode_map <- function(x, FUN, progress, ...) {
     return(list())
   }
   if (geocode_use_mirai()) {
-    return(geocode_map_mirai(x, FUN, ...))
+    if (progress) {
+      geocode_progress_message(geocode_mirai_progress_text(x))
+    }
+    return(geocode_map_mirai(x, FUN, progress = progress, ...))
   }
   if (progress) {
     return(lapply_pb(x, FUN, ...))
@@ -188,7 +214,7 @@ geocode_use_mirai <- function() {
     mirai::daemons_set()
 }
 
-geocode_map_mirai <- function(x, FUN, ...) {
+geocode_map_mirai <- function(x, FUN, progress, ...) {
   geocode_args <- list(...)
   load_dev <- geocode_load_dev_workers()
   package_path <- if (load_dev) {
@@ -204,7 +230,12 @@ geocode_map_mirai <- function(x, FUN, ...) {
       package_path = package_path,
       load_dev = load_dev
     )
-  )[.progress]
+  )
+  out <- if (progress) {
+    out[.progress]
+  } else {
+    out[]
+  }
   geocode_check_parallel_results(out)
   out <- lapply(out, geocode_restore_parallel_result)
   out
@@ -367,8 +398,78 @@ geocode_progress_text <- function(zip, x_n, y_n) {
   sprintf(
     "geocoding %s (%s addr to %s addr_street)",
     zip,
-    prettyNum(x_n, big.mark = ",", preserve.width = "none"),
-    prettyNum(y_n, big.mark = ",", preserve.width = "none")
+    geocode_format_count(x_n),
+    geocode_format_count(y_n)
+  )
+}
+
+geocode_progress_message <- function(...) {
+  cat(..., "\n", sep = "")
+  utils::flush.console()
+}
+
+geocode_format_count <- function(x) {
+  prettyNum(x, big.mark = ",", preserve.width = "none")
+}
+
+geocode_prepare_taf_progress_text <- function(
+  x,
+  taf_install,
+  zip_variants
+) {
+  has_zip <- !is.na(x@place@zipcode) & x@place@zipcode != ""
+  zipcodes <- unique(x@place@zipcode[has_zip])
+  install_text <- if (taf_install) {
+    "installing missing county files if needed"
+  } else {
+    "using installed files only"
+  }
+  variant_text <- if (zip_variants) {
+    " plus ZIP variants"
+  } else {
+    ""
+  }
+  sprintf(
+    "checking TIGER address feature files for %s%s (%s)",
+    geocode_zip_count_text(length(zipcodes)),
+    variant_text,
+    install_text
+  )
+}
+
+geocode_group_progress_text <- function(x) {
+  sprintf(
+    "grouped %s into %s",
+    geocode_addr_count_text(sum(lengths(x))),
+    geocode_zip_group_count_text(length(x))
+  )
+}
+
+geocode_mirai_progress_text <- function(x) {
+  sprintf(
+    "dispatching %s across mirai workers (%s)",
+    geocode_zip_group_count_text(length(x)),
+    geocode_addr_count_text(sum(lengths(x)))
+  )
+}
+
+geocode_addr_count_text <- function(n) {
+  paste(geocode_format_count(n), "unique addr")
+}
+
+geocode_zip_group_count_text <- function(n) {
+  sprintf(
+    "%s ZIP %s",
+    geocode_format_count(n),
+    if (n == 1L) "group" else "groups"
+  )
+}
+
+geocode_zip_count_text <- function(n) {
+  sprintf(
+    "%s ZIP %s",
+    geocode_format_count(n),
+    if (n == 1L) "code" else "codes"
   )
 }
 

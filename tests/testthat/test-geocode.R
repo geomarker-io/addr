@@ -840,11 +840,13 @@ test_that("geocode progress gets addr_street count from geocode_zip", {
 
 test_that("geocode uses mirai mapping when daemons are configured", {
   used_mirai <- FALSE
+  seen_progress <- NULL
   local_mocked_bindings(
     taf_missing_counties = function(...) taf_empty_needed_counties(),
     geocode_use_mirai = function() TRUE,
-    geocode_map_mirai = function(x, FUN, ...) {
+    geocode_map_mirai = function(x, FUN, progress, ...) {
       used_mirai <<- TRUE
+      seen_progress <<- progress
       lapply(x, FUN, ...)
     },
     geocode_zip = function(x, offset = 0L, progress_callback = NULL, ...) {
@@ -874,7 +876,18 @@ test_that("geocode uses mirai mapping when daemons are configured", {
     taf_install = FALSE
   )))
   expect_true(used_mirai)
-  expect_equal(progress_output, character())
+  expect_true(seen_progress)
+  progress_text <- paste(progress_output, collapse = "\n")
+  expect_match(progress_text, "preparing geocoding input \\(2 addr\\)")
+  expect_match(
+    progress_text,
+    "checking TIGER address feature files for 2 ZIP codes plus ZIP variants"
+  )
+  expect_match(progress_text, "grouped 2 unique addr into 2 ZIP groups")
+  expect_match(
+    progress_text,
+    "dispatching 2 ZIP groups across mirai workers \\(2 unique addr\\)"
+  )
 })
 
 test_that("geocode works with mirai daemons on voter addresses", {

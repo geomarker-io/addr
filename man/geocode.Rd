@@ -85,7 +85,8 @@ installing missing TAF counties?}
 
 \item{offset}{number of meters to offset geocode from street line}
 
-\item{progress}{logical; show a ZIP-code progress bar while geocoding?}
+\item{progress}{logical; show progress messages and a ZIP-code progress bar
+while geocoding?}
 
 \item{progress_callback}{optional callback used internally by \code{geocode()}
 to update progress after ZIP-code reference data is loaded}
