@@ -212,7 +212,7 @@ geocode <- function(
       geocode_result_group_count_text(length(gcd))
     )
   }
-  gcd <- geocode_assemble_results(plan, gcd)
+  gcd <- geocode_assemble_results(plan, gcd, progress = progress)
 
   if (add_s2_cell) {
     if (progress) {
@@ -260,21 +260,121 @@ geocode_plan_taf_addr <- function(x) {
   x$unique_addr[x$non_missing_zip_idx]
 }
 
-geocode_assemble_results <- function(plan, results) {
-  out <- geocode_no_match(plan$unique_addr)
-  if (length(results) == 0L) {
-    return(out)
+geocode_assemble_results <- function(plan, results, progress = FALSE) {
+  n <- length(plan$unique_addr)
+  if (n == 0L || length(results) == 0L) {
+    return(geocode_no_match(plan$unique_addr))
+  }
+  result_names <- names(results)
+  if (is.null(result_names) || any(result_names == "")) {
+    result_names <- names(plan$zip_groups)
+    if (length(result_names) != length(results)) {
+      stop("geocoding result group count does not match planned ZIP groups", call. = FALSE)
+    }
+    names(results) <- result_names
   }
 
+  if (progress) {
+    geocode_progress_message("validating geocode result groups")
+  }
+  result_rows <- vector("list", length(results))
+  names(result_rows) <- names(results)
   for (zip in names(results)) {
     rows <- plan$zip_group_idx[[zip]]
+    if (is.null(rows)) {
+      stop("geocoding returned an unexpected ZIP result group: ", zip, call. = FALSE)
+    }
     result <- results[[zip]]
     geocode_check_result(result, rows, zip)
-    out$matched_zipcode[rows] <- result$matched_zipcode
-    out$matched_street[rows] <- result$matched_street
-    out$matched_geography[rows] <- result$matched_geography
+    result_rows[[zip]] <- rows
   }
-  out
+
+  if (progress) {
+    geocode_progress_message("concatenating geocode result columns")
+  }
+  row_order <- unlist(result_rows, use.names = FALSE)
+  matched_zipcode <- unlist(
+    lapply(results, `[[`, "matched_zipcode"),
+    use.names = FALSE
+  )
+  matched_street <- geocode_c_addr_street(
+    lapply(results, `[[`, "matched_street")
+  )
+  matched_geography <- geocode_c_s2_geography(
+    lapply(results, `[[`, "matched_geography")
+  )
+
+  if (length(plan$missing_zip_idx) > 0L) {
+    row_order <- c(row_order, plan$missing_zip_idx)
+    matched_zipcode <- c(
+      matched_zipcode,
+      rep(NA_character_, length(plan$missing_zip_idx))
+    )
+    matched_street <- geocode_c_addr_street(list(
+      matched_street,
+      addr_street(rep(NA_character_, length(plan$missing_zip_idx)))
+    ))
+    matched_geography <- geocode_c_s2_geography(list(
+      matched_geography,
+      s2::as_s2_geography(rep(NA_character_, length(plan$missing_zip_idx)))
+    ))
+  }
+
+  if (progress) {
+    geocode_progress_message("reordering geocode result rows")
+  }
+  restore_unique_idx <- match(seq_len(n), row_order)
+  if (anyNA(restore_unique_idx) || length(unique(row_order)) != n) {
+    stop("geocoding result rows do not match planned unique addr rows", call. = FALSE)
+  }
+
+  tibble::tibble(
+    addr = plan$unique_addr,
+    matched_zipcode = matched_zipcode[restore_unique_idx],
+    matched_street = matched_street[restore_unique_idx],
+    matched_geography = matched_geography[restore_unique_idx]
+  )
+}
+
+geocode_c_addr_street <- function(x) {
+  x <- x[lengths(x) > 0L]
+  if (length(x) == 0L) {
+    return(addr_street(
+      predirectional = character(),
+      premodifier = character(),
+      pretype = character(),
+      name = character(),
+      posttype = character(),
+      postdirectional = character(),
+      map_posttype = FALSE,
+      map_directional = FALSE,
+      map_pretype = FALSE,
+      map_ordinal = FALSE
+    ))
+  }
+  addr_street(
+    predirectional = unlist(lapply(x, \(.) .@predirectional), use.names = FALSE),
+    premodifier = unlist(lapply(x, \(.) .@premodifier), use.names = FALSE),
+    pretype = unlist(lapply(x, \(.) .@pretype), use.names = FALSE),
+    name = unlist(lapply(x, \(.) .@name), use.names = FALSE),
+    posttype = unlist(lapply(x, \(.) .@posttype), use.names = FALSE),
+    postdirectional = unlist(
+      lapply(x, \(.) .@postdirectional),
+      use.names = FALSE
+    ),
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_pretype = FALSE,
+    map_ordinal = FALSE
+  )
+}
+
+geocode_c_s2_geography <- function(x) {
+  x <- x[lengths(x) > 0L]
+  if (length(x) == 0L) {
+    return(s2::as_s2_geography(character()))
+  }
+  do.call(c, x)
 }
 
 geocode_check_result <- function(x, rows, zip) {
@@ -553,6 +653,7 @@ lapply_pb <- function(x, FUN, ...) {
   on.exit(cat("\n"), add = TRUE)
 
   out <- vector("list", length(x))
+  names(out) <- names(x)
   for (i in seq_along(x)) {
     zip <- names(x)[[i]]
     x_n <- length(x[[i]])
