@@ -186,15 +186,43 @@ geocode <- function(
     taf_check = FALSE
   )
   if (any(missing_zip)) {
+    if (progress) {
+      geocode_progress_message(
+        "adding no-match results for ",
+        geocode_addr_count_text(sum(missing_zip)),
+        " without ZIP codes"
+      )
+    }
     gcd <- c(gcd, list(missing_zip = geocode_no_match(xu[missing_zip])))
   }
   if (length(gcd) == 0L) {
+    if (progress) {
+      geocode_progress_message("creating no-match geocode results")
+    }
     gcd <- list(geocode_no_match(xu))
+  }
+  if (progress) {
+    geocode_progress_message(
+      "combining geocode results from ",
+      geocode_result_group_count_text(length(gcd))
+    )
   }
   gcd <- do.call(rbind, gcd)
 
+  if (progress) {
+    geocode_progress_message(
+      "restoring geocode output to ",
+      geocode_input_addr_count_text(length(x))
+    )
+  }
   out <- gcd[match(format(x), format(gcd$addr)), ]
+  if (progress) {
+    geocode_progress_message("computing S2 cells")
+  }
   out$s2_cell <- s2::as_s2_cell(out$matched_geography)
+  if (progress) {
+    geocode_progress_message("geocoding complete")
+  }
   return(out)
 }
 
@@ -237,8 +265,14 @@ geocode_map_mirai <- function(x, FUN, progress, ...) {
     )
   )
   out <- geocode_collect_mirai(out, x, progress = progress)
+  if (progress) {
+    geocode_progress_message("mirai workers complete; restoring geographies")
+  }
   geocode_check_parallel_results(out)
   out <- lapply(out, geocode_restore_parallel_result)
+  if (progress) {
+    geocode_progress_message("mirai geocoding results restored")
+  }
   out
 }
 
@@ -599,6 +633,18 @@ geocode_mirai_progress_interval <- function() {
 
 geocode_addr_count_text <- function(n) {
   paste(geocode_format_count(n), "unique addr")
+}
+
+geocode_input_addr_count_text <- function(n) {
+  paste(geocode_format_count(n), "input addr")
+}
+
+geocode_result_group_count_text <- function(n) {
+  sprintf(
+    "%s result %s",
+    geocode_format_count(n),
+    if (n == 1L) "group" else "groups"
+  )
 }
 
 geocode_zip_group_count_text <- function(n) {
