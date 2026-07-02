@@ -231,21 +231,86 @@ geocode_map_mirai <- function(x, FUN, progress, ...) {
       load_dev = load_dev
     )
   )
-  out <- if (progress) {
-    out[.progress]
-  } else {
-    out[]
-  }
+  out <- geocode_collect_mirai(out, x, progress = progress)
   geocode_check_parallel_results(out)
   out <- lapply(out, geocode_restore_parallel_result)
   out
 }
 
-utils::globalVariables(".progress")
-
 geocode_load_dev_workers <- function() {
   requireNamespace("pkgload", quietly = TRUE) &&
     pkgload::is_dev_package("addr")
+}
+
+geocode_collect_mirai <- function(x, tasks, progress) {
+  if (!progress) {
+    return(x[])
+  }
+
+  total_groups <- length(x)
+  task_sizes <- lengths(tasks)
+  total_addr <- sum(task_sizes)
+  done <- rep(FALSE, total_groups)
+  out <- vector("list", total_groups)
+  names(out) <- names(x)
+  started <- proc.time()[["elapsed"]]
+  last_completed <- NA_integer_
+  last_update <- 0
+
+  geocode_mirai_status_update(
+    completed_groups = 0L,
+    total_groups = total_groups,
+    completed_addr = 0L,
+    total_addr = total_addr,
+    last_zip = NA_character_,
+    last_addr = NA_integer_,
+    elapsed = 0
+  )
+  on.exit(cat("\n"), add = TRUE)
+
+  while (!all(done)) {
+    resolved <- !vapply(x, mirai::unresolved, logical(1))
+    newly_done <- which(resolved & !done)
+    if (length(newly_done) > 0L) {
+      for (i in newly_done) {
+        out[[i]] <- x[[i]]$data
+      }
+      done[newly_done] <- TRUE
+      last_completed <- newly_done[[length(newly_done)]]
+    }
+
+    elapsed <- proc.time()[["elapsed"]] - started
+    should_update <- length(newly_done) > 0L ||
+      elapsed - last_update >= geocode_mirai_progress_interval()
+    if (should_update) {
+      last_update <- elapsed
+      last_zip <- if (is.na(last_completed)) {
+        NA_character_
+      } else {
+        names(x)[[last_completed]]
+      }
+      last_addr <- if (is.na(last_completed)) {
+        NA_integer_
+      } else {
+        task_sizes[[last_completed]]
+      }
+      geocode_mirai_status_update(
+        completed_groups = sum(done),
+        total_groups = total_groups,
+        completed_addr = sum(task_sizes[done]),
+        total_addr = total_addr,
+        last_zip = last_zip,
+        last_addr = last_addr,
+        elapsed = elapsed
+      )
+    }
+
+    if (!all(done)) {
+      Sys.sleep(0.1)
+    }
+  }
+
+  out
 }
 
 geocode_worker <- function(
@@ -451,6 +516,80 @@ geocode_mirai_progress_text <- function(x) {
     geocode_zip_group_count_text(length(x)),
     geocode_addr_count_text(sum(lengths(x)))
   )
+}
+
+geocode_mirai_status_update <- function(
+  completed_groups,
+  total_groups,
+  completed_addr,
+  total_addr,
+  last_zip,
+  last_addr,
+  elapsed
+) {
+  cat(
+    "\r\033[2K",
+    geocode_mirai_status_text(
+      completed_groups = completed_groups,
+      total_groups = total_groups,
+      completed_addr = completed_addr,
+      total_addr = total_addr,
+      last_zip = last_zip,
+      last_addr = last_addr,
+      elapsed = elapsed
+    ),
+    sep = ""
+  )
+  utils::flush.console()
+}
+
+geocode_mirai_status_text <- function(
+  completed_groups,
+  total_groups,
+  completed_addr,
+  total_addr,
+  last_zip,
+  last_addr,
+  elapsed
+) {
+  last_text <- if (is.na(last_zip) || is.na(last_addr)) {
+    "last completed: none yet"
+  } else {
+    sprintf(
+      "last completed: %s (%s)",
+      last_zip,
+      geocode_addr_count_text(last_addr)
+    )
+  }
+  sprintf(
+    "mirai geocoding: %s/%s ZIP groups complete; %s/%s unique addr complete; %s; elapsed %s",
+    geocode_format_count(completed_groups),
+    geocode_format_count(total_groups),
+    geocode_format_count(completed_addr),
+    geocode_format_count(total_addr),
+    last_text,
+    geocode_elapsed_text(elapsed)
+  )
+}
+
+geocode_elapsed_text <- function(x) {
+  if (x < 60) {
+    return(sprintf("%ss", floor(x)))
+  }
+  sprintf("%sm %02ds", floor(x / 60), floor(x %% 60))
+}
+
+geocode_mirai_progress_interval <- function() {
+  interval <- getOption("addr.geocode_mirai_progress_interval", 1)
+  if (length(interval) == 0L) {
+    return(1)
+  }
+  interval <- suppressWarnings(as.numeric(interval[[1]]))
+  if (is.na(interval) || interval <= 0) {
+    1
+  } else {
+    interval
+  }
 }
 
 geocode_addr_count_text <- function(n) {

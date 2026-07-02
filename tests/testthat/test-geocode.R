@@ -890,6 +890,29 @@ test_that("geocode uses mirai mapping when daemons are configured", {
   )
 })
 
+test_that("geocode mirai status text reports counts without ETA", {
+  status <- geocode_mirai_status_text(
+    completed_groups = 3L,
+    total_groups = 10L,
+    completed_addr = 25L,
+    total_addr = 200L,
+    last_zip = "45219",
+    last_addr = 7L,
+    elapsed = 62
+  )
+
+  expect_equal(
+    status,
+    paste(
+      "mirai geocoding: 3/10 ZIP groups complete;",
+      "25/200 unique addr complete;",
+      "last completed: 45219 (7 unique addr);",
+      "elapsed 1m 02s"
+    )
+  )
+  expect_false(grepl("ETA", status, fixed = TRUE))
+})
+
 test_that("geocode works with mirai daemons on voter addresses", {
   skip_if_not_installed("mirai")
   skip_if_not_installed("pkgload")
