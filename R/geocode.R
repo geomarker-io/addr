@@ -41,6 +41,11 @@
 #' serially by default.
 #' At a lower level, grouping addr vectors by ZIP code and applying
 #' `geocode_zip()` facilitates more control (e.g., parallel processing).
+#' Before ZIP grouping, `geocode()` deduplicates formatted `addr` values
+#' internally and restores the output to the original input order and length.
+#' Exact duplicates therefore do not trigger repeated TAF reads, street
+#' matching, or range interpolation, so callers usually do not need to call
+#' `unique()` themselves for geocoding performance.
 #'
 #' If the mirai package is installed and mirai daemons have already been
 #' configured by the caller, `geocode()` uses them for ZIP-code-level

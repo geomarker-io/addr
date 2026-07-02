@@ -325,6 +325,41 @@ test_that("geocode forwards street matching arguments to geocode_zip", {
   )
 })
 
+test_that("geocode deduplicates duplicate addr before ZIP geocoding", {
+  seen_lengths <- integer()
+  local_mocked_bindings(
+    taf_missing_counties = function(...) taf_empty_needed_counties(),
+    geocode_zip = function(x, offset = 0L, ...) {
+      seen_lengths <<- c(seen_lengths, length(x))
+      tibble::tibble(
+        addr = x,
+        matched_zipcode = x@place@zipcode,
+        matched_street = x@street,
+        matched_geography = s2::as_s2_geography(
+          rep("POINT (-84.5 39.1)", length(x))
+        )
+      )
+    }
+  )
+  x <- addr(
+    addr_number(digits = c("1", "1", "2", "1")),
+    addr_street(
+      name = c("Main", "Main", "Elm", "Main"),
+      posttype = c("St", "St", "St", "St"),
+      map_posttype = FALSE
+    ),
+    addr_place(zipcode = rep("45219", 4))
+  )
+
+  out <- geocode(x, taf_install = FALSE, progress = FALSE)
+
+  expect_equal(seen_lengths, 2L)
+  expect_equal(nrow(out), 4L)
+  expect_equal(out$addr, x)
+  expect_equal(out$matched_zipcode, rep("45219", 4))
+  expect_equal(format(out$matched_street), format(x@street))
+})
+
 test_that("geocode_zip forwards street matching arguments to match_addr_street", {
   seen <- NULL
   local_mocked_bindings(

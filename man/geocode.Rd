@@ -127,6 +127,11 @@ with multiple ZIP codes by grouping them by ZIP code and processing
 serially by default.
 At a lower level, grouping addr vectors by ZIP code and applying
 \code{geocode_zip()} facilitates more control (e.g., parallel processing).
+Before ZIP grouping, \code{geocode()} deduplicates formatted \code{addr} values
+internally and restores the output to the original input order and length.
+Exact duplicates therefore do not trigger repeated TAF reads, street
+matching, or range interpolation, so callers usually do not need to call
+\code{unique()} themselves for geocoding performance.
 
 If the mirai package is installed and mirai daemons have already been
 configured by the caller, \code{geocode()} uses them for ZIP-code-level
