@@ -528,6 +528,62 @@ test_that("geocode_zip respects zipcode variant controls", {
   expect_true(is.na(out_none$matched_street))
 })
 
+test_that("geocode_zip matches duplicate TAF street ranges once", {
+  matched_against <- NULL
+  local_mocked_bindings(
+    taf_zip = function(zipcode, map = TRUE, ...) {
+      tibble::tibble(
+        ZIP = rep("45219", 4),
+        addr_street = addr_street(
+          predirectional = rep("", 4),
+          premodifier = rep("", 4),
+          pretype = rep("", 4),
+          name = c("Main", "Main", "Elm", "Elm"),
+          posttype = c("St", "St", "St", "St"),
+          postdirectional = rep("", 4)
+        ),
+        side = c("L", "R", "L", "R"),
+        FROMHN = c(1L, 2L, 1L, 2L),
+        TOHN = c(99L, 100L, 99L, 100L),
+        PARITY = c("O", "E", "O", "E"),
+        OFFSET = c("", "", "", ""),
+        s2_geography = s2::as_s2_geography(
+          rep("LINESTRING (-84 39, -84.1 39.1)", 4)
+        )
+      )
+    },
+    match_addr_street = function(x, y, ...) {
+      matched_against <<- length(y)
+      y[match(format(x), format(y))]
+    }
+  )
+  x <- addr(
+    addr_number(digits = c("11", "12")),
+    addr_street(
+      predirectional = c("", ""),
+      premodifier = c("", ""),
+      pretype = c("", ""),
+      name = c("Main", "Main"),
+      posttype = c("St", "St"),
+      postdirectional = c("", "")
+    ),
+    addr_place(zipcode = c("45219", "45219"))
+  )
+
+  out <- geocode_zip(
+    x,
+    offset = 0,
+    zip_variants = FALSE,
+    taf_install = FALSE,
+    taf_check = FALSE
+  )
+
+  expect_equal(matched_against, 2L)
+  expect_equal(out$matched_zipcode, c("45219", "45219"))
+  expect_equal(format(out$matched_street), c("Main St", "Main St"))
+  expect_false(any(is.na(out$matched_geography)))
+})
+
 test_that("geocode_zip skips generated invalid zipcode variants", {
   taf_zip_calls <- list()
   local_mocked_bindings(

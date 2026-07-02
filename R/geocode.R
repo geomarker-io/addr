@@ -627,12 +627,14 @@ geocode_zip <- function(
   }
 
   ref_exact <- taf_zip(zpcd, map = TRUE, year = year, version = version)
+  ref_exact_streets <- geocode_unique_ref_streets(ref_exact)
+  ref_exact_rng_idx <- geocode_ref_range_index(ref_exact)
   if (is.function(progress_callback)) {
     progress_callback(length(ref_exact$addr_street))
   }
   out$matched_street <- do.call(
     match_addr_street,
-    c(list(x = x@street, y = ref_exact$addr_street), street_match_args)
+    c(list(x = x@street, y = ref_exact_streets$addr_street), street_match_args)
   )
 
   no <- which(is.na(out$matched_street))
@@ -652,15 +654,19 @@ geocode_zip <- function(
       year = year,
       version = version
     )
+    ref_variant_streets <- geocode_unique_ref_streets(ref_variant)
     out$matched_street[no] <- do.call(
       match_addr_street,
-      c(list(x = x@street[no], y = ref_variant$addr_street), street_match_args)
+      c(
+        list(x = x@street[no], y = ref_variant_streets$addr_street),
+        street_match_args
+      )
     )
     out$matched_zipcode[no] <-
-      ref_variant[
+      ref_variant_streets[
         match(
-          as.character(out$matched_street[no]),
-          as.character(ref_variant$addr_street)
+          geocode_street_key(out$matched_street[no]),
+          geocode_street_key(ref_variant_streets$addr_street)
         ),
         "ZIP",
         drop = TRUE
@@ -668,39 +674,44 @@ geocode_zip <- function(
   } else if (length(no) != 0) {
     out$matched_zipcode[no] <- NA_character_
     ref_variant <- ref_exact[0, ]
+    ref_variant_streets <- geocode_unique_ref_streets(ref_variant)
   } else {
     ref_variant <- ref_exact[0, ]
+    ref_variant_streets <- geocode_unique_ref_streets(ref_variant)
   }
 
-  ref_rng <-
-    lapply(seq_along(x), \(.i) {
-      if (is.na(out$matched_zipcode[.i]) || is.na(out$matched_street[.i])) {
-        return(ref_exact[0, ])
-      }
-      if (out$matched_zipcode[.i] == zpcd) {
-        return(
-          ref_exact[
-            format(ref_exact$addr_street) == format(out$matched_street[.i]),
-          ]
-        )
-      } else {
-        return(
-          ref_variant[
-            format(ref_variant$addr_street) == format(out$matched_street[.i]) &
-              ref_variant$ZIP == out$matched_zipcode[.i],
-          ]
-        )
-      }
-    })
+  ref_variant_rng_idx <- geocode_ref_range_index(ref_variant)
 
   out$matched_geography <-
     lapply(seq_along(x), \(.i) {
       sn <- to_int(x@number@digits[.i])
-      if (is.na(sn) || nrow(ref_rng[[.i]]) == 0L) {
+      if (
+        is.na(sn) ||
+          is.na(out$matched_zipcode[.i]) ||
+          is.na(out$matched_street[.i])
+      ) {
+        return(s2::as_s2_geography(NA_character_))
+      }
+      if (out$matched_zipcode[.i] == zpcd) {
+        cand_rows <- geocode_ref_range_rows(
+          ref_exact_rng_idx,
+          out$matched_zipcode[.i],
+          out$matched_street[.i]
+        )
+        ref <- ref_exact
+      } else {
+        cand_rows <- geocode_ref_range_rows(
+          ref_variant_rng_idx,
+          out$matched_zipcode[.i],
+          out$matched_street[.i]
+        )
+        ref <- ref_variant
+      }
+      if (length(cand_rows) == 0L) {
         return(s2::as_s2_geography(NA_character_))
       }
       sn_par <- ifelse(sn %% 2 == 0, "E", "O")
-      cand0 <- ref_rng[[.i]]
+      cand0 <- ref[cand_rows, , drop = FALSE]
       has_range <- !is.na(cand0$FROMHN) & !is.na(cand0$TOHN)
       cand0$in_range <- has_range &
         sn >= pmin(cand0$FROMHN, cand0$TOHN) &
@@ -751,6 +762,35 @@ geocode_zip <- function(
     do.call(c, args = _)
 
   out
+}
+
+geocode_unique_ref_streets <- function(x) {
+  keep <- !duplicated(as.data.frame(x$addr_street, stringsAsFactors = FALSE))
+  x[keep, c("ZIP", "addr_street"), drop = FALSE]
+}
+
+geocode_ref_range_index <- function(x) {
+  if (nrow(x) == 0L) {
+    return(list())
+  }
+  split(seq_len(nrow(x)), geocode_ref_range_key(x$ZIP, x$addr_street))
+}
+
+geocode_ref_range_rows <- function(index, zipcode, street) {
+  rows <- index[[geocode_ref_range_key(zipcode, street)]]
+  if (is.null(rows)) {
+    integer()
+  } else {
+    rows
+  }
+}
+
+geocode_ref_range_key <- function(zipcode, street) {
+  paste(zipcode, geocode_street_key(street), sep = "\r")
+}
+
+geocode_street_key <- function(x) {
+  format(x)
 }
 
 validate_geocode_offset <- function(offset) {
