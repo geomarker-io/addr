@@ -1029,24 +1029,27 @@ test_that("geocode uses mirai mapping when daemons are configured", {
   expect_true(used_mirai)
   expect_true(seen_progress)
   progress_text <- paste(progress_output, collapse = "\n")
-  expect_match(progress_text, "preparing geocoding input \\(2 addr\\)")
+  progress_text <- gsub("\033\\[[0-9;]*[[:alpha:]]", "", progress_text)
+  progress_text <- gsub("\r", "", progress_text, fixed = TRUE)
+  expect_match(progress_text, "preparing geocoding input \\(2 input addr")
+  expect_match(progress_text, "2 unique addr")
+  expect_match(progress_text, "2 ZIP groups")
   expect_match(
     progress_text,
     "checking TIGER address feature files for 2 ZIP codes plus ZIP variants"
   )
-  expect_match(progress_text, "grouped 2 unique addr into 2 ZIP groups")
-  expect_match(
-    progress_text,
-    "dispatching 2 ZIP groups across mirai workers \\(2 unique addr\\)"
-  )
-  expect_match(progress_text, "combining geocode results from 2 result groups")
   expect_match(progress_text, "validating geocode result groups")
   expect_match(progress_text, "concatenating geocode result columns")
   expect_match(progress_text, "reordering geocode result rows")
   expect_match(progress_text, "restoring geocode output to 2 input addr")
   expect_match(progress_text, "computing S2 cells")
-  expect_match(progress_text, "geocoding complete")
-  expect_match(progress_text, "\\(\\+[0-9.]+s; total [0-9.]+s\\)")
+  expect_match(progress_text, "\\(\\+([0-9.]+s|[0-9]+m [0-9]{2}s)\\)")
+  expect_false(grepl("; total", progress_text, fixed = TRUE))
+  expect_false(grepl("TIGER address feature file check complete", progress_text, fixed = TRUE))
+  expect_false(grepl("grouped ", progress_text, fixed = TRUE))
+  expect_false(grepl("dispatching", progress_text, fixed = TRUE))
+  expect_false(grepl("combining geocode results", progress_text, fixed = TRUE))
+  expect_false(grepl("geocoding complete", progress_text, fixed = TRUE))
 })
 
 test_that("geocode mirai status text reports counts without ETA", {
