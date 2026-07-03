@@ -9,3 +9,5 @@
 ^pkgdown$
 ^inst\.csv$
 ^diagrams$
+^Containerfile$
+^\.dockerignore$
