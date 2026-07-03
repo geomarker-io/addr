@@ -19,20 +19,25 @@
 #' return `NA`.
 #' @param x an addr vector (`?as_addr`)
 #' @param offset number of meters to offset geocode from street line
-#' @param progress logical; show a ZIP-code progress bar while geocoding?
+#' @param progress logical; show progress messages and a ZIP-code progress bar
+#'   while geocoding?
 #' @param taf_install logical; install missing county TAF files needed for
 #'   input ZIP codes and selected ZIP code variants before geocoding? If
 #'   `FALSE`, geocoding proceeds with installed files only and warns when
 #'   needed county files are missing.
 #' @param taf_redownload logical; re-download cached TIGER ZIP files when
 #'   installing missing TAF counties?
+#' @param add_s2_cell logical; add an `s2_cell` column computed from matched
+#'   geographies? Defaults to `TRUE`; set to `FALSE` to skip this final
+#'   computation.
 #' @inheritParams match_addr_street
 #' @inheritParams match_zipcodes
 #' @inheritParams taf
 #' @returns A tibble with columns `addr` (the input addr vector),
 #'   `matched_zipcode` (character vector), `matched_street` (`addr_street`
-#'   vector), `matched_geography` (`s2_geography` point vector), and `s2_cell`
-#'   (`s2_cell` vector).
+#'   vector), and `matched_geography` (`s2_geography` point vector). When
+#'   `add_s2_cell = TRUE`, the tibble also includes `s2_cell` (`s2_cell`
+#'   vector).
 #' @details
 #' `geocode_zip()` is the workhorse function and operates on addr vectors
 #' with the same ZIP code; use `geocode()` to geocode an addr vector
@@ -40,6 +45,11 @@
 #' serially by default.
 #' At a lower level, grouping addr vectors by ZIP code and applying
 #' `geocode_zip()` facilitates more control (e.g., parallel processing).
+#' Before ZIP grouping, `geocode()` deduplicates formatted `addr` values
+#' internally and restores the output to the original input order and length.
+#' Exact duplicates therefore do not trigger repeated TAF reads, street
+#' matching, or range interpolation, so callers usually do not need to call
+#' `unique()` themselves for geocoding performance.
 #'
 #' If the mirai package is installed and mirai daemons have already been
 #' configured by the caller, `geocode()` uses them for ZIP-code-level
@@ -96,6 +106,7 @@ geocode <- function(
   taf_install = TRUE,
   taf_redownload = FALSE,
   offset = 10L,
+  add_s2_cell = TRUE,
   progress = interactive()
 ) {
   stopifnot(
@@ -109,6 +120,9 @@ geocode <- function(
     "taf_redownload must be TRUE or FALSE" = is.logical(taf_redownload) &&
       length(taf_redownload) == 1L &&
       !is.na(taf_redownload),
+    "add_s2_cell must be TRUE or FALSE" = is.logical(add_s2_cell) &&
+      length(add_s2_cell) == 1L &&
+      !is.na(add_s2_cell),
     "version must be a character vector" = is.character(version),
     "version must be length one" = length(version) == 1L,
     "version must not be missing" = !is.na(version),
@@ -125,11 +139,39 @@ geocode <- function(
     match_street_type = match_street_type,
     match_street_directional = match_street_directional
   )
-  xu <- unique(x)
-  missing_zip <- is.na(xu@place@zipcode) | xu@place@zipcode == ""
-  if (any(!missing_zip)) {
+  if (progress) {
+    progress_step <- geocode_progress_step_begin(
+      "preparing geocoding input (",
+      geocode_input_addr_count_text(length(x)),
+      ")"
+    )
+  }
+  plan <- geocode_plan(x)
+  if (progress) {
+    geocode_progress_step_end(
+      progress_step,
+      "preparing geocoding input (",
+      geocode_input_addr_count_text(length(x)),
+      "; ",
+      geocode_addr_count_text(length(plan$unique_addr)),
+      "; ",
+      geocode_zip_group_count_text(length(plan$zip_groups)),
+      ")"
+    )
+  }
+  taf_addr <- geocode_plan_taf_addr(plan)
+  if (length(taf_addr) > 0L) {
+    if (progress) {
+      progress_step <- geocode_progress_step_begin(
+        geocode_prepare_taf_progress_text(
+          taf_addr,
+          taf_install = taf_install,
+          zip_variants = zip_variants
+        )
+      )
+    }
     geocode_prepare_taf(
-      xu[!missing_zip],
+      plan,
       year = year,
       version = version,
       zip_variants = zip_variants,
@@ -137,11 +179,13 @@ geocode <- function(
       taf_install = taf_install,
       taf_redownload = taf_redownload
     )
+    if (progress) {
+      geocode_progress_step_end(progress_step)
+    }
   }
-  z_list <- split(xu[!missing_zip], xu[!missing_zip]@place@zipcode)
 
   gcd <- geocode_map(
-    z_list,
+    plan$zip_groups,
     geocode_zip,
     progress = progress,
     offset = offset,
@@ -157,25 +201,261 @@ geocode <- function(
     taf_redownload = taf_redownload,
     taf_check = FALSE
   )
-  if (any(missing_zip)) {
-    gcd <- c(gcd, list(missing_zip = geocode_no_match(xu[missing_zip])))
-  }
-  if (length(gcd) == 0L) {
-    gcd <- list(geocode_no_match(xu))
-  }
-  gcd <- do.call(rbind, gcd)
+  gcd <- geocode_assemble_results(
+    plan,
+    gcd,
+    progress = progress
+  )
 
-  out <- gcd[match(format(x), format(gcd$addr)), ]
-  out$s2_cell <- s2::as_s2_cell(out$matched_geography)
+  if (add_s2_cell) {
+    if (progress) {
+      progress_step <- geocode_progress_step_begin("computing S2 cells")
+    }
+    gcd$s2_cell <- s2::as_s2_cell(gcd$matched_geography)
+    if (progress) {
+      geocode_progress_step_end(progress_step)
+    }
+  }
+  if (progress) {
+    progress_step <- geocode_progress_step_begin(
+      "restoring geocode output to ",
+      geocode_input_addr_count_text(length(x))
+    )
+  }
+  out <- gcd[plan$restore_idx, , drop = FALSE]
+  if (progress) {
+    geocode_progress_step_end(progress_step)
+  }
   return(out)
 }
 
-geocode_map <- function(x, FUN, progress, ...) {
+geocode_plan <- function(x) {
+  key <- as.character(x)
+  unique_row <- !duplicated(key)
+  unique_addr <- x[unique_row]
+  unique_key <- key[unique_row]
+  restore_idx <- match(key, unique_key)
+  missing_zip <- is.na(unique_addr@place@zipcode) |
+    unique_addr@place@zipcode == ""
+  non_missing_zip_idx <- which(!missing_zip)
+  zip <- unique_addr@place@zipcode[non_missing_zip_idx]
+  zip_groups <- split(unique_addr[non_missing_zip_idx], zip, drop = TRUE)
+  zip_group_idx <- split(non_missing_zip_idx, zip, drop = TRUE)
+
+  list(
+    unique_addr = unique_addr,
+    restore_idx = restore_idx,
+    missing_zip_idx = which(missing_zip),
+    non_missing_zip_idx = non_missing_zip_idx,
+    zip_groups = zip_groups,
+    zip_group_idx = zip_group_idx
+  )
+}
+
+geocode_plan_taf_addr <- function(x) {
+  x$unique_addr[x$non_missing_zip_idx]
+}
+
+geocode_assemble_results <- function(
+  plan,
+  results,
+  progress = FALSE
+) {
+  n <- length(plan$unique_addr)
+  if (n == 0L || length(results) == 0L) {
+    if (progress) {
+      progress_step <- geocode_progress_step_begin(
+        "creating no-match geocode results"
+      )
+    }
+    out <- geocode_no_match(plan$unique_addr)
+    if (progress) {
+      geocode_progress_step_end(progress_step)
+    }
+    return(out)
+  }
+  result_names <- names(results)
+  if (is.null(result_names) || any(result_names == "")) {
+    result_names <- names(plan$zip_groups)
+    if (length(result_names) != length(results)) {
+      stop("geocoding result group count does not match planned ZIP groups", call. = FALSE)
+    }
+    names(results) <- result_names
+  }
+
+  if (progress) {
+    progress_step <- geocode_progress_step_begin(
+      "validating geocode result groups (",
+      geocode_result_group_count_text(length(results)),
+      ")"
+    )
+  }
+  result_rows <- vector("list", length(results))
+  names(result_rows) <- names(results)
+  for (zip in names(results)) {
+    rows <- plan$zip_group_idx[[zip]]
+    if (is.null(rows)) {
+      stop("geocoding returned an unexpected ZIP result group: ", zip, call. = FALSE)
+    }
+    result <- results[[zip]]
+    geocode_check_result(result, rows, zip)
+    result_rows[[zip]] <- rows
+  }
+  if (progress) {
+    geocode_progress_step_end(progress_step)
+  }
+
+  if (progress) {
+    progress_step <- geocode_progress_step_begin(
+      "concatenating geocode result columns"
+    )
+  }
+  row_order <- unlist(result_rows, use.names = FALSE)
+  matched_zipcode <- unlist(
+    lapply(results, `[[`, "matched_zipcode"),
+    use.names = FALSE
+  )
+  matched_street <- geocode_c_addr_street(
+    lapply(results, `[[`, "matched_street")
+  )
+  matched_geography <- geocode_c_s2_geography(
+    lapply(results, `[[`, "matched_geography")
+  )
+
+  if (length(plan$missing_zip_idx) > 0L) {
+    row_order <- c(row_order, plan$missing_zip_idx)
+    matched_zipcode <- c(
+      matched_zipcode,
+      rep(NA_character_, length(plan$missing_zip_idx))
+    )
+    matched_street <- geocode_c_addr_street(list(
+      matched_street,
+      addr_street(rep(NA_character_, length(plan$missing_zip_idx)))
+    ))
+    matched_geography <- geocode_c_s2_geography(list(
+      matched_geography,
+      s2::as_s2_geography(rep(NA_character_, length(plan$missing_zip_idx)))
+    ))
+  }
+  if (progress) {
+    geocode_progress_step_end(progress_step)
+  }
+
+  if (progress) {
+    progress_step <- geocode_progress_step_begin("reordering geocode result rows")
+  }
+  restore_unique_idx <- match(seq_len(n), row_order)
+  if (anyNA(restore_unique_idx) || length(unique(row_order)) != n) {
+    stop("geocoding result rows do not match planned unique addr rows", call. = FALSE)
+  }
+
+  out <- tibble::tibble(
+    addr = plan$unique_addr,
+    matched_zipcode = matched_zipcode[restore_unique_idx],
+    matched_street = matched_street[restore_unique_idx],
+    matched_geography = matched_geography[restore_unique_idx]
+  )
+  if (progress) {
+    geocode_progress_step_end(progress_step)
+  }
+  out
+}
+
+geocode_c_addr_street <- function(x) {
+  x <- x[lengths(x) > 0L]
+  if (length(x) == 0L) {
+    return(addr_street(
+      predirectional = character(),
+      premodifier = character(),
+      pretype = character(),
+      name = character(),
+      posttype = character(),
+      postdirectional = character(),
+      map_posttype = FALSE,
+      map_directional = FALSE,
+      map_pretype = FALSE,
+      map_ordinal = FALSE
+    ))
+  }
+  addr_street(
+    predirectional = unlist(lapply(x, \(.) .@predirectional), use.names = FALSE),
+    premodifier = unlist(lapply(x, \(.) .@premodifier), use.names = FALSE),
+    pretype = unlist(lapply(x, \(.) .@pretype), use.names = FALSE),
+    name = unlist(lapply(x, \(.) .@name), use.names = FALSE),
+    posttype = unlist(lapply(x, \(.) .@posttype), use.names = FALSE),
+    postdirectional = unlist(
+      lapply(x, \(.) .@postdirectional),
+      use.names = FALSE
+    ),
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_pretype = FALSE,
+    map_ordinal = FALSE
+  )
+}
+
+geocode_c_s2_geography <- function(x) {
+  x <- x[lengths(x) > 0L]
+  if (length(x) == 0L) {
+    return(s2::as_s2_geography(character()))
+  }
+  do.call(c, x)
+}
+
+geocode_check_result <- function(x, rows, zip) {
+  if (!is.data.frame(x)) {
+    stop("geocoding result for ZIP ", zip, " must be a data frame", call. = FALSE)
+  }
+  required <- c("addr", "matched_zipcode", "matched_street", "matched_geography")
+  missing <- setdiff(required, names(x))
+  if (length(missing) > 0L) {
+    stop(
+      "geocoding result for ZIP ",
+      zip,
+      " is missing required column(s): ",
+      paste(missing, collapse = ", "),
+      call. = FALSE
+    )
+  }
+  if (nrow(x) != length(rows)) {
+    stop(
+      "geocoding result for ZIP ",
+      zip,
+      " returned ",
+      nrow(x),
+      " rows for ",
+      length(rows),
+      " input rows",
+      call. = FALSE
+    )
+  }
+  stopifnot(
+    "geocoding result addr column must be an addr vector" =
+      inherits(x$addr, "addr"),
+    "geocoding result matched_street column must be an addr_street vector" =
+      inherits(x$matched_street, "addr_street"),
+    "geocoding result matched_geography column must be an s2_geography vector" =
+      inherits(x$matched_geography, "s2_geography")
+  )
+  invisible(x)
+}
+
+geocode_map <- function(
+  x,
+  FUN,
+  progress,
+  ...
+) {
   if (length(x) == 0L) {
     return(list())
   }
   if (geocode_use_mirai()) {
-    return(geocode_map_mirai(x, FUN, ...))
+    return(geocode_map_mirai(
+      x,
+      FUN,
+      progress = progress,
+      ...
+    ))
   }
   if (progress) {
     return(lapply_pb(x, FUN, ...))
@@ -188,7 +468,12 @@ geocode_use_mirai <- function() {
     mirai::daemons_set()
 }
 
-geocode_map_mirai <- function(x, FUN, ...) {
+geocode_map_mirai <- function(
+  x,
+  FUN,
+  progress,
+  ...
+) {
   geocode_args <- list(...)
   load_dev <- geocode_load_dev_workers()
   package_path <- if (load_dev) {
@@ -204,17 +489,93 @@ geocode_map_mirai <- function(x, FUN, ...) {
       package_path = package_path,
       load_dev = load_dev
     )
-  )[.progress]
+  )
+  out <- geocode_collect_mirai(out, x, progress = progress)
+  if (progress) {
+    progress_step <- geocode_progress_step_begin("restoring mirai geographies")
+  }
   geocode_check_parallel_results(out)
   out <- lapply(out, geocode_restore_parallel_result)
+  if (progress) {
+    geocode_progress_step_end(progress_step)
+  }
   out
 }
-
-utils::globalVariables(".progress")
 
 geocode_load_dev_workers <- function() {
   requireNamespace("pkgload", quietly = TRUE) &&
     pkgload::is_dev_package("addr")
+}
+
+geocode_collect_mirai <- function(x, tasks, progress) {
+  if (!progress) {
+    return(x[])
+  }
+
+  total_groups <- length(x)
+  task_sizes <- lengths(tasks)
+  total_addr <- sum(task_sizes)
+  done <- rep(FALSE, total_groups)
+  out <- vector("list", total_groups)
+  names(out) <- names(x)
+  started <- proc.time()[["elapsed"]]
+  last_completed <- NA_integer_
+  last_update <- 0
+
+  geocode_mirai_status_update(
+    completed_groups = 0L,
+    total_groups = total_groups,
+    completed_addr = 0L,
+    total_addr = total_addr,
+    last_zip = NA_character_,
+    last_addr = NA_integer_,
+    elapsed = 0
+  )
+  on.exit(cat("\n"), add = TRUE)
+
+  while (!all(done)) {
+    resolved <- !vapply(x, mirai::unresolved, logical(1))
+    newly_done <- which(resolved & !done)
+    if (length(newly_done) > 0L) {
+      for (i in newly_done) {
+        out[[i]] <- x[[i]]$data
+      }
+      done[newly_done] <- TRUE
+      last_completed <- newly_done[[length(newly_done)]]
+    }
+
+    elapsed <- proc.time()[["elapsed"]] - started
+    should_update <- length(newly_done) > 0L ||
+      elapsed - last_update >= geocode_mirai_progress_interval()
+    if (should_update) {
+      last_update <- elapsed
+      last_zip <- if (is.na(last_completed)) {
+        NA_character_
+      } else {
+        names(x)[[last_completed]]
+      }
+      last_addr <- if (is.na(last_completed)) {
+        NA_integer_
+      } else {
+        task_sizes[[last_completed]]
+      }
+      geocode_mirai_status_update(
+        completed_groups = sum(done),
+        total_groups = total_groups,
+        completed_addr = sum(task_sizes[done]),
+        total_addr = total_addr,
+        last_zip = last_zip,
+        last_addr = last_addr,
+        elapsed = elapsed
+      )
+    }
+
+    if (!all(done)) {
+      Sys.sleep(0.1)
+    }
+  }
+
+  out
 }
 
 geocode_worker <- function(
@@ -329,6 +690,7 @@ lapply_pb <- function(x, FUN, ...) {
   on.exit(cat("\n"), add = TRUE)
 
   out <- vector("list", length(x))
+  names(out) <- names(x)
   for (i in seq_along(x)) {
     zip <- names(x)[[i]]
     x_n <- length(x[[i]])
@@ -367,8 +729,194 @@ geocode_progress_text <- function(zip, x_n, y_n) {
   sprintf(
     "geocoding %s (%s addr to %s addr_street)",
     zip,
-    prettyNum(x_n, big.mark = ",", preserve.width = "none"),
-    prettyNum(y_n, big.mark = ",", preserve.width = "none")
+    geocode_format_count(x_n),
+    geocode_format_count(y_n)
+  )
+}
+
+geocode_progress_step_begin <- function(...) {
+  text <- geocode_progress_step_text(...)
+  cat(text, sep = "")
+  utils::flush.console()
+  list(
+    text = text,
+    started = proc.time()[["elapsed"]]
+  )
+}
+
+geocode_progress_step_end <- function(step, ...) {
+  parts <- list(...)
+  text <- if (length(parts) == 0L) {
+    step$text
+  } else {
+    paste0(parts, collapse = "")
+  }
+  elapsed <- proc.time()[["elapsed"]] - step$started
+  cat(
+    "\r\033[2K",
+    text,
+    " (+",
+    geocode_progress_duration_text(elapsed),
+    ")\n",
+    sep = ""
+  )
+  utils::flush.console()
+  invisible(step)
+}
+
+geocode_progress_step_text <- function(...) {
+  parts <- list(...)
+  if (length(parts) == 0L) {
+    return("")
+  }
+  paste0(parts, collapse = "")
+}
+
+geocode_progress_duration_text <- function(x) {
+  if (x < 1) {
+    return(sprintf("%.2fs", x))
+  }
+  if (x < 10) {
+    return(sprintf("%.1fs", x))
+  }
+  if (x < 60) {
+    return(sprintf("%ss", floor(x)))
+  }
+  geocode_elapsed_text(x)
+}
+
+geocode_format_count <- function(x) {
+  prettyNum(x, big.mark = ",", preserve.width = "none")
+}
+
+geocode_prepare_taf_progress_text <- function(
+  x,
+  taf_install,
+  zip_variants
+) {
+  has_zip <- !is.na(x@place@zipcode) & x@place@zipcode != ""
+  zipcodes <- unique(x@place@zipcode[has_zip])
+  install_text <- if (taf_install) {
+    "installing missing county files if needed"
+  } else {
+    "using installed files only"
+  }
+  variant_text <- if (zip_variants) {
+    " plus ZIP variants"
+  } else {
+    ""
+  }
+  sprintf(
+    "checking TIGER address feature files for %s%s (%s)",
+    geocode_zip_count_text(length(zipcodes)),
+    variant_text,
+    install_text
+  )
+}
+
+geocode_mirai_status_update <- function(
+  completed_groups,
+  total_groups,
+  completed_addr,
+  total_addr,
+  last_zip,
+  last_addr,
+  elapsed
+) {
+  cat(
+    "\r\033[2K",
+    geocode_mirai_status_text(
+      completed_groups = completed_groups,
+      total_groups = total_groups,
+      completed_addr = completed_addr,
+      total_addr = total_addr,
+      last_zip = last_zip,
+      last_addr = last_addr,
+      elapsed = elapsed
+    ),
+    sep = ""
+  )
+  utils::flush.console()
+}
+
+geocode_mirai_status_text <- function(
+  completed_groups,
+  total_groups,
+  completed_addr,
+  total_addr,
+  last_zip,
+  last_addr,
+  elapsed
+) {
+  last_text <- if (is.na(last_zip) || is.na(last_addr)) {
+    "last completed: none yet"
+  } else {
+    sprintf(
+      "last completed: %s (%s)",
+      last_zip,
+      geocode_addr_count_text(last_addr)
+    )
+  }
+  sprintf(
+    "mirai geocoding: %s/%s ZIP groups complete; %s/%s unique addr complete; %s; elapsed %s",
+    geocode_format_count(completed_groups),
+    geocode_format_count(total_groups),
+    geocode_format_count(completed_addr),
+    geocode_format_count(total_addr),
+    last_text,
+    geocode_elapsed_text(elapsed)
+  )
+}
+
+geocode_elapsed_text <- function(x) {
+  if (x < 60) {
+    return(sprintf("%ss", floor(x)))
+  }
+  sprintf("%sm %02ds", floor(x / 60), floor(x %% 60))
+}
+
+geocode_mirai_progress_interval <- function() {
+  interval <- getOption("addr.geocode_mirai_progress_interval", 1)
+  if (length(interval) == 0L) {
+    return(1)
+  }
+  interval <- suppressWarnings(as.numeric(interval[[1]]))
+  if (is.na(interval) || interval <= 0) {
+    1
+  } else {
+    interval
+  }
+}
+
+geocode_addr_count_text <- function(n) {
+  paste(geocode_format_count(n), "unique addr")
+}
+
+geocode_input_addr_count_text <- function(n) {
+  paste(geocode_format_count(n), "input addr")
+}
+
+geocode_result_group_count_text <- function(n) {
+  sprintf(
+    "%s result %s",
+    geocode_format_count(n),
+    if (n == 1L) "group" else "groups"
+  )
+}
+
+geocode_zip_group_count_text <- function(n) {
+  sprintf(
+    "%s ZIP %s",
+    geocode_format_count(n),
+    if (n == 1L) "group" else "groups"
+  )
+}
+
+geocode_zip_count_text <- function(n) {
+  sprintf(
+    "%s ZIP %s",
+    geocode_format_count(n),
+    if (n == 1L) "code" else "codes"
   )
 }
 
@@ -390,7 +938,7 @@ geocode_no_match <- function(x) {
 #' @param x a data frame returned by [geocode()]
 #' @returns A tibble with atomic columns suitable for JSON serialization.
 #'   `geocode_table()` includes the input address, geocode stage, matched ZIP
-#'   code, matched street, and S2 cell as character columns.
+#'   code, matched street, and, when present, S2 cell as character columns.
 #' @export
 geocode_table <- function(x) {
   stopifnot(
@@ -403,8 +951,14 @@ geocode_table <- function(x) {
       x$matched_street,
       "addr_street"
     ),
-    "x must contain an s2_cell column" = "s2_cell" %in% names(x),
-    "x$s2_cell must be an s2_cell vector" = inherits(x$s2_cell, "s2_cell")
+    "x must contain a matched_geography column" =
+      "matched_geography" %in% names(x),
+    "x$matched_geography must be an s2_geography vector" = inherits(
+      x$matched_geography,
+      "s2_geography"
+    ),
+    "x$s2_cell must be an s2_cell vector" =
+      !("s2_cell" %in% names(x)) || inherits(x$s2_cell, "s2_cell")
   )
 
   out <- data.frame(
@@ -412,10 +966,12 @@ geocode_table <- function(x) {
     geocode_stage = as.character(geocode_stage(x)),
     matched_zipcode = x$matched_zipcode,
     matched_street = as.character(x$matched_street),
-    s2_cell = as.character(x$s2_cell),
     check.names = FALSE,
     stringsAsFactors = FALSE
   )
+  if ("s2_cell" %in% names(x)) {
+    out$s2_cell <- as.character(x$s2_cell)
+  }
   tibble::as_tibble(out)
 }
 
@@ -440,20 +996,24 @@ geocode_stage <- function(x) {
       x$matched_street,
       "addr_street"
     ),
-    "x must contain an s2_cell column" = "s2_cell" %in% names(x),
-    "x$s2_cell must be an s2_cell vector" = inherits(x$s2_cell, "s2_cell")
+    "x must contain a matched_geography column" =
+      "matched_geography" %in% names(x),
+    "x$matched_geography must be an s2_geography vector" = inherits(
+      x$matched_geography,
+      "s2_geography"
+    )
   )
 
   matched_street <- as.character(x$matched_street)
   input_zipcode <- x$addr@place@zipcode
   has_zipcode <- !is.na(x$matched_zipcode) & x$matched_zipcode != ""
   has_street <- has_zipcode & !is.na(matched_street) & matched_street != ""
-  has_range <- has_street & !is.na(x$s2_cell)
   has_exact_zipcode <- has_street &
     !is.na(input_zipcode) &
     input_zipcode != "" &
     x$matched_zipcode == input_zipcode
   has_variant <- has_street & !has_exact_zipcode
+  has_range <- has_street & !is.na(x$matched_geography)
 
   out <- rep("none", nrow(x))
   out[has_street] <- "street"
@@ -485,29 +1045,80 @@ geocode_prepare_taf <- function(
     return(invisible(NULL))
   }
 
-  missing_args <- list(
-    x = x,
+  taf_addr <- if (is.list(x) && !is.null(x$unique_addr)) {
+    geocode_plan_taf_addr(x)
+  } else {
+    x
+  }
+  if (length(taf_addr) == 0L) {
+    return(invisible(NULL))
+  }
+
+  needed <- taf_needed_counties(
+    taf_addr,
     year = year,
     version = version,
     zip_variants = zip_variants,
     zip_variant = zip_variant
   )
+  missing <- geocode_missing_taf_counties(
+    needed,
+    year = year,
+    version = version
+  )
 
   if (taf_install) {
-    taf_ensure_serial(
-      x,
+    geocode_install_missing_taf_counties(
+      missing,
       year = year,
       version = version,
-      zip_variants = zip_variants,
-      zip_variant = zip_variant,
       redownload = taf_redownload
     )
-    geocode_require_taf_installed(do.call(taf_missing_counties, missing_args))
+    geocode_require_taf_installed(geocode_missing_taf_counties(
+      needed,
+      year = year,
+      version = version
+    ))
   } else {
-    taf_warn_missing_counties(do.call(taf_missing_counties, missing_args))
+    taf_warn_missing_counties(missing)
   }
 
   invisible(NULL)
+}
+
+geocode_missing_taf_counties <- function(needed, year, version) {
+  if (nrow(needed) == 0L) {
+    return(needed)
+  }
+  manifest <- taf_read_county_zip_manifest(year = year, version = version)
+  missing_counties <- setdiff(
+    unique(needed$county_fips),
+    unique(manifest$county_fips)
+  )
+  needed[needed$county_fips %in% missing_counties, , drop = FALSE]
+}
+
+geocode_install_missing_taf_counties <- function(
+  missing,
+  year,
+  version,
+  redownload
+) {
+  if (nrow(missing) == 0L) {
+    return(invisible(missing))
+  }
+  taf_with_install_lock(year, version, {
+    for (county in unique(missing$county_fips)) {
+      taf_install(
+        county = county,
+        year = year,
+        version = version,
+        overwrite = FALSE,
+        redownload = redownload
+      )
+    }
+  })
+  invisible(missing)
 }
 
 geocode_require_taf_installed <- function(missing) {
@@ -627,12 +1238,14 @@ geocode_zip <- function(
   }
 
   ref_exact <- taf_zip(zpcd, map = TRUE, year = year, version = version)
+  ref_exact_streets <- geocode_unique_ref_streets(ref_exact)
+  ref_exact_rng_idx <- geocode_ref_range_index(ref_exact)
   if (is.function(progress_callback)) {
     progress_callback(length(ref_exact$addr_street))
   }
   out$matched_street <- do.call(
     match_addr_street,
-    c(list(x = x@street, y = ref_exact$addr_street), street_match_args)
+    c(list(x = x@street, y = ref_exact_streets$addr_street), street_match_args)
   )
 
   no <- which(is.na(out$matched_street))
@@ -652,15 +1265,19 @@ geocode_zip <- function(
       year = year,
       version = version
     )
+    ref_variant_streets <- geocode_unique_ref_streets(ref_variant)
     out$matched_street[no] <- do.call(
       match_addr_street,
-      c(list(x = x@street[no], y = ref_variant$addr_street), street_match_args)
+      c(
+        list(x = x@street[no], y = ref_variant_streets$addr_street),
+        street_match_args
+      )
     )
     out$matched_zipcode[no] <-
-      ref_variant[
+      ref_variant_streets[
         match(
-          as.character(out$matched_street[no]),
-          as.character(ref_variant$addr_street)
+          geocode_street_key(out$matched_street[no]),
+          geocode_street_key(ref_variant_streets$addr_street)
         ),
         "ZIP",
         drop = TRUE
@@ -668,39 +1285,44 @@ geocode_zip <- function(
   } else if (length(no) != 0) {
     out$matched_zipcode[no] <- NA_character_
     ref_variant <- ref_exact[0, ]
+    ref_variant_streets <- geocode_unique_ref_streets(ref_variant)
   } else {
     ref_variant <- ref_exact[0, ]
+    ref_variant_streets <- geocode_unique_ref_streets(ref_variant)
   }
 
-  ref_rng <-
-    lapply(seq_along(x), \(.i) {
-      if (is.na(out$matched_zipcode[.i]) || is.na(out$matched_street[.i])) {
-        return(ref_exact[0, ])
-      }
-      if (out$matched_zipcode[.i] == zpcd) {
-        return(
-          ref_exact[
-            format(ref_exact$addr_street) == format(out$matched_street[.i]),
-          ]
-        )
-      } else {
-        return(
-          ref_variant[
-            format(ref_variant$addr_street) == format(out$matched_street[.i]) &
-              ref_variant$ZIP == out$matched_zipcode[.i],
-          ]
-        )
-      }
-    })
+  ref_variant_rng_idx <- geocode_ref_range_index(ref_variant)
 
   out$matched_geography <-
     lapply(seq_along(x), \(.i) {
       sn <- to_int(x@number@digits[.i])
-      if (is.na(sn) || nrow(ref_rng[[.i]]) == 0L) {
+      if (
+        is.na(sn) ||
+          is.na(out$matched_zipcode[.i]) ||
+          is.na(out$matched_street[.i])
+      ) {
+        return(s2::as_s2_geography(NA_character_))
+      }
+      if (out$matched_zipcode[.i] == zpcd) {
+        cand_rows <- geocode_ref_range_rows(
+          ref_exact_rng_idx,
+          out$matched_zipcode[.i],
+          out$matched_street[.i]
+        )
+        ref <- ref_exact
+      } else {
+        cand_rows <- geocode_ref_range_rows(
+          ref_variant_rng_idx,
+          out$matched_zipcode[.i],
+          out$matched_street[.i]
+        )
+        ref <- ref_variant
+      }
+      if (length(cand_rows) == 0L) {
         return(s2::as_s2_geography(NA_character_))
       }
       sn_par <- ifelse(sn %% 2 == 0, "E", "O")
-      cand0 <- ref_rng[[.i]]
+      cand0 <- ref[cand_rows, , drop = FALSE]
       has_range <- !is.na(cand0$FROMHN) & !is.na(cand0$TOHN)
       cand0$in_range <- has_range &
         sn >= pmin(cand0$FROMHN, cand0$TOHN) &
@@ -751,6 +1373,35 @@ geocode_zip <- function(
     do.call(c, args = _)
 
   out
+}
+
+geocode_unique_ref_streets <- function(x) {
+  keep <- !duplicated(as.data.frame(x$addr_street, stringsAsFactors = FALSE))
+  x[keep, c("ZIP", "addr_street"), drop = FALSE]
+}
+
+geocode_ref_range_index <- function(x) {
+  if (nrow(x) == 0L) {
+    return(list())
+  }
+  split(seq_len(nrow(x)), geocode_ref_range_key(x$ZIP, x$addr_street))
+}
+
+geocode_ref_range_rows <- function(index, zipcode, street) {
+  rows <- index[[geocode_ref_range_key(zipcode, street)]]
+  if (is.null(rows)) {
+    integer()
+  } else {
+    rows
+  }
+}
+
+geocode_ref_range_key <- function(zipcode, street) {
+  paste(zipcode, geocode_street_key(street), sep = "\r")
+}
+
+geocode_street_key <- function(x) {
+  format(x)
 }
 
 validate_geocode_offset <- function(offset) {

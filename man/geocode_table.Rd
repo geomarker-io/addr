@@ -12,7 +12,7 @@ geocode_table(x)
 \value{
 A tibble with atomic columns suitable for JSON serialization.
 \code{geocode_table()} includes the input address, geocode stage, matched ZIP
-code, matched street, and S2 cell as character columns.
+code, matched street, and, when present, S2 cell as character columns.
 }
 \description{
 \code{geocode_table()} converts the rich output from \code{\link[=geocode]{geocode()}} to a flat table

@@ -18,6 +18,7 @@ geocode(
   taf_install = TRUE,
   taf_redownload = FALSE,
   offset = 10L,
+  add_s2_cell = TRUE,
   progress = interactive()
 )
 
@@ -85,7 +86,12 @@ installing missing TAF counties?}
 
 \item{offset}{number of meters to offset geocode from street line}
 
-\item{progress}{logical; show a ZIP-code progress bar while geocoding?}
+\item{add_s2_cell}{logical; add an \code{s2_cell} column computed from matched
+geographies? Defaults to \code{TRUE}; set to \code{FALSE} to skip this final
+computation.}
+
+\item{progress}{logical; show progress messages and a ZIP-code progress bar
+while geocoding?}
 
 \item{progress_callback}{optional callback used internally by \code{geocode()}
 to update progress after ZIP-code reference data is loaded}
@@ -96,8 +102,9 @@ by \code{geocode()} after checking once for the full input vector.}
 \value{
 A tibble with columns \code{addr} (the input addr vector),
 \code{matched_zipcode} (character vector), \code{matched_street} (\code{addr_street}
-vector), \code{matched_geography} (\code{s2_geography} point vector), and \code{s2_cell}
-(\code{s2_cell} vector).
+vector), and \code{matched_geography} (\code{s2_geography} point vector). When
+\code{add_s2_cell = TRUE}, the tibble also includes \code{s2_cell} (\code{s2_cell}
+vector).
 }
 \description{
 \code{geocode()} geocodes addr vectors using Census TIGER address
@@ -126,6 +133,11 @@ with multiple ZIP codes by grouping them by ZIP code and processing
 serially by default.
 At a lower level, grouping addr vectors by ZIP code and applying
 \code{geocode_zip()} facilitates more control (e.g., parallel processing).
+Before ZIP grouping, \code{geocode()} deduplicates formatted \code{addr} values
+internally and restores the output to the original input order and length.
+Exact duplicates therefore do not trigger repeated TAF reads, street
+matching, or range interpolation, so callers usually do not need to call
+\code{unique()} themselves for geocoding performance.
 
 If the mirai package is installed and mirai daemons have already been
 configured by the caller, \code{geocode()} uses them for ZIP-code-level
