@@ -139,8 +139,13 @@ geocode <- function(
     match_street_type = match_street_type,
     match_street_directional = match_street_directional
   )
+  progress_message <- if (progress) {
+    geocode_progress_timer()
+  } else {
+    NULL
+  }
   if (progress) {
-    geocode_progress_message(
+    progress_message(
       "preparing geocoding input (",
       geocode_format_count(length(x)),
       " addr)"
@@ -150,7 +155,7 @@ geocode <- function(
   taf_addr <- geocode_plan_taf_addr(plan)
   if (length(taf_addr) > 0L) {
     if (progress) {
-      geocode_progress_message(
+      progress_message(
         geocode_prepare_taf_progress_text(
           taf_addr,
           taf_install = taf_install,
@@ -168,17 +173,18 @@ geocode <- function(
       taf_redownload = taf_redownload
     )
     if (progress) {
-      geocode_progress_message("TIGER address feature file check complete")
+      progress_message("TIGER address feature file check complete")
     }
   }
   if (progress) {
-    geocode_progress_message(geocode_group_progress_text(plan$zip_groups))
+    progress_message(geocode_group_progress_text(plan$zip_groups))
   }
 
   gcd <- geocode_map(
     plan$zip_groups,
     geocode_zip,
     progress = progress,
+    progress_message = progress_message,
     offset = offset,
     name_phonetic_dist = name_phonetic_dist,
     name_fuzzy_dist = name_fuzzy_dist,
@@ -194,7 +200,7 @@ geocode <- function(
   )
   if (length(plan$missing_zip_idx) > 0L) {
     if (progress) {
-      geocode_progress_message(
+      progress_message(
         "adding no-match results for ",
         geocode_addr_count_text(length(plan$missing_zip_idx)),
         " without ZIP codes"
@@ -203,32 +209,37 @@ geocode <- function(
   }
   if (length(gcd) == 0L && length(plan$unique_addr) == 0L) {
     if (progress) {
-      geocode_progress_message("creating no-match geocode results")
+      progress_message("creating no-match geocode results")
     }
   }
   if (progress) {
-    geocode_progress_message(
+    progress_message(
       "combining geocode results from ",
       geocode_result_group_count_text(length(gcd))
     )
   }
-  gcd <- geocode_assemble_results(plan, gcd, progress = progress)
+  gcd <- geocode_assemble_results(
+    plan,
+    gcd,
+    progress = progress,
+    progress_message = progress_message
+  )
 
   if (add_s2_cell) {
     if (progress) {
-      geocode_progress_message("computing S2 cells")
+      progress_message("computing S2 cells")
     }
     gcd$s2_cell <- s2::as_s2_cell(gcd$matched_geography)
   }
   if (progress) {
-    geocode_progress_message(
+    progress_message(
       "restoring geocode output to ",
       geocode_input_addr_count_text(length(x))
     )
   }
   out <- gcd[plan$restore_idx, , drop = FALSE]
   if (progress) {
-    geocode_progress_message("geocoding complete")
+    progress_message("geocoding complete")
   }
   return(out)
 }
@@ -260,7 +271,12 @@ geocode_plan_taf_addr <- function(x) {
   x$unique_addr[x$non_missing_zip_idx]
 }
 
-geocode_assemble_results <- function(plan, results, progress = FALSE) {
+geocode_assemble_results <- function(
+  plan,
+  results,
+  progress = FALSE,
+  progress_message = geocode_progress_message
+) {
   n <- length(plan$unique_addr)
   if (n == 0L || length(results) == 0L) {
     return(geocode_no_match(plan$unique_addr))
@@ -275,7 +291,7 @@ geocode_assemble_results <- function(plan, results, progress = FALSE) {
   }
 
   if (progress) {
-    geocode_progress_message("validating geocode result groups")
+    progress_message("validating geocode result groups")
   }
   result_rows <- vector("list", length(results))
   names(result_rows) <- names(results)
@@ -290,7 +306,7 @@ geocode_assemble_results <- function(plan, results, progress = FALSE) {
   }
 
   if (progress) {
-    geocode_progress_message("concatenating geocode result columns")
+    progress_message("concatenating geocode result columns")
   }
   row_order <- unlist(result_rows, use.names = FALSE)
   matched_zipcode <- unlist(
@@ -321,7 +337,7 @@ geocode_assemble_results <- function(plan, results, progress = FALSE) {
   }
 
   if (progress) {
-    geocode_progress_message("reordering geocode result rows")
+    progress_message("reordering geocode result rows")
   }
   restore_unique_idx <- match(seq_len(n), row_order)
   if (anyNA(restore_unique_idx) || length(unique(row_order)) != n) {
@@ -415,15 +431,27 @@ geocode_check_result <- function(x, rows, zip) {
   invisible(x)
 }
 
-geocode_map <- function(x, FUN, progress, ...) {
+geocode_map <- function(
+  x,
+  FUN,
+  progress,
+  progress_message = geocode_progress_message,
+  ...
+) {
   if (length(x) == 0L) {
     return(list())
   }
   if (geocode_use_mirai()) {
     if (progress) {
-      geocode_progress_message(geocode_mirai_progress_text(x))
+      progress_message(geocode_mirai_progress_text(x))
     }
-    return(geocode_map_mirai(x, FUN, progress = progress, ...))
+    return(geocode_map_mirai(
+      x,
+      FUN,
+      progress = progress,
+      progress_message = progress_message,
+      ...
+    ))
   }
   if (progress) {
     return(lapply_pb(x, FUN, ...))
@@ -436,7 +464,13 @@ geocode_use_mirai <- function() {
     mirai::daemons_set()
 }
 
-geocode_map_mirai <- function(x, FUN, progress, ...) {
+geocode_map_mirai <- function(
+  x,
+  FUN,
+  progress,
+  progress_message = geocode_progress_message,
+  ...
+) {
   geocode_args <- list(...)
   load_dev <- geocode_load_dev_workers()
   package_path <- if (load_dev) {
@@ -455,12 +489,12 @@ geocode_map_mirai <- function(x, FUN, progress, ...) {
   )
   out <- geocode_collect_mirai(out, x, progress = progress)
   if (progress) {
-    geocode_progress_message("mirai workers complete; restoring geographies")
+    progress_message("mirai workers complete; restoring geographies")
   }
   geocode_check_parallel_results(out)
   out <- lapply(out, geocode_restore_parallel_result)
   if (progress) {
-    geocode_progress_message("mirai geocoding results restored")
+    progress_message("mirai geocoding results restored")
   }
   out
 }
@@ -700,6 +734,38 @@ geocode_progress_text <- function(zip, x_n, y_n) {
 geocode_progress_message <- function(...) {
   cat(..., "\n", sep = "")
   utils::flush.console()
+}
+
+geocode_progress_timer <- function() {
+  started <- proc.time()[["elapsed"]]
+  last <- started
+  function(...) {
+    now <- proc.time()[["elapsed"]]
+    step <- now - last
+    total <- now - started
+    last <<- now
+    geocode_progress_message(
+      ...,
+      " (+",
+      geocode_progress_duration_text(step),
+      "; total ",
+      geocode_progress_duration_text(total),
+      ")"
+    )
+  }
+}
+
+geocode_progress_duration_text <- function(x) {
+  if (x < 1) {
+    return(sprintf("%.2fs", x))
+  }
+  if (x < 10) {
+    return(sprintf("%.1fs", x))
+  }
+  if (x < 60) {
+    return(sprintf("%ss", floor(x)))
+  }
+  geocode_elapsed_text(x)
 }
 
 geocode_format_count <- function(x) {

@@ -1040,9 +1040,13 @@ test_that("geocode uses mirai mapping when daemons are configured", {
     "dispatching 2 ZIP groups across mirai workers \\(2 unique addr\\)"
   )
   expect_match(progress_text, "combining geocode results from 2 result groups")
+  expect_match(progress_text, "validating geocode result groups")
+  expect_match(progress_text, "concatenating geocode result columns")
+  expect_match(progress_text, "reordering geocode result rows")
   expect_match(progress_text, "restoring geocode output to 2 input addr")
   expect_match(progress_text, "computing S2 cells")
   expect_match(progress_text, "geocoding complete")
+  expect_match(progress_text, "\\(\\+[0-9.]+s; total [0-9.]+s\\)")
 })
 
 test_that("geocode mirai status text reports counts without ETA", {
