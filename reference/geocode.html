@@ -95,6 +95,7 @@ return <code>NA</code>.</p>
 <span>  taf_install <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  taf_redownload <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  offset <span class="op">=</span> <span class="fl">10L</span>,</span>
+<span>  add_s2_cell <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  progress <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/interactive.html" class="external-link">interactive</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -190,8 +191,15 @@ installing missing TAF counties?</p></dd>
 <dd><p>number of meters to offset geocode from street line</p></dd>
 
 
+<dt id="arg-add-s-cell">add_s2_cell<a class="anchor" aria-label="anchor" href="#arg-add-s-cell"></a></dt>
+<dd><p>logical; add an <code>s2_cell</code> column computed from matched
+geographies? Defaults to <code>TRUE</code>; set to <code>FALSE</code> to skip this final
+computation.</p></dd>
+
+
 <dt id="arg-progress">progress<a class="anchor" aria-label="anchor" href="#arg-progress"></a></dt>
-<dd><p>logical; show a ZIP-code progress bar while geocoding?</p></dd>
+<dd><p>logical; show progress messages and a ZIP-code progress bar
+while geocoding?</p></dd>
 
 
 <dt id="arg-progress-callback">progress_callback<a class="anchor" aria-label="anchor" href="#arg-progress-callback"></a></dt>
@@ -208,8 +216,9 @@ by <code>geocode()</code> after checking once for the full input vector.</p></dd
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A tibble with columns <code>addr</code> (the input addr vector),
 <code>matched_zipcode</code> (character vector), <code>matched_street</code> (<code>addr_street</code>
-vector), <code>matched_geography</code> (<code>s2_geography</code> point vector), and <code>s2_cell</code>
-(<code>s2_cell</code> vector).</p>
+vector), and <code>matched_geography</code> (<code>s2_geography</code> point vector). When
+<code>add_s2_cell = TRUE</code>, the tibble also includes <code>s2_cell</code> (<code>s2_cell</code>
+vector).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -218,7 +227,12 @@ with the same ZIP code; use <code>geocode()</code> to geocode an addr vector
 with multiple ZIP codes by grouping them by ZIP code and processing
 serially by default.
 At a lower level, grouping addr vectors by ZIP code and applying
-<code>geocode_zip()</code> facilitates more control (e.g., parallel processing).</p>
+<code>geocode_zip()</code> facilitates more control (e.g., parallel processing).
+Before ZIP grouping, <code>geocode()</code> deduplicates formatted <code>addr</code> values
+internally and restores the output to the original input order and length.
+Exact duplicates therefore do not trigger repeated TAF reads, street
+matching, or range interpolation, so callers usually do not need to call
+<code><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique()</a></code> themselves for geocoding performance.</p>
 <p>If the mirai package is installed and mirai daemons have already been
 configured by the caller, <code>geocode()</code> uses them for ZIP-code-level
 parallel processing. Otherwise it falls back to sequential processing.</p>
