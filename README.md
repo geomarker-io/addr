@@ -58,9 +58,8 @@ Mount `/opt/addr-data` when you want downloads or derived data to persist across
 docker run --rm -it -v addr-data:/opt/addr-data ghcr.io/geomarker-io/addr:latest
 ```
 
-For local image development, use `just build` and `just run`.
+For local image development, use `just build` and `just run` with the `container` CLI.
 The `just run` target resolves `tools::R_user_dir("addr", "data")` with the local R installation and mounts that directory into the container when it already exists.
-Set `ADDR_IMAGE` or `CONTAINER_RUNTIME` to override the default local image tag or container runtime.
 
 ## Getting started
 

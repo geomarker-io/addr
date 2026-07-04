@@ -1,15 +1,11 @@
 set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 
-container_runtime := env_var_or_default("CONTAINER_RUNTIME", "docker")
-image := env_var_or_default("ADDR_IMAGE", "addr:local")
-containerfile := env_var_or_default("ADDR_CONTAINERFILE", "Containerfile")
-
 default:
     @just --list
 
 # Build the local addr runtime image.
 build:
-    {{container_runtime}} build -f {{containerfile}} -t {{image}} .
+    container build -f Containerfile -t addr:local .
 
 # Run the local addr image with its default command.
 run:
@@ -21,4 +17,4 @@ run:
     else \
         echo "addr data directory does not exist locally, running without data mount: $addr_data_dir" ; \
     fi ; \
-    exec {{container_runtime}} run --rm -it "${mount_args[@]}" {{image}}
+    exec container run --rm -it "${mount_args[@]}" addr:local
