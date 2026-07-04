@@ -3,9 +3,54 @@ set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 default:
     @just --list
 
+# The container CLI used locally drops nested files from COPY ., so just builds
+# from a top-level source archive while leaving the committed Containerfile plain.
+
 # Build the local addr runtime image.
 build:
-    container build -f Containerfile -t addr:local .
+    @build_context="$(mktemp -d /tmp/addr-container-build.XXXXXX)" ; \
+    trap 'rm -rf "$build_context"' EXIT ; \
+    mkdir -p "$build_context/addr" ; \
+    rsync -a \
+        --exclude='.git/' \
+        --exclude='.agents/' \
+        --exclude='.codex/' \
+        --exclude='.github/' \
+        --exclude='.dockerignore' \
+        --exclude='.DS_Store' \
+        --exclude='.RData' \
+        --exclude='.Rhistory' \
+        --exclude='.Rproj.user/' \
+        --exclude='.Ruserdata' \
+        --exclude='*.Rcheck/' \
+        --exclude='*.tar.gz' \
+        --exclude='README.Rmd' \
+        --exclude='data-raw/' \
+        --exclude='diagrams/' \
+        --exclude='docs/' \
+        --exclude='inst.csv' \
+        --exclude='inst/doc/' \
+        --exclude='pkgdown/' \
+        --exclude='src/.cargo/' \
+        --exclude='src/addr.so' \
+        --exclude='src/entrypoint.o' \
+        --exclude='src/rust/target/' \
+        --exclude='target/' \
+        --exclude='NAD_r*.zip' \
+        --exclude='NAD_r*.gdb/' \
+        --exclude='inst/CAGISOpenDataSpring2024.gdb/' \
+        ./ "$build_context/addr/" ; \
+    tar -czf "$build_context/addr-source.tar.gz" -C "$build_context" addr ; \
+    rm -rf "$build_context/addr" ; \
+    awk ' \
+        $0 == "COPY . /tmp/addr" { \
+            print "COPY addr-source.tar.gz /tmp/build/addr-source.tar.gz" ; \
+            print "RUN mkdir -p /tmp/addr && tar -xzf /tmp/build/addr-source.tar.gz -C /tmp/addr --strip-components=1 && rm /tmp/build/addr-source.tar.gz" ; \
+            next ; \
+        } \
+        { print } \
+    ' Containerfile > "$build_context/Containerfile" ; \
+    container build -f "$build_context/Containerfile" -t addr:local "$build_context"
 
 # Run the local addr image with its default command.
 run:
