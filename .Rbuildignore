@@ -11,3 +11,4 @@
 ^diagrams$
 ^Containerfile$
 ^\.dockerignore$
+^Justfile$
