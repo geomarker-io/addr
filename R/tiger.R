@@ -7,15 +7,101 @@ tiger_download <- function(x, overwrite = FALSE) {
     "overwrite must be length one" = length(overwrite) == 1L,
     "overwrite must not be missing" = !is.na(overwrite)
   )
-  tiger_url <- paste0("ftp://ftp2.census.gov/geo/tiger/", x)
+  tiger_url <- tiger_download_url(x)
   dest <- file.path(tools::R_user_dir("addr", "data"), x)
   dir.create(dirname(dest), showWarnings = FALSE, recursive = TRUE)
   if (overwrite || !file.exists(dest)) {
-    tf <- tempfile()
-    utils::download.file(tiger_url, tf)
-    file.copy(tf, dest, overwrite = TRUE)
+    tiger_download_to_cache(tiger_url, dest)
   }
   return(dest)
+}
+
+tiger_download_url <- function(x) {
+  paste0("https://www2.census.gov/geo/tiger/", x)
+}
+
+tiger_download_to_cache <- function(url, dest) {
+  tf <- tempfile(fileext = ".zip")
+  on.exit(unlink(tf, force = TRUE), add = TRUE)
+
+  tryCatch(
+    {
+      tiger_download_file(url, tf)
+      ok <- file.copy(tf, dest, overwrite = TRUE)
+      if (!ok) {
+        stop("failed to move completed download into place", call. = FALSE)
+      }
+    },
+    error = function(e) {
+      stop(
+        tiger_download_failure_message(
+          url = url,
+          dest = dest,
+          error_message = conditionMessage(e)
+        ),
+        call. = FALSE
+      )
+    }
+  )
+
+  invisible(dest)
+}
+
+tiger_download_file <- function(
+  url,
+  dest,
+  download_file = utils::download.file
+) {
+  stopifnot(
+    "url must be a character vector" = is.character(url),
+    "url must be length one" = length(url) == 1L,
+    "url must not be missing" = !is.na(url),
+    "dest must be a character vector" = is.character(dest),
+    "dest must be length one" = length(dest) == 1L,
+    "dest must not be missing" = !is.na(dest)
+  )
+
+  status <- download_file(url, dest, mode = "wb")
+  if (
+    !is.numeric(status) ||
+      length(status) != 1L ||
+      is.na(status) ||
+      status != 0L
+  ) {
+    stop("download returned status ", tiger_status_text(status), call. = FALSE)
+  }
+
+  invisible(dest)
+}
+
+tiger_status_text <- function(status) {
+  if (length(status) == 0L) {
+    return("<empty>")
+  }
+  paste(status, collapse = ", ")
+}
+
+tiger_download_failure_message <- function(url, dest, error_message) {
+  stopifnot(
+    "url must be a character vector" = is.character(url),
+    "url must be length one" = length(url) == 1L,
+    "url must not be missing" = !is.na(url),
+    "dest must be a character vector" = is.character(dest),
+    "dest must be length one" = length(dest) == 1L,
+    "dest must not be missing" = !is.na(dest),
+    "error_message must be a character vector" = is.character(error_message),
+    "error_message must be length one" = length(error_message) == 1L,
+    "error_message must not be missing" = !is.na(error_message)
+  )
+
+  paste0(
+    "failed to download TIGER file from `",
+    url,
+    "` to `",
+    dest,
+    "`: ",
+    error_message
+  )
 }
 
 #' Get names for tiger street ranges
@@ -25,7 +111,8 @@ tiger_download <- function(x, overwrite = FALSE) {
 #' TIGER primary feature names are read from compressed feature-name databases
 #' for each county and Census vintage.
 #' If not already present, compressed addrfeat (address feature) shapefiles are
-#' downloaded from the Census FTP site to the addr user data directory.
+#' downloaded from the Census TIGER HTTPS endpoint to the addr user data
+#' directory.
 #'
 #' When reading into R, the data is filtered to addressable MTFCCs
 #' (S1100, S1200, S1400, S1640) that have a name.
@@ -106,7 +193,7 @@ tiger_feat_names <- function(county, year, redownload = FALSE) {
 #' TIGER address features (street address ranges) are read from compressed
 #' addrfeat (address feature) shapefiles for each county and Census vintage.
 #' If not already present, compressed addrfeat shapefiles are downloaded from
-#' the Census FTP site to the addr user data directory.
+#' the Census TIGER HTTPS endpoint to the addr user data directory.
 #'
 #' When reading into R, the data is converted to one row per street side
 #' (`L`/`R`) for use by `taf_install()`.

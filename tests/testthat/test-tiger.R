@@ -3,9 +3,122 @@ test_that("can download files from tiger", {
   skip_on_cran()
   withr::local_envvar(list("R_USER_DATA_DIR" = tempfile()))
   dl_file <- tiger_download(
-    "TIGER2024/INTERNATIONALBOUNDARY/tl_2024_us_internationalboundary.zip"
+    "TIGER2024/FEATNAMES/tl_2024_39061_featnames.zip"
   )
   expect_true(file.exists(dl_file))
+})
+
+test_that("tiger_download_file uses binary mode and checks download status", {
+  dest <- tempfile(fileext = ".zip")
+  url <- "https://example.test/file.zip"
+  download_args <- NULL
+
+  tiger_download_file(
+    url,
+    dest,
+    download_file = function(url, dest, mode) {
+      download_args <<- list(url = url, dest = dest, mode = mode)
+      writeBin(charToRaw("zip"), dest)
+      0L
+    }
+  )
+
+  expect_equal(download_args$url, url)
+  expect_equal(download_args$dest, dest)
+  expect_equal(download_args$mode, "wb")
+  expect_equal(rawToChar(readBin(dest, "raw", n = 3L)), "zip")
+
+  expect_error(
+    tiger_download_file(
+      url,
+      tempfile(fileext = ".zip"),
+      download_file = function(url, dest, mode) 7L
+    ),
+    "download returned status 7",
+    fixed = TRUE
+  )
+})
+
+test_that("tiger_download uses HTTPS TIGER endpoint", {
+  data_root <- tempfile()
+  withr::local_envvar(list("R_USER_DATA_DIR" = data_root))
+
+  tiger_path <- "TIGER2024/INTERNATIONALBOUNDARY/tl_2024_us_internationalboundary.zip"
+  expected_url <- paste0("https://www2.census.gov/geo/tiger/", tiger_path)
+  expected_dest <- file.path(tools::R_user_dir("addr", "data"), tiger_path)
+  download_args <- NULL
+
+  local_mocked_bindings(
+    tiger_download_file = function(url, dest) {
+      download_args <<- list(url = url, dest = dest)
+      writeBin(charToRaw("zip"), dest)
+      invisible(dest)
+    }
+  )
+
+  dl_file <- tiger_download(tiger_path)
+
+  expect_equal(dl_file, expected_dest)
+  expect_equal(download_args$url, expected_url)
+  expect_false(identical(download_args$dest, expected_dest))
+  expect_true(file.exists(expected_dest))
+  expect_equal(rawToChar(readBin(expected_dest, "raw", n = 3L)), "zip")
+})
+
+test_that("tiger_download reports failed URL and destination", {
+  data_root <- tempfile()
+  withr::local_envvar(list("R_USER_DATA_DIR" = data_root))
+
+  tiger_path <- "TIGER2024/INTERNATIONALBOUNDARY/tl_2024_us_internationalboundary.zip"
+  expected_url <- paste0("https://www2.census.gov/geo/tiger/", tiger_path)
+  expected_dest <- file.path(tools::R_user_dir("addr", "data"), tiger_path)
+  temp_dest <- NULL
+
+  local_mocked_bindings(
+    tiger_download_file = function(url, dest) {
+      temp_dest <<- dest
+      writeBin(charToRaw("partial"), dest)
+      stop("network broke", call. = FALSE)
+    }
+  )
+
+  expect_error(
+    tiger_download(tiger_path),
+    paste0(
+      "failed to download TIGER file from `",
+      expected_url,
+      "` to `",
+      expected_dest,
+      "`: network broke"
+    ),
+    fixed = TRUE
+  )
+  expect_false(file.exists(temp_dest))
+  expect_false(file.exists(expected_dest))
+})
+
+test_that("tiger_download reuses cached files without downloading", {
+  data_root <- tempfile()
+  withr::local_envvar(list("R_USER_DATA_DIR" = data_root))
+
+  tiger_path <- "TIGER2024/INTERNATIONALBOUNDARY/tl_2024_us_internationalboundary.zip"
+  expected_dest <- file.path(tools::R_user_dir("addr", "data"), tiger_path)
+  dir.create(dirname(expected_dest), recursive = TRUE, showWarnings = FALSE)
+  writeBin(charToRaw("cached"), expected_dest)
+  downloaded <- FALSE
+
+  local_mocked_bindings(
+    tiger_download_file = function(url, dest) {
+      downloaded <<- TRUE
+      stop("should not download", call. = FALSE)
+    }
+  )
+
+  dl_file <- tiger_download(tiger_path)
+
+  expect_equal(dl_file, expected_dest)
+  expect_false(downloaded)
+  expect_equal(rawToChar(readBin(expected_dest, "raw", n = 6L)), "cached")
 })
 
 test_that("tiger_addr_feat() can download addr feat from tiger", {

@@ -21,7 +21,7 @@ a tibble with \code{LINEARID}, \code{FULLNAME}, \code{side}, \code{ZIP},
 TIGER address features (street address ranges) are read from compressed
 addrfeat (address feature) shapefiles for each county and Census vintage.
 If not already present, compressed addrfeat shapefiles are downloaded from
-the Census FTP site to the addr user data directory.
+the Census TIGER HTTPS endpoint to the addr user data directory.
 
 When reading into R, the data is converted to one row per street side
 (\code{L}/\code{R}) for use by \code{taf_install()}.
