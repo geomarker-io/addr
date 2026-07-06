@@ -51,25 +51,29 @@ match by LINEARID. In these cases, street tags are parsed from the
 ADDRFEAT full name, and the \code{street_tag_parsed} column is set to TRUE.
 }
 \examples{
-Sys.setenv("R_USER_DATA_DIR" = tempfile())
-taf_install("39061", "2025")
+\dontrun{
+  Sys.setenv("R_USER_DATA_DIR" = tempfile())
+  taf_install("39061", "2025")
 
-if (requireNamespace("arrow", quietly = TRUE) &&
-  requireNamespace("dplyr", quietly = TRUE)) {
-  taf()
+  if (requireNamespace("arrow", quietly = TRUE) &&
+    requireNamespace("dplyr", quietly = TRUE)) {
+    taf()
 
-  # find top ten most frequent street name-posttype combinations
-  taf() |>
-    dplyr::group_by(street_name, street_posttype) |>
-    dplyr::summarize(
-      n_zips = dplyr::n_distinct(ZIP),
-      n_ranges = dplyr::n(),
-      .groups = "drop"
-    ) |>
-    dplyr::arrange(dplyr::desc(n_zips), dplyr::desc(n_ranges)) |>
-    dplyr::collect() |>
-    dplyr::slice(1:10)
+    # find top ten most frequent street name-posttype combinations
+    taf() |>
+      dplyr::group_by(street_name, street_posttype) |>
+      dplyr::summarize(
+        n_zips = dplyr::n_distinct(ZIP),
+        n_ranges = dplyr::n(),
+        .groups = "drop"
+      ) |>
+      dplyr::arrange(dplyr::desc(n_zips), dplyr::desc(n_ranges)) |>
+      dplyr::collect() |>
+      dplyr::slice(1:10)
+  }
 }
-Sys.setenv("R_USER_DATA_DIR" = tempfile())
-taf_install("39061", "2025")
+\dontrun{
+  Sys.setenv("R_USER_DATA_DIR" = tempfile())
+  taf_install("39061", "2025")
+}
 }

@@ -23,7 +23,7 @@ NULL
 #' @param ... additional arguments passed to methods
 #' @export
 #' @examples
-#' as_addr(voter_addresses()[1:1000])
+#' as_addr(voter_addresses()[1:25])
 #'
 #' data.frame(
 #'   number_digits = c("290", "200"),

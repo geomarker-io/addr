@@ -121,7 +121,9 @@ tiger_download_failure_message <- function(url, dest, error_message) {
 #' @returns a tibble with unique `LINEARID` and `addr` columns
 #' @export
 #' @examples
-#' tiger_feat_names("39061", "2025")
+#' \dontrun{
+#'   tiger_feat_names("39061", "2025")
+#' }
 tiger_feat_names <- function(county, year, redownload = FALSE) {
   stopifnot(
     "county must be a character vector" = is.character(county),
@@ -204,7 +206,9 @@ tiger_feat_names <- function(county, year, redownload = FALSE) {
 #' `FROMHN`, `TOHN`, `PARITY`, `OFFSET`, and `s2_geography` columns
 #' @export
 #' @examples
-#' tiger_addr_feat("39061", "2025")
+#' \dontrun{
+#'   tiger_addr_feat("39061", "2025")
+#' }
 tiger_addr_feat <- function(county, year, redownload = FALSE) {
   stopifnot(
     "county must be a character vector" = is.character(county),

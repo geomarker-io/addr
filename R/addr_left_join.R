@@ -21,11 +21,10 @@
 #'   street-only matches do not expand to multiple candidate rows in `y`.
 #' @export
 #' @examples
-#' the_addr <- nad("Hamilton", "OH",
-#'                 refresh_binary = "no", refresh_source = "no")
+#' the_addr <- nad_example_data()
 #' my_addr <- tibble::tibble(
-#'   addr = as_addr(voter_addresses()[1:100]),
-#'   id = 1:100
+#'   addr = as_addr(voter_addresses()[1:25]),
+#'   id = 1:25
 #' )
 #'
 #' d <- addr_left_join(

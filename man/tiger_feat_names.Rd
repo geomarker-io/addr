@@ -27,5 +27,7 @@ When reading into R, the data is filtered to addressable MTFCCs
 (S1100, S1200, S1400, S1640) that have a name.
 }
 \examples{
-tiger_feat_names("39061", "2025")
+\dontrun{
+  tiger_feat_names("39061", "2025")
+}
 }

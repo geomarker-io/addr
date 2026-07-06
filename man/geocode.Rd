@@ -150,32 +150,32 @@ reading TAF ZIP files so parallel geocoding workers do not try to download
 county files at the same time.
 }
 \examples{
-x <- as_addr(voter_addresses()[1:100])
-
-# for example purposes, only install one county
-Sys.setenv("R_USER_DATA_DIR" = tempfile())
-taf_install("39061", "2025")
-# and geocode without installing other counties
-gcd <- geocode(x, taf_install = FALSE)
-
-# this is only for example purposes and usually not required; e.g.
+x <- as_addr(voter_addresses()[1:25])
+taf_needed_counties(x)
 
 \dontrun{
+  # for example purposes, only install one county
+  Sys.setenv("R_USER_DATA_DIR" = tempfile())
+  taf_install("39061", "2025")
+  # and geocode without installing other counties
+  gcd <- geocode(x, taf_install = FALSE)
+
+  # this is only for example purposes and usually not required; e.g.
   gcd <- geocode(x)
+
+  gcd
+
+  table(geocode_stage(gcd))
+
+  geocode_table(gcd)
+
+  leaflet::leaflet(wk::wk_coords(gcd$matched_geography)) |>
+    leaflet::addTiles() |>
+    leaflet::addCircleMarkers(lng = ~x, lat = ~y, label = ~feature_id)
 }
 
-gcd
-
-table(geocode_stage(gcd))
-
-geocode_table(gcd)
-
-leaflet::leaflet(wk::wk_coords(gcd$matched_geography)) |>
-  leaflet::addTiles() |>
-  leaflet::addCircleMarkers(lng = ~x, lat = ~y, label = ~feature_id)
-
-# use mirai for parallel processing
 \dontrun{
+  # use mirai for parallel processing
   mirai::daemons(2)
   geocode(x)
   mirai::daemons(0)

@@ -121,7 +121,7 @@ addr_match(
   match_street_directional = "ignore"
 )
 
-my_addr <- as_addr(voter_addresses()[1:100])
+my_addr <- as_addr(voter_addresses()[1:25])
 
 d <- addr_match(my_addr, the_addr)
 d

@@ -363,7 +363,7 @@ addr_match_update_output <- function(out_df, x_idx, zip_out_df) {
 #'   match_street_directional = "ignore"
 #' )
 #'
-#' my_addr <- as_addr(voter_addresses()[1:100])
+#' my_addr <- as_addr(voter_addresses()[1:25])
 #'
 #' d <- addr_match(my_addr, the_addr)
 #' d
