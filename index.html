@@ -17,8 +17,8 @@
 <link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Clean, Parse, Harmonize, Match, and Geocode Messy Real-World US Addresses">
-<meta name="description" content="Clean, parses, standardize, match, and geocodes messy, real-world US addresses. Use the included `usaddress` library to tag address components and build addr vector objects composed of addr_part vectors for number, street, and place. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.">
-<meta property="og:description" content="Clean, parses, standardize, match, and geocodes messy, real-world US addresses. Use the included `usaddress` library to tag address components and build addr vector objects composed of addr_part vectors for number, street, and place. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.">
+<meta name="description" content="Cleans, parses, standardizes, matches, and geocodes messy, real-world US addresses. Uses the included usaddress library to tag address components and build addr vector objects composed of addr_part vectors for number, street, and place. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.">
+<meta property="og:description" content="Cleans, parses, standardizes, matches, and geocodes messy, real-world US addresses. Uses the included usaddress library to tag address components and build addr vector objects composed of addr_part vectors for number, street, and place. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.">
 <meta property="og:image" content="https://geomarker.io/addr/logo.svg">
 </head>
 <body>
@@ -77,8 +77,8 @@
 <p>Or, install the development version of addr from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
-<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"cole-brokamp/addr"</span><span class="op">)</span></span></code></pre></div>
-<p>Installing addr from GitHub requires a working <a href="https://www.rust-lang.org/learn/get-started" class="external-link">Rust</a> toolchain; install one using <a href="https://www.rust-lang.org/tools/install" class="external-link">rustup</a>.</p>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"geomarker-io/addr"</span><span class="op">)</span></span></code></pre></div>
+<p>Installing addr from GitHub requires a working <a href="https://rust-lang.org/learn/get-started/" class="external-link">Rust</a> toolchain; install one using <a href="https://rust-lang.org/tools/install/" class="external-link">rustup</a>.</p>
 <div class="section level3">
 <h3 id="container">Container<a class="anchor" aria-label="anchor" href="#container"></a>
 </h3>
@@ -183,7 +183,7 @@
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://CRAN.R-project.org/package=addr" class="external-link"><img src="https://www.r-pkg.org/badges/version/addr" alt="CRAN status"></a></li>
-<li><a href="https://github.com/cole-brokamp/addr/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/cole-brokamp/addr/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://github.com/geomarker-io/addr/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/geomarker-io/addr/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://lifecycle.r-lib.org/articles/stages.html#stable" class="external-link"><img src="https://img.shields.io/badge/lifecycle-stable-brightgreen.svg" alt="Lifecycle: stable"></a></li>
 <li><a href="https://geomarker-io.r-universe.dev/addr" class="external-link"><img src="https://geomarker-io.r-universe.dev/badges/addr" alt="r-universe"></a></li>
 </ul>
