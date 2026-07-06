@@ -35,8 +35,16 @@ RUN echo "options(repos = c(CRAN = 'https://p3m.dev/cran/__linux__/manylinux_2_2
 RUN R -q -e "install.packages(c('curl', 'jsonlite', 'mirai', 'nanoparquet', 'wk', 'proxy', 'e1071', 'classInt', 'DBI', 's2', 'S7', 'stringdist', 'tibble', 'units', 'vctrs', 'Rcpp'), Ncpus = 1)" \
     && R -q -e "install.packages('sf', repos = c(CRAN = 'https://cloud.r-project.org'), type = 'source', dependencies = FALSE, Ncpus = 1)"
 
+WORKDIR /tmp/addr
+COPY DESCRIPTION LICENSE NAMESPACE ./
+COPY R/ ./R/
+COPY inst/ ./inst/
+COPY man/ ./man/
+COPY src/entrypoint.c src/Makevars src/Makevars.ucrt src/Makevars.win src/addr-win.def ./src/
+COPY src/rust/Cargo.toml src/rust/Cargo.lock ./src/rust/
+COPY src/rust/src/ ./src/rust/src/
+
 WORKDIR /tmp/build
-COPY . /tmp/addr
 
 RUN R CMD build /tmp/addr --no-manual --no-build-vignettes \
     && R CMD INSTALL --clean addr_*.tar.gz \
