@@ -3,49 +3,46 @@ set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 default:
     @just --list
 
-# The container CLI used locally drops nested files from COPY ., so just builds
-# from a top-level source archive while leaving the committed Containerfile plain.
+# The local container CLI fails on this repo's live checkout context, so just
+# builds from a top-level source archive while leaving Containerfile plain.
 
 # Build the local addr runtime image.
 build:
     @build_context="$(mktemp -d /tmp/addr-container-build.XXXXXX)" ; \
     trap 'rm -rf "$build_context"' EXIT ; \
-    mkdir -p "$build_context/addr" ; \
-    rsync -a \
-        --exclude='.git/' \
-        --exclude='.agents/' \
-        --exclude='.codex/' \
-        --exclude='.github/' \
+    COPYFILE_DISABLE=1 tar --no-xattrs -czf "$build_context/addr-source.tar.gz" \
+        --exclude='.git' \
+        --exclude='.agents' \
+        --exclude='.codex' \
+        --exclude='.github' \
         --exclude='.dockerignore' \
         --exclude='.DS_Store' \
         --exclude='.RData' \
         --exclude='.Rhistory' \
-        --exclude='.Rproj.user/' \
+        --exclude='.Rproj.user' \
         --exclude='.Ruserdata' \
-        --exclude='*.Rcheck/' \
+        --exclude='*.Rcheck' \
         --exclude='*.tar.gz' \
         --exclude='README.Rmd' \
-        --exclude='data-raw/' \
-        --exclude='diagrams/' \
-        --exclude='docs/' \
+        --exclude='data-raw' \
+        --exclude='diagrams' \
+        --exclude='docs' \
         --exclude='inst.csv' \
-        --exclude='inst/doc/' \
-        --exclude='pkgdown/' \
-        --exclude='src/.cargo/' \
+        --exclude='inst/doc' \
+        --exclude='pkgdown' \
+        --exclude='src/.cargo' \
         --exclude='src/addr.so' \
         --exclude='src/entrypoint.o' \
-        --exclude='src/rust/target/' \
-        --exclude='target/' \
+        --exclude='src/rust/target' \
+        --exclude='target' \
         --exclude='NAD_r*.zip' \
-        --exclude='NAD_r*.gdb/' \
-        --exclude='inst/CAGISOpenDataSpring2024.gdb/' \
-        ./ "$build_context/addr/" ; \
-    tar -czf "$build_context/addr-source.tar.gz" -C "$build_context" addr ; \
-    rm -rf "$build_context/addr" ; \
+        --exclude='NAD_r*.gdb' \
+        --exclude='inst/CAGISOpenDataSpring2024.gdb' \
+        -C . . ; \
     awk ' \
         $0 == "COPY . /tmp/addr" { \
             print "COPY addr-source.tar.gz /tmp/build/addr-source.tar.gz" ; \
-            print "RUN mkdir -p /tmp/addr && tar -xzf /tmp/build/addr-source.tar.gz -C /tmp/addr --strip-components=1 && rm /tmp/build/addr-source.tar.gz" ; \
+            print "RUN mkdir -p /tmp/addr && tar -xzf /tmp/build/addr-source.tar.gz -C /tmp/addr && rm /tmp/build/addr-source.tar.gz" ; \
             next ; \
         } \
         { print } \
