@@ -8,5 +8,5 @@ crate-type = [ 'staticlib' ]
 name = 'addr'
 
 [dependencies]
-extendr-api = '*'
-usaddress = { version = "0.1"}
+extendr-api = '=0.7.1'
+usaddress = '=0.1.0'

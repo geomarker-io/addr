@@ -1,0 +1,45 @@
+#!/bin/sh
+
+set -eu
+
+min_major=1
+min_minor=65
+
+if [ -n "${HOME:-}" ] && [ -d "$HOME/.cargo/bin" ]; then
+  PATH="$PATH:$HOME/.cargo/bin"
+  export PATH
+fi
+
+check_tool() {
+  tool="$1"
+  path="$(command -v "$tool" || true)"
+
+  if [ -z "$path" ]; then
+    echo "configure.win: error: required command '$tool' was not found." >&2
+    echo "Install Rust with rustup from https://rustup.rs/ or make sure cargo and rustc are available on PATH." >&2
+    exit 1
+  fi
+
+  version_output="$("$path" --version 2>&1 || true)"
+  echo "configure.win: $tool: $version_output"
+  echo "configure.win: $tool path: $path"
+
+  parsed="$(printf '%s\n' "$version_output" | sed -n 's/^[^0-9]*\([0-9][0-9]*\)\.\([0-9][0-9]*\).*/\1 \2/p' | sed -n '1p')"
+  if [ -z "$parsed" ]; then
+    echo "configure.win: error: could not parse '$tool --version' output." >&2
+    exit 1
+  fi
+
+  set -- $parsed
+  major="$1"
+  minor="$2"
+
+  if [ "$major" -lt "$min_major" ] || { [ "$major" -eq "$min_major" ] && [ "$minor" -lt "$min_minor" ]; }; then
+    echo "configure.win: error: $tool >= ${min_major}.${min_minor} is required; found $version_output." >&2
+    echo "Install a newer Rust toolchain with rustup from https://rustup.rs/." >&2
+    exit 1
+  fi
+}
+
+check_tool cargo
+check_tool rustc

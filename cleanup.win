@@ -1,0 +1,3 @@
+#!/bin/sh
+
+rm -Rf src/rust/vendor src/rust/target src/rust/cargo-home src/rust/.cargo src/.cargo src/*.o src/*.so src/*.dll

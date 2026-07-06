@@ -8,6 +8,7 @@ Description: Cleans, parses, standardizes, matches, and geocodes messy, real-wor
 URL: https://github.com/geomarker-io/addr/, https://geomarker.io/addr/
 BugReports: https://github.com/geomarker-io/addr/issues/
 License: MIT + file LICENSE
+Copyright: See file inst/COPYRIGHTS for vendored Rust crate copyright information.
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
@@ -31,7 +32,7 @@ Imports:
     stringdist,
     tibble,
     vctrs
-SystemRequirements: Cargo (Rust's package manager), rustc
+SystemRequirements: Cargo (>= 1.65), rustc (>= 1.65)
 Config/testthat/edition: 3
 Depends: 
     R (>= 4.0.0)

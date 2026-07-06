@@ -1,0 +1,113 @@
+Vendored Rust crate copyright information
+=========================================
+
+The addr package vendors Rust crate sources for reproducible offline builds.
+The vendored sources are distributed as src/rust/vendor.tar.xz. Upstream
+license files, notices, and Cargo package metadata are preserved in that
+archive.
+
+The following Rust crates are included in the vendored dependency archive:
+
+Package: aho-corasick 1.1.3
+License: Unlicense OR MIT
+Authors: Andrew Gallant <jamslam@gmail.com>
+
+Package: array-init 2.1.0
+License: MIT OR Apache-2.0
+Authors: Manish Goregaokar <manishsmail@gmail.com>; Michal 'vorner' Vaner <vorner@vorner.cz>
+
+Package: bitflags 1.3.2
+License: MIT/Apache-2.0
+Authors: The Rust Project Developers
+
+Package: bstr 0.2.17
+License: MIT OR Apache-2.0
+Authors: Andrew Gallant <jamslam@gmail.com>
+
+Package: bstr 1.10.0
+License: MIT OR Apache-2.0
+Authors: Andrew Gallant <jamslam@gmail.com>
+
+Package: cqdb 0.5.8
+License: MIT
+Authors: messense <messense@icloud.com>
+
+Package: crfs 0.1.3
+License: MIT
+Authors: messense <messense@icloud.com>
+
+Package: extendr-api 0.7.1
+License: MIT
+Authors: andy-thomason <andy@andythomason.com>; Thomas Down; Mossa Merhi Reimert <mossa@sund.ku.dk>; Claus O. Wilke <wilke@austin.utexas.edu>; Hiroaki Yutani; Ilia A. Kosenkov <ilia.kosenkov@outlook.com>; Michael Milton <michael.r.milton@gmail.com>
+
+Package: extendr-macros 0.7.1
+License: MIT
+Authors: andy-thomason <andy@andythomason.com>; Thomas Down; Mossa Merhi Reimert <mossa@sund.ku.dk>; Claus O. Wilke <wilke@austin.utexas.edu>; Hiroaki Yutani; Ilia A. Kosenkov <ilia.kosenkov@outlook.com>; Michael Milton <michael.r.milton@gmail.com>
+
+Package: jhash 0.1.1
+License: BSD-3-Clause
+Authors: Keunhong Lee <dlrmsghd@gmail.com>
+
+Package: lazy_static 1.5.0
+License: MIT OR Apache-2.0
+Authors: Marvin Lobel <loebel.marvin@gmail.com>
+
+Package: libR-sys 0.7.1
+License: MIT
+Authors: andy-thomason <andy@andythomason.com>; Thomas Down; Mossa Merhi Reimert <mossa@sund.ku.dk>; Claus O. Wilke <wilke@austin.utexas.edu>; Ilia A. Kosenkov <ilia.kosenkov@outlook.com>; Hiroaki Yutani
+
+Package: memchr 2.7.4
+License: Unlicense OR MIT
+Authors: Andrew Gallant <jamslam@gmail.com>; bluss
+
+Package: once_cell 1.19.0
+License: MIT OR Apache-2.0
+Authors: Aleksey Kladov <aleksey.kladov@gmail.com>
+
+Package: paste 1.0.15
+License: MIT OR Apache-2.0
+Authors: David Tolnay <dtolnay@gmail.com>
+
+Package: proc-macro2 1.0.86
+License: MIT OR Apache-2.0
+Authors: David Tolnay <dtolnay@gmail.com>; Alex Crichton <alex@alexcrichton.com>
+
+Package: quote 1.0.37
+License: MIT OR Apache-2.0
+Authors: David Tolnay <dtolnay@gmail.com>
+
+Package: regex 1.10.6
+License: MIT OR Apache-2.0
+Authors: The Rust Project Developers; Andrew Gallant <jamslam@gmail.com>
+
+Package: regex-automata 0.1.10
+License: Unlicense/MIT
+Authors: Andrew Gallant <jamslam@gmail.com>
+
+Package: regex-automata 0.4.7
+License: MIT OR Apache-2.0
+Authors: The Rust Project Developers; Andrew Gallant <jamslam@gmail.com>
+
+Package: regex-syntax 0.8.4
+License: MIT OR Apache-2.0
+Authors: The Rust Project Developers; Andrew Gallant <jamslam@gmail.com>
+
+Package: serde 1.0.210
+License: MIT OR Apache-2.0
+Authors: Erick Tryzelaar <erick.tryzelaar@gmail.com>; David Tolnay <dtolnay@gmail.com>
+
+Package: serde_derive 1.0.210
+License: MIT OR Apache-2.0
+Authors: Erick Tryzelaar <erick.tryzelaar@gmail.com>; David Tolnay <dtolnay@gmail.com>
+
+Package: syn 2.0.77
+License: MIT OR Apache-2.0
+Authors: David Tolnay <dtolnay@gmail.com>
+
+Package: unicode-ident 1.0.12
+License: (MIT OR Apache-2.0) AND Unicode-DFS-2016
+Authors: David Tolnay <dtolnay@gmail.com>
+
+Package: usaddress 0.1.0
+License: Apache-2.0
+Authors: Boyd Johnson johnson.boyd@gmail.com
