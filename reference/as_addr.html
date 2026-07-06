@@ -76,23 +76,23 @@ the <code>map_*</code> arguments to <code><a href="addr.html">addr_street()</a><
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">as_addr</span><span class="op">(</span><span class="fu"><a href="voter_addresses.html">voter_addresses</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">1000</span><span class="op">]</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">as_addr</span><span class="op">(</span><span class="fu"><a href="voter_addresses.html">voter_addresses</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">25</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;addr&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ number: &lt;addr_number&gt; function ()  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ prefix: chr [1:1000] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ digits: chr [1:1000] "3359" "1040" "9960" "413" "8519" "6361" "10466" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ suffix: chr [1:1000] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ prefix: chr [1:25] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ digits: chr [1:25] "3359" "1040" "9960" "413" "8519" "6361" "10466" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ suffix: chr [1:25] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ street: &lt;addr_street&gt; function ()  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ predirectional : chr [1:1000] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ premodifier    : chr [1:1000] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ pretype        : chr [1:1000] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name           : chr [1:1000] "QUEEN CITY" "KREIS" "DALY" "VOLKERT" "LINDERWOOD" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr [1:1000] "Ave" "Ln" "Rd" "Pl" "Ln" "Ave" "Ln" "Cir" "Ave" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ postdirectional: chr [1:1000] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ predirectional : chr [1:25] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ premodifier    : chr [1:25] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ pretype        : chr [1:25] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name           : chr [1:25] "QUEEN CITY" "KREIS" "DALY" "VOLKERT" "LINDERWOOD" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr [1:25] "Ave" "Ln" "Rd" "Pl" "Ln" "Ave" "Ln" "Cir" "Ave" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ postdirectional: chr [1:25] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ place : &lt;addr_place&gt; function ()  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr [1:1000] "CINCINNATI" "CINCINNATI" "CINCINNATI" "CINCINNATI" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ state  : chr [1:1000] "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ zipcode: chr [1:1000] "45238" "45205" "45231" "45219" "45255" "45230" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr [1:25] "CINCINNATI" "CINCINNATI" "CINCINNATI" "CINCINNATI" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ state  : chr [1:25] "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ zipcode: chr [1:25] "45238" "45205" "45231" "45219" "45255" "45230" ...</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  number_digits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"290"</span>, <span class="st">"200"</span><span class="op">)</span>,</span></span>

@@ -149,11 +149,10 @@ street-only matches do not expand to multiple candidate rows in <code>y</code>.<
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">the_addr</span> <span class="op">&lt;-</span> <span class="fu"><a href="nad.html">nad</a></span><span class="op">(</span><span class="st">"Hamilton"</span>, <span class="st">"OH"</span>,</span></span>
-<span class="r-in"><span>                refresh_binary <span class="op">=</span> <span class="st">"no"</span>, refresh_source <span class="op">=</span> <span class="st">"no"</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">the_addr</span> <span class="op">&lt;-</span> <span class="fu"><a href="nad_example_data.html">nad_example_data</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">my_addr</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  addr <span class="op">=</span> <span class="fu"><a href="as_addr.html">as_addr</a></span><span class="op">(</span><span class="fu"><a href="voter_addresses.html">voter_addresses</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span><span class="op">]</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">100</span></span></span>
+<span class="r-in"><span>  addr <span class="op">=</span> <span class="fu"><a href="as_addr.html">as_addr</a></span><span class="op">(</span><span class="fu"><a href="voter_addresses.html">voter_addresses</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">25</span><span class="op">]</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">25</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu">addr_left_join</span><span class="op">(</span></span></span>
@@ -164,7 +163,7 @@ street-only matches do not expand to multiple candidate rows in <code>y</code>.<
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">d</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 111 × 9</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 25 × 9</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    addr            id nad_addr.y subaddress uuid  date_update s2    address_type</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;addr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;addr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;s2_&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 3359 QUEEN …     1 3359 QUEE… <span style="color: #BB0000;">NA</span>         {E3A… 2025-03-30  -6.7… Unknown     </span>
@@ -177,7 +176,7 @@ street-only matches do not expand to multiple candidate rows in <code>y</code>.<
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> 3156 LOOKOU…     8 3156 LOOK… <span style="color: #BB0000;">NA</span>         {AE8… 2025-03-30  -6.6… Unknown     </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 310 WYOMING…     9 310 WYOMI… <span style="color: #BB0000;">NA</span>         {331… 2025-03-30  -6.1… Unknown     </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 118 SPRINGF…    10 118 SPRIN… <span style="color: #BB0000;">NA</span>         {F3E… 2025-03-30  -6.1… Unknown     </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 101 more rows</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 15 more rows</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 1 more variable: parcel_id &lt;chr&gt;</span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># some addresses may match with more than one address in NAD</span></span></span>
@@ -187,7 +186,7 @@ street-only matches do not expand to multiple candidate rows in <code>y</code>.<
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu"><a href="addr_match_stage.html">addr_match_stage</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">nad_addr.y</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html" class="external-link">duplicated</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">id</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   none    zip street number </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     11      0      0     89 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      1      0      0     24 </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

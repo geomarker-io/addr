@@ -207,15 +207,15 @@ and/or street fields filled when later stages do not match.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;addr&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ number: &lt;addr_number&gt; function ()  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ prefix: chr [1:7] "" "" "" "" "" "" NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ digits: chr [1:7] "2700" "10623" "173" "12176" "12176" "10" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ digits: chr [1:7] "2700" "10623" "173" "12176" "12176" "13" NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ suffix: chr [1:7] "" "" "" "" "" "" NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ street: &lt;addr_street&gt; function ()  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ predirectional : chr [1:7] "" "" "" "" "" "W" ""</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ premodifier    : chr [1:7] "" "" "" "" "" "" ""</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ pretype        : chr [1:7] "" "" "" "" "" "" ""</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name           : chr [1:7] "ALICE" "SPRINGFIELD" "WOOLPER" "7TH" "7TH" "14TH" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr [1:7] "St" "Pike" "Ave" "Ave" "Ave" "St" "Rd"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ postdirectional: chr [1:7] "" "" "" "" "" "" ""</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ predirectional : chr [1:7] "" "" "" "" "" "W" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ premodifier    : chr [1:7] "" "" "" "" "" "" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ pretype        : chr [1:7] "" "" "" "" "" "" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name           : chr [1:7] "ALICE" "SPRINGFIELD" "WOOLPER" "7TH" "7TH" "12TH" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr [1:7] "St" "Pike" "Ave" "Ave" "Ave" "St" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ postdirectional: chr [1:7] "" "" "" "" "" "" NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ place : &lt;addr_place&gt; function ()  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr [1:7] "CINCINNATI" "CINCINNATI" "CINCINNATI" "CINCINNATI" ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ state  : chr [1:7] "OH" "OH" "OH" "OH" "OH" "OH" NA</span>
@@ -233,53 +233,46 @@ and/or street fields filled when later stages do not match.</p>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;addr&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ number: &lt;addr_number&gt; function ()  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ prefix: chr [1:7] NA NA "" NA NA "" NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ digits: chr [1:7] NA NA "173" NA NA "10" NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ suffix: chr [1:7] NA NA "" NA NA "" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ prefix: chr [1:7] NA NA "" NA NA NA NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ digits: chr [1:7] NA NA "173" NA NA NA NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ suffix: chr [1:7] NA NA "" NA NA NA NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ street: &lt;addr_street&gt; function ()  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ predirectional : chr [1:7] NA NA "" NA NA "W" ""</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ premodifier    : chr [1:7] NA NA "" NA NA "" ""</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ pretype        : chr [1:7] NA NA "" NA NA "" ""</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name           : chr [1:7] NA NA "WOOLPER" NA NA "14TH" "OAK"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr [1:7] NA NA "Ave" NA NA "St" "St"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ postdirectional: chr [1:7] NA NA "" NA NA "" ""</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ predirectional : chr [1:7] NA NA "" NA NA "E" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ premodifier    : chr [1:7] NA NA "" NA NA "" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ pretype        : chr [1:7] NA NA "" NA NA "" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name           : chr [1:7] NA NA "WOOLPER" NA NA "14TH" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr [1:7] NA NA "Ave" NA NA "St" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ postdirectional: chr [1:7] NA NA "" NA NA "" NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ place : &lt;addr_place&gt; function ()  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr [1:7] NA NA "CINCINNATI" NA NA "CINCINNATI" NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ state  : chr [1:7] NA NA "OH" NA NA "OH" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr [1:7] NA NA "CINCINNATI" NA NA NA NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ state  : chr [1:7] NA NA "OH" NA NA NA NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ zipcode: chr [1:7] NA "45215" "45220" "45249" "45249" "45202" "45241"</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">my_addr</span> <span class="op">&lt;-</span> <span class="fu"><a href="as_addr.html">as_addr</a></span><span class="op">(</span><span class="fu"><a href="voter_addresses.html">voter_addresses</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">my_addr</span> <span class="op">&lt;-</span> <span class="fu"><a href="as_addr.html">as_addr</a></span><span class="op">(</span><span class="fu"><a href="voter_addresses.html">voter_addresses</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">25</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu">addr_match</span><span class="op">(</span><span class="va">my_addr</span>, <span class="va">the_addr</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">d</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;addr&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ number: &lt;addr_number&gt; function ()  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ prefix: chr [1:100] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ digits: chr [1:100] "3359" "1040" "9960" "413" "8519" "6361" "10466" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ suffix: chr [1:100] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ prefix: chr [1:25] "" "" "" "" "" "" "" "" "" "" "" NA "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ digits: chr [1:25] "3359" "1040" "9960" "413" "8519" "6361" "10466" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ suffix: chr [1:25] "" "" "" "" "" "" "" "" "" "" "" NA "" "" "" "" "" "" ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ street: &lt;addr_street&gt; function ()  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ predirectional : chr [1:100] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ premodifier    : chr [1:100] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ pretype        : chr [1:100] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name           : chr [1:100] "QUEEN CITY" "KREIS" "DALY" "VOLKERT" "LINDERWOOD" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr [1:100] "Ave" "Ln" "Rd" "Pl" "Ln" "Ave" "Ln" "Cir" "Ave" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ postdirectional: chr [1:100] "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ predirectional : chr [1:25] "" "" "" "" "" "" "" "" "" "" "" NA "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ premodifier    : chr [1:25] "" "" "" "" "" "" "" "" "" "" "" NA "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ pretype        : chr [1:25] "" "" "" "" "" "" "" "" "" "" "" NA "" "" "" "" "" "" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name           : chr [1:25] "QUEEN CITY" "KREIS" "DALY" "VOLKERT" "LINDERWOOD" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr [1:25] "Ave" "Ln" "Rd" "Pl" "Ln" "Ave" "Ln" "Cir" "Ave" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ postdirectional: chr [1:25] "" "" "" "" "" "" "" "" "" "" "" NA "" "" "" "" "" "" ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ place : &lt;addr_place&gt; function ()  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr [1:100] "CINCINNATI" "CINCINNATI" "CINCINNATI" "CINCINNATI" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ state  : chr [1:100] "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ zipcode: chr [1:100] "45238" "45205" "45231" "45219" "45255" "45230" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr [1:25] "CINCINNATI" "CINCINNATI" "CINCINNATI" "CINCINNATI" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ state  : chr [1:25] "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" "OH" ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ zipcode: chr [1:25] "45238" "45205" "45231" "45219" "45255" "45230" ...</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="addr_match_stage.html">addr_match_stage</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   [1] number number number number number number number number number number</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [11] number number number number number number number number number number</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [21] number number number number number number number number number number</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [31] number number number number number number number zip    number number</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [41] number number number number number number number number number number</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [51] number number number number number number number number number number</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [61] number street number number number zip    street number number number</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [71] number number number number zip    street zip    number number number</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [81] street number number number number number zip    number zip    number</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [91] street number number number number number number number number number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] number number number number number number number number number number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [11] number zip    number number number number number number number number</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [21] number number number number number</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Levels: none &lt; zip &lt; street &lt; number</span>
 </code></pre></div>
     </div>

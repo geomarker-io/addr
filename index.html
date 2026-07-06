@@ -128,7 +128,7 @@
 <h4 id="national-address-database">National Address Database<a class="anchor" aria-label="anchor" href="#national-address-database"></a>
 </h4>
 <p><code><a href="reference/nad.html">nad()</a></code> reads county-level address points from the U.S. Department of Transportation National Address Database. Counties can be requested by county name plus state, such as <code>"Hamilton", "OH"</code>, or by 5-digit county FIPS code, such as <code>"39061"</code>.</p>
-<p>The nationwide NAD geodatabase is large and county-based extracts are computationally expensive, so addr caches derived county data in the R user cache directory. The package also includes <code><a href="reference/nad_example_data.html">nad_example_data()</a></code> for Hamilton County, Ohio, which is useful for examples, tests, and matching workflows that should run without downloading the full NAD source first.</p>
+<p>The nationwide NAD geodatabase is large and county-based extracts are computationally expensive, so addr caches derived county data in the R user cache directory. The package also includes <code><a href="reference/nad_example_data.html">nad_example_data()</a></code>, a small baked fixture derived from Hamilton County, Ohio. Use it for examples, tests, and matching workflows that should run without downloading NAD source data first; use <code>nad("Hamilton", "OH")</code> when you need complete Hamilton County data.</p>
 </div>
 </div>
 <div class="section level3">
