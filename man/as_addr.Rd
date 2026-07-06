@@ -35,7 +35,7 @@ the \verb{map_*} arguments to \code{addr_street()} and \code{addr_place()}
 }
 
 \examples{
-as_addr(voter_addresses()[1:1000])
+as_addr(voter_addresses()[1:25])
 
 data.frame(
   number_digits = c("290", "200"),

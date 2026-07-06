@@ -209,16 +209,16 @@ test_that("addr_match works with packaged prepared example data", {
   y <- nad_example_data(match_prepared = TRUE)
   out <- addr_match(x, y, progress = FALSE)
   stage <- addr_match_stage(out)
-  expect_equal(sum(!is.na(out@number)), 89)
-  expect_equal(sum(!is.na(out@street)), 94)
+  expect_equal(sum(!is.na(out@number)), 86)
+  expect_equal(sum(!is.na(out@street)), 86)
   expect_equal(sum(!is.na(out@place@zipcode)), 100)
   expect_equal(
     as.integer(table(stage)),
-    c(0L, 6L, 5L, 89L)
+    c(0L, 14L, 0L, 86L)
   )
   expect_true(inherits(out, "addr"))
   expect_length(out, 100L)
-  expect_equal(sum(!is.na(out)), 89)
+  expect_equal(sum(!is.na(out)), 86)
   expect_equal(
     format(out[1:10]),
     c(

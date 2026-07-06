@@ -27,5 +27,7 @@ When reading into R, the data is converted to one row per street side
 (\code{L}/\code{R}) for use by \code{taf_install()}.
 }
 \examples{
-tiger_addr_feat("39061", "2025")
+\dontrun{
+  tiger_addr_feat("39061", "2025")
+}
 }

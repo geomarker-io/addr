@@ -1,12 +1,21 @@
-test_that("nad() uses included cached object for Hamilton, OH", {
+test_that("nad() requires a cached binary when refresh_binary is no", {
   withr::local_envvar(list("R_USER_DATA_DIR" = tempfile()))
-  d <- nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no")
-  expect_s3_class(d, "data.frame")
-  d_fips <- nad("39061", refresh_source = "no", refresh_binary = "no")
-  expect_s3_class(d_fips, "data.frame")
 
-  nad("Haimlton", "OH", refresh_source = "no", refresh_binary = "no") |>
-    expect_error("was not found in `OH`")
+  expect_error(
+    nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no"),
+    "does not exist; set `refresh_binary = 'yes'`",
+    fixed = TRUE
+  )
+  expect_error(
+    nad("39061", refresh_source = "no", refresh_binary = "no"),
+    "does not exist; set `refresh_binary = 'yes'`",
+    fixed = TRUE
+  )
+  expect_error(
+    nad("Haimlton", "OH", refresh_source = "no", refresh_binary = "no"),
+    "was not found in `OH`",
+    fixed = TRUE
+  )
 })
 
 test_that("nad() read from gdb on disk", {

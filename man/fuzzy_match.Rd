@@ -41,7 +41,7 @@ matches
 
 lapply(matches, \(i) the_names[i])
 
-x <- as_addr(voter_addresses()[1:100])@street@name
+x <- as_addr(voter_addresses()[1:25])@street@name
 y <- unique(nad_example_data()$nad_addr@street@name)
 system.time(fuzzy_match(x, y))
 # larger vectors see a speedup when using

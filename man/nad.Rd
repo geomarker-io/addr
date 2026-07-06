@@ -98,9 +98,6 @@ Addresses with malformed ZIP codes are removed.
   nad("39017")
 }
 
-# example data preloaded for Hamilton County, OH
-# works without downloading NAD gdb first
-Sys.setenv(R_USER_DATA_DIR = tempfile())
-nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no")
-nad("39061", refresh_source = "no", refresh_binary = "no")
+# small packaged fixture derived from Hamilton County, OH
+nad_example_data()
 }

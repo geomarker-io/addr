@@ -66,11 +66,8 @@
 #'   nad("39017")
 #' }
 #'
-#' # example data preloaded for Hamilton County, OH
-#' # works without downloading NAD gdb first
-#' Sys.setenv(R_USER_DATA_DIR = tempfile())
-#' nad("Hamilton", "OH", refresh_source = "no", refresh_binary = "no")
-#' nad("39061", refresh_source = "no", refresh_binary = "no")
+#' # small packaged fixture derived from Hamilton County, OH
+#' nad_example_data()
 nad <- function(
   county,
   state = NULL,
@@ -107,13 +104,6 @@ nad <- function(
     state = county_info$state,
     version = version
   )
-  if (
-    county_info$county_fips == "39061" &&
-      !file.exists(nad_sd) &&
-      refresh_binary == "no"
-  ) {
-    return(nad_example_data(match_prepared = FALSE))
-  }
   if (!file.exists(nad_sd) || refresh_binary == "force") {
     if (refresh_binary == "no") {
       stop(
