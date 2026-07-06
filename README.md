@@ -4,7 +4,7 @@
 
 [![CRAN
 status](https://www.r-pkg.org/badges/version/addr)](https://CRAN.R-project.org/package=addr)
-[![R-CMD-check](https://github.com/cole-brokamp/addr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/cole-brokamp/addr/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/geomarker-io/addr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/geomarker-io/addr/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle:
 stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![r-universe](https://geomarker-io.r-universe.dev/badges/addr)](https://geomarker-io.r-universe.dev/addr)
@@ -36,10 +36,10 @@ Or, install the development version of addr from [GitHub](https://github.com/) w
 
 ```r
 # install.packages("pak")
-pak::pak("cole-brokamp/addr")
+pak::pak("geomarker-io/addr")
 ```
 
-Installing addr from GitHub requires a working [Rust](https://www.rust-lang.org/learn/get-started) toolchain; install one using [rustup](https://www.rust-lang.org/tools/install).
+Installing addr from GitHub requires a working [Rust](https://rust-lang.org/learn/get-started/) toolchain; install one using [rustup](https://rust-lang.org/tools/install/).
 
 ### Container
 

@@ -86,21 +86,21 @@ Address Data Standard that is relevant for residential, numbered thoroughfare
 addresses:
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{  Address
-   ├─ AddressNumber
-   │  ├─ AddressNumberPrefix
-   │  ├─ AddressNumber
-   │  ├─ AddressNumberSuffix
-   ├─ StreetName
-   │  ├─ StreetNamePreModifier
-   │  ├─ StreetNamePreDirectional
-   │  ├─ StreetNamePreType
-   │  ├─ StreetName
-   │  ├─ StreetNamePostType
-   │  └─ StreetNamePostDirectional
-   └─ Place
-      ├─ PlaceName
-      ├─ StateName
-      └─ ZipCode
+   +-- AddressNumber
+   |   +-- AddressNumberPrefix
+   |   +-- AddressNumber
+   |   +-- AddressNumberSuffix
+   +-- StreetName
+   |   +-- StreetNamePreModifier
+   |   +-- StreetNamePreDirectional
+   |   +-- StreetNamePreType
+   |   +-- StreetName
+   |   +-- StreetNamePostType
+   |   +-- StreetNamePostDirectional
+   +-- Place
+       +-- PlaceName
+       +-- StateName
+       +-- ZipCode
 }\if{html}{\out{</div>}}
 
 \code{addr()} combines \code{addr_number()}, \code{addr_street()}, and \code{addr_place()} into a

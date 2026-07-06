@@ -4,7 +4,7 @@ Version: 1.1.0.9000
 Authors@R: 
     c(person("Cole", "Brokamp", email = "cole@colebrokamp.com", role = c("aut", "cre")),
       person("Erika", "Manning", role = c("aut")))
-Description: Clean, parses, standardize, match, and geocodes messy, real-world US addresses. Use the included `usaddress` library to tag address components and build addr vector objects composed of addr_part vectors for number, street, and place. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures. 
+Description: Cleans, parses, standardizes, matches, and geocodes messy, real-world US addresses. Uses the included usaddress library to tag address components and build addr vector objects composed of addr_part vectors for number, street, and place. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.
 URL: https://github.com/geomarker-io/addr/, https://geomarker.io/addr/
 BugReports: https://github.com/geomarker-io/addr/issues/
 License: MIT + file LICENSE

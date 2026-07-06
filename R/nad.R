@@ -3,8 +3,8 @@
 #' @description
 #' The U.S. Department of Transportation partners with address programs from
 #' state, local, and tribal governments to compile their authoritative data
-#' into a database. Find more information here:
-#' <https://www.transportation.gov/gis/national-address-database>
+#' into a database. Find more information in the source data portal:
+#' <https://data.transportation.gov/d/yw36-suxr>
 #'
 #' `nad_read()` reads data from the NAD geodatabase by county,
 #' using source data already downloaded with `nad_download()` or downloading
@@ -45,10 +45,8 @@
 #' If the download cannot complete, `nad_download()` will also work with a
 #' NAD ZIP file that was downloaded another way and placed where
 #' `tools::R_user_dir("addr", "data")` can find it.
-#' For the original schema, see
-#' <https://www.transportation.gov/sites/dot.gov/files/2023-07/NAD_Schema_202304.pdf>
-#' Before downloading, please read the disclaimer here:
-#' <https://www.transportation.gov/mission/open/gis/national-address-database/national-address-database-nad-disclaimer>
+#' Before downloading, review the source metadata and disclaimer in the data
+#' portal.
 #'
 #' Investigate individual address points in the online viewer:
 #' <https://usdot.maps.arcgis.com/apps/instant/portfolio/index.html?appid=59f7e4fb71994d13b61f424e21a6cffe>

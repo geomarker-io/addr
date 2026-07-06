@@ -11,21 +11,21 @@ NULL
 #'
 #' ```
 #'   Address
-#'    ├─ AddressNumber
-#'    │  ├─ AddressNumberPrefix
-#'    │  ├─ AddressNumber
-#'    │  ├─ AddressNumberSuffix
-#'    ├─ StreetName
-#'    │  ├─ StreetNamePreModifier
-#'    │  ├─ StreetNamePreDirectional
-#'    │  ├─ StreetNamePreType
-#'    │  ├─ StreetName
-#'    │  ├─ StreetNamePostType
-#'    │  └─ StreetNamePostDirectional
-#'    └─ Place
-#'       ├─ PlaceName
-#'       ├─ StateName
-#'       └─ ZipCode
+#'    +-- AddressNumber
+#'    |   +-- AddressNumberPrefix
+#'    |   +-- AddressNumber
+#'    |   +-- AddressNumberSuffix
+#'    +-- StreetName
+#'    |   +-- StreetNamePreModifier
+#'    |   +-- StreetNamePreDirectional
+#'    |   +-- StreetNamePreType
+#'    |   +-- StreetName
+#'    |   +-- StreetNamePostType
+#'    |   +-- StreetNamePostDirectional
+#'    +-- Place
+#'        +-- PlaceName
+#'        +-- StateName
+#'        +-- ZipCode
 #' ```
 #'`addr()` combines `addr_number()`, `addr_street()`, and `addr_place()` into a
 #' single addr vector:
