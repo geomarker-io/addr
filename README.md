@@ -41,6 +41,26 @@ pak::pak("cole-brokamp/addr")
 
 Installing addr from GitHub requires a working [Rust](https://www.rust-lang.org/learn/get-started) toolchain; install one using [rustup](https://www.rust-lang.org/tools/install).
 
+### Container
+
+An OCI-compatible runtime image with R and addr installed is published to the GitHub Container Registry:
+
+```sh
+docker pull ghcr.io/geomarker-io/addr:latest
+docker run --rm -it ghcr.io/geomarker-io/addr:latest
+```
+
+The image does not include or pre-install TIGER/Line or National Address Database data.
+Runtime data uses the standard addr user data directory under `/opt/addr-data/R/addr`.
+Mount `/opt/addr-data` when you want downloads or derived data to persist across runs:
+
+```sh
+docker run --rm -it -v addr-data:/opt/addr-data ghcr.io/geomarker-io/addr:latest
+```
+
+For local image development, use `just build` and `just run` with the `container` CLI.
+The `just run` target resolves `tools::R_user_dir("addr", "data")` with the local R installation and mounts that directory into the container when it already exists.
+
 ## Getting started
 
 ### addr vectors

@@ -1,0 +1,83 @@
+on:
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+name: container
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: addr
+  REGISTRY: ghcr.io/geomarker-io
+  R_VERSION: "4.4.3"
+  RUST_VERSION: "1.95.0"
+
+jobs:
+  container:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image metadata
+        id: meta
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          GITHUB_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          created="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            tags="pr-${PR_NUMBER} pr-${PR_NUMBER}-${GITHUB_SHA}"
+            version="pr-${PR_NUMBER}"
+          else
+            tags="manual-${RUN_ID} manual-${RUN_ID}-${GITHUB_SHA}"
+            version="manual-${RUN_ID}"
+          fi
+
+          {
+            echo "created=${created}"
+            echo "tags=${tags}"
+            echo "version=${version}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build image
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          tags: ${{ steps.meta.outputs.tags }}
+          context: .
+          containerfiles: |
+            ./Containerfile
+          oci: true
+          labels: |
+            org.opencontainers.image.title=addr
+            org.opencontainers.image.description=R runtime with the addr package installed
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.url=https://github.com/${{ github.repository }}
+            org.opencontainers.image.documentation=https://geomarker.io/addr/
+            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.created=${{ steps.meta.outputs.created }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
+          build-args: |
+            R_VERSION=${{ env.R_VERSION }}
+            RUST_VERSION=${{ env.RUST_VERSION }}
+            BUILD_DATE=${{ steps.meta.outputs.created }}
+            VCS_REF=${{ github.sha }}
+            IMAGE_VERSION=${{ steps.meta.outputs.version }}
+
+      - name: Push image
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
