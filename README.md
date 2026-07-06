@@ -50,6 +50,9 @@ docker pull ghcr.io/geomarker-io/addr:latest
 docker run --rm -it ghcr.io/geomarker-io/addr:latest
 ```
 
+The `latest` tag tracks the most recent published GitHub release.
+Release images are also tagged with the release tag, for example `ghcr.io/geomarker-io/addr:v1.2.0`.
+
 The image does not include or pre-install TIGER/Line or National Address Database data.
 Runtime data uses the standard addr user data directory under `/opt/addr-data/R/addr`.
 Mount `/opt/addr-data` when you want downloads or derived data to persist across runs:

@@ -1,7 +1,14 @@
 on:
   pull_request:
     branches: [main, master]
+  release:
+    types: [published]
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing published release tag to publish as release_tag + latest"
+        required: false
+        type: string
 
 name: container
 
@@ -17,31 +24,53 @@ env:
 
 jobs:
   container:
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release_tag || github.ref }}
 
       - name: Set image metadata
         id: meta
         env:
           EVENT_NAME: ${{ github.event_name }}
-          GITHUB_SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.run_id }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          DISPATCH_RELEASE_TAG: ${{ github.event.inputs.release_tag }}
+          REPOSITORY: ${{ github.repository }}
         run: |
           created="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          revision="$(git rev-parse HEAD)"
 
-          if [ "$EVENT_NAME" = "pull_request" ]; then
-            tags="pr-${PR_NUMBER} pr-${PR_NUMBER}-${GITHUB_SHA}"
+          release_tag=""
+          if [ "$EVENT_NAME" = "release" ]; then
+            release_tag="${RELEASE_TAG}"
+          elif [ -n "$DISPATCH_RELEASE_TAG" ]; then
+            release_tag="${DISPATCH_RELEASE_TAG}"
+          fi
+
+          if [ -n "$release_tag" ]; then
+            is_draft="$(gh release view "$release_tag" --repo "$REPOSITORY" --json isDraft --jq '.isDraft')"
+            if [ "$is_draft" = "true" ]; then
+              echo "Release tag ${release_tag} exists only as a draft release." >&2
+              exit 1
+            fi
+            tags="${release_tag} latest"
+            version="${release_tag}"
+          elif [ "$EVENT_NAME" = "pull_request" ]; then
+            tags="pr-${PR_NUMBER} pr-${PR_NUMBER}-${revision}"
             version="pr-${PR_NUMBER}"
           else
-            tags="manual-${RUN_ID} manual-${RUN_ID}-${GITHUB_SHA}"
+            tags="manual-${RUN_ID} manual-${RUN_ID}-${revision}"
             version="manual-${RUN_ID}"
           fi
 
           {
             echo "created=${created}"
+            echo "revision=${revision}"
             echo "tags=${tags}"
             echo "version=${version}"
           } >> "$GITHUB_OUTPUT"
@@ -64,13 +93,13 @@ jobs:
             org.opencontainers.image.documentation=https://geomarker.io/addr/
             org.opencontainers.image.licenses=MIT
             org.opencontainers.image.created=${{ steps.meta.outputs.created }}
-            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.revision=${{ steps.meta.outputs.revision }}
             org.opencontainers.image.version=${{ steps.meta.outputs.version }}
           build-args: |
             R_VERSION=${{ env.R_VERSION }}
             RUST_VERSION=${{ env.RUST_VERSION }}
             BUILD_DATE=${{ steps.meta.outputs.created }}
-            VCS_REF=${{ github.sha }}
+            VCS_REF=${{ steps.meta.outputs.revision }}
             IMAGE_VERSION=${{ steps.meta.outputs.version }}
 
       - name: Push image
