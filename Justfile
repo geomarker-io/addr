@@ -3,8 +3,8 @@ set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 default:
     @just --list
 
-# The local container CLI fails on this repo's live checkout context, so just
-# builds from a top-level source archive while leaving Containerfile plain.
+# Work around Apple container 1.0.0 context handling for this checkout; direct
+# root-context builds hit .git/fsmonitor--daemon.ipc even with ignore files.
 
 # Build the local addr runtime image.
 build:
