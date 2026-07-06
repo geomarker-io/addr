@@ -1,6 +1,11 @@
 ^LICENSE\.md$
 ^\.git$
 ^src/\.cargo$
+^src/rust/[.]cargo($|/)
+^src/rust/cargo-home($|/)
+^src/rust/target($|/)
+^src/rust/vendor($|/)
+^src/.*[.](o|so|dll)$
 ^\.github$
 ^README\.Rmd$
 ^data-raw$

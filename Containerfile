@@ -36,12 +36,12 @@ RUN R -q -e "install.packages(c('curl', 'jsonlite', 'mirai', 'nanoparquet', 'wk'
     && R -q -e "install.packages('sf', repos = c(CRAN = 'https://cloud.r-project.org'), type = 'source', dependencies = FALSE, Ncpus = 1)"
 
 WORKDIR /tmp/addr
-COPY DESCRIPTION LICENSE NAMESPACE ./
+COPY DESCRIPTION LICENSE NAMESPACE configure configure.win cleanup cleanup.win ./
 COPY R/ ./R/
 COPY inst/ ./inst/
 COPY man/ ./man/
 COPY src/entrypoint.c src/Makevars src/Makevars.ucrt src/Makevars.win src/addr-win.def ./src/
-COPY src/rust/Cargo.toml src/rust/Cargo.lock ./src/rust/
+COPY src/rust/Cargo.toml src/rust/Cargo.lock src/rust/cargo-vendor-config.toml src/rust/vendor.tar.xz ./src/rust/
 COPY src/rust/src/ ./src/rust/src/
 
 WORKDIR /tmp/build

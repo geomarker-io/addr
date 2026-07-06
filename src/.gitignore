@@ -3,3 +3,5 @@
 *.dll
 target
 .cargo
+rust/cargo-home/
+rust/vendor/

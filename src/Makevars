@@ -2,29 +2,36 @@ TARGET_DIR = ./rust/target
 LIBDIR = $(TARGET_DIR)/release
 STATLIB = $(LIBDIR)/libaddr.a
 PKG_LIBS = -L$(LIBDIR) -laddr
+CARGOTMP = $(CURDIR)/rust/cargo-home
+VENDOR_ARCHIVE = ./rust/vendor.tar.xz
+VENDOR_DIR = ./rust/vendor
+CARGO_CONFIG_DIR = ./rust/.cargo
+CARGO_CONFIG = $(CARGO_CONFIG_DIR)/config.toml
+CARGO_CONFIG_TEMPLATE = ./rust/cargo-vendor-config.toml
 
 all: C_clean
 
 $(SHLIB): $(STATLIB)
 
-CARGOTMP = $(CURDIR)/.cargo
-
-$(STATLIB):
+$(STATLIB): $(VENDOR_DIR)
+	rm -Rf $(CARGO_CONFIG_DIR)
+	mkdir -p $(CARGO_CONFIG_DIR)
+	cp $(CARGO_CONFIG_TEMPLATE) $(CARGO_CONFIG)
 	# In some environments, ~/.cargo/bin might not be included in PATH, so we need
 	# to set it here to ensure cargo can be invoked. It is appended to PATH and
 	# therefore is only used if cargo is absent from the user's PATH.
-	if [ "$(NOT_CRAN)" != "true" ]; then \
-		export CARGO_HOME=$(CARGOTMP); \
-	fi && \
+	export CARGO_HOME=$(CARGOTMP) && \
 		export PATH="$(PATH):$(HOME)/.cargo/bin" && \
-		cargo build --lib --release --manifest-path=./rust/Cargo.toml --target-dir $(TARGET_DIR)
-	if [ "$(NOT_CRAN)" != "true" ]; then \
-		rm -Rf $(CARGOTMP) && \
-		rm -Rf $(LIBDIR)/build; \
-	fi
+		cd ./rust && \
+		cargo build --locked --offline -j 2 --lib --release --target-dir ./target
+	rm -Rf $(CARGOTMP) $(CARGO_CONFIG_DIR) $(LIBDIR)/build
+
+$(VENDOR_DIR): $(VENDOR_ARCHIVE)
+	rm -Rf $(VENDOR_DIR)
+	tar -xJf $(VENDOR_ARCHIVE) -C ./rust
 
 C_clean:
 	rm -Rf $(SHLIB) $(STATLIB) $(OBJECTS)
 
 clean:
-	rm -Rf $(SHLIB) $(STATLIB) $(OBJECTS) rust/target
+	rm -Rf $(SHLIB) $(STATLIB) $(OBJECTS) rust/target rust/vendor rust/cargo-home rust/.cargo
