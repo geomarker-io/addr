@@ -61,6 +61,17 @@ Mount `/opt/addr-data` when you want downloads or derived data to persist across
 docker run --rm -it -v addr-data:/opt/addr-data ghcr.io/geomarker-io/addr:latest
 ```
 
+On systems that use Apptainer, pull the same OCI image and bind a host directory directly to `/opt/addr-data`.
+Prefer `--cleanenv` and `--contain` so the container does not inherit host R environment variables, home-directory data, or temporary directories:
+
+```sh
+mkdir -p "$HOME/addr-data"
+apptainer pull addr_latest.sif docker://ghcr.io/geomarker-io/addr:latest
+apptainer shell --cleanenv --contain \
+  --bind "$HOME/addr-data:/opt/addr-data" \
+  addr_latest.sif
+```
+
 For local image development, use `just build` and `just run` with the `container` CLI.
 The `just run` target resolves `tools::R_user_dir("addr", "data")` with the local R installation and mounts that directory into the container when it already exists.
 
