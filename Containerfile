@@ -84,6 +84,8 @@ RUN echo "options(repos = c(CRAN = 'https://p3m.dev/cran/__linux__/manylinux_2_2
 
 COPY --from=builder /usr/local/lib/R/site-library /usr/local/lib/R/site-library
 
+RUN Rscript -e 'file.symlink(system.file("exec", "addr-geocode", package = "addr"), "/usr/local/bin/addr-geocode")'
+
 ENV R_USER_DATA_DIR=/opt/addr-data
 
 RUN useradd --create-home --shell /bin/bash addr \

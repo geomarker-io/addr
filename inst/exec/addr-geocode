@@ -1,0 +1,316 @@
+#!/usr/bin/env Rscript
+
+addr_geocode_cli_usage <- function() {
+  paste(
+    "Usage:",
+    "  addr-geocode --input PATH [--output-dir DIR] [--workers N] [--taf-year YEAR] [--data-dir DIR] [--overwrite]",
+    "",
+    "Input:",
+    "  PATH must be a .csv or .parquet file containing a column named exactly `address`.",
+    "",
+    "Output:",
+    "  Writes one geocoded file matching the input file type. The output file",
+    "  name is deterministic and includes the installed addr package version.",
+    sep = "\n"
+  )
+}
+
+addr_geocode_cli_stop <- function(...) {
+  stop(paste0(...), call. = FALSE)
+}
+
+addr_geocode_cli_option_name <- function(x) {
+  sub("^--", "", x)
+}
+
+addr_geocode_cli_parse_args <- function(args) {
+  opts <- list(
+    input = NULL,
+    output_dir = NULL,
+    workers = 1L,
+    taf_year = "2025",
+    data_dir = NULL,
+    overwrite = FALSE,
+    help = FALSE
+  )
+
+  value_options <- c(
+    "input",
+    "output-dir",
+    "workers",
+    "taf-year",
+    "data-dir"
+  )
+  flag_options <- c("overwrite", "help")
+
+  i <- 1L
+  while (i <= length(args)) {
+    arg <- args[[i]]
+    if (arg %in% c("-h", "--help")) {
+      opts$help <- TRUE
+      i <- i + 1L
+      next
+    }
+    if (!startsWith(arg, "--")) {
+      addr_geocode_cli_stop("unexpected positional argument: ", arg)
+    }
+
+    if (grepl("=", arg, fixed = TRUE)) {
+      parts <- strsplit(arg, "=", fixed = TRUE)[[1]]
+      name <- addr_geocode_cli_option_name(parts[[1]])
+      value <- paste(parts[-1], collapse = "=")
+    } else {
+      name <- addr_geocode_cli_option_name(arg)
+      value <- NULL
+    }
+
+    if (name %in% flag_options) {
+      if (!is.null(value) && nzchar(value)) {
+        addr_geocode_cli_stop("--", name, " does not take a value")
+      }
+      opts[[gsub("-", "_", name)]] <- TRUE
+      i <- i + 1L
+      next
+    }
+
+    if (!name %in% value_options) {
+      addr_geocode_cli_stop("unknown option: --", name)
+    }
+
+    if (is.null(value)) {
+      if (i == length(args) || startsWith(args[[i + 1L]], "--")) {
+        addr_geocode_cli_stop("--", name, " requires a value")
+      }
+      value <- args[[i + 1L]]
+      i <- i + 2L
+    } else {
+      i <- i + 1L
+    }
+
+    opts[[gsub("-", "_", name)]] <- value
+  }
+
+  if (!opts$help && is.null(opts$input)) {
+    addr_geocode_cli_stop("--input is required\n\n", addr_geocode_cli_usage())
+  }
+
+  workers <- suppressWarnings(as.integer(opts$workers))
+  if (length(workers) != 1L || is.na(workers) || workers < 1L) {
+    addr_geocode_cli_stop("--workers must be a positive integer")
+  }
+  opts$workers <- workers
+
+  opts
+}
+
+addr_geocode_cli_file_format <- function(path) {
+  ext <- tolower(tools::file_ext(path))
+  if (identical(ext, "csv")) {
+    return("csv")
+  }
+  if (identical(ext, "parquet")) {
+    return("parquet")
+  }
+  addr_geocode_cli_stop(
+    "unsupported input file type: .",
+    ext,
+    "; expected .csv or .parquet"
+  )
+}
+
+addr_geocode_cli_read <- function(path) {
+  format <- addr_geocode_cli_file_format(path)
+  if (identical(format, "csv")) {
+    return(utils::read.csv(
+      path,
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    ))
+  }
+
+  if (!requireNamespace("nanoparquet", quietly = TRUE)) {
+    addr_geocode_cli_stop(
+      "nanoparquet is required to read and write parquet files"
+    )
+  }
+  as.data.frame(nanoparquet::read_parquet(path), stringsAsFactors = FALSE)
+}
+
+addr_geocode_cli_write <- function(x, path) {
+  format <- addr_geocode_cli_file_format(path)
+  if (identical(format, "csv")) {
+    utils::write.csv(x, path, row.names = FALSE, na = "")
+    return(invisible(path))
+  }
+
+  if (!requireNamespace("nanoparquet", quietly = TRUE)) {
+    addr_geocode_cli_stop(
+      "nanoparquet is required to read and write parquet files"
+    )
+  }
+  nanoparquet::write_parquet(x, path)
+  invisible(path)
+}
+
+addr_geocode_cli_output_path <- function(input, output_dir = NULL, version = NULL) {
+  input <- normalizePath(input, mustWork = FALSE)
+  input_dir <- dirname(input)
+  if (is.null(output_dir)) {
+    output_dir <- input_dir
+  }
+  if (is.null(version)) {
+    version <- as.character(utils::packageVersion("addr"))
+  }
+  ext <- tolower(tools::file_ext(input))
+  stem <- tools::file_path_sans_ext(basename(input))
+  version <- gsub("[^A-Za-z0-9._-]+", "-", version)
+  file.path(
+    output_dir,
+    sprintf("%s__addr-v%s__geocoded.%s", stem, version, ext)
+  )
+}
+
+addr_geocode_cli_validate_input <- function(x) {
+  if (!is.data.frame(x)) {
+    addr_geocode_cli_stop("input must be a data frame")
+  }
+  if (anyDuplicated(names(x))) {
+    addr_geocode_cli_stop("input contains duplicate column names")
+  }
+  if (!"address" %in% names(x)) {
+    addr_geocode_cli_stop("input must contain a column named exactly `address`")
+  }
+
+  output_names <- c(
+    "addr_geocode_stage",
+    "addr_matched_zipcode",
+    "addr_matched_street",
+    "addr_longitude",
+    "addr_latitude",
+    "addr_s2_cell"
+  )
+  conflicts <- intersect(names(x), output_names)
+  if (length(conflicts) > 0L) {
+    addr_geocode_cli_stop(
+      "input already contains output column name",
+      if (length(conflicts) == 1L) "" else "s",
+      ": ",
+      paste(conflicts, collapse = ", ")
+    )
+  }
+
+  invisible(x)
+}
+
+addr_geocode_cli_flatten <- function(geocoded) {
+  table <- addr::geocode_table(geocoded)
+  data.frame(
+    addr_geocode_stage = table$geocode_stage,
+    addr_matched_zipcode = table$matched_zipcode,
+    addr_matched_street = table$matched_street,
+    addr_longitude = s2::s2_x(geocoded$matched_geography),
+    addr_latitude = s2::s2_y(geocoded$matched_geography),
+    addr_s2_cell = table$s2_cell,
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+}
+
+addr_geocode_cli_empty_output <- function(n = 0L) {
+  data.frame(
+    addr_geocode_stage = rep(NA_character_, n),
+    addr_matched_zipcode = rep(NA_character_, n),
+    addr_matched_street = rep(NA_character_, n),
+    addr_longitude = rep(NA_real_, n),
+    addr_latitude = rep(NA_real_, n),
+    addr_s2_cell = rep(NA_character_, n),
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+}
+
+addr_geocode_cli_geocode <- function(address, taf_year, workers) {
+  if (length(address) == 0L) {
+    return(addr_geocode_cli_empty_output())
+  }
+
+  if (workers > 1L) {
+    if (!requireNamespace("mirai", quietly = TRUE)) {
+      addr_geocode_cli_stop("--workers greater than 1 requires mirai")
+    }
+    mirai::daemons(workers)
+    on.exit(mirai::daemons(0), add = TRUE)
+  }
+
+  geocoded <- addr::geocode(
+    addr::as_addr(as.character(address)),
+    year = taf_year,
+    progress = TRUE
+  )
+  addr_geocode_cli_flatten(geocoded)
+}
+
+addr_geocode_cli_main <- function(args = commandArgs(trailingOnly = TRUE)) {
+  opts <- addr_geocode_cli_parse_args(args)
+  if (opts$help) {
+    cat(addr_geocode_cli_usage(), "\n", sep = "")
+    return(invisible(NULL))
+  }
+
+  if (!is.null(opts$data_dir)) {
+    dir.create(opts$data_dir, recursive = TRUE, showWarnings = FALSE)
+    Sys.setenv(R_USER_DATA_DIR = normalizePath(opts$data_dir, mustWork = TRUE))
+  }
+
+  if (!requireNamespace("addr", quietly = TRUE)) {
+    addr_geocode_cli_stop("the addr package is required")
+  }
+  if (!requireNamespace("s2", quietly = TRUE)) {
+    addr_geocode_cli_stop("the s2 package is required")
+  }
+
+  input <- normalizePath(opts$input, mustWork = TRUE)
+  output <- addr_geocode_cli_output_path(
+    input,
+    output_dir = opts$output_dir
+  )
+  output_dir <- dirname(output)
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  output <- normalizePath(output, mustWork = FALSE)
+
+  if (file.exists(output) && !opts$overwrite) {
+    addr_geocode_cli_stop(
+      "output already exists: ",
+      output,
+      "; use --overwrite to replace it"
+    )
+  }
+
+  data <- addr_geocode_cli_read(input)
+  addr_geocode_cli_validate_input(data)
+  geocoded <- addr_geocode_cli_geocode(
+    data$address,
+    taf_year = opts$taf_year,
+    workers = opts$workers
+  )
+  out <- cbind(data, geocoded, stringsAsFactors = FALSE)
+  addr_geocode_cli_write(out, output)
+  message("wrote: ", output)
+  invisible(output)
+}
+
+# CLI tests source this file to exercise helper functions without running main.
+# Normal shell and container invocations leave this unset.
+if (!nzchar(Sys.getenv("ADDR_GEOCODE_CLI_SOURCE_ONLY"))) {
+  status <- tryCatch(
+    {
+      addr_geocode_cli_main()
+      0L
+    },
+    error = function(err) {
+      message("addr-geocode: ", conditionMessage(err))
+      1L
+    }
+  )
+  quit(save = "no", status = status)
+}
