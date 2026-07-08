@@ -1,6 +1,5 @@
 test_that("can download files from tiger", {
-  skip_if_offline()
-  skip_on_cran()
+  skip_live_tiger_downloads()
   withr::local_envvar(list("R_USER_DATA_DIR" = tempfile()))
   dl_file <- tiger_download(
     "TIGER2024/FEATNAMES/tl_2024_39061_featnames.zip"
@@ -122,8 +121,7 @@ test_that("tiger_download reuses cached files without downloading", {
 })
 
 test_that("tiger_addr_feat() can download addr feat from tiger", {
-  skip_if_offline()
-  skip_on_cran()
+  skip_live_tiger_downloads()
   skip_on_ci()
   withr::local_envvar(list("R_USER_DATA_DIR" = tempfile()))
   d <- tiger_addr_feat(county = "39061", year = "2024")
@@ -267,8 +265,7 @@ test_that("taf_ensure installs only missing needed counties", {
 })
 
 test_that("tiger_addr_feat() works with existing user data dir", {
-  skip_if_offline()
-  skip_on_cran()
+  skip_live_tiger_downloads()
   skip_on_ci()
   d <- tiger_addr_feat(county = "39061", year = "2024")
   expect_s3_class(d, c("sf", "tbl_df", "tbl", "data.frame"))

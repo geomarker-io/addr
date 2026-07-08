@@ -1,0 +1,35 @@
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 8 * * 1"
+
+name: live-tiger-download-tests
+
+concurrency:
+  group: live-tiger-download-tests
+  cancel-in-progress: false
+
+jobs:
+  live-tiger-download-tests:
+    runs-on: ubuntu-latest
+
+    env:
+      ADDR_RUN_NETWORK_TESTS: "true"
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      R_MAX_PROTECT_SIZE: 500000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          needs: test
+
+      - name: Run TIGER network smoke tests
+        run: Rscript -e 'testthat::test_local(filter = "tiger")'
