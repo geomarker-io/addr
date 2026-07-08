@@ -23,6 +23,7 @@ jobs:
           - {os: ubuntu-latest,   r: 'release'}
 
     env:
+      ADDR_RUN_NETWORK_TESTS: "false"
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
       R_MAX_PROTECT_SIZE: 500000
