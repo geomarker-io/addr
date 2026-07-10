@@ -19,6 +19,18 @@ addr_geocode_cli_stop <- function(...) {
   stop(paste0(...), call. = FALSE)
 }
 
+addr_geocode_cli_suppress_warnings <- function(expr) {
+  withCallingHandlers(
+    expr,
+    warning = function(wrn) {
+      restart <- findRestart("muffleWarning")
+      if (!is.null(restart)) {
+        invokeRestart(restart)
+      }
+    }
+  )
+}
+
 addr_geocode_cli_option_name <- function(x) {
   sub("^--", "", x)
 }
@@ -242,8 +254,12 @@ addr_geocode_cli_geocode <- function(address, taf_year, workers) {
     on.exit(mirai::daemons(0), add = TRUE)
   }
 
+  parsed_address <- addr_geocode_cli_suppress_warnings(
+    addr::as_addr(as.character(address))
+  )
+
   geocoded <- addr::geocode(
-    addr::as_addr(as.character(address)),
+    parsed_address,
     year = taf_year,
     progress = TRUE
   )

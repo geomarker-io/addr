@@ -15,6 +15,9 @@ test -f "${VERSION}/tiger_addr_feat_manifest/${YEAR}/county_zip.parquet"
 
 mkdir -p "$OUT_DIR"
 
+# TODO: If final archives are produced on macOS, suppress Apple extended
+# metadata such as LIBARCHIVE.xattr.com.apple.provenance so GNU tar users do
+# not see unknown extended header warnings during extraction.
 tar \
   --exclude='.DS_Store' \
   --exclude='*/tiger_addr_feat_locks/*' \
