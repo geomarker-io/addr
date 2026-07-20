@@ -1,4 +1,10 @@
-script <- file.path(getwd(), "inst", "exec", "addr-geocode")
+script <- Sys.getenv(
+  "ADDR_GEOCODE_CLI_SCRIPT",
+  unset = file.path(getwd(), "inst", "exec", "addr-geocode")
+)
+if (!file.exists(script)) {
+  stop("addr-geocode CLI script does not exist: ", script, call. = FALSE)
+}
 
 assert <- function(x, message) {
   if (!isTRUE(x)) {
@@ -178,8 +184,8 @@ utils::write.csv(
 )
 Sys.unsetenv("ADDR_GEOCODE_CLI_SOURCE_ONLY")
 run_out <- system2(
-  file.path(R.home("bin"), "Rscript"),
-  c(script, "--input", run_input, "--data-dir", file.path(tmp, "addr-data")),
+  script,
+  c("--input", run_input, "--data-dir", file.path(tmp, "addr-data")),
   stdout = TRUE,
   stderr = TRUE
 )
@@ -190,9 +196,9 @@ if (is.null(status)) {
 assert(identical(status, 0L), paste(run_out, collapse = "\n"))
 assert(
   any(grepl("preparing geocoding input", run_out, fixed = TRUE)),
-  "local Rscript invocation did not emit geocode progress"
+  "CLI invocation did not emit geocode progress"
 )
 expected_run_output <- addr_geocode_cli_output_path(run_input)
-assert(file.exists(expected_run_output), "local Rscript invocation failed")
+assert(file.exists(expected_run_output), "CLI invocation failed")
 
 cat("addr-geocode CLI tests passed\n")
