@@ -47,33 +47,71 @@ Installing addr from GitHub requires a working [Rust](https://rust-lang.org/lear
 An OCI-compatible runtime image with R and addr installed is published to the GitHub Container Registry:
 
 ```sh
-docker pull ghcr.io/geomarker-io/addr:latest
-docker run --rm -it ghcr.io/geomarker-io/addr:latest
+docker pull ghcr.io/geomarker-io/addr:v1.2.0
+docker run --rm -it ghcr.io/geomarker-io/addr:v1.2.0
 ```
 
-The `latest` tag tracks the most recent published GitHub release.
-Release images are also tagged with the release tag, for example `ghcr.io/geomarker-io/addr:v1.2.0`.
+Container release tags mirror addr package release tags.
+For reproducible work, use a specific release tag such as `ghcr.io/geomarker-io/addr:v1.2.0`.
 
 The image does not include or pre-install TIGER/Line or National Address Database data.
 Runtime data uses the standard addr user data directory under `/opt/addr-data/R/addr`.
 Mount `/opt/addr-data` when you want downloads or derived data to persist across runs:
 
 ```sh
-docker run --rm -it -v addr-data:/opt/addr-data ghcr.io/geomarker-io/addr:latest
+docker run --rm -it -v addr-data:/opt/addr-data ghcr.io/geomarker-io/addr:v1.2.0
 ```
 
-On systems that use Apptainer, pull the same OCI image and bind a host directory directly to `/opt/addr-data`.
-Prefer `--cleanenv` and `--contain` so the container does not inherit host R environment variables, home-directory data, or temporary directories:
+#### Batch geocoding on a cluster
+
+The container includes an `addr-geocode` command for CSV or parquet files with a column named exactly `address`.
+The command writes a deterministic output file next to the input, matching the input file type and appending TIGER range geocoding columns.
+On systems that use Apptainer, pull a release-tagged image and bind user-specific scratch directories for persistent addr data and temporary files:
 
 ```sh
-mkdir -p "$HOME/addr-data"
-apptainer pull addr_latest.sif docker://ghcr.io/geomarker-io/addr:latest
-apptainer shell --cleanenv --contain \
-  --bind "$HOME/addr-data:/opt/addr-data" \
-  addr_latest.sif
+apptainer pull addr_v1.2.0.sif docker://ghcr.io/geomarker-io/addr:v1.2.0
+
+mkdir -p /scratch/<cchmc-user>/addr-data /scratch/<cchmc-user>/addr-tmp
+
+apptainer exec --cleanenv --contain \
+  --bind /scratch/<cchmc-user>/addr-data:/opt/addr-data \
+  --bind /scratch/<cchmc-user>/addr-tmp:/tmp \
+  --bind "$PWD:/work" \
+  addr_v1.2.0.sif \
+  addr-geocode \
+    --input /work/addresses.csv
 ```
 
-For local image development, use `just build` and `just run` with the `container` CLI.
+For example, Cole's CCHMC username is `broeg1`, so his scratch directories use `/scratch/broeg1/`:
+
+```sh
+mkdir -p /scratch/broeg1/addr-data /scratch/broeg1/addr-tmp
+```
+
+Use `--cleanenv` and `--contain` so the container does not inherit host R environment variables, home-directory data, or temporary directories.
+
+For local R installations, run the installed script from the shell:
+
+```sh
+Rscript "$(Rscript -e 'cat(system.file("exec", "addr-geocode", package = "addr"))')" \
+  --input addresses.csv
+```
+
+You can also create a one-time shell symlink:
+
+```sh
+mkdir -p "$HOME/.local/bin"
+ln -s "$(Rscript -e 'cat(system.file("exec", "addr-geocode", package = "addr"))')" \
+  "$HOME/.local/bin/addr-geocode"
+```
+
+Then run:
+
+```sh
+addr-geocode --input addresses.csv
+```
+
+For local image development, use `just build`, `just run`, and `just test-container` with the `container` CLI.
 The `just run` target resolves `tools::R_user_dir("addr", "data")` with the local R installation and mounts that directory into the container when it already exists.
 
 ## Getting started
