@@ -149,6 +149,7 @@ TAF_YEAR="$(json_required taf_year)"
 META_ARCHIVE_FILE="$(json_required archive_file)"
 META_ARCHIVE_SHA256="$(json_required archive_sha256)"
 META_ARCHIVE_SIZE_BYTES="$(json_required archive_size_bytes)"
+META_ADDR_PACKAGE_VERSION_REQUIRED="$(json_required addr_package_version_required)"
 META_DATA_PATH="$(json_required data_path)"
 META_MANIFEST_PATH="$(json_required manifest_path)"
 META_REQUIRED_MANIFEST_FILE="$(json_required required_manifest_file)"
@@ -163,6 +164,11 @@ validate_unsigned_integer "$META_MANIFEST_FILE_COUNT" "metadata manifest_file_co
 [ "$ARTIFACT_TYPE" = "addr-taf-fuel" ] || die "unexpected artifact_type: ${ARTIFACT_TYPE}"
 [ "$SCHEMA_VERSION" = "1" ] || die "unsupported schema_version: ${SCHEMA_VERSION}"
 [ "$META_ARCHIVE_FILE" = "$ARCHIVE_BASENAME" ] || die "metadata archive_file does not match archive: ${META_ARCHIVE_FILE}"
+
+INSTALLED_ADDR_PACKAGE_VERSION="$(
+  Rscript -e 'cat(as.character(utils::packageVersion("addr")))'
+)"
+[ "$INSTALLED_ADDR_PACKAGE_VERSION" = "$META_ADDR_PACKAGE_VERSION_REQUIRED" ] || die "addr package version ${INSTALLED_ADDR_PACKAGE_VERSION} is not compatible with this TAF fuel artifact; expected ${META_ADDR_PACKAGE_VERSION_REQUIRED}"
 
 EXPECTED_DATA_PATH="${TAF_VERSION}/tiger_addr_feat/${TAF_YEAR}"
 EXPECTED_MANIFEST_PATH="${TAF_VERSION}/tiger_addr_feat_manifest/${TAF_YEAR}"

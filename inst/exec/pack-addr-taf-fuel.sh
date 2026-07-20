@@ -74,12 +74,18 @@ done
 ADDR_DATA_DIR="$(Rscript -e 'cat(tools::R_user_dir("addr", "data"))')"
 ADDR_PACKAGE_VERSION="$(
   Rscript -e '
-version <- tryCatch(
-  as.character(utils::packageVersion("addr")),
-  error = function(e) NA_character_
-)
-if (is.na(version) && file.exists("DESCRIPTION")) {
-  version <- read.dcf("DESCRIPTION")[1, "Version"]
+version <- NA_character_
+if (file.exists("DESCRIPTION")) {
+  desc <- read.dcf("DESCRIPTION")
+  if (identical(desc[1, "Package"], "addr")) {
+    version <- desc[1, "Version"]
+  }
+}
+if (is.na(version)) {
+  version <- tryCatch(
+    as.character(utils::packageVersion("addr")),
+    error = function(e) NA_character_
+  )
 }
 if (is.na(version)) {
   stop("could not determine addr package version", call. = FALSE)
@@ -132,6 +138,7 @@ CREATED_UTC="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
   json_string_field "taf_version" "$VERSION"
   json_string_field "taf_year" "$YEAR"
   json_string_field "addr_package_version" "$ADDR_PACKAGE_VERSION"
+  json_string_field "addr_package_version_required" "$ADDR_PACKAGE_VERSION"
   json_string_field "archive_file" "$ARCHIVE"
   json_string_field "archive_sha256" "$ARCHIVE_SHA256"
   json_number_field "archive_size_bytes" "$ARCHIVE_SIZE_BYTES"
@@ -152,6 +159,7 @@ This artifact contains installed addr TIGER address feature data for:
 - TAF version: ${VERSION}
 - TAF year: ${YEAR}
 - addr package version used to package it: ${ADDR_PACKAGE_VERSION}
+- required addr package version for install: ${ADDR_PACKAGE_VERSION}
 - archive: ${ARCHIVE}
 - sha256: ${ARCHIVE_SHA256}
 
@@ -168,7 +176,7 @@ inst/exec/install-addr-taf-fuel.sh ${ARCHIVE}
 From an installed addr package:
 
 \`\`\`sh
-Rscript "\$(Rscript -e 'cat(system.file("exec", "install-addr-taf-fuel.sh", package = "addr"))')" \\
+bash "\$(Rscript -e 'cat(system.file("exec", "install-addr-taf-fuel.sh", package = "addr"))')" \\
   ${ARCHIVE}
 \`\`\`
 
@@ -206,6 +214,7 @@ ${VERSION}/tiger_addr_feat_manifest/${YEAR}
 \`\`\`
 
 The installer validates the archive checksum and metadata before installing.
+It also requires addr package version ${ADDR_PACKAGE_VERSION}.
 Keep the .tar.zst, .tar.zst.sha256, .json, and this README file together.
 EOF
 
