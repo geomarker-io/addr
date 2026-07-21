@@ -9,6 +9,9 @@ ARCHIVE="${BASE}.tar.zst"
 SHA256_FILE="${ARCHIVE}.sha256"
 JSON_FILE="${BASE}.json"
 README_FILE="${BASE}.README.md"
+ARCHIVE_PARQUET_COMPRESSION="zstd"
+ARCHIVE_PARQUET_COMPRESSION_LEVEL="9"
+INSTALLED_PARQUET_COMPRESSION="snappy"
 
 die() {
   echo "pack-addr-taf-fuel: $*" >&2
@@ -77,7 +80,7 @@ ADDR_PACKAGE_VERSION="$(
 version <- NA_character_
 if (file.exists("DESCRIPTION")) {
   desc <- read.dcf("DESCRIPTION")
-  if (identical(desc[1, "Package"], "addr")) {
+  if (identical(unname(desc[1, "Package"]), "addr")) {
     version <- desc[1, "Version"]
   }
 }
@@ -113,6 +116,92 @@ cleanup() {
 }
 trap cleanup EXIT
 
+STAGING_ROOT="${TMP_DIR}/staging"
+mkdir -p "$STAGING_ROOT"
+
+echo "transcoding TAF parquet for distribution (${ARCHIVE_PARQUET_COMPRESSION} level ${ARCHIVE_PARQUET_COMPRESSION_LEVEL})"
+ADDR_TAF_PACK_SOURCE_ROOT="$ADDR_DATA_DIR" \
+  ADDR_TAF_PACK_STAGING_ROOT="$STAGING_ROOT" \
+  ADDR_TAF_PACK_DATA_PATH="$DATA_PATH" \
+  ADDR_TAF_PACK_MANIFEST_PATH="$MANIFEST_PATH" \
+  ADDR_TAF_PACK_COMPRESSION="$ARCHIVE_PARQUET_COMPRESSION" \
+  ADDR_TAF_PACK_COMPRESSION_LEVEL="$ARCHIVE_PARQUET_COMPRESSION_LEVEL" \
+  Rscript - <<'RSCRIPT'
+source_root <- Sys.getenv("ADDR_TAF_PACK_SOURCE_ROOT")
+staging_root <- Sys.getenv("ADDR_TAF_PACK_STAGING_ROOT")
+relative_roots <- c(
+  Sys.getenv("ADDR_TAF_PACK_DATA_PATH"),
+  Sys.getenv("ADDR_TAF_PACK_MANIFEST_PATH")
+)
+compression <- Sys.getenv("ADDR_TAF_PACK_COMPRESSION")
+compression_level <- as.integer(Sys.getenv("ADDR_TAF_PACK_COMPRESSION_LEVEL"))
+
+if (!requireNamespace("nanoparquet", quietly = TRUE)) {
+  stop("nanoparquet is required to package TAF fuel", call. = FALSE)
+}
+if (is.na(compression_level)) {
+  stop("invalid parquet compression level", call. = FALSE)
+}
+
+files_total <- sum(vapply(relative_roots, function(relative_root) {
+  relative_files <- list.files(
+    file.path(source_root, relative_root),
+    all.files = TRUE,
+    no.. = TRUE,
+    recursive = TRUE,
+    full.names = FALSE,
+    include.dirs = FALSE
+  )
+  sum(basename(relative_files) != ".DS_Store")
+}, integer(1)))
+files_done <- 0L
+parquet_options <- nanoparquet::parquet_options(
+  compression_level = compression_level
+)
+
+for (relative_root in relative_roots) {
+  root <- file.path(source_root, relative_root)
+  relative_files <- list.files(
+    root,
+    all.files = TRUE,
+    no.. = TRUE,
+    recursive = TRUE,
+    full.names = FALSE,
+    include.dirs = FALSE
+  )
+  relative_files <- relative_files[basename(relative_files) != ".DS_Store"]
+
+  for (relative_file in relative_files) {
+    source_file <- file.path(root, relative_file)
+    staging_file <- file.path(staging_root, relative_root, relative_file)
+    dir.create(dirname(staging_file), recursive = TRUE, showWarnings = FALSE)
+
+    if (grepl("[.]parquet$", source_file, ignore.case = TRUE)) {
+      value <- nanoparquet::read_parquet(source_file)
+      nanoparquet::write_parquet(
+        value,
+        staging_file,
+        compression = compression,
+        options = parquet_options
+      )
+    } else if (!file.copy(source_file, staging_file, overwrite = FALSE)) {
+      stop("could not stage file: ", source_file, call. = FALSE)
+    }
+
+    files_done <- files_done + 1L
+    if (files_done %% 1000L == 0L || files_done == files_total) {
+      message("staged ", files_done, " of ", files_total, " files")
+    }
+  }
+}
+RSCRIPT
+
+STAGED_DATA_FILE_COUNT="$(count_files "${STAGING_ROOT}/${DATA_PATH}")"
+STAGED_MANIFEST_FILE_COUNT="$(count_files "${STAGING_ROOT}/${MANIFEST_PATH}")"
+[ "$STAGED_DATA_FILE_COUNT" = "$DATA_FILE_COUNT" ] || die "staged TAF data file count does not match source"
+[ "$STAGED_MANIFEST_FILE_COUNT" = "$MANIFEST_FILE_COUNT" ] || die "staged TAF manifest file count does not match source"
+
+cd "$STAGING_ROOT"
 COPYFILE_DISABLE=1 tar \
   --no-xattrs \
   --exclude='.DS_Store' \
@@ -142,6 +231,9 @@ CREATED_UTC="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
   json_string_field "archive_file" "$ARCHIVE"
   json_string_field "archive_sha256" "$ARCHIVE_SHA256"
   json_number_field "archive_size_bytes" "$ARCHIVE_SIZE_BYTES"
+  json_string_field "archive_parquet_compression" "$ARCHIVE_PARQUET_COMPRESSION"
+  json_number_field "archive_parquet_compression_level" "$ARCHIVE_PARQUET_COMPRESSION_LEVEL"
+  json_string_field "installed_parquet_compression" "$INSTALLED_PARQUET_COMPRESSION"
   json_string_field "created_utc" "$CREATED_UTC"
   json_string_field "data_path" "$DATA_PATH"
   json_string_field "manifest_path" "$MANIFEST_PATH"
@@ -162,6 +254,8 @@ This artifact contains installed addr TIGER address feature data for:
 - required addr package version for install: ${ADDR_PACKAGE_VERSION}
 - archive: ${ARCHIVE}
 - sha256: ${ARCHIVE_SHA256}
+- transport parquet compression: ${ARCHIVE_PARQUET_COMPRESSION} level ${ARCHIVE_PARQUET_COMPRESSION_LEVEL}
+- installed parquet compression: ${INSTALLED_PARQUET_COMPRESSION}
 
 ## Install
 
@@ -215,6 +309,9 @@ ${VERSION}/tiger_addr_feat_manifest/${YEAR}
 
 The installer validates the archive checksum and metadata before installing.
 It also requires addr package version ${ADDR_PACKAGE_VERSION}.
+During installation, transport-compressed parquet files are transcoded to
+${INSTALLED_PARQUET_COMPRESSION} parquet for normal runtime use. This can take
+several minutes for the full national bundle.
 Keep the .tar.zst, .tar.zst.sha256, .json, and this README file together.
 EOF
 
@@ -223,8 +320,8 @@ mv "${TMP_DIR}/${SHA256_FILE}" "${OUT_DIR}/${SHA256_FILE}"
 mv "${TMP_DIR}/${JSON_FILE}" "${OUT_DIR}/${JSON_FILE}"
 mv "${TMP_DIR}/${README_FILE}" "${OUT_DIR}/${README_FILE}"
 
+cleanup
 trap - EXIT
-rmdir "$TMP_DIR"
 
 echo "wrote: ${OUT_DIR}/${ARCHIVE}"
 echo "wrote: ${OUT_DIR}/${SHA256_FILE}"

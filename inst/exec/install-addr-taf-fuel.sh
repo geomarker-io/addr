@@ -155,6 +155,9 @@ META_MANIFEST_PATH="$(json_required manifest_path)"
 META_REQUIRED_MANIFEST_FILE="$(json_required required_manifest_file)"
 META_DATA_FILE_COUNT="$(json_required data_file_count)"
 META_MANIFEST_FILE_COUNT="$(json_required manifest_file_count)"
+META_ARCHIVE_PARQUET_COMPRESSION="$(json_required archive_parquet_compression)"
+META_ARCHIVE_PARQUET_COMPRESSION_LEVEL="$(json_required archive_parquet_compression_level)"
+META_INSTALLED_PARQUET_COMPRESSION="$(json_required installed_parquet_compression)"
 
 validate_unsigned_integer "$SCHEMA_VERSION" "metadata schema_version"
 validate_unsigned_integer "$META_ARCHIVE_SIZE_BYTES" "metadata archive_size_bytes"
@@ -163,6 +166,9 @@ validate_unsigned_integer "$META_MANIFEST_FILE_COUNT" "metadata manifest_file_co
 
 [ "$ARTIFACT_TYPE" = "addr-taf-fuel" ] || die "unexpected artifact_type: ${ARTIFACT_TYPE}"
 [ "$SCHEMA_VERSION" = "1" ] || die "unsupported schema_version: ${SCHEMA_VERSION}"
+validate_unsigned_integer "$META_ARCHIVE_PARQUET_COMPRESSION_LEVEL" "metadata archive_parquet_compression_level"
+[ "$META_ARCHIVE_PARQUET_COMPRESSION" = "zstd" ] || die "unsupported archive parquet compression: ${META_ARCHIVE_PARQUET_COMPRESSION}"
+[ "$META_INSTALLED_PARQUET_COMPRESSION" = "snappy" ] || die "unsupported installed parquet compression: ${META_INSTALLED_PARQUET_COMPRESSION}"
 [ "$META_ARCHIVE_FILE" = "$ARCHIVE_BASENAME" ] || die "metadata archive_file does not match archive: ${META_ARCHIVE_FILE}"
 
 INSTALLED_ADDR_PACKAGE_VERSION="$(
@@ -253,6 +259,54 @@ STAGED_MANIFEST_FILE_COUNT="$(count_files "$STAGED_MANIFEST_DIR")"
 
 [ "$STAGED_DATA_FILE_COUNT" = "$META_DATA_FILE_COUNT" ] || die "staged data file count does not match metadata"
 [ "$STAGED_MANIFEST_FILE_COUNT" = "$META_MANIFEST_FILE_COUNT" ] || die "staged manifest file count does not match metadata"
+
+echo "transcoding installed parquet to ${META_INSTALLED_PARQUET_COMPRESSION}"
+ADDR_TAF_INSTALL_DATA_DIR="$STAGED_DATA_DIR" \
+  ADDR_TAF_INSTALL_MANIFEST_DIR="$STAGED_MANIFEST_DIR" \
+  ADDR_TAF_INSTALL_COMPRESSION="$META_INSTALLED_PARQUET_COMPRESSION" \
+  Rscript - <<'RSCRIPT'
+roots <- c(
+  Sys.getenv("ADDR_TAF_INSTALL_DATA_DIR"),
+  Sys.getenv("ADDR_TAF_INSTALL_MANIFEST_DIR")
+)
+compression <- Sys.getenv("ADDR_TAF_INSTALL_COMPRESSION")
+
+if (!requireNamespace("nanoparquet", quietly = TRUE)) {
+  stop("nanoparquet is required to install TAF fuel", call. = FALSE)
+}
+
+files <- unlist(lapply(roots, function(root) {
+  list.files(
+    root,
+    pattern = "[.]parquet$",
+    all.files = TRUE,
+    recursive = TRUE,
+    full.names = TRUE,
+    include.dirs = FALSE,
+    ignore.case = TRUE
+  )
+}), use.names = FALSE)
+
+for (i in seq_along(files)) {
+  source_file <- files[[i]]
+  temporary_file <- paste0(source_file, ".installing")
+
+  value <- nanoparquet::read_parquet(source_file)
+  nanoparquet::write_parquet(
+    value,
+    temporary_file,
+    compression = compression
+  )
+  unlink(source_file, force = TRUE)
+  if (!file.rename(temporary_file, source_file)) {
+    stop("could not replace staged parquet file: ", source_file, call. = FALSE)
+  }
+
+  if (i %% 1000L == 0L || i == length(files)) {
+    message("transcoded ", i, " of ", length(files), " files")
+  }
+}
+RSCRIPT
 
 mkdir -p "$(dirname "$TAF_DATA_DIR")"
 mkdir -p "$(dirname "$TAF_MANIFEST_DIR")"
