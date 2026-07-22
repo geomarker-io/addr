@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   cat >&2 <<'EOF'
-usage: install-addr-taf-fuel.sh ARCHIVE.tar.zst [METADATA.json [ARCHIVE.tar.zst.sha256]]
+usage: install-addr-taf-fuel.sh ARCHIVE.tar.zst [METADATA.json]
 
 Installs packaged addr TAF fuel into tools::R_user_dir("addr", "data").
 Set R_USER_DATA_DIR before running this script to install somewhere else.
@@ -14,11 +14,7 @@ EOF
 
 die() {
   echo "install-addr-taf-fuel: $*" >&2
-  if [ -n "${README_FILE:-}" ]; then
-    echo "See the generated README sidecar for install and replacement details: ${README_FILE}" >&2
-  else
-    echo "See the generated .README.md sidecar for install and replacement details." >&2
-  fi
+  echo "See https://github.com/geomarker-io/addr#full-taf-bundle for installation details." >&2
   exit 1
 }
 
@@ -99,28 +95,19 @@ count_files() {
   find "$1" -type f ! -name '.DS_Store' | wc -l | tr -d '[:space:]'
 }
 
-if [ "$#" -lt 1 ] || [ "$#" -gt 3 ]; then
+if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
   usage
   exit 1
 fi
 
 ARCHIVE="$1"
 DEFAULT_JSON="${ARCHIVE%.tar.zst}.json"
-DEFAULT_SHA256="${ARCHIVE}.sha256"
 
 if [ "$DEFAULT_JSON" = "$ARCHIVE" ]; then
   die "archive must end in .tar.zst: ${ARCHIVE}"
 fi
 
-if [ "$#" -eq 2 ] && [ "${2##*.}" = "sha256" ]; then
-  JSON_FILE="$DEFAULT_JSON"
-  SHA256_FILE="$2"
-else
-  JSON_FILE="${2:-$DEFAULT_JSON}"
-  SHA256_FILE="${3:-$DEFAULT_SHA256}"
-fi
-
-README_FILE="${JSON_FILE%.json}.README.md"
+JSON_FILE="${2:-$DEFAULT_JSON}"
 
 require_command Rscript
 require_command tar
@@ -133,14 +120,10 @@ require_command mktemp
 
 [ -f "$ARCHIVE" ] || die "archive not found: ${ARCHIVE}"
 [ -f "$JSON_FILE" ] || die "metadata JSON not found: ${JSON_FILE}"
-[ -f "$SHA256_FILE" ] || die "sha256 file not found: ${SHA256_FILE}"
 
 ARCHIVE_ABS="$(abs_path "$ARCHIVE")"
-ARCHIVE_DIR="$(dirname "$ARCHIVE_ABS")"
 ARCHIVE_BASENAME="$(basename "$ARCHIVE_ABS")"
 JSON_FILE="$(abs_path "$JSON_FILE")"
-SHA256_FILE="$(abs_path "$SHA256_FILE")"
-README_FILE="$(abs_path "$README_FILE")"
 
 ARTIFACT_TYPE="$(json_required artifact_type)"
 SCHEMA_VERSION="$(json_required schema_version)"
@@ -194,11 +177,6 @@ ACTUAL_ARCHIVE_SHA256="$(shasum -a 256 "$ARCHIVE_ABS" | awk '{print $1}')"
 ACTUAL_ARCHIVE_SIZE_BYTES="$(wc -c < "$ARCHIVE_ABS" | tr -d '[:space:]')"
 [ "$ACTUAL_ARCHIVE_SIZE_BYTES" = "$META_ARCHIVE_SIZE_BYTES" ] || die "archive size does not match metadata"
 
-(
-  cd "$ARCHIVE_DIR"
-  shasum -a 256 -c "$SHA256_FILE"
-) || die "sha256 validation failed"
-
 ADDR_DATA_DIR="$(Rscript -e 'cat(tools::R_user_dir("addr", "data"))')"
 TAF_DATA_DIR="${ADDR_DATA_DIR}/${META_DATA_PATH}"
 TAF_MANIFEST_DIR="${ADDR_DATA_DIR}/${META_MANIFEST_PATH}"
@@ -218,7 +196,7 @@ if [ "${#existing_paths[@]}" -gt 0 ]; then
     echo "The installer refuses to overwrite existing TAF fuel."
     echo "Delete the existing path(s) first, then rerun this script."
     echo "To install somewhere else, set R_USER_DATA_DIR before running this script."
-    echo "See the generated README sidecar for details: ${README_FILE}"
+    echo "See https://github.com/geomarker-io/addr#full-taf-bundle for replacement details."
   } >&2
   exit 1
 fi

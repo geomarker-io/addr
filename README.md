@@ -42,78 +42,6 @@ pak::pak("geomarker-io/addr")
 
 Installing addr from GitHub requires a working [Rust](https://rust-lang.org/learn/get-started/) toolchain; install one using [rustup](https://rust-lang.org/tools/install/).
 
-### Container
-
-An OCI-compatible runtime image with R and addr installed is published to the GitHub Container Registry:
-
-```sh
-docker pull ghcr.io/geomarker-io/addr:v1.2.0
-docker run --rm -it ghcr.io/geomarker-io/addr:v1.2.0
-```
-
-Container release tags mirror addr package release tags.
-For reproducible work, use a specific release tag such as `ghcr.io/geomarker-io/addr:v1.2.0`.
-
-The image does not include or pre-install TIGER/Line or National Address Database data.
-Runtime data uses the standard addr user data directory under `/opt/addr-data/R/addr`.
-Mount `/opt/addr-data` when you want downloads or derived data to persist across runs:
-
-```sh
-docker run --rm -it -v addr-data:/opt/addr-data ghcr.io/geomarker-io/addr:v1.2.0
-```
-
-#### Batch geocoding on a cluster
-
-The container includes an `addr-geocode` command for CSV or parquet files with a column named exactly `address`.
-The command writes a deterministic output file next to the input, matching the input file type and appending TIGER range geocoding columns.
-On systems that use Apptainer, pull a release-tagged image and bind user-specific scratch directories for persistent addr data and temporary files:
-
-```sh
-apptainer pull addr_v1.2.0.sif docker://ghcr.io/geomarker-io/addr:v1.2.0
-
-mkdir -p /scratch/<cchmc-user>/addr-data /scratch/<cchmc-user>/addr-tmp
-
-apptainer exec --cleanenv --contain \
-  --bind /scratch/<cchmc-user>/addr-data:/opt/addr-data \
-  --bind /scratch/<cchmc-user>/addr-tmp:/tmp \
-  --bind "$PWD:/work" \
-  addr_v1.2.0.sif \
-  addr-geocode \
-    --input /work/addresses.csv
-```
-
-For example, Cole's CCHMC username is `broeg1`, so his scratch directories use `/scratch/broeg1/`:
-
-```sh
-mkdir -p /scratch/broeg1/addr-data /scratch/broeg1/addr-tmp
-```
-
-Use `--cleanenv` and `--contain` so the container does not inherit host R environment variables, home-directory data, or temporary directories.
-
-For local R installations, run the installed script from the shell:
-
-```sh
-Rscript "$(Rscript -e 'cat(system.file("exec", "addr-geocode", package = "addr"))')" \
-  --input addresses.csv
-```
-
-You can also create a one-time shell symlink:
-
-```sh
-mkdir -p "$HOME/.local/bin"
-ln -s "$(Rscript -e 'cat(system.file("exec", "addr-geocode", package = "addr"))')" \
-  "$HOME/.local/bin/addr-geocode"
-```
-
-Then run:
-
-```sh
-addr-geocode --input addresses.csv
-```
-
-For local image development, use `just build`, `just run`, and `just test-container` with the `container` CLI.
-The `just run` target resolves `tools::R_user_dir("addr", "data")` with the local R installation and mounts that directory into the container when it already exists.
-
 ## Getting started
 
 ### addr vectors
@@ -188,3 +116,123 @@ addr stores them as a hive-partitioned, multi-file parquet dataset, grouped by Z
 Read TIGER address features for one or more ZIP codes with `taf_zip()`.
 `taf_needed_counties()` identifies which county files may contain the ZIP codes in an input address vector, including selected ZIP-code variants.
 `taf_ensure()` installs any missing county files, and `geocode()` calls it by default before geocoding. addr uses nanoparquet for flat parquet reads and writes in these geocoding helpers. Use `taf()` to open the installed multi-file dataset with arrow for advanced lazy dataset queries; arrow is optional and is only required for `taf()`.
+
+## Container and command-line interface
+
+An OCI-compatible runtime image with R and addr installed is published to the GitHub Container Registry:
+
+```sh
+docker pull ghcr.io/geomarker-io/addr:v1.3.0
+docker run --rm -it ghcr.io/geomarker-io/addr:v1.3.0
+```
+
+Container release tags mirror addr package release versions.
+For reproducible work, use a specific release such as `ghcr.io/geomarker-io/addr:v1.3.0`.
+
+The image does not include or pre-install TIGER/Line or National Address Database data.
+Runtime data uses the standard addr user data directory under `/opt/addr-data/R/addr`.
+Mount `/opt/addr-data` when you want downloads or derived data to persist across runs:
+
+```sh
+docker run --rm -it -v addr-data:/opt/addr-data ghcr.io/geomarker-io/addr:v1.3.0
+```
+
+### Batch geocoding on a cluster
+
+The container includes an `addr-geocode` command for CSV or parquet files with a column named exactly `address`.
+The command writes a deterministic output file next to the input, matching the input file type and appending TIGER range geocoding columns.
+On systems that use Apptainer, pull a release-tagged image and bind user-specific scratch directories for persistent addr data and temporary files:
+
+```sh
+apptainer pull addr_v1.3.0.sif docker://ghcr.io/geomarker-io/addr:v1.3.0
+
+mkdir -p /scratch/<cchmc-user>/addr-data /scratch/<cchmc-user>/addr-tmp
+
+apptainer exec --cleanenv --contain \
+  --bind /scratch/<cchmc-user>/addr-data:/opt/addr-data \
+  --bind /scratch/<cchmc-user>/addr-tmp:/tmp \
+  --bind "$PWD:/work" \
+  addr_v1.3.0.sif \
+  addr-geocode \
+    --input /work/addresses.csv
+```
+
+For example, Cole's CCHMC username is `broeg1`, so his scratch directories use `/scratch/broeg1/`:
+
+```sh
+mkdir -p /scratch/broeg1/addr-data /scratch/broeg1/addr-tmp
+```
+
+Use `--cleanenv` and `--contain` so the container does not inherit host R environment variables, home-directory data, or temporary directories.
+
+For local R installations, run the installed script from the shell:
+
+```sh
+Rscript "$(Rscript -e 'cat(system.file("exec", "addr-geocode", package = "addr"))')" \
+  --input addresses.csv
+```
+
+You can also create a one-time shell symlink:
+
+```sh
+mkdir -p "$HOME/.local/bin"
+ln -s "$(Rscript -e 'cat(system.file("exec", "addr-geocode", package = "addr"))')" \
+  "$HOME/.local/bin/addr-geocode"
+```
+
+Then run:
+
+```sh
+addr-geocode --input addresses.csv
+```
+
+For local image development, use `just build`, `just run`, and `just test-container` with the `container` CLI.
+The `just run` target resolves `tools::R_user_dir("addr", "data")` with the local R installation and mounts that directory into the container when it already exists.
+
+## Full TAF bundle
+
+The addr 1.3.0 GitHub release provides a national 2025 TIGER Address Features bundle for users who prefer one large download instead of installing county data as needed.
+The bundle requires addr 1.3.0 and the `bash`, `tar`, `zstd`, and `shasum` command-line tools.
+
+Download the archive and its small JSON manifest from the release:
+
+```sh
+curl --fail --location --remote-name \
+  https://github.com/geomarker-io/addr/releases/download/v1.3.0/addr-taf-v1-2025.tar.zst
+curl --fail --location --remote-name \
+  https://github.com/geomarker-io/addr/releases/download/v1.3.0/addr-taf-v1-2025.json
+```
+
+Run the installer from a shell:
+
+```sh
+bash "$(Rscript -e 'cat(system.file("exec", "install-addr-taf-fuel.sh", package = "addr"))')" \
+  addr-taf-v1-2025.tar.zst
+```
+
+The installer reads the JSON manifest next to the archive, verifies the embedded SHA-256 checksum, confirms package compatibility and file counts, and then installs runtime-optimized Snappy parquet files.
+The download is about 1.4 GiB and installation requires several additional gigabytes of temporary and destination disk space.
+
+By default, files are installed under the directory returned by:
+
+```sh
+Rscript -e 'cat(tools::R_user_dir("addr", "data"))'
+```
+
+Set `R_USER_DATA_DIR` before installation to use another storage location, such as scratch space on a cluster:
+
+```sh
+export R_USER_DATA_DIR=/scratch/<user>/addr-data
+bash "$(Rscript -e 'cat(system.file("exec", "install-addr-taf-fuel.sh", package = "addr"))')" \
+  addr-taf-v1-2025.tar.zst
+```
+
+With that setting, the installed data and manifest are placed under:
+
+```text
+${R_USER_DATA_DIR}/R/addr/v1/tiger_addr_feat/2025
+${R_USER_DATA_DIR}/R/addr/v1/tiger_addr_feat_manifest/2025
+```
+
+The installer refuses to overwrite either existing year-specific directory.
+Remove both directories before deliberately replacing an existing full installation, or set `R_USER_DATA_DIR` to install in a different location.
