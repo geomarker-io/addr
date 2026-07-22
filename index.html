@@ -79,45 +79,6 @@
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"geomarker-io/addr"</span><span class="op">)</span></span></code></pre></div>
 <p>Installing addr from GitHub requires a working <a href="https://rust-lang.org/learn/get-started/" class="external-link">Rust</a> toolchain; install one using <a href="https://rust-lang.org/tools/install/" class="external-link">rustup</a>.</p>
-<div class="section level3">
-<h3 id="container">Container<a class="anchor" aria-label="anchor" href="#container"></a>
-</h3>
-<p>An OCI-compatible runtime image with R and addr installed is published to the GitHub Container Registry:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="ex">docker</span> pull ghcr.io/geomarker-io/addr:v1.2.0</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">-it</span> ghcr.io/geomarker-io/addr:v1.2.0</span></code></pre></div>
-<p>Container release tags mirror addr package release tags. For reproducible work, use a specific release tag such as <code>ghcr.io/geomarker-io/addr:v1.2.0</code>.</p>
-<p>The image does not include or pre-install TIGER/Line or National Address Database data. Runtime data uses the standard addr user data directory under <code>/opt/addr-data/R/addr</code>. Mount <code>/opt/addr-data</code> when you want downloads or derived data to persist across runs:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">-it</span> <span class="at">-v</span> addr-data:/opt/addr-data ghcr.io/geomarker-io/addr:v1.2.0</span></code></pre></div>
-<div class="section level4">
-<h4 id="batch-geocoding-on-a-cluster">Batch geocoding on a cluster<a class="anchor" aria-label="anchor" href="#batch-geocoding-on-a-cluster"></a>
-</h4>
-<p>The container includes an <code>addr-geocode</code> command for CSV or parquet files with a column named exactly <code>address</code>. The command writes a deterministic output file next to the input, matching the input file type and appending TIGER range geocoding columns. On systems that use Apptainer, pull a release-tagged image and bind user-specific scratch directories for persistent addr data and temporary files:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">apptainer</span> pull addr_v1.2.0.sif docker://ghcr.io/geomarker-io/addr:v1.2.0</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> /scratch/<span class="op">&lt;</span>cchmc-user<span class="op">&gt;</span>/addr-data /scratch/<span class="op">&lt;</span>cchmc-user<span class="op">&gt;</span>/addr-tmp</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="ex">apptainer</span> exec <span class="at">--cleanenv</span> <span class="at">--contain</span> <span class="dt">\</span></span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="at">--bind</span> /scratch/<span class="op">&lt;</span>cchmc-user<span class="op">&gt;</span>/addr-data:/opt/addr-data <span class="dt">\</span></span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  <span class="at">--bind</span> /scratch/<span class="op">&lt;</span>cchmc-user<span class="op">&gt;</span>/addr-tmp:/tmp <span class="dt">\</span></span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="at">--bind</span> <span class="st">"</span><span class="va">$PWD</span><span class="st">:/work"</span> <span class="dt">\</span></span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>  addr_v1.2.0.sif <span class="dt">\</span></span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  addr-geocode <span class="dt">\</span></span>
-<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>    <span class="at">--input</span> /work/addresses.csv</span></code></pre></div>
-<p>For example, Cole’s CCHMC username is <code>broeg1</code>, so his scratch directories use <code>/scratch/broeg1/</code>:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> /scratch/broeg1/addr-data /scratch/broeg1/addr-tmp</span></code></pre></div>
-<p>Use <code>--cleanenv</code> and <code>--contain</code> so the container does not inherit host R environment variables, home-directory data, or temporary directories.</p>
-<p>For local R installations, run the installed script from the shell:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "addr-geocode", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="at">--input</span> addresses.csv</span></code></pre></div>
-<p>You can also create a one-time shell symlink:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> <span class="st">"</span><span class="va">$HOME</span><span class="st">/.local/bin"</span></span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">ln</span> <span class="at">-s</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "addr-geocode", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="st">"</span><span class="va">$HOME</span><span class="st">/.local/bin/addr-geocode"</span></span></code></pre></div>
-<p>Then run:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="ex">addr-geocode</span> <span class="at">--input</span> addresses.csv</span></code></pre></div>
-<p>For local image development, use <code>just build</code>, <code>just run</code>, and <code>just test-container</code> with the <code>container</code> CLI. The <code>just run</code> target resolves <code>tools::R_user_dir("addr", "data")</code> with the local R installation and mounts that directory into the container when it already exists.</p>
-</div>
-</div>
 </div>
 <div class="section level2">
 <h2 id="getting-started">Getting started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
@@ -126,7 +87,7 @@
 <h3 id="addr-vectors">addr vectors<a class="anchor" aria-label="anchor" href="#addr-vectors"></a>
 </h3>
 <p>addr vectors behave like standard R vectors: they recycle, subset, and combine with vctrs tooling. You can parse text into an addr vector with <code><a href="reference/as_addr.html">as_addr()</a></code> or build one from component vectors with <code><a href="reference/addr.html">addr()</a></code>.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/as_addr.html">as_addr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"3333 Burnet Ave Cincinnati OH 45229"</span>,</span>
 <span>          <span class="st">"5130 Rapid Run Rd Cincinnati OH 45238"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -174,6 +135,69 @@
 <p><code><a href="reference/taf.html">taf_install()</a></code> installs TIGER address features for one county; however, <code><a href="reference/geocode.html">geocode()</a></code> installs all county files that may contain the ZIP codes in an input address vector as needed. Read TIGER address features for one or more ZIP codes with <code><a href="reference/taf_zip.html">taf_zip()</a></code>. <code><a href="reference/taf_needed_counties.html">taf_needed_counties()</a></code> identifies which county files may contain the ZIP codes in an input address vector, including selected ZIP-code variants. <code><a href="reference/taf_needed_counties.html">taf_ensure()</a></code> installs any missing county files, and <code><a href="reference/geocode.html">geocode()</a></code> calls it by default before geocoding. addr uses nanoparquet for flat parquet reads and writes in these geocoding helpers. Use <code><a href="reference/taf.html">taf()</a></code> to open the installed multi-file dataset with arrow for advanced lazy dataset queries; arrow is optional and is only required for <code><a href="reference/taf.html">taf()</a></code>.</p>
 </div>
 </div>
+</div>
+<div class="section level2">
+<h2 id="container-and-command-line-interface">Container and command-line interface<a class="anchor" aria-label="anchor" href="#container-and-command-line-interface"></a>
+</h2>
+<p>An OCI-compatible runtime image with R and addr installed is published to the GitHub Container Registry:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="ex">docker</span> pull ghcr.io/geomarker-io/addr:v1.3.0</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">-it</span> ghcr.io/geomarker-io/addr:v1.3.0</span></code></pre></div>
+<p>Container release tags mirror addr package release versions. For reproducible work, use a specific release such as <code>ghcr.io/geomarker-io/addr:v1.3.0</code>.</p>
+<p>The image does not include or pre-install TIGER/Line or National Address Database data. Runtime data uses the standard addr user data directory under <code>/opt/addr-data/R/addr</code>. Mount <code>/opt/addr-data</code> when you want downloads or derived data to persist across runs:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">-it</span> <span class="at">-v</span> addr-data:/opt/addr-data ghcr.io/geomarker-io/addr:v1.3.0</span></code></pre></div>
+<div class="section level3">
+<h3 id="batch-geocoding-on-a-cluster">Batch geocoding on a cluster<a class="anchor" aria-label="anchor" href="#batch-geocoding-on-a-cluster"></a>
+</h3>
+<p>The container includes an <code>addr-geocode</code> command for CSV or parquet files with a column named exactly <code>address</code>. The command writes a deterministic output file next to the input, matching the input file type and appending TIGER range geocoding columns. On systems that use Apptainer, pull a release-tagged image and bind user-specific scratch directories for persistent addr data and temporary files:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="ex">apptainer</span> pull addr_v1.3.0.sif docker://ghcr.io/geomarker-io/addr:v1.3.0</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> /scratch/<span class="op">&lt;</span>cchmc-user<span class="op">&gt;</span>/addr-data /scratch/<span class="op">&lt;</span>cchmc-user<span class="op">&gt;</span>/addr-tmp</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="ex">apptainer</span> exec <span class="at">--cleanenv</span> <span class="at">--contain</span> <span class="dt">\</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  <span class="at">--bind</span> /scratch/<span class="op">&lt;</span>cchmc-user<span class="op">&gt;</span>/addr-data:/opt/addr-data <span class="dt">\</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>  <span class="at">--bind</span> /scratch/<span class="op">&lt;</span>cchmc-user<span class="op">&gt;</span>/addr-tmp:/tmp <span class="dt">\</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>  <span class="at">--bind</span> <span class="st">"</span><span class="va">$PWD</span><span class="st">:/work"</span> <span class="dt">\</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  addr_v1.3.0.sif <span class="dt">\</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  addr-geocode <span class="dt">\</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>    <span class="at">--input</span> /work/addresses.csv</span></code></pre></div>
+<p>For example, Cole’s CCHMC username is <code>broeg1</code>, so his scratch directories use <code>/scratch/broeg1/</code>:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> /scratch/broeg1/addr-data /scratch/broeg1/addr-tmp</span></code></pre></div>
+<p>Use <code>--cleanenv</code> and <code>--contain</code> so the container does not inherit host R environment variables, home-directory data, or temporary directories.</p>
+<p>For local R installations, run the installed script from the shell:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "addr-geocode", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="at">--input</span> addresses.csv</span></code></pre></div>
+<p>You can also create a one-time shell symlink:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> <span class="st">"</span><span class="va">$HOME</span><span class="st">/.local/bin"</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">ln</span> <span class="at">-s</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "addr-geocode", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="st">"</span><span class="va">$HOME</span><span class="st">/.local/bin/addr-geocode"</span></span></code></pre></div>
+<p>Then run:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="ex">addr-geocode</span> <span class="at">--input</span> addresses.csv</span></code></pre></div>
+<p>For local image development, use <code>just build</code>, <code>just run</code>, and <code>just test-container</code> with the <code>container</code> CLI. The <code>just run</code> target resolves <code>tools::R_user_dir("addr", "data")</code> with the local R installation and mounts that directory into the container when it already exists.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="full-taf-bundle">Full TAF bundle<a class="anchor" aria-label="anchor" href="#full-taf-bundle"></a>
+</h2>
+<p>The addr 1.3.0 GitHub release provides a national 2025 TIGER Address Features bundle for users who prefer one large download instead of installing county data as needed. The bundle requires addr 1.3.0 and the <code>bash</code>, <code>tar</code>, <code>zstd</code>, and <code>shasum</code> command-line tools.</p>
+<p>Download the archive and its small JSON manifest from the release:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="ex">curl</span> <span class="at">--fail</span> <span class="at">--location</span> <span class="at">--remote-name</span> <span class="dt">\</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  https://github.com/geomarker-io/addr/releases/download/v1.3.0/addr-taf-v1-2025.tar.zst</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="ex">curl</span> <span class="at">--fail</span> <span class="at">--location</span> <span class="at">--remote-name</span> <span class="dt">\</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  https://github.com/geomarker-io/addr/releases/download/v1.3.0/addr-taf-v1-2025.json</span></code></pre></div>
+<p>Run the installer from a shell:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">bash</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "install-addr-taf-fuel.sh", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  addr-taf-v1-2025.tar.zst</span></code></pre></div>
+<p>The installer reads the JSON manifest next to the archive, verifies the embedded SHA-256 checksum, confirms package compatibility and file counts, and then installs runtime-optimized Snappy parquet files. The download is about 1.4 GiB and installation requires several additional gigabytes of temporary and destination disk space.</p>
+<p>By default, files are installed under the directory returned by:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(tools::R_user_dir("addr", "data"))'</span></span></code></pre></div>
+<p>Set <code>R_USER_DATA_DIR</code> before installation to use another storage location, such as scratch space on a cluster:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="bu">export</span> <span class="va">R_USER_DATA_DIR</span><span class="op">=</span>/scratch/<span class="op">&lt;</span>user<span class="op">&gt;</span>/addr-data</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="fu">bash</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "install-addr-taf-fuel.sh", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  addr-taf-v1-2025.tar.zst</span></code></pre></div>
+<p>With that setting, the installed data and manifest are placed under:</p>
+<pre class="text"><code>${R_USER_DATA_DIR}/R/addr/v1/tiger_addr_feat/2025
+${R_USER_DATA_DIR}/R/addr/v1/tiger_addr_feat_manifest/2025</code></pre>
+<p>The installer refuses to overwrite either existing year-specific directory. Remove both directories before deliberately replacing an existing full installation, or set <code>R_USER_DATA_DIR</code> to install in a different location.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
