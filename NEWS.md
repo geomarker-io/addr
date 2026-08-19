@@ -4,6 +4,8 @@
   `ADDRFEAT` source ZIP files as durable managed local copies. These source
   files are stored under addr's `stow/tiger_feat_names` and
   `stow/tiger_addr_feat` directories.
+* The addr container image now installs stow 0.3.0 so TIGER source ZIP files
+  can also be retained as durable managed local copies when using the image.
 * The processed TAF dataset used for geocoding is not managed by `stow()` and
   remains under `v1/tiger_addr_feat/<year>` in addr's user data directory. By
   default, when `geocode()` needs a missing county, `taf_install()` uses the
