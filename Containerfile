@@ -1,10 +1,12 @@
 ARG R_VERSION=4.4.3
 ARG RUST_VERSION=1.95.0
+ARG STOW_VERSION=0.3.0
 
 FROM ghcr.io/rocker-org/r-ver:${R_VERSION} AS builder
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG RUST_VERSION
+ARG STOW_VERSION
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -32,8 +34,10 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
 RUN echo "options(repos = c(CRAN = 'https://p3m.dev/cran/__linux__/manylinux_2_28/latest'))" \
     >> "${R_HOME}/etc/Rprofile.site"
 
-RUN R -q -e "install.packages(c('curl', 'jsonlite', 'mirai', 'nanoparquet', 'wk', 'proxy', 'e1071', 'classInt', 'DBI', 's2', 'S7', 'stringdist', 'tibble', 'units', 'vctrs', 'Rcpp'), Ncpus = 1)" \
-    && R -q -e "install.packages('sf', repos = c(CRAN = 'https://cloud.r-project.org'), type = 'source', dependencies = FALSE, Ncpus = 1)"
+RUN R -q -e "install.packages(c('curl', 'digest', 'jsonlite', 'mirai', 'nanoparquet', 'wk', 'proxy', 'e1071', 'classInt', 'DBI', 's2', 'S7', 'stringdist', 'tibble', 'units', 'vctrs', 'Rcpp'), Ncpus = 1)" \
+    && R -q -e "install.packages('sf', repos = c(CRAN = 'https://cloud.r-project.org'), type = 'source', dependencies = FALSE, Ncpus = 1)" \
+    && R -q -e "install.packages('https://github.com/cole-brokamp/stow/archive/refs/tags/v${STOW_VERSION}.tar.gz', repos = NULL, type = 'source')" \
+    && R -q -e "stopifnot(packageVersion('stow') == package_version('${STOW_VERSION}'))"
 
 WORKDIR /tmp/addr
 COPY DESCRIPTION LICENSE NAMESPACE configure configure.win cleanup cleanup.win ./
@@ -48,7 +52,7 @@ WORKDIR /tmp/build
 
 RUN R CMD build /tmp/addr --no-manual --no-build-vignettes \
     && R CMD INSTALL --clean addr_*.tar.gz \
-    && R -q -e "library(addr); library(sf); library(nanoparquet); library(mirai); library(jsonlite)" \
+    && R -q -e "library(addr); library(stow); library(sf); library(nanoparquet); library(mirai); library(jsonlite)" \
     && find /usr/local/lib/R/site-library -name '*.so' -exec strip --strip-unneeded {} + \
     && rm -rf /tmp/addr /tmp/build/addr_*.tar.gz
 

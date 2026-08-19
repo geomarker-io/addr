@@ -1,106 +1,74 @@
-tiger_download <- function(x, overwrite = FALSE) {
+tiger_download <- function(
+  x,
+  subdir,
+  overwrite = FALSE,
+  offline = FALSE
+) {
   stopifnot(
     "x must be a character vector" = is.character(x),
     "x must be length one" = length(x) == 1L,
     "x must not be missing" = !is.na(x),
+    "subdir must be a character vector" = is.character(subdir),
+    "subdir must be length one" = length(subdir) == 1L,
+    "subdir must not be missing" = !is.na(subdir),
     "overwrite must be logical" = is.logical(overwrite),
     "overwrite must be length one" = length(overwrite) == 1L,
-    "overwrite must not be missing" = !is.na(overwrite)
+    "overwrite must not be missing" = !is.na(overwrite),
+    "offline must be logical" = is.logical(offline),
+    "offline must be length one" = length(offline) == 1L,
+    "offline must not be missing" = !is.na(offline)
   )
-  tiger_url <- tiger_download_url(x)
-  dest <- file.path(tools::R_user_dir("addr", "data"), x)
-  dir.create(dirname(dest), showWarnings = FALSE, recursive = TRUE)
-  if (overwrite || !file.exists(dest)) {
-    tiger_download_to_cache(tiger_url, dest)
-  }
-  return(dest)
+  stow::stow(
+    tiger_download_url(x),
+    package = "addr",
+    subdir = subdir,
+    overwrite = overwrite,
+    offline = offline,
+    etag = FALSE,
+    validate = tiger_validate_zip
+  )
 }
 
 tiger_download_url <- function(x) {
   paste0("https://www2.census.gov/geo/tiger/", x)
 }
 
-tiger_download_to_cache <- function(url, dest) {
-  tf <- tempfile(fileext = ".zip")
-  on.exit(unlink(tf, force = TRUE), add = TRUE)
-
-  tryCatch(
-    {
-      tiger_download_file(url, tf)
-      ok <- file.copy(tf, dest, overwrite = TRUE)
-      if (!ok) {
-        stop("failed to move completed download into place", call. = FALSE)
-      }
-    },
-    error = function(e) {
-      stop(
-        tiger_download_failure_message(
-          url = url,
-          dest = dest,
-          error_message = conditionMessage(e)
-        ),
-        call. = FALSE
-      )
-    }
-  )
-
-  invisible(dest)
-}
-
-tiger_download_file <- function(
-  url,
-  dest,
-  download_file = utils::download.file
-) {
+tiger_validate_zip <- function(path) {
   stopifnot(
-    "url must be a character vector" = is.character(url),
-    "url must be length one" = length(url) == 1L,
-    "url must not be missing" = !is.na(url),
-    "dest must be a character vector" = is.character(dest),
-    "dest must be length one" = length(dest) == 1L,
-    "dest must not be missing" = !is.na(dest)
+    "path must be a character vector" = is.character(path),
+    "path must be length one" = length(path) == 1L,
+    "path must not be missing" = !is.na(path)
   )
-
-  status <- download_file(url, dest, mode = "wb")
-  if (
-    !is.numeric(status) ||
-      length(status) != 1L ||
-      is.na(status) ||
-      status != 0L
-  ) {
-    stop("download returned status ", tiger_status_text(status), call. = FALSE)
-  }
-
-  invisible(dest)
+  contents <- tryCatch(
+    suppressWarnings(utils::unzip(path, list = TRUE)),
+    error = function(e) NULL
+  )
+  is.data.frame(contents) && nrow(contents) > 0L
 }
 
-tiger_status_text <- function(status) {
-  if (length(status) == 0L) {
-    return("<empty>")
-  }
-  paste(status, collapse = ", ")
+tiger_feat_names_download <- function(county, year, redownload) {
+  tiger_download(
+    sprintf(
+      "TIGER%s/FEATNAMES/tl_%s_%s_featnames.zip",
+      year,
+      year,
+      county
+    ),
+    subdir = "tiger_feat_names",
+    overwrite = redownload
+  )
 }
 
-tiger_download_failure_message <- function(url, dest, error_message) {
-  stopifnot(
-    "url must be a character vector" = is.character(url),
-    "url must be length one" = length(url) == 1L,
-    "url must not be missing" = !is.na(url),
-    "dest must be a character vector" = is.character(dest),
-    "dest must be length one" = length(dest) == 1L,
-    "dest must not be missing" = !is.na(dest),
-    "error_message must be a character vector" = is.character(error_message),
-    "error_message must be length one" = length(error_message) == 1L,
-    "error_message must not be missing" = !is.na(error_message)
-  )
-
-  paste0(
-    "failed to download TIGER file from `",
-    url,
-    "` to `",
-    dest,
-    "`: ",
-    error_message
+tiger_addr_feat_download <- function(county, year, redownload) {
+  tiger_download(
+    sprintf(
+      "TIGER%s/ADDRFEAT/tl_%s_%s_addrfeat.zip",
+      year,
+      year,
+      county
+    ),
+    subdir = "tiger_addr_feat",
+    overwrite = redownload
   )
 }
 
@@ -111,13 +79,15 @@ tiger_download_failure_message <- function(url, dest, error_message) {
 #' TIGER primary feature names are read from compressed feature-name databases
 #' for each county and Census vintage.
 #' If not already present, compressed addrfeat (address feature) shapefiles are
-#' downloaded from the Census TIGER HTTPS endpoint to the addr user data
-#' directory.
+#' downloaded from the Census TIGER HTTPS endpoint as durable managed local
+#' copies in addr's `stow/tiger_feat_names` directory. Files from the former
+#' unmanaged TIGER layout are not searched.
 #'
 #' When reading into R, the data is filtered to addressable MTFCCs
 #' (S1100, S1200, S1400, S1640) that have a name.
 #' @inheritParams tiger_addr_feat
-#' @param redownload logical, length 1; re-download the cached TIGER ZIP file?
+#' @param redownload logical, length 1; replace the durable managed local copy
+#'   of the TIGER ZIP file?
 #' @returns a tibble with unique `LINEARID` and `addr` columns
 #' @export
 #' @examples
@@ -137,15 +107,7 @@ tiger_feat_names <- function(county, year, redownload = FALSE) {
     "redownload must not be missing" = !is.na(redownload)
   )
   check_installed("sf", "to read TIGER feature names")
-  tp <- tiger_download(
-    sprintf(
-      "TIGER%s/FEATNAMES/tl_%s_%s_featnames.zip",
-      year,
-      year,
-      county
-    ),
-    overwrite = redownload
-  ) |>
+  tp <- tiger_feat_names_download(county, year, redownload) |>
     paste0("/vsizip/", file_path = _)
   rd <- sf::st_read(
     tp,
@@ -195,13 +157,16 @@ tiger_feat_names <- function(county, year, redownload = FALSE) {
 #' TIGER address features (street address ranges) are read from compressed
 #' addrfeat (address feature) shapefiles for each county and Census vintage.
 #' If not already present, compressed addrfeat shapefiles are downloaded from
-#' the Census TIGER HTTPS endpoint to the addr user data directory.
+#' the Census TIGER HTTPS endpoint as durable managed local copies in addr's
+#' `stow/tiger_addr_feat` directory. Files from the former unmanaged TIGER
+#' layout are not searched.
 #'
 #' When reading into R, the data is converted to one row per street side
 #' (`L`/`R`) for use by `taf_install()`.
 #' @param county character string of county FIPS identifier
 #' @param year character year of the Census TIGER/Line product
-#' @param redownload logical, length 1; re-download the cached TIGER ZIP file?
+#' @param redownload logical, length 1; replace the durable managed local copy
+#'   of the TIGER ZIP file?
 #' @returns a tibble with `LINEARID`, `FULLNAME`, `side`, `ZIP`,
 #' `FROMHN`, `TOHN`, `PARITY`, `OFFSET`, and `s2_geography` columns
 #' @export
@@ -223,15 +188,7 @@ tiger_addr_feat <- function(county, year, redownload = FALSE) {
   )
   check_installed("sf", "to read address range shapefiles")
 
-  tp <- tiger_download(
-    sprintf(
-      "TIGER%s/ADDRFEAT/tl_%s_%s_addrfeat.zip",
-      year,
-      year,
-      county
-    ),
-    overwrite = redownload
-  ) |>
+  tp <- tiger_addr_feat_download(county, year, redownload) |>
     paste0("/vsizip/", file_path = _)
 
   rd <-

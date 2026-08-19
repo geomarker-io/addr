@@ -25,8 +25,8 @@
 #'   input ZIP codes and selected ZIP code variants before geocoding? If
 #'   `FALSE`, geocoding proceeds with installed files only and warns when
 #'   needed county files are missing.
-#' @param taf_redownload logical; re-download cached TIGER ZIP files when
-#'   installing missing TAF counties?
+#' @param taf_redownload logical; replace existing durable managed local copies
+#'   of TIGER ZIP files when installing missing TAF counties?
 #' @param add_s2_cell logical; add an `s2_cell` column computed from matched
 #'   geographies? Defaults to `TRUE`; set to `FALSE` to skip this final
 #'   computation.

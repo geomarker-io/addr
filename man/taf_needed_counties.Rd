@@ -37,7 +37,8 @@ and taf dataset schema}
 \item{zip_variant}{character vector; zipcode variant types to use when
 \code{zip_variants} is \code{TRUE}; see \code{?zipcode_variant}}
 
-\item{redownload}{logical, length 1; re-download cached TIGER ZIP files?}
+\item{redownload}{logical, length 1; replace existing durable managed local
+copies of TIGER ZIP files?}
 }
 \value{
 \code{taf_needed_counties()} returns a tibble with catalog columns plus

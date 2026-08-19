@@ -35,7 +35,7 @@ FIPS identifier}
 revision 22 of the National Address Database.}
 
 \item{refresh_binary}{character, length one; choose how to refresh NAD
-data binaries cached on disk if not already present; "yes" will
+data binaries stored on disk if not already present; "yes" will
 create data binary if not already present, "no" will
 error if data binary is not already present, "force" will
 create the data binary and overwrite any existing data binary}
@@ -57,27 +57,33 @@ using source data already downloaded with \code{nad_download()} or downloading
 it when \code{refresh_source = "yes"}, and readies it for R.
 Counties can be identified either by county name plus state, or by a
 5-digit county FIPS identifier. County names and state abbreviations are
-resolved internally and still determine the cache path and source query.
+resolved internally and still determine the workspace path and source query.
 The NAD geodatabase has a very large size on disk (~10 GB).
 
-Data binaries are the cached outputs of \code{nad_read()} for each
+Data binaries are the persistent outputs of \code{nad_read()} for each
 County/State and are created on first run with \code{nad()}.
-Download data binaries to the \code{tools::R_user_dir()} data directory, or
-point R to these files on disk, to read NAD tables without downloading the
-nationwide NAD geodatabase.
+Source and derived files are kept in the persistent workspace returned by
+\code{stow::stow_path(package = "addr", subdir = "nad")}. Point R to files in
+that workspace to read NAD tables without downloading the nationwide NAD
+geodatabase.
 (Files are organized by major package version,
 NAD version, state, and named by county; e.g., see
-\code{list.files(tools::R_user_dir("addr", "data"), recursive = TRUE)})
+\code{list.files(stow::stow_path(package = "addr", subdir = "nad"), recursive = TRUE)})
 }
 \details{
 NAD source geodatabases are downloaded from the transportation.gov data
 portal:
 \url{https://data.transportation.gov/d/yw36-suxr}
 Downloads use the R \code{curl} package and resume from any interrupted
-partial download left in the addr user data directory.
+partial download left in the NAD workspace.
 If the download cannot complete, \code{nad_download()} will also work with a
 NAD ZIP file that was downloaded another way and placed where
-\code{tools::R_user_dir("addr", "data")} can find it.
+\code{stow::stow_path(package = "addr", subdir = "nad")} can find it.
+
+On first use after upgrading, an existing \code{NAD_r22.zip}, partial download,
+and derived \code{v1/NAD_r22} directory in the former top-level addr data
+directory are moved into the NAD workspace when the corresponding new path
+does not already exist. Other former data paths are not searched.
 Before downloading, review the source metadata and disclaimer in the data
 portal.
 
@@ -91,7 +97,7 @@ and ZIP code.
 Addresses with malformed ZIP codes are removed.
 }
 \examples{
-# explicitly download source data, then cache county output on first read
+# explicitly download source data, then create county output on first read
 \dontrun{
   nad_download(version = 22L)
   nad("Butler", "OH")

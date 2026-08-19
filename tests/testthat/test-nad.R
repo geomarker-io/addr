@@ -19,11 +19,8 @@ test_that("nad() requires a cached binary when refresh_binary is no", {
 })
 
 test_that("nad() read from gdb on disk", {
-  nad_db <- nad_data_path(22L)
-  if (!file.exists(nad_db)) {
-    skip("nad gdb not installed")
-  }
   skip("it takes forever")
+  nad_db <- nad_data_path(22L)
   d <- nad("King", "TX", version = 22L, refresh_binary = "force")
 })
 
@@ -39,6 +36,92 @@ test_that("nad version metadata is local and validates versions", {
     nad_version_metadata(23L),
     "NAD version `23` is not supported"
   )
+})
+
+test_that("NAD source and derived paths use the stow workspace", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  managed_root <- stow::stow_path(package = "addr")
+  workspace <- stow::stow_path(package = "addr", subdir = "nad")
+
+  expect_identical(basename(managed_root), "stow")
+  expect_identical(dirname(workspace), managed_root)
+  expect_identical(nad_workspace_path(), workspace)
+  expect_identical(dirname(nad_data_path(22L)), workspace)
+  expect_identical(
+    dirname(dirname(dirname(nad_sd_path("Hamilton", "OH", 22L)))),
+    file.path(workspace, "v1")
+  )
+})
+
+test_that("nad_download moves the legacy source instead of downloading it", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  nad_md <- nad_version_metadata(22L)
+  legacy_root <- dirname(stow::stow_path(package = "addr"))
+  legacy <- file.path(legacy_root, nad_md$flnm)
+  writeBin(charToRaw("legacy"), legacy)
+
+  local_mocked_bindings(
+    nad_download_archive = function(...) {
+      stop("should not download", call. = FALSE)
+    }
+  )
+
+  expect_message(
+    out <- nad_download(version = 22L, refresh_source = "yes"),
+    "moved legacy NAD data path"
+  )
+  migrated <- nad_data_path(22L)
+  expect_false(file.exists(legacy))
+  expect_true(file.exists(migrated))
+  expect_identical(rawToChar(readBin(migrated, "raw", n = 6L)), "legacy")
+  expect_identical(
+    out,
+    file.path("/vsizip", migrated, sub("(_FGDB)?\\.zip$", ".gdb", nad_md$flnm))
+  )
+})
+
+test_that("nad() migrates legacy derived county data", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  legacy_root <- dirname(stow::stow_path(package = "addr"))
+  legacy <- file.path(
+    legacy_root,
+    "v1",
+    "NAD_r22",
+    "OH",
+    "Hamilton.rds"
+  )
+  dir.create(dirname(legacy), recursive = TRUE, showWarnings = FALSE)
+  saveRDS(list(source = "legacy"), legacy)
+
+  expect_message(
+    out <- nad(
+      "Hamilton",
+      "OH",
+      refresh_binary = "no",
+      refresh_source = "no"
+    ),
+    "moved legacy NAD data path"
+  )
+  migrated <- nad_sd_path("Hamilton", "OH", 22L)
+  expect_false(file.exists(legacy))
+  expect_true(file.exists(migrated))
+  expect_identical(out, list(source = "legacy"))
+})
+
+test_that("NAD does not search the transient stow 0.2 workspace", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  managed_root <- stow::stow_path(package = "addr")
+  old_workspace <- file.path(dirname(managed_root), "nad")
+  old_source <- file.path(old_workspace, "NAD_r22.zip")
+  dir.create(old_workspace, recursive = TRUE, showWarnings = FALSE)
+  writeBin(charToRaw("stow 0.2"), old_source)
+
+  expect_error(
+    nad_download(version = 22L, refresh_source = "no"),
+    "does not exist; set `refresh_source = 'yes'`",
+    fixed = TRUE
+  )
+  expect_true(file.exists(old_source))
 })
 
 test_that("nad_download() resumes interrupted downloads from a .part file", {
@@ -120,7 +203,8 @@ test_that("nad_download() reports manual placement guidance after failures", {
     paste0(
       "If you can download it another way, place it at `",
       dest,
-      "` or set `R_USER_DATA_DIR`"
+      "` or set `R_USER_DATA_DIR` so ",
+      "`stow::stow_path(package = \"addr\", subdir = \"nad\")`"
     ),
     fixed = TRUE
   )

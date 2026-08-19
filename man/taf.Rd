@@ -26,7 +26,8 @@ and taf dataset schema}
 
 \item{overwrite}{logical, length 1; overwrite an existing county install?}
 
-\item{redownload}{logical, length 1; re-download cached TIGER ZIP files?}
+\item{redownload}{logical, length 1; replace existing durable managed local
+copies of TIGER ZIP files?}
 }
 \value{
 a Dataset R6 object (see \code{?arrow::open_dataset}); use \code{dplyr}

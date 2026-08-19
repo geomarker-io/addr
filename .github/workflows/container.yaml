@@ -21,6 +21,7 @@ env:
   REGISTRY: ghcr.io/geomarker-io
   R_VERSION: "4.4.3"
   RUST_VERSION: "1.95.0"
+  STOW_VERSION: "0.3.0"
 
 jobs:
   container:
@@ -98,6 +99,7 @@ jobs:
           build-args: |
             R_VERSION=${{ env.R_VERSION }}
             RUST_VERSION=${{ env.RUST_VERSION }}
+            STOW_VERSION=${{ env.STOW_VERSION }}
             BUILD_DATE=${{ steps.meta.outputs.created }}
             VCS_REF=${{ steps.meta.outputs.revision }}
             IMAGE_VERSION=${{ steps.meta.outputs.version }}
