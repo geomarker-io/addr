@@ -88,7 +88,7 @@ For repeated matching against the same reference addresses, prepare the referenc
 `nad()` reads county-level address points from the U.S. Department of Transportation National Address Database.
 Counties can be requested by county name plus state, such as `"Hamilton", "OH"`, or by 5-digit county FIPS code, such as `"39061"`.
 
-The nationwide NAD geodatabase is large and county-based extracts are computationally expensive, so addr caches derived county data in the R user cache directory.
+The nationwide NAD geodatabase is large and county-based extracts are computationally expensive, so addr keeps derived county data in a persistent NAD workspace within its package-specific user data directory.
 The package also includes `nad_example_data()`, a small baked fixture derived from Hamilton County, Ohio. Use it for examples, tests, and matching workflows that should run without downloading NAD source data first; use `nad("Hamilton", "OH")` when you need complete Hamilton County data.
 
 ### Geocoding
@@ -116,6 +116,17 @@ addr stores them as a hive-partitioned, multi-file parquet dataset, grouped by Z
 Read TIGER address features for one or more ZIP codes with `taf_zip()`.
 `taf_needed_counties()` identifies which county files may contain the ZIP codes in an input address vector, including selected ZIP-code variants.
 `taf_ensure()` installs any missing county files, and `geocode()` calls it by default before geocoding. addr uses nanoparquet for flat parquet reads and writes in these geocoding helpers. Use `taf()` to open the installed multi-file dataset with arrow for advanced lazy dataset queries; arrow is optional and is only required for `taf()`.
+
+The source TIGER ZIP files used by `tiger_feat_names()` and `tiger_addr_feat()` are durable managed local copies created by `stow()`. They live beneath the fixed `stow` directory in addr's package-specific user data directory and are organized into separate `tiger_feat_names` and `tiger_addr_feat` subdirectories. Locate the managed local copy directory and inspect retained managed local copies with:
+
+```r
+stow::stow_path(package = "addr")
+stow::stow_info(package = "addr")
+```
+
+The former unmanaged TIGER ZIP layout is not searched after this cutover. A missing source ZIP is downloaded as a new durable managed local copy in its function-specific subdirectory.
+
+NAD keeps its resumable source download and derived county files in a persistent workspace returned by `stow::stow_path(package = "addr", subdir = "nad")`, inside addr's fixed `stow` directory. On first use, addr moves an existing top-level `NAD_r22.zip`, `.part` file, and derived `v1/NAD_r22` directory into that workspace if the corresponding destination does not exist; when both former and current paths exist, the current workspace wins and the former path is ignored. The NAD download and processing pipeline remains specialized and does not use `stow()` to manage individual files.
 
 ## Container and command-line interface
 

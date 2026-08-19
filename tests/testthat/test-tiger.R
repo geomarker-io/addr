@@ -2,122 +2,161 @@ test_that("can download files from tiger", {
   skip_live_tiger_downloads()
   withr::local_envvar(list("R_USER_DATA_DIR" = tempfile()))
   dl_file <- tiger_download(
-    "TIGER2024/FEATNAMES/tl_2024_39061_featnames.zip"
+    "TIGER2024/FEATNAMES/tl_2024_39061_featnames.zip",
+    subdir = "tiger_feat_names"
   )
   expect_true(file.exists(dl_file))
 })
 
-test_that("tiger_download_file uses binary mode and checks download status", {
-  dest <- tempfile(fileext = ".zip")
-  url <- "https://example.test/file.zip"
-  download_args <- NULL
+make_tiger_test_zip <- function(path) {
+  source_dir <- tempfile("tiger-zip-source-")
+  dir.create(source_dir)
+  source_file <- file.path(source_dir, "fixture.txt")
+  writeLines("fixture", source_file)
+  old_dir <- setwd(source_dir)
+  on.exit(setwd(old_dir), add = TRUE)
+  utils::zip(path, basename(source_file), flags = "-q")
+  invisible(path)
+}
 
-  tiger_download_file(
-    url,
-    dest,
-    download_file = function(url, dest, mode) {
-      download_args <<- list(url = url, dest = dest, mode = mode)
-      writeBin(charToRaw("zip"), dest)
-      0L
+test_that("tiger_download fixes ownership and forwards managed-copy controls", {
+  tiger_path <- "TIGER2024/INTERNATIONALBOUNDARY/tl_2024_us_internationalboundary.zip"
+  expected_url <- paste0("https://www2.census.gov/geo/tiger/", tiger_path)
+  received <- NULL
+
+  local_mocked_bindings(
+    stow = function(...) {
+      received <<- list(...)
+      "/managed/canonical.zip"
+    },
+    .package = "stow"
+  )
+
+  dl_file <- tiger_download(
+    tiger_path,
+    subdir = "tiger_addr_feat",
+    overwrite = TRUE,
+    offline = FALSE
+  )
+
+  expect_identical(dl_file, "/managed/canonical.zip")
+  expect_identical(received[[1]], expected_url)
+  expect_identical(received$package, "addr")
+  expect_identical(received$subdir, "tiger_addr_feat")
+  expect_identical(received$overwrite, TRUE)
+  expect_identical(received$offline, FALSE)
+  expect_identical(received$etag, FALSE)
+  expect_identical(received$validate, tiger_validate_zip)
+})
+
+test_that("public TIGER consumers own separate stow subdirectories", {
+  received <- list()
+  local_mocked_bindings(
+    tiger_download = function(...) {
+      received[[length(received) + 1L]] <<- list(...)
+      "/managed/canonical.zip"
     }
   )
 
-  expect_equal(download_args$url, url)
-  expect_equal(download_args$dest, dest)
-  expect_equal(download_args$mode, "wb")
-  expect_equal(rawToChar(readBin(dest, "raw", n = 3L)), "zip")
+  expect_identical(
+    tiger_feat_names_download("39061", "2025", TRUE),
+    "/managed/canonical.zip"
+  )
+  expect_identical(
+    tiger_addr_feat_download("39061", "2025", FALSE),
+    "/managed/canonical.zip"
+  )
 
+  expect_identical(received[[1]]$subdir, "tiger_feat_names")
+  expect_identical(received[[1]]$overwrite, TRUE)
+  expect_identical(received[[2]]$subdir, "tiger_addr_feat")
+  expect_identical(received[[2]]$overwrite, FALSE)
+})
+
+test_that("tiger ZIP validator accepts ZIPs and rejects other content", {
+  zip_file <- tempfile(fileext = ".zip")
+  make_tiger_test_zip(zip_file)
+  invalid_file <- tempfile()
+  writeLines("not a ZIP", invalid_file)
+
+  expect_identical(tiger_validate_zip(zip_file), TRUE)
+  expect_identical(tiger_validate_zip(invalid_file), FALSE)
+})
+
+test_that("tiger_download supports offline managed local copies", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  tiger_path <- "TIGER2024/INTERNATIONALBOUNDARY/tl_2024_us_internationalboundary.zip"
+  url <- tiger_download_url(tiger_path)
+  managed_root <- stow::stow_path(package = "addr")
+  managed_dir <- stow::stow_path(
+    package = "addr",
+    subdir = "tiger_feat_names"
+  )
+  expect_identical(basename(managed_root), "stow")
+  expect_identical(dirname(managed_dir), managed_root)
+  stow_filename <- getFromNamespace(".stow_url_to_filename", "stow")
+  managed_copy <- file.path(managed_dir, stow_filename(url))
+  make_tiger_test_zip(managed_copy)
+
+  dl_file <- tiger_download(
+    tiger_path,
+    subdir = "tiger_feat_names",
+    offline = TRUE
+  )
+
+  expect_identical(dl_file, normalizePath(managed_copy, winslash = "/"))
   expect_error(
-    tiger_download_file(
-      url,
-      tempfile(fileext = ".zip"),
-      download_file = function(url, dest, mode) 7L
+    tiger_download(
+      sub("internationalboundary", "coastline", tiger_path),
+      subdir = "tiger_feat_names",
+      offline = TRUE
     ),
-    "download returned status 7",
+    "No managed local copy is available in offline mode",
     fixed = TRUE
   )
 })
 
-test_that("tiger_download uses HTTPS TIGER endpoint", {
-  data_root <- tempfile()
-  withr::local_envvar(list("R_USER_DATA_DIR" = data_root))
-
-  tiger_path <- "TIGER2024/INTERNATIONALBOUNDARY/tl_2024_us_internationalboundary.zip"
-  expected_url <- paste0("https://www2.census.gov/geo/tiger/", tiger_path)
-  expected_dest <- file.path(tools::R_user_dir("addr", "data"), tiger_path)
-  download_args <- NULL
-
-  local_mocked_bindings(
-    tiger_download_file = function(url, dest) {
-      download_args <<- list(url = url, dest = dest)
-      writeBin(charToRaw("zip"), dest)
-      invisible(dest)
-    }
-  )
-
-  dl_file <- tiger_download(tiger_path)
-
-  expect_equal(dl_file, expected_dest)
-  expect_equal(download_args$url, expected_url)
-  expect_false(identical(download_args$dest, expected_dest))
-  expect_true(file.exists(expected_dest))
-  expect_equal(rawToChar(readBin(expected_dest, "raw", n = 3L)), "zip")
-})
-
-test_that("tiger_download reports failed URL and destination", {
-  data_root <- tempfile()
-  withr::local_envvar(list("R_USER_DATA_DIR" = data_root))
-
-  tiger_path <- "TIGER2024/INTERNATIONALBOUNDARY/tl_2024_us_internationalboundary.zip"
-  expected_url <- paste0("https://www2.census.gov/geo/tiger/", tiger_path)
-  expected_dest <- file.path(tools::R_user_dir("addr", "data"), tiger_path)
-  temp_dest <- NULL
-
-  local_mocked_bindings(
-    tiger_download_file = function(url, dest) {
-      temp_dest <<- dest
-      writeBin(charToRaw("partial"), dest)
-      stop("network broke", call. = FALSE)
-    }
-  )
+test_that("tiger_download ignores the former unmanaged TIGER layout", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  tiger_path <- "TIGER2024/FEATNAMES/tl_2024_39061_featnames.zip"
+  legacy_root <- dirname(stow::stow_path(package = "addr"))
+  legacy <- file.path(legacy_root, tiger_path)
+  dir.create(dirname(legacy), recursive = TRUE, showWarnings = FALSE)
+  make_tiger_test_zip(legacy)
 
   expect_error(
-    tiger_download(tiger_path),
-    paste0(
-      "failed to download TIGER file from `",
-      expected_url,
-      "` to `",
-      expected_dest,
-      "`: network broke"
+    tiger_download(
+      tiger_path,
+      subdir = "tiger_feat_names",
+      offline = TRUE
     ),
+    "No managed local copy is available in offline mode",
     fixed = TRUE
   )
-  expect_false(file.exists(temp_dest))
-  expect_false(file.exists(expected_dest))
+  expect_true(file.exists(legacy))
 })
 
-test_that("tiger_download reuses cached files without downloading", {
-  data_root <- tempfile()
-  withr::local_envvar(list("R_USER_DATA_DIR" = data_root))
+test_that("tiger_download does not discover stow 0.2 managed copies", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  tiger_path <- "TIGER2024/FEATNAMES/tl_2024_39061_featnames.zip"
+  url <- tiger_download_url(tiger_path)
+  managed_root <- stow::stow_path(package = "addr")
+  old_managed_dir <- file.path(dirname(managed_root), "tiger_feat_names")
+  dir.create(old_managed_dir, recursive = TRUE, showWarnings = FALSE)
+  stow_filename <- getFromNamespace(".stow_url_to_filename", "stow")
+  old_copy <- file.path(old_managed_dir, stow_filename(url))
+  make_tiger_test_zip(old_copy)
 
-  tiger_path <- "TIGER2024/INTERNATIONALBOUNDARY/tl_2024_us_internationalboundary.zip"
-  expected_dest <- file.path(tools::R_user_dir("addr", "data"), tiger_path)
-  dir.create(dirname(expected_dest), recursive = TRUE, showWarnings = FALSE)
-  writeBin(charToRaw("cached"), expected_dest)
-  downloaded <- FALSE
-
-  local_mocked_bindings(
-    tiger_download_file = function(url, dest) {
-      downloaded <<- TRUE
-      stop("should not download", call. = FALSE)
-    }
+  expect_error(
+    tiger_download(
+      tiger_path,
+      subdir = "tiger_feat_names",
+      offline = TRUE
+    ),
+    "No managed local copy is available in offline mode",
+    fixed = TRUE
   )
-
-  dl_file <- tiger_download(tiger_path)
-
-  expect_equal(dl_file, expected_dest)
-  expect_false(downloaded)
-  expect_equal(rawToChar(readBin(expected_dest, "raw", n = 6L)), "cached")
+  expect_true(file.exists(old_copy))
 })
 
 test_that("tiger_addr_feat() can download addr feat from tiger", {

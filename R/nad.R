@@ -11,17 +11,19 @@
 #' it when `refresh_source = "yes"`, and readies it for R.
 #' Counties can be identified either by county name plus state, or by a
 #' 5-digit county FIPS identifier. County names and state abbreviations are
-#' resolved internally and still determine the cache path and source query.
+#' resolved internally and still determine the workspace path and source query.
 #' The NAD geodatabase has a very large size on disk (~10 GB).
 #'
-#' Data binaries are the cached outputs of `nad_read()` for each
+#' Data binaries are the persistent outputs of `nad_read()` for each
 #' County/State and are created on first run with `nad()`.
-#' Download data binaries to the `tools::R_user_dir()` data directory, or
-#' point R to these files on disk, to read NAD tables without downloading the
-#' nationwide NAD geodatabase.
+#' Source and derived files are kept in the persistent workspace returned by
+#' `stow::stow_path(package = "addr", subdir = "nad")`. Point R to files in
+#' that workspace to read NAD tables without downloading the nationwide NAD
+#' geodatabase.
 #' (Files are organized by major package version,
 #' NAD version, state, and named by county; e.g., see
-#' `list.files(tools::R_user_dir("addr", "data"), recursive = TRUE)`)
+#' `list.files(stow::stow_path(package = "addr", subdir = "nad"),
+#' recursive = TRUE)`)
 #'
 #' @param county character, length one; county name or 5-digit county FIPS
 #'   identifier
@@ -31,7 +33,7 @@
 #' @param version integer, length one; NAD revision to use. Defaults to `22L`,
 #'   revision 22 of the National Address Database.
 #' @param refresh_binary character, length one; choose how to refresh NAD
-#' data binaries cached on disk if not already present; "yes" will
+#' data binaries stored on disk if not already present; "yes" will
 #' create data binary if not already present, "no" will
 #' error if data binary is not already present, "force" will
 #' create the data binary and overwrite any existing data binary
@@ -41,10 +43,15 @@
 #' portal:
 #' <https://data.transportation.gov/d/yw36-suxr>
 #' Downloads use the R `curl` package and resume from any interrupted
-#' partial download left in the addr user data directory.
+#' partial download left in the NAD workspace.
 #' If the download cannot complete, `nad_download()` will also work with a
 #' NAD ZIP file that was downloaded another way and placed where
-#' `tools::R_user_dir("addr", "data")` can find it.
+#' `stow::stow_path(package = "addr", subdir = "nad")` can find it.
+#'
+#' On first use after upgrading, an existing `NAD_r22.zip`, partial download,
+#' and derived `v1/NAD_r22` directory in the former top-level addr data
+#' directory are moved into the NAD workspace when the corresponding new path
+#' does not already exist. Other former data paths are not searched.
 #' Before downloading, review the source metadata and disclaimer in the data
 #' portal.
 #'
@@ -59,7 +66,7 @@
 #'
 #' @export
 #' @examples
-#' # explicitly download source data, then cache county output on first read
+#' # explicitly download source data, then create county output on first read
 #' \dontrun{
 #'   nad_download(version = 22L)
 #'   nad("Butler", "OH")
@@ -99,6 +106,7 @@ nad <- function(
   refresh_source <- match.arg(refresh_source)
   county_info <- nad_county_info(county, state)
   nad_version_metadata(version)
+  nad_migrate_legacy_data(version)
   nad_sd <- nad_sd_path(
     county = county_info$county,
     state = county_info$state,
@@ -201,7 +209,7 @@ nad_sd_path <- function(county, state, version = 22L) {
   )
   source_file <- nad_version_metadata(version)$flnm
   file.path(
-    tools::R_user_dir("addr", "data"),
+    nad_workspace_path(),
     "v1",
     sub("^(NAD_r[0-9]+)(_FGDB)?\\.zip$", "\\1", source_file),
     state,
@@ -338,6 +346,7 @@ nad_download <- function(
   refresh_source <- match.arg(refresh_source)
   nad_md <- nad_version_metadata(version)
   source_file <- nad_md$flnm
+  nad_migrate_legacy_data(version)
   old_timeout <- options("timeout")$timeout
   new_timeout <- max(old_timeout, 2500)
   options(timeout = new_timeout)
@@ -393,9 +402,53 @@ nad_download <- function(
 
 nad_data_path <- function(version = 22L) {
   file.path(
-    tools::R_user_dir("addr", "data"),
+    nad_workspace_path(),
     nad_version_metadata(version)$flnm
   )
+}
+
+nad_workspace_path <- function() {
+  stow::stow_path(package = "addr", subdir = "nad")
+}
+
+nad_migrate_legacy_data <- function(version = 22L) {
+  source_file <- nad_version_metadata(version)$flnm
+  source_stem <- sub("^(NAD_r[0-9]+)(_FGDB)?\\.zip$", "\\1", source_file)
+  legacy_root <- dirname(stow::stow_path(package = "addr"))
+  workspace <- nad_workspace_path()
+  legacy_paths <- c(
+    file.path(legacy_root, source_file),
+    file.path(legacy_root, paste0(source_file, ".part")),
+    file.path(legacy_root, "v1", source_stem)
+  )
+  workspace_paths <- c(
+    file.path(workspace, source_file),
+    file.path(workspace, paste0(source_file, ".part")),
+    file.path(workspace, "v1", source_stem)
+  )
+
+  for (i in seq_along(legacy_paths)) {
+    from <- legacy_paths[[i]]
+    to <- workspace_paths[[i]]
+    if (!file.exists(from) || file.exists(to)) {
+      next
+    }
+    dir.create(dirname(to), recursive = TRUE, showWarnings = FALSE)
+    moved <- file.rename(from, to)
+    if (!moved) {
+      stop(
+        "failed to move legacy NAD data path from `",
+        from,
+        "` to `",
+        to,
+        "`; move it manually before retrying",
+        call. = FALSE
+      )
+    }
+    message("moved legacy NAD data path to ", to)
+  }
+
+  invisible(workspace)
 }
 
 nad_partial_path <- function(dest) {
@@ -463,8 +516,8 @@ nad_download_failure_message <- function(dest, version, error_message) {
     dest,
     "`",
     " or set `R_USER_DATA_DIR` so ",
-    "`tools::R_user_dir(\"addr\", \"data\")` points to a directory",
-    " that already contains `",
+    "`stow::stow_path(package = \"addr\", subdir = \"nad\")` ",
+    "points to a workspace that already contains `",
     source_file,
     "`."
   )

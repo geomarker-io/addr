@@ -81,8 +81,8 @@ input ZIP codes and selected ZIP code variants before geocoding? If
 \code{FALSE}, geocoding proceeds with installed files only and warns when
 needed county files are missing.}
 
-\item{taf_redownload}{logical; re-download cached TIGER ZIP files when
-installing missing TAF counties?}
+\item{taf_redownload}{logical; replace existing durable managed local copies
+of TIGER ZIP files when installing missing TAF counties?}
 
 \item{offset}{number of meters to offset geocode from street line}
 

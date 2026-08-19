@@ -340,7 +340,8 @@ taf_install_lock_dir <- function(year, version) {
 #' @rdname taf
 #' @param county character, length 1; county FIPS code
 #' @param overwrite logical, length 1; overwrite an existing county install?
-#' @param redownload logical, length 1; re-download cached TIGER ZIP files?
+#' @param redownload logical, length 1; replace existing durable managed local
+#'   copies of TIGER ZIP files?
 #' @export
 #' @examples
 #' \dontrun{
