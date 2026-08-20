@@ -58,6 +58,7 @@ Collate:
     'geocode.R'
     'nad.R'
     'phonetic_street_key.R'
+    'place_zip.R'
     'shiny_addr_explorer.R'
     'shiny_geocode_explorer.R'
     'taf.R'
