@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,7 +65,7 @@
 <h2 id="about">About<a class="anchor" aria-label="anchor" href="#about"></a>
 </h2>
 <p>Addresses not validated at collection are often inconsistently formatted and standardized, making them difficult to compare or link to other address data. The goal of addr is to clean, parse, standardize, match, and geocode real-world, noisy US addresses in R.</p>
-<p><code>addr</code> can parse address components from strings and build vctrs-based address vectors, including <code><a href="reference/addr.html">addr()</a></code> vectors and the <code><a href="reference/addr.html">addr_number()</a></code>, <code><a href="reference/addr.html">addr_street()</a></code>, and <code><a href="reference/addr.html">addr_place()</a></code> component vectors. Each are structured to reuse the United States Thoroughfare, Landmark, and Postal Address Data Standard from the US Federal Geographic Data Committee.</p>
+<p><code>addr</code> can parse address components from strings and build vctrs-based address vectors, including <code><a href="reference/addr.html">addr()</a></code> vectors and the <code><a href="reference/addr.html">addr_number()</a></code>, <code><a href="reference/addr.html">addr_street()</a></code>, and <code><a href="reference/addr.html">addr_place()</a></code> component vectors. Each are structured to reuse the United States Thoroughfare, Landmark, and Postal Address Data Standard from the US Federal Geographic Data Committee. Every component stored in these typed vectors is canonicalized to uppercase, making it visually distinct from raw input text and directly comparable without additional case handling.</p>
 <p><img src="./reference/figures/addr_data.png" height="430"></p>
 <p>The standard also facilitates efficient operations with the Department of Transportation’s National Address Database for address matching and with the Census TIGER/Line Shapefiles for street-range geocoding. Address vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.</p>
 </div>
@@ -101,11 +101,11 @@
 <span><span class="co">#&gt;  .. @ predirectional : chr [1:2] "" ""</span></span>
 <span><span class="co">#&gt;  .. @ premodifier    : chr [1:2] "" ""</span></span>
 <span><span class="co">#&gt;  .. @ pretype        : chr [1:2] "" ""</span></span>
-<span><span class="co">#&gt;  .. @ name           : chr [1:2] "Burnet" "Rapid Run"</span></span>
-<span><span class="co">#&gt;  .. @ posttype       : chr [1:2] "Ave" "Rd"</span></span>
+<span><span class="co">#&gt;  .. @ name           : chr [1:2] "BURNET" "RAPID RUN"</span></span>
+<span><span class="co">#&gt;  .. @ posttype       : chr [1:2] "AVE" "RD"</span></span>
 <span><span class="co">#&gt;  .. @ postdirectional: chr [1:2] "" ""</span></span>
 <span><span class="co">#&gt;  @ place : &lt;addr_place&gt; function ()</span></span>
-<span><span class="co">#&gt;  .. @ name   : chr [1:2] "Cincinnati" "Cincinnati"</span></span>
+<span><span class="co">#&gt;  .. @ name   : chr [1:2] "CINCINNATI" "CINCINNATI"</span></span>
 <span><span class="co">#&gt;  .. @ state  : chr [1:2] "OH" "OH"</span></span>
 <span><span class="co">#&gt;  .. @ zipcode: chr [1:2] "45229" "45238"</span></span></code></pre></div>
 </div>

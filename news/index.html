@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,7 +33,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="addr-development-version">addr (development version)<a class="anchor" aria-label="anchor" href="#addr-development-version"></a></h2>
-<ul><li>
+<ul><li>Breaking: <code><a href="../reference/addr.html">addr()</a></code>, <code><a href="../reference/addr.html">addr_number()</a></code>, <code><a href="../reference/addr.html">addr_street()</a></code>, <code><a href="../reference/addr.html">addr_place()</a></code>, and <code><a href="../reference/as_addr.html">as_addr()</a></code> now store every address component in uppercase after applying existing mappings. Mapping flags control abbreviation mapping but no longer preserve input case. <code><a href="../reference/as_addr.html">as_addr()</a></code> upgrades legacy mixed-case addr objects, and <code><a href="../reference/nad.html">nad()</a></code> rewrites older managed county caches once without reparsing the source addresses. Prepared <code>addr_match_index</code> objects created by an older version must be rebuilt with <code><a href="../reference/addr_match.html">addr_match_prepare()</a></code>.</li>
+<li>
 <code><a href="../reference/geocode.html">geocode()</a></code> and <code><a href="../reference/geocode.html">geocode_zip()</a></code> now consider Census place- and county-subdivision-derived ZCTAs by default after the exact input ZIP and before typographical ZIP variants. The new <code>place_zip_variants</code> and <code>place_zip_variant</code> arguments independently control this search. Valid address ranges are preferred across all candidate tiers, and TIGER county files for every enabled candidate are prepared before geocoding.</li>
 <li>addr now uses stow 0.3.0 to retain the Census TIGER <code>FEATNAMES</code> and <code>ADDRFEAT</code> source ZIP files as durable managed local copies. These source files are stored under addr’s <code>stow/tiger_feat_names</code> and <code>stow/tiger_addr_feat</code> directories.
 <ul><li>The addr container image now installs stow 0.3.0 so TIGER source ZIP files can also be retained as durable managed local copies when using the image.</li>

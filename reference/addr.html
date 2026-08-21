@@ -85,7 +85,7 @@ single addr vector:
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -273,6 +273,9 @@ to abbreviations?</p></dd>
     <p>All field values must be character vectors of at least length one
 (including missing values). Length-one fields are recycled to match the
 length of other fields.</p>
+<p>All letters in stored <code>addr</code> and <code>addr_</code> fields are converted to uppercase.
+The <code>map_*</code> arguments control abbreviation mapping, not this uppercase
+canonicalization.</p>
     </div>
 
     <div class="section level2">
@@ -295,8 +298,8 @@ length of other fields.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ predirectional : chr NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ premodifier    : chr NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ pretype        : chr NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  @ name           : chr "Burnet"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  @ posttype       : chr "Ave"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  @ name           : chr "BURNET"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  @ posttype       : chr "AVE"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ postdirectional: chr NA</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># street names are automatically mapped to abbreviations</span></span></span>
@@ -306,13 +309,13 @@ length of other fields.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ premodifier    : chr NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ pretype        : chr NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ name           : chr "5TH"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  @ posttype       : chr "St"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  @ posttype       : chr "ST"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ postdirectional: chr NA</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># define a new addr_place vector</span></span></span>
 <span class="r-in"><span><span class="fu">addr_place</span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Cincinnati"</span>, state <span class="op">=</span> <span class="st">"OH"</span>, zipcode <span class="op">=</span> <span class="st">"45220"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;addr_place&gt; function ()  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  @ name   : chr "Cincinnati"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  @ name   : chr "CINCINNATI"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ state  : chr "OH"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ zipcode: chr "45220"</span>
 <span class="r-in"><span></span></span>
@@ -331,11 +334,11 @@ length of other fields.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ predirectional : chr NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ premodifier    : chr NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ pretype        : chr NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name           : chr "Burnet"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr "Ave"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name           : chr "BURNET"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr "AVE"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ postdirectional: chr NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ place : &lt;addr_place&gt; function ()  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr "Cincinnati"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr "CINCINNATI"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ state  : chr "OH"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ zipcode: chr "45229"</span>
 <span class="r-in"><span></span></span>
@@ -363,13 +366,13 @@ length of other fields.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ suffix: chr ""</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ street: &lt;addr_street&gt; function ()  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ predirectional : chr "W"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ premodifier    : chr "Old"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ pretype        : chr "US Hwy"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ premodifier    : chr "OLD"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ pretype        : chr "US HWY"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name           : chr "50"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr "Ave"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr "AVE"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ postdirectional: chr "E"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ place : &lt;addr_place&gt; function ()  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr "Cincinnati"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr "CINCINNATI"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ state  : chr "OH"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ zipcode: chr "45220"</span>
 <span class="r-in"><span></span></span>
@@ -391,11 +394,11 @@ length of other fields.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ predirectional : chr [1:4] NA NA NA NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ premodifier    : chr [1:4] NA NA NA NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ pretype        : chr [1:4] NA NA NA NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name           : chr [1:4] "Burnet" "Main" "Ludlow" "State Route 32"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr [1:4] "Ave" "St" "Ave" NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name           : chr [1:4] "BURNET" "MAIN" "LUDLOW" "STATE ROUTE 32"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ posttype       : chr [1:4] "AVE" "ST" "AVE" NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ postdirectional: chr [1:4] NA NA NA NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  @ place : &lt;addr_place&gt; function ()  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr [1:4] "Cincinnati" "Cincinnati" "Cincinnati" "Cincinnati"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ name   : chr [1:4] "CINCINNATI" "CINCINNATI" "CINCINNATI" "CINCINNATI"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ state  : chr [1:4] "OH" "OH" "OH" "OH"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  .. @ zipcode: chr [1:4] NA NA NA NA</span>
 </code></pre></div>

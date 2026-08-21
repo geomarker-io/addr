@@ -18,7 +18,11 @@ that workspace to read NAD tables without downloading the nationwide NAD
 geodatabase.
 (Files are organized by major package version,
 NAD version, state, and named by county; e.g., see
-list.files(stow::stow_path(package = "addr", subdir = "nad"), recursive = TRUE))'><meta property="og:description" content='The U.S. Department of Transportation partners with address programs from
+list.files(stow::stow_path(package = "addr", subdir = "nad"), recursive = TRUE))
+Older data binaries containing mixed-case addr components are upgraded on
+first read. This reuses the existing parsed nad_addr vector, converts its
+stored components to uppercase, and rewrites the managed binary once without
+reading or reparsing the nationwide source geodatabase.'><meta property="og:description" content='The U.S. Department of Transportation partners with address programs from
 state, local, and tribal governments to compile their authoritative data
 into a database. Find more information in the source data portal:
 https://data.transportation.gov/d/yw36-suxr
@@ -37,7 +41,11 @@ that workspace to read NAD tables without downloading the nationwide NAD
 geodatabase.
 (Files are organized by major package version,
 NAD version, state, and named by county; e.g., see
-list.files(stow::stow_path(package = "addr", subdir = "nad"), recursive = TRUE))'><meta property="og:image" content="https://geomarker.io/addr/logo.svg"></head><body>
+list.files(stow::stow_path(package = "addr", subdir = "nad"), recursive = TRUE))
+Older data binaries containing mixed-case addr components are upgraded on
+first read. This reuses the existing parsed nad_addr vector, converts its
+stored components to uppercase, and rewrites the managed binary once without
+reading or reparsing the nationwide source geodatabase.'><meta property="og:image" content="https://geomarker.io/addr/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -45,7 +53,7 @@ list.files(stow::stow_path(package = "addr", subdir = "nad"), recursive = TRUE))
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -90,7 +98,11 @@ that workspace to read NAD tables without downloading the nationwide NAD
 geodatabase.
 (Files are organized by major package version,
 NAD version, state, and named by county; e.g., see
-<code>list.files(stow::stow_path(package = "addr", subdir = "nad"), recursive = TRUE)</code>)</p>
+<code>list.files(stow::stow_path(package = "addr", subdir = "nad"), recursive = TRUE)</code>)
+Older data binaries containing mixed-case addr components are upgraded on
+first read. This reuses the existing parsed <code>nad_addr</code> vector, converts its
+stored components to uppercase, and rewrites the managed binary once without
+reading or reparsing the nationwide source geodatabase.</p>
     </div>
 
     <div class="section level2">
@@ -188,16 +200,16 @@ Addresses with malformed ZIP codes are removed.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 5,000 × 7</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    nad_addr            subaddress uuid  date_update s2    address_type parcel_id</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;addr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;s2_&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 3359 QUEEN CITY Av… <span style="color: #BB0000;">NA</span>         {E3A… 2025-03-30  -6.7… Unknown      <span style="color: #BB0000;">NA</span>       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> 1040 KREIS Ln CINC… <span style="color: #BB0000;">NA</span>         {D05… 2025-03-30  -6.7… Unknown      <span style="color: #BB0000;">NA</span>       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> 9960 DALY Rd CINCI… <span style="color: #BB0000;">NA</span>         {109… 2025-03-30  -6.1… Unknown      <span style="color: #BB0000;">NA</span>       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 413 VOLKERT Pl CIN… <span style="color: #BB0000;">NA</span>         {1BB… 2025-03-30  -6.7… Unknown      <span style="color: #BB0000;">NA</span>       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 8519 LINDERWOOD Ln… <span style="color: #BB0000;">NA</span>         {F78… 2025-03-30  -6.6… Unknown      <span style="color: #BB0000;">NA</span>       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> 6361 BEECHMONT Ave… <span style="color: #BB0000;">NA</span>         {6D4… 2025-03-30  -6.6… Unknown      <span style="color: #BB0000;">NA</span>       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 10466 ADVENTURE Ln… <span style="color: #BB0000;">NA</span>         {1D1… 2025-03-30  -6.1… Unknown      <span style="color: #BB0000;">NA</span>       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> 3156 LOOKOUT Cir C… <span style="color: #BB0000;">NA</span>         {AE8… 2025-03-30  -6.6… Unknown      <span style="color: #BB0000;">NA</span>       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 310 WYOMING Ave CI… <span style="color: #BB0000;">NA</span>         {331… 2025-03-30  -6.1… Unknown      <span style="color: #BB0000;">NA</span>       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 118 SPRINGFIELD Pi… <span style="color: #BB0000;">NA</span>         {F3E… 2025-03-30  -6.1… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 3359 QUEEN CITY AV… <span style="color: #BB0000;">NA</span>         {E3A… 2025-03-30  -6.7… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> 1040 KREIS LN CINC… <span style="color: #BB0000;">NA</span>         {D05… 2025-03-30  -6.7… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> 9960 DALY RD CINCI… <span style="color: #BB0000;">NA</span>         {109… 2025-03-30  -6.1… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 413 VOLKERT PL CIN… <span style="color: #BB0000;">NA</span>         {1BB… 2025-03-30  -6.7… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 8519 LINDERWOOD LN… <span style="color: #BB0000;">NA</span>         {F78… 2025-03-30  -6.6… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> 6361 BEECHMONT AVE… <span style="color: #BB0000;">NA</span>         {6D4… 2025-03-30  -6.6… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 10466 ADVENTURE LN… <span style="color: #BB0000;">NA</span>         {1D1… 2025-03-30  -6.1… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> 3156 LOOKOUT CIR C… <span style="color: #BB0000;">NA</span>         {AE8… 2025-03-30  -6.6… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 310 WYOMING AVE CI… <span style="color: #BB0000;">NA</span>         {331… 2025-03-30  -6.1… Unknown      <span style="color: #BB0000;">NA</span>       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 118 SPRINGFIELD PI… <span style="color: #BB0000;">NA</span>         {F3E… 2025-03-30  -6.1… Unknown      <span style="color: #BB0000;">NA</span>       </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 4,990 more rows</span></span>
 </code></pre></div>
     </div>
