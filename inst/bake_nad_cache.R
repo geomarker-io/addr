@@ -1,7 +1,7 @@
 devtools::load_all()
 
 nad_gdb_file <- nad_download(
-  version = 22L,
+  version = 23L,
   refresh_source = "no"
 )
 
@@ -22,6 +22,7 @@ local({
     nad(
       county = cnt,
       state = NULL,
+      version = 23L,
       refresh_binary = "yes",
       refresh_source = "no"
     )

@@ -123,8 +123,8 @@ nad_cache_migrate_case <- function(x, path) {
 #' @param state character, length one; name or abbreviation of state. Required
 #'   when `county` is a county name; ignored when `county` is a 5-digit county
 #'   FIPS identifier
-#' @param version integer, length one; NAD revision to use. Defaults to `22L`,
-#'   revision 22 of the National Address Database.
+#' @param version integer, length one; NAD revision to use. Defaults to `23L`,
+#'   revision 23 of the National Address Database.
 #' @param refresh_binary character, length one; choose how to refresh NAD
 #' data binaries stored on disk if not already present; "yes" will
 #' create data binary if not already present, "no" will
@@ -140,6 +140,10 @@ nad_cache_migrate_case <- function(x, path) {
 #' If the download cannot complete, `nad_download()` will also work with a
 #' NAD ZIP file that was downloaded another way and placed where
 #' `stow::stow_path(package = "addr", subdir = "nad")` can find it.
+#' Revision 22 is retained for existing local source and derived files, but its
+#' former USDOT download is no longer available. A missing revision 22 source
+#' file must be placed in the NAD workspace manually; forcing a revision 22
+#' source refresh errors without removing any existing source or partial file.
 #'
 #' On first use after upgrading, an existing `NAD_r22.zip`, partial download,
 #' and derived `v1/NAD_r22` directory in the former top-level addr data
@@ -161,7 +165,7 @@ nad_cache_migrate_case <- function(x, path) {
 #' @examples
 #' # explicitly download source data, then create county output on first read
 #' \dontrun{
-#'   nad_download(version = 22L)
+#'   nad_download(version = 23L)
 #'   nad("Butler", "OH")
 #'   nad("39017")
 #' }
@@ -171,7 +175,7 @@ nad_cache_migrate_case <- function(x, path) {
 nad <- function(
   county,
   state = NULL,
-  version = 22L,
+  version = 23L,
   refresh_binary = c("yes", "no", "force"),
   refresh_source = c("no", "yes", "force")
 ) {
@@ -199,7 +203,7 @@ nad <- function(
   refresh_source <- match.arg(refresh_source)
   county_info <- nad_county_info(county, state)
   nad_version_metadata(version)
-  nad_migrate_legacy_data(version)
+  nad_migrate_legacy_data()
   nad_sd <- nad_sd_path(
     county = county_info$county,
     state = county_info$state,
@@ -233,7 +237,7 @@ nad <- function(
   nad_cache_migrate_case(d, nad_sd)
 }
 
-nad_version_metadata <- function(version = 22L) {
+nad_version_metadata <- function(version = 23L) {
   stopifnot(
     "version must be an integer vector" = is.integer(version),
     "version must be length one" = length(version) == 1L,
@@ -247,10 +251,17 @@ nad_version_metadata <- function(version = 22L) {
       flid = "1900bfb9-7fcb-4367-96c4-e9b10642dd8d",
       flsz = "10.1 Gb",
       fldt = as.POSIXct("2026-05-06 12:15:49", tz = "UTC"),
+      dlurl = NULL
+    ),
+    "23" = list(
+      flnm = "NAD_r23.zip",
+      flid = "1fb39f25-503e-4c5a-b4e5-c01e09179302",
+      flsz = "9.1 Gb",
+      fldt = as.POSIXct("2026-07-01 19:29:55", tz = "UTC"),
       dlurl = paste0(
         "https://data.transportation.gov/api/views/yw36-suxr/files/",
-        "1900bfb9-7fcb-4367-96c4-e9b10642dd8d",
-        "?download=true&filename=NAD_r22.zip"
+        "1fb39f25-503e-4c5a-b4e5-c01e09179302",
+        "?download=true&filename=NAD_r23.zip"
       )
     ),
     NULL
@@ -260,7 +271,7 @@ nad_version_metadata <- function(version = 22L) {
     stop(
       "NAD version `",
       version,
-      "` is not supported; supported versions: 22",
+      "` is not supported; supported versions: 22, 23",
       call. = FALSE
     )
   }
@@ -294,7 +305,7 @@ nad_county_info <- function(county, state = NULL) {
   )
 }
 
-nad_sd_path <- function(county, state, version = 22L) {
+nad_sd_path <- function(county, state, version = 23L) {
   stopifnot(
     "county must be a character vector" = is.character(county),
     "county must be length one" = length(county) == 1L,
@@ -318,7 +329,7 @@ nad_sd_path <- function(county, state, version = 22L) {
 nad_read <- function(
   county,
   state = NULL,
-  version = 22L,
+  version = 23L,
   refresh_source = c("no", "yes", "force")
 ) {
   stopifnot(
@@ -436,26 +447,51 @@ nad_read <- function(
 #' geodatabase
 #' @rdname nad
 nad_download <- function(
-  version = 22L,
+  version = 23L,
   refresh_source = c("yes", "no", "force")
 ) {
   refresh_source <- match.arg(refresh_source)
   nad_md <- nad_version_metadata(version)
   source_file <- nad_md$flnm
-  nad_migrate_legacy_data(version)
+  nad_migrate_legacy_data()
+  dest <- nad_data_path(version)
+  partial_dest <- nad_partial_path(dest)
+  source_unavailable <- is.null(nad_md$dlurl)
+  source_unavailable_message <- paste(
+    "the pinned source asset is no longer available",
+    "from USDOT"
+  )
   old_timeout <- options("timeout")$timeout
   new_timeout <- max(old_timeout, 2500)
   options(timeout = new_timeout)
   on.exit(options(timeout = old_timeout))
   if (refresh_source %in% c("yes", "force")) {
-    dest <- nad_data_path(version)
-    partial_dest <- nad_partial_path(dest)
     dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
+    if (refresh_source == "force" && source_unavailable) {
+      stop(
+        nad_download_failure_message(
+          dest = dest,
+          version = version,
+          error_message = source_unavailable_message
+        ),
+        call. = FALSE
+      )
+    }
     if (refresh_source == "force") {
       unlink(dest)
       unlink(partial_dest)
     }
     if (!file.exists(dest)) {
+      if (source_unavailable) {
+        stop(
+          nad_download_failure_message(
+            dest = dest,
+            version = version,
+            error_message = source_unavailable_message
+          ),
+          call. = FALSE
+        )
+      }
       tryCatch(
         {
           nad_download_archive(nad_md$dlurl, partial_dest)
@@ -477,8 +513,17 @@ nad_download <- function(
       )
     }
   } else {
-    dest <- nad_data_path(version)
     if (!file.exists(dest)) {
+      if (source_unavailable) {
+        stop(
+          nad_download_failure_message(
+            dest = dest,
+            version = version,
+            error_message = source_unavailable_message
+          ),
+          call. = FALSE
+        )
+      }
       stop(
         dest,
         " does not exist; set `refresh_source = 'yes'`",
@@ -496,7 +541,7 @@ nad_download <- function(
   )
 }
 
-nad_data_path <- function(version = 22L) {
+nad_data_path <- function(version = 23L) {
   file.path(
     nad_workspace_path(),
     nad_version_metadata(version)$flnm
@@ -507,8 +552,8 @@ nad_workspace_path <- function() {
   stow::stow_path(package = "addr", subdir = "nad")
 }
 
-nad_migrate_legacy_data <- function(version = 22L) {
-  source_file <- nad_version_metadata(version)$flnm
+nad_migrate_legacy_data <- function() {
+  source_file <- nad_version_metadata(22L)$flnm
   source_stem <- sub("^(NAD_r[0-9]+)(_FGDB)?\\.zip$", "\\1", source_file)
   legacy_root <- dirname(stow::stow_path(package = "addr"))
   workspace <- nad_workspace_path()

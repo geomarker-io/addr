@@ -9,7 +9,7 @@
 nad(
   county,
   state = NULL,
-  version = 22L,
+  version = 23L,
   refresh_binary = c("yes", "no", "force"),
   refresh_source = c("no", "yes", "force")
 )
@@ -17,11 +17,11 @@ nad(
 nad_read(
   county,
   state = NULL,
-  version = 22L,
+  version = 23L,
   refresh_source = c("no", "yes", "force")
 )
 
-nad_download(version = 22L, refresh_source = c("yes", "no", "force"))
+nad_download(version = 23L, refresh_source = c("yes", "no", "force"))
 }
 \arguments{
 \item{county}{character, length one; county name or 5-digit county FIPS
@@ -31,8 +31,8 @@ identifier}
 when \code{county} is a county name; ignored when \code{county} is a 5-digit county
 FIPS identifier}
 
-\item{version}{integer, length one; NAD revision to use. Defaults to \code{22L},
-revision 22 of the National Address Database.}
+\item{version}{integer, length one; NAD revision to use. Defaults to \code{23L},
+revision 23 of the National Address Database.}
 
 \item{refresh_binary}{character, length one; choose how to refresh NAD
 data binaries stored on disk if not already present; "yes" will
@@ -83,6 +83,10 @@ partial download left in the NAD workspace.
 If the download cannot complete, \code{nad_download()} will also work with a
 NAD ZIP file that was downloaded another way and placed where
 \code{stow::stow_path(package = "addr", subdir = "nad")} can find it.
+Revision 22 is retained for existing local source and derived files, but its
+former USDOT download is no longer available. A missing revision 22 source
+file must be placed in the NAD workspace manually; forcing a revision 22
+source refresh errors without removing any existing source or partial file.
 
 On first use after upgrading, an existing \code{NAD_r22.zip}, partial download,
 and derived \code{v1/NAD_r22} directory in the former top-level addr data
@@ -103,7 +107,7 @@ Addresses with malformed ZIP codes are removed.
 \examples{
 # explicitly download source data, then create county output on first read
 \dontrun{
-  nad_download(version = 22L)
+  nad_download(version = 23L)
   nad("Butler", "OH")
   nad("39017")
 }

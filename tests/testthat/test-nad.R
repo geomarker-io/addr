@@ -39,7 +39,7 @@ test_that("nad() requires a cached binary when refresh_binary is no", {
 
 test_that("nad() rewrites legacy cached addr values to uppercase once", {
   withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
-  path <- nad_sd_path("Hamilton", "OH", 22L)
+  path <- nad_sd_path("Hamilton", "OH")
   dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
   saveRDS(legacy_nad_cache_fixture(), path)
 
@@ -74,7 +74,7 @@ test_that("nad() rewrites legacy cached addr values to uppercase once", {
 
 test_that("nad() returns uppercase values if cache rewriting fails", {
   withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
-  path <- nad_sd_path("Hamilton", "OH", 22L)
+  path <- nad_sd_path("Hamilton", "OH")
   dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
   saveRDS(legacy_nad_cache_fixture(), path)
   local_mocked_bindings(
@@ -99,12 +99,37 @@ test_that("nad() returns uppercase values if cache rewriting fails", {
 
 test_that("nad() read from gdb on disk", {
   skip("it takes forever")
-  nad_db <- nad_data_path(22L)
-  d <- nad("King", "TX", version = 22L, refresh_binary = "force")
+  nad_db <- nad_data_path(23L)
+  d <- nad("King", "TX", version = 23L, refresh_binary = "force")
 })
 
 test_that("nad version metadata is local and validates versions", {
-  expect_equal(nad_version_metadata(22L)$flnm, "NAD_r22.zip")
+  nad_22 <- nad_version_metadata(22L)
+  nad_23 <- nad_version_metadata(23L)
+
+  expect_equal(nad_22$flnm, "NAD_r22.zip")
+  expect_null(nad_22$dlurl)
+  expect_equal(nad_23$flnm, "NAD_r23.zip")
+  expect_equal(nad_23$flid, "1fb39f25-503e-4c5a-b4e5-c01e09179302")
+  expect_equal(nad_23$flsz, "9.1 Gb")
+  expect_equal(
+    nad_23$fldt,
+    as.POSIXct("2026-07-01 19:29:55", tz = "UTC")
+  )
+  expect_equal(
+    nad_23$dlurl,
+    paste0(
+      "https://data.transportation.gov/api/views/yw36-suxr/files/",
+      "1fb39f25-503e-4c5a-b4e5-c01e09179302",
+      "?download=true&filename=NAD_r23.zip"
+    )
+  )
+  expect_identical(eval(formals(nad)$version), 23L)
+  expect_identical(eval(formals(nad_read)$version), 23L)
+  expect_identical(eval(formals(nad_download)$version), 23L)
+  expect_identical(eval(formals(nad_version_metadata)$version), 23L)
+  expect_identical(eval(formals(nad_sd_path)$version), 23L)
+  expect_identical(eval(formals(nad_data_path)$version), 23L)
   expect_equal(eval(formals(nad)$refresh_source), c("no", "yes", "force"))
   expect_equal(eval(formals(nad_read)$refresh_source), c("no", "yes", "force"))
   expect_error(
@@ -112,8 +137,9 @@ test_that("nad version metadata is local and validates versions", {
     "version must be an integer vector"
   )
   expect_error(
-    nad_version_metadata(23L),
-    "NAD version `23` is not supported"
+    nad_version_metadata(24L),
+    "NAD version `24` is not supported; supported versions: 22, 23",
+    fixed = TRUE
   )
 })
 
@@ -125,11 +151,18 @@ test_that("NAD source and derived paths use the stow workspace", {
   expect_identical(basename(managed_root), "stow")
   expect_identical(dirname(workspace), managed_root)
   expect_identical(nad_workspace_path(), workspace)
+  expect_identical(basename(nad_data_path()), "NAD_r23.zip")
   expect_identical(dirname(nad_data_path(22L)), workspace)
+  expect_identical(dirname(nad_data_path(23L)), workspace)
+  expect_false(identical(nad_data_path(22L), nad_data_path(23L)))
   expect_identical(
     dirname(dirname(dirname(nad_sd_path("Hamilton", "OH", 22L)))),
     file.path(workspace, "v1")
   )
+  expect_false(identical(
+    nad_sd_path("Hamilton", "OH", 22L),
+    nad_sd_path("Hamilton", "OH", 23L)
+  ))
 })
 
 test_that("nad_download moves the legacy source instead of downloading it", {
@@ -159,6 +192,24 @@ test_that("nad_download moves the legacy source instead of downloading it", {
   )
 })
 
+test_that("default NAD migration preserves legacy release 22 source", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  legacy_root <- dirname(stow::stow_path(package = "addr"))
+  legacy <- file.path(legacy_root, "NAD_r22.zip")
+  writeBin(charToRaw("legacy"), legacy)
+
+  expect_message(
+    workspace <- nad_migrate_legacy_data(),
+    "moved legacy NAD data path"
+  )
+
+  migrated <- nad_data_path(22L)
+  expect_identical(workspace, nad_workspace_path())
+  expect_false(file.exists(legacy))
+  expect_true(file.exists(migrated))
+  expect_identical(rawToChar(readBin(migrated, "raw", n = 6L)), "legacy")
+})
+
 test_that("nad() migrates legacy derived county data", {
   withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
   legacy_root <- dirname(stow::stow_path(package = "addr"))
@@ -176,6 +227,7 @@ test_that("nad() migrates legacy derived county data", {
     out <- nad(
       "Hamilton",
       "OH",
+      version = 22L,
       refresh_binary = "no",
       refresh_source = "no"
     ),
@@ -197,18 +249,18 @@ test_that("NAD does not search the transient stow 0.2 workspace", {
 
   expect_error(
     nad_download(version = 22L, refresh_source = "no"),
-    "does not exist; set `refresh_source = 'yes'`",
+    "If you can download it another way, place it at `",
     fixed = TRUE
   )
   expect_true(file.exists(old_source))
 })
 
-test_that("nad_download() resumes interrupted downloads from a .part file", {
+test_that("nad_download() resumes release 23 downloads from a .part file", {
   data_root <- tempfile()
   withr::local_envvar(list("R_USER_DATA_DIR" = data_root))
 
-  nad_md <- nad_version_metadata(22L)
-  dest <- nad_data_path(22L)
+  nad_md <- nad_version_metadata(23L)
+  dest <- nad_data_path(23L)
   partial_dest <- paste0(dest, ".part")
   dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
   writeBin(charToRaw("abc"), partial_dest)
@@ -226,7 +278,7 @@ test_that("nad_download() resumes interrupted downloads from a .part file", {
     }
   )
 
-  out <- nad_download(version = 22L, refresh_source = "yes")
+  out <- nad_download(version = 23L, refresh_source = "yes")
 
   expect_equal(
     out,
@@ -237,12 +289,12 @@ test_that("nad_download() resumes interrupted downloads from a .part file", {
   expect_equal(rawToChar(readBin(dest, "raw", n = 6L)), "abcdef")
 })
 
-test_that("nad_download() force refresh clears completed and partial downloads", {
+test_that("nad_download() force refreshes release 23 source files", {
   data_root <- tempfile()
   withr::local_envvar(list("R_USER_DATA_DIR" = data_root))
 
-  nad_md <- nad_version_metadata(22L)
-  dest <- nad_data_path(22L)
+  nad_md <- nad_version_metadata(23L)
+  dest <- nad_data_path(23L)
   partial_dest <- paste0(dest, ".part")
   dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
   writeBin(charToRaw("old"), dest)
@@ -258,18 +310,67 @@ test_that("nad_download() force refresh clears completed and partial downloads",
     }
   )
 
-  nad_download(version = 22L, refresh_source = "force")
+  nad_download(version = 23L, refresh_source = "force")
 
   expect_true(file.exists(dest))
   expect_false(file.exists(partial_dest))
   expect_equal(rawToChar(readBin(dest, "raw", n = 3L)), "new")
 })
 
-test_that("nad_download() reports manual placement guidance after failures", {
+test_that("nad_download() preserves unavailable release 22 source files", {
   data_root <- tempfile()
   withr::local_envvar(list("R_USER_DATA_DIR" = data_root))
 
   dest <- nad_data_path(22L)
+  partial_dest <- nad_partial_path(dest)
+  dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
+  writeBin(charToRaw("old"), dest)
+  writeBin(charToRaw("partial"), partial_dest)
+
+  expect_identical(
+    nad_download(version = 22L, refresh_source = "no"),
+    file.path("/vsizip", dest, "NAD_r22.gdb")
+  )
+  expect_identical(
+    nad_download(version = 22L, refresh_source = "yes"),
+    file.path("/vsizip", dest, "NAD_r22.gdb")
+  )
+  expect_error(
+    nad_download(version = 22L, refresh_source = "force"),
+    "the pinned source asset is no longer available from USDOT",
+    fixed = TRUE
+  )
+  expect_equal(rawToChar(readBin(dest, "raw", n = 3L)), "old")
+  expect_equal(rawToChar(readBin(partial_dest, "raw", n = 7L)), "partial")
+})
+
+test_that("nad_download() guides manual placement for missing release 22", {
+  data_root <- tempfile()
+  withr::local_envvar(list("R_USER_DATA_DIR" = data_root))
+
+  dest <- nad_data_path(22L)
+
+  expect_error(
+    nad_download(version = 22L, refresh_source = "yes"),
+    paste0(
+      "the pinned source asset is no longer available from USDOT. ",
+      "If you can download it another way, place it at `",
+      dest
+    ),
+    fixed = TRUE
+  )
+  expect_error(
+    nad_download(version = 22L, refresh_source = "no"),
+    "If you can download it another way, place it at `",
+    fixed = TRUE
+  )
+})
+
+test_that("nad_download() reports manual placement guidance after failures", {
+  data_root <- tempfile()
+  withr::local_envvar(list("R_USER_DATA_DIR" = data_root))
+
+  dest <- nad_data_path(23L)
 
   local_mocked_bindings(
     nad_download_archive = function(url, dest) {
@@ -278,7 +379,7 @@ test_that("nad_download() reports manual placement guidance after failures", {
   )
 
   expect_error(
-    nad_download(version = 22L, refresh_source = "yes"),
+    nad_download(version = 23L, refresh_source = "yes"),
     paste0(
       "If you can download it another way, place it at `",
       dest,
