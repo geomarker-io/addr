@@ -29,6 +29,56 @@ test_geocode_manifest <- function(
   )
 }
 
+test_place_geocode_candidates <- function(
+  place_types = "place",
+  place_zips = "45230",
+  typo_zip = "45221"
+) {
+  variants <- c("exact", place_types, if (length(typo_zip) > 0L) "plus1")
+  ZIP <- c("45220", place_zips, typo_zip)
+  tibble::tibble(
+    input_row = 1L,
+    source_zip = "45220",
+    source_zip_variant = variants,
+    source_zip_variant_rank = seq_along(variants) - 1L,
+    candidate_rank = seq_along(variants) - 1L,
+    ZIP = ZIP
+  )
+}
+
+test_place_geocode_ref <- function(
+  ZIP,
+  FROMHN,
+  TOHN,
+  PARITY = "B",
+  street = "Main",
+  source_order = seq_along(ZIP)
+) {
+  tibble::tibble(
+    ZIP = ZIP,
+    addr_street = addr_street(
+      predirectional = rep("", length(ZIP)),
+      premodifier = rep("", length(ZIP)),
+      pretype = rep("", length(ZIP)),
+      name = rep(street, length(ZIP)),
+      posttype = rep("St", length(ZIP)),
+      postdirectional = rep("", length(ZIP))
+    ),
+    side = rep("L", length(ZIP)),
+    FROMHN = FROMHN,
+    TOHN = TOHN,
+    PARITY = PARITY,
+    OFFSET = rep("Y", length(ZIP)),
+    s2_geography = s2::as_s2_geography(paste0(
+      "LINESTRING (",
+      source_order,
+      " 0, ",
+      source_order + 0.01,
+      " 0)"
+    ))
+  )
+}
+
 test_that("geocode returns non-matches for missing zipcodes", {
   x <- addr(
     addr_number(digits = c("1", "2")),
@@ -192,6 +242,76 @@ test_that("geocode computes TAF needs once for the top-level plan", {
   expect_equal(zip_calls, 2L)
   expect_equal(nrow(out), 3L)
   expect_equal(out$addr, x)
+})
+
+test_that("geocode eagerly prepares exact, place, and typo candidate tiers", {
+  seen <- NULL
+  local_mocked_bindings(
+    taf_needed_counties_from_zipcodes = function(zipcodes, ...) {
+      seen <<- zipcodes
+      taf_empty_needed_counties()
+    }
+  )
+  x <- as_addr("10 Main St Mason OH 45040")
+
+  geocode_prepare_taf(
+    x,
+    year = "2025",
+    version = "v1",
+    zip_variants = TRUE,
+    zip_variant = "plus1",
+    place_zip_variants = TRUE,
+    place_zip_variant = c("place", "county-sub"),
+    taf_install = FALSE,
+    taf_redownload = FALSE
+  )
+
+  expect_setequal(
+    unique(seen$source_zip_variant),
+    c("exact", "place", "county-sub", "plus1")
+  )
+  expect_true(all(seen$source_zip == "45040"))
+  expect_equal(anyDuplicated(seen[c("input_row", "ZIP")]), 0L)
+})
+
+test_that("disabling place lookup avoids place TAF candidate work", {
+  public_called <- FALSE
+  local_mocked_bindings(
+    taf_needed_counties = function(...) {
+      public_called <<- TRUE
+      taf_empty_needed_counties()
+    },
+    taf_needed_counties_from_zipcodes = function(...) {
+      stop("place candidate catalog join should not run")
+    }
+  )
+  x <- as_addr("10 Main St Mason OH 45040")
+
+  geocode_prepare_taf(
+    x,
+    year = "2025",
+    version = "v1",
+    zip_variants = TRUE,
+    zip_variant = "plus1",
+    place_zip_variants = FALSE,
+    place_zip_variant = c("place", "county-sub"),
+    taf_install = FALSE,
+    taf_redownload = FALSE
+  )
+
+  expect_true(public_called)
+})
+
+test_that("missing TAF diagnostics identify place candidate type and input ZIP", {
+  missing <- test_geocode_needed_counties(
+    ZIP = "45230",
+    source_zip = "45220",
+    source_zip_variant = "county-sub"
+  )
+  expect_warning(
+    taf_warn_missing_counties(missing),
+    "45230 \\(county-sub from 45220\\)"
+  )
 })
 
 test_that("geocode keeps missing zipcode rows with geocoded rows", {
@@ -364,6 +484,8 @@ test_that("geocode forwards street matching arguments to geocode_zip", {
       match_street_directional = c("exact", "swap", "ignore"),
       zip_variants = TRUE,
       zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
+      place_zip_variants = TRUE,
+      place_zip_variant = c("place", "county-sub"),
       ...
     ) {
       seen <<- list(
@@ -372,7 +494,9 @@ test_that("geocode forwards street matching arguments to geocode_zip", {
         match_street_type = match_street_type,
         match_street_directional = match_street_directional,
         zip_variants = zip_variants,
-        zip_variant = zip_variant
+        zip_variant = zip_variant,
+        place_zip_variants = place_zip_variants,
+        place_zip_variant = place_zip_variant
       )
       tibble::tibble(
         addr = x,
@@ -397,6 +521,8 @@ test_that("geocode forwards street matching arguments to geocode_zip", {
     match_street_directional = "swap",
     zip_variants = FALSE,
     zip_variant = "swap",
+    place_zip_variants = FALSE,
+    place_zip_variant = "county-sub",
     taf_install = FALSE,
     progress = FALSE
   )
@@ -408,7 +534,9 @@ test_that("geocode forwards street matching arguments to geocode_zip", {
       match_street_type = "ignore",
       match_street_directional = "swap",
       zip_variants = FALSE,
-      zip_variant = "swap"
+      zip_variant = "swap",
+      place_zip_variants = FALSE,
+      place_zip_variant = "county-sub"
     )
   )
 })
@@ -677,6 +805,206 @@ test_that("geocode_zip respects zipcode variant controls", {
   expect_equal(format(out_swap$matched_street), "Main St")
   expect_true(is.na(out_none$matched_zipcode))
   expect_true(is.na(out_none$matched_street))
+})
+
+test_that("geocode_zip prioritizes valid ranges across ZIP candidate tiers", {
+  x <- as_addr("10 Main St Example OH 45220")
+  candidates <- test_place_geocode_candidates()
+  run_case <- function(ref) {
+    local_mocked_bindings(
+      geocode_zip_candidates = function(...) candidates,
+      taf_zip = function(zipcode, map = TRUE, ...) {
+        ref[ref$ZIP %in% zipcode, , drop = FALSE]
+      }
+    )
+    geocode_zip(
+      x,
+      offset = 0,
+      taf_install = FALSE,
+      taf_check = FALSE
+    )
+  }
+
+  exact_range <- test_place_geocode_ref(
+    c("45220", "45230", "45221"),
+    c(1L, 5L, 5L),
+    c(99L, 15L, 15L)
+  )
+  expect_equal(run_case(exact_range)$matched_zipcode, "45220")
+
+  place_range <- test_place_geocode_ref(
+    c("45220", "45230", "45221"),
+    c(NA_integer_, 1L, 1L),
+    c(NA_integer_, 99L, 99L)
+  )
+  expect_equal(run_case(place_range)$matched_zipcode, "45230")
+
+  typo_range <- test_place_geocode_ref(
+    c("45220", "45230", "45221"),
+    c(NA_integer_, NA_integer_, 1L),
+    c(NA_integer_, NA_integer_, 99L)
+  )
+  expect_equal(run_case(typo_range)$matched_zipcode, "45221")
+
+  street_only <- test_place_geocode_ref(
+    c("45220", "45230", "45221"),
+    rep(NA_integer_, 3),
+    rep(NA_integer_, 3)
+  )
+  out <- run_case(street_only)
+  expect_equal(out$matched_zipcode, "45220")
+  expect_equal(format(out$matched_street), "Main St")
+  expect_true(is.na(out$matched_geography))
+})
+
+test_that("geocode_zip uses requested place geography order", {
+  x <- as_addr("10 Main St Example OH 45220")
+  ref <- test_place_geocode_ref(
+    c("45220", "45230", "45244"),
+    c(NA_integer_, 1L, 1L),
+    c(NA_integer_, 99L, 99L)
+  )
+  local_mocked_bindings(
+    geocode_zip_candidates = function(
+      x,
+      place_zip_variant = c("place", "county-sub"),
+      ...
+    ) {
+      place_zips <- c(place = "45230", `county-sub` = "45244")
+      test_place_geocode_candidates(
+        place_types = place_zip_variant,
+        place_zips = unname(place_zips[place_zip_variant]),
+        typo_zip = character()
+      )
+    },
+    taf_zip = function(zipcode, map = TRUE, ...) {
+      ref[ref$ZIP %in% zipcode, , drop = FALSE]
+    }
+  )
+
+  place_first <- geocode_zip(
+    x,
+    zip_variants = FALSE,
+    place_zip_variant = c("place", "county-sub"),
+    taf_install = FALSE,
+    taf_check = FALSE
+  )
+  county_sub_first <- geocode_zip(
+    x,
+    zip_variants = FALSE,
+    place_zip_variant = c("county-sub", "place"),
+    taf_install = FALSE,
+    taf_check = FALSE
+  )
+
+  expect_equal(place_first$matched_zipcode, "45230")
+  expect_equal(county_sub_first$matched_zipcode, "45244")
+})
+
+test_that("geocode_zip uses number and parity within a place tier", {
+  x <- as_addr("12 Main St Example OH 45220")
+  candidates <- test_place_geocode_candidates(
+    place_types = c("place", "place"),
+    place_zips = c("45230", "45244"),
+    typo_zip = character()
+  )
+  candidates$source_zip_variant_rank[candidates$ZIP %in% c(
+    "45230",
+    "45244"
+  )] <- 1L
+  ref <- test_place_geocode_ref(
+    c("45220", "45230", "45244"),
+    c(NA_integer_, 1L, 2L),
+    c(NA_integer_, 99L, 100L),
+    c(NA_character_, "O", "E")
+  )
+  local_mocked_bindings(
+    geocode_zip_candidates = function(...) candidates,
+    taf_zip = function(zipcode, map = TRUE, ...) {
+      ref[ref$ZIP %in% zipcode, , drop = FALSE]
+    }
+  )
+
+  out <- geocode_zip(
+    x,
+    zip_variants = FALSE,
+    taf_install = FALSE,
+    taf_check = FALSE
+  )
+  expect_equal(out$matched_zipcode, "45244")
+  expect_false(is.na(out$matched_geography))
+})
+
+test_that("geocode_zip keeps place candidates isolated by input row", {
+  x <- as_addr(c(
+    "10 Main St Alpha OH 45220",
+    "10 Main St Beta OH 45220"
+  ))
+  candidates <- vctrs::vec_rbind(
+    test_place_geocode_candidates(
+      place_zips = "45230",
+      typo_zip = character()
+    ),
+    transform(
+      test_place_geocode_candidates(
+        place_zips = "45244",
+        typo_zip = character()
+      ),
+      input_row = 2L
+    )
+  )
+  ref <- test_place_geocode_ref(
+    c("45220", "45230", "45244"),
+    c(NA_integer_, 1L, 1L),
+    c(NA_integer_, 99L, 99L)
+  )
+  local_mocked_bindings(
+    geocode_zip_candidates = function(...) candidates,
+    taf_zip = function(zipcode, map = TRUE, ...) {
+      ref[ref$ZIP %in% zipcode, , drop = FALSE]
+    }
+  )
+
+  out <- geocode_zip(
+    x,
+    zip_variants = FALSE,
+    taf_install = FALSE,
+    taf_check = FALSE
+  )
+  expect_equal(out$matched_zipcode, c("45230", "45244"))
+})
+
+test_that("geocode_zip place lookup can be disabled independently", {
+  x <- as_addr("10 Main St Anderson OH 45220")
+  ref <- test_place_geocode_ref(
+    c("45220", "45230"),
+    c(NA_integer_, 1L),
+    c(NA_integer_, 99L)
+  )
+  local_mocked_bindings(
+    taf_zip = function(zipcode, map = TRUE, ...) {
+      ref[ref$ZIP %in% zipcode, , drop = FALSE]
+    }
+  )
+
+  enabled <- geocode_zip(
+    x,
+    zip_variants = FALSE,
+    taf_install = FALSE,
+    taf_check = FALSE
+  )
+  disabled <- geocode_zip(
+    x,
+    zip_variants = FALSE,
+    place_zip_variants = FALSE,
+    taf_install = FALSE,
+    taf_check = FALSE
+  )
+
+  expect_equal(enabled$matched_zipcode, "45230")
+  expect_equal(as.character(geocode_stage(enabled)), "range_variant")
+  expect_equal(disabled$matched_zipcode, "45220")
+  expect_true(is.na(disabled$matched_geography))
 })
 
 test_that("geocode_zip matches duplicate TAF street ranges once", {
@@ -992,12 +1320,18 @@ test_that("geocode progress gets addr_street count from geocode_zip", {
 test_that("geocode uses mirai mapping when daemons are configured", {
   used_mirai <- FALSE
   seen_progress <- NULL
+  seen_place_args <- NULL
   local_mocked_bindings(
     taf_needed_counties = function(...) taf_empty_needed_counties(),
     geocode_use_mirai = function() TRUE,
     geocode_map_mirai = function(x, FUN, progress, ...) {
       used_mirai <<- TRUE
       seen_progress <<- progress
+      dots <- list(...)
+      seen_place_args <<- dots[c(
+        "place_zip_variants",
+        "place_zip_variant"
+      )]
       lapply(x, FUN, ...)
     },
     geocode_zip = function(x, offset = 0L, progress_callback = NULL, ...) {
@@ -1028,6 +1362,13 @@ test_that("geocode uses mirai mapping when daemons are configured", {
   )))
   expect_true(used_mirai)
   expect_true(seen_progress)
+  expect_equal(
+    seen_place_args,
+    list(
+      place_zip_variants = TRUE,
+      place_zip_variant = c("place", "county-sub")
+    )
+  )
   progress_text <- paste(progress_output, collapse = "\n")
   progress_text <- gsub("\033\\[[0-9;]*[[:alpha:]]", "", progress_text)
   progress_text <- gsub("\r", "", progress_text, fixed = TRUE)
@@ -1036,7 +1377,10 @@ test_that("geocode uses mirai mapping when daemons are configured", {
   expect_match(progress_text, "2 ZIP groups")
   expect_match(
     progress_text,
-    "checking TIGER address feature files for 2 ZIP codes plus ZIP variants"
+    paste(
+      "checking TIGER address feature files for 2 ZIP codes plus",
+      "place candidates and typographical ZIP variants"
+    )
   )
   expect_match(progress_text, "validating geocode result groups")
   expect_match(progress_text, "concatenating geocode result columns")

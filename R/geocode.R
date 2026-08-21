@@ -3,9 +3,8 @@
 #' @description
 #' `geocode()` geocodes addr vectors using Census TIGER address
 #' features (see `?taf`) by:
-#' 1. searching for a matching street (see `?match_addr_street`),
-#' within the same ZIP code, also searching similar ZIP codes for a matching
-#' street if necessary
+#' 1. searching for a matching street (see `?match_addr_street`) in the input
+#' ZIP code, then in enabled place-derived and typographical ZIP candidates
 #' 2. using the address number to select the best address feature range and
 #' side of the street (even/odd), breaking ties on smallest width and spread
 #' 3. linearly interpolating a geographic point along the best range line based
@@ -14,17 +13,28 @@
 #'
 #' Only matched input addresses return non-missing matched ZIP code and street
 #' values. Missing or unmatched ZIP codes return missing matched ZIP code,
-#' street, geography, and s2 cell values. If all ranges on the matched ZIP code
-#' and street exclude the address number, only the geography and s2 cell values
-#' return `NA`.
+#' street, geography, and s2 cell values. If no matching street has a valid
+#' range for the address number, the best street-only match is retained and
+#' only the geography and s2 cell values return `NA`.
 #' @param x an addr vector (`?as_addr`)
 #' @param offset number of meters to offset geocode from street line
 #' @param progress logical; show progress messages and a ZIP-code progress bar
 #'   while geocoding?
+#' @param zip_variants logical; consider typographical variants of the input ZIP
+#'   code after exact and enabled place-derived candidates? Defaults to `TRUE`.
+#' @param zip_variant nonempty character vector selecting typographical ZIP
+#'   variants; see [zipcode_variant()]. Requested order determines precedence.
+#' @param place_zip_variants logical; consider ZCTAs associated with the exact
+#'   normalized place and state after the input ZIP and before typographical ZIP
+#'   variants? Defaults to `TRUE`.
+#' @param place_zip_variant nonempty character vector containing `"place"`
+#'   and/or `"county-sub"`. `"place"` uses Census places and `"county-sub"`
+#'   uses Census county subdivisions. Requested order determines precedence;
+#'   the default uses both in that order.
 #' @param taf_install logical; install missing county TAF files needed for
-#'   input ZIP codes and selected ZIP code variants before geocoding? If
-#'   `FALSE`, geocoding proceeds with installed files only and warns when
-#'   needed county files are missing.
+#'   input ZIP codes and all selected place-derived and typographical ZIP
+#'   candidates before geocoding? If `FALSE`, geocoding proceeds with installed
+#'   files only and warns when needed county files are missing.
 #' @param taf_redownload logical; replace existing durable managed local copies
 #'   of TIGER ZIP files when installing missing TAF counties?
 #' @param add_s2_cell logical; add an `s2_cell` column computed from matched
@@ -51,15 +61,45 @@
 #' matching, or range interpolation, so callers usually do not need to call
 #' `unique()` themselves for geocoding performance.
 #'
+#' ZIP matching uses ordered candidate tiers. The exact input ZIP is first.
+#' When `place_zip_variants = TRUE`, ZCTAs whose normalized Census place or
+#' county-subdivision name exactly equals the input place and whose state equals
+#' the input state are next, in `place_zip_variant` order. Typographical ZIP
+#' candidates from [zipcode_variant()] follow in `zip_variant` order when
+#' `zip_variants = TRUE`. Place matching is deliberately conservative: it does
+#' not use fuzzy matching or infer a ZIP when the input ZIP is missing.
+#'
+#' Valid address ranges are preferred over street-only matches across all
+#' enabled tiers. Among valid ranges, exact ZIP wins, followed by the requested
+#' place geography order and then the requested typographical variant order.
+#' Consequently, a valid place-derived or typographical range can beat an
+#' earlier street-only match, but an exact-ZIP valid range always wins. If no
+#' candidate has a valid range, the earliest tier's best street-only match is
+#' retained.
+#'
+#' The `"place"` selector accepts ZCTAs supported by the Census place file or
+#' by both relationship files. The `"county-sub"` selector accepts ZCTAs
+#' supported by the county-subdivision file or by both files. A ZCTA supported
+#' by both is assigned to the first requested selector so it is tried only
+#' once. Input place names are uppercased, whitespace is normalized, and a
+#' trailing Census `CITY`, `VILLAGE`, `TOWN`, `TOWNSHIP`, `BOROUGH`, or `CDP`
+#' suffix is removed before exact matching. Internal punctuation, diacritics,
+#' and other descriptors are preserved.
+#'
 #' If the mirai package is installed and mirai daemons have already been
 #' configured by the caller, `geocode()` uses them for ZIP-code-level
 #' parallel processing. Otherwise it falls back to sequential processing.
 #'
 #' `geocode()` and `geocode_zip()` both download and install tiger address
 #' features by county (`?taf_install`) as needed based on the input addr ZIP
-#' codes (and possibly ZIP code variants). TAF install checks run before
-#' reading TAF ZIP files so parallel geocoding workers do not try to download
-#' county files at the same time.
+#' codes and all enabled candidate tiers. TAF install checks run before reading
+#' TAF ZIP files so parallel geocoding workers do not try to download county
+#' files at the same time. Because both place-derived and typographical ZIP
+#' variants are enabled by default, a geocode call can consider many ZCTAs and
+#' download many county TAF files. Common place/state names can increase this
+#' substantially. Disable
+#' `place_zip_variants`, `zip_variants`, or both when that broader search and
+#' its downloads are not wanted.
 #'
 #' @export
 #' @examples
@@ -75,6 +115,18 @@
 #'
 #'   # this is only for example purposes and usually not required; e.g.
 #'   gcd <- geocode(x)
+#'
+#'   # restrict or disable the two independent ZIP candidate mechanisms
+#'   gcd_place_only <- geocode(
+#'     x,
+#'     place_zip_variant = "place",
+#'     zip_variants = FALSE
+#'   )
+#'   gcd_exact_only <- geocode(
+#'     x,
+#'     place_zip_variants = FALSE,
+#'     zip_variants = FALSE
+#'   )
 #'
 #'   gcd
 #'
@@ -107,13 +159,19 @@ geocode <- function(
   taf_redownload = FALSE,
   offset = 10L,
   add_s2_cell = TRUE,
-  progress = interactive()
+  progress = interactive(),
+  place_zip_variants = TRUE,
+  place_zip_variant = c("place", "county-sub")
 ) {
   stopifnot(
     "x must be an addr vector" = inherits(x, "addr"),
     "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
       length(zip_variants) == 1L &&
       !is.na(zip_variants),
+    "place_zip_variants must be TRUE or FALSE" =
+      is.logical(place_zip_variants) &&
+      length(place_zip_variants) == 1L &&
+      !is.na(place_zip_variants),
     "taf_install must be TRUE or FALSE" = is.logical(taf_install) &&
       length(taf_install) == 1L &&
       !is.na(taf_install),
@@ -132,6 +190,7 @@ geocode <- function(
   )
   year <- match.arg(year)
   zip_variant <- validate_zip_variant(zip_variant)
+  place_zip_variant <- validate_place_zip_variant(place_zip_variant)
   validate_geocode_offset(offset)
   match_args <- validate_match_addr_street_args(
     name_phonetic_dist = name_phonetic_dist,
@@ -166,7 +225,8 @@ geocode <- function(
         geocode_prepare_taf_progress_text(
           taf_addr,
           taf_install = taf_install,
-          zip_variants = zip_variants
+          zip_variants = zip_variants,
+          place_zip_variants = place_zip_variants
         )
       )
     }
@@ -176,6 +236,8 @@ geocode <- function(
       version = version,
       zip_variants = zip_variants,
       zip_variant = zip_variant,
+      place_zip_variants = place_zip_variants,
+      place_zip_variant = place_zip_variant,
       taf_install = taf_install,
       taf_redownload = taf_redownload
     )
@@ -195,6 +257,8 @@ geocode <- function(
     match_street_directional = match_args$match_street_directional,
     zip_variants = zip_variants,
     zip_variant = zip_variant,
+    place_zip_variants = place_zip_variants,
+    place_zip_variant = place_zip_variant,
     year = year,
     version = version,
     taf_install = FALSE,
@@ -792,7 +856,8 @@ geocode_format_count <- function(x) {
 geocode_prepare_taf_progress_text <- function(
   x,
   taf_install,
-  zip_variants
+  zip_variants,
+  place_zip_variants
 ) {
   has_zip <- !is.na(x@place@zipcode) & x@place@zipcode != ""
   zipcodes <- unique(x@place@zipcode[has_zip])
@@ -801,8 +866,12 @@ geocode_prepare_taf_progress_text <- function(
   } else {
     "using installed files only"
   }
-  variant_text <- if (zip_variants) {
-    " plus ZIP variants"
+  variant_types <- c(
+    if (place_zip_variants) "place candidates",
+    if (zip_variants) "typographical ZIP variants"
+  )
+  variant_text <- if (length(variant_types) > 0L) {
+    paste0(" plus ", paste(variant_types, collapse = " and "))
   } else {
     ""
   }
@@ -1038,6 +1107,8 @@ geocode_prepare_taf <- function(
   version,
   zip_variants,
   zip_variant,
+  place_zip_variants,
+  place_zip_variant,
   taf_install,
   taf_redownload
 ) {
@@ -1054,13 +1125,31 @@ geocode_prepare_taf <- function(
     return(invisible(NULL))
   }
 
-  needed <- taf_needed_counties(
+  candidates <- geocode_zip_candidates(
     taf_addr,
-    year = year,
-    version = version,
     zip_variants = zip_variants,
-    zip_variant = zip_variant
+    zip_variant = zip_variant,
+    place_zip_variants = place_zip_variants,
+    place_zip_variant = place_zip_variant
   )
+  has_place_candidates <- any(
+    candidates$source_zip_variant %in% place_zip_variant_choices()
+  )
+  needed <- if (has_place_candidates) {
+    taf_needed_counties_from_zipcodes(
+      candidates,
+      year = year,
+      version = version
+    )
+  } else {
+    taf_needed_counties(
+      taf_addr,
+      year = year,
+      version = version,
+      zip_variants = zip_variants,
+      zip_variant = zip_variant
+    )
+  }
   missing <- geocode_missing_taf_counties(
     needed,
     year = year,
@@ -1171,13 +1260,19 @@ geocode_zip <- function(
   taf_install = TRUE,
   taf_redownload = FALSE,
   progress_callback = NULL,
-  taf_check = TRUE
+  taf_check = TRUE,
+  place_zip_variants = TRUE,
+  place_zip_variant = c("place", "county-sub")
 ) {
   stopifnot("x must be an addr vector" = inherits(x, "addr"))
   stopifnot(
     "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
       length(zip_variants) == 1L &&
       !is.na(zip_variants),
+    "place_zip_variants must be TRUE or FALSE" =
+      is.logical(place_zip_variants) &&
+      length(place_zip_variants) == 1L &&
+      !is.na(place_zip_variants),
     "taf_install must be TRUE or FALSE" = is.logical(taf_install) &&
       length(taf_install) == 1L &&
       !is.na(taf_install),
@@ -1193,6 +1288,7 @@ geocode_zip <- function(
   )
   year <- match.arg(year)
   zip_variant <- validate_zip_variant(zip_variant)
+  place_zip_variant <- validate_place_zip_variant(place_zip_variant)
   validate_geocode_offset(offset)
   match_args <- validate_match_addr_street_args(
     name_phonetic_dist = name_phonetic_dist,
@@ -1232,6 +1328,8 @@ geocode_zip <- function(
       version = version,
       zip_variants = zip_variants,
       zip_variant = zip_variant,
+      place_zip_variants = place_zip_variants,
+      place_zip_variant = place_zip_variant,
       taf_install = taf_install,
       taf_redownload = taf_redownload
     )
@@ -1256,9 +1354,11 @@ geocode_zip <- function(
   } else {
     character()
   }
+  loaded_variant_zipcodes <- character()
 
   if (length(no) != 0 && zip_variants && length(variant_zipcodes) > 0L) {
     out$matched_zipcode[no] <- NA_character_
+    loaded_variant_zipcodes <- variant_zipcodes
     ref_variant <- taf_zip(
       variant_zipcodes,
       map = TRUE,
@@ -1346,33 +1446,216 @@ geocode_zip <- function(
         return(s2::as_s2_geography(NA_character_))
       }
       brm <- cand0[1, ]
-      fraction <- geocode_range_fraction(sn, brm$FROMHN, brm$TOHN)
-      point <- s2::s2_interpolate_normalized(
-        brm$s2_geography,
-        fraction
-      )
-      # TIGER side is relative to the digitized street line direction.
-      range_offset <- if (
-        "OFFSET" %in% names(brm) &&
-          length(brm$OFFSET) == 1L &&
-          !is.na(brm$OFFSET) &&
-          brm$OFFSET == "Y"
-      ) {
-        0
-      } else {
-        offset
-      }
-      geocode_offset_point(
-        point,
-        brm$s2_geography,
-        fraction,
-        brm$side,
-        range_offset
-      )
+      geocode_interpolate_range(sn, brm, offset)
     }) |>
     do.call(c, args = _)
 
+  candidates <- geocode_zip_candidates(
+    x,
+    zip_variants = zip_variants,
+    zip_variant = zip_variant,
+    place_zip_variants = place_zip_variants,
+    place_zip_variant = place_zip_variant
+  )
+  place_rows <- unique(candidates$input_row[
+    candidates$source_zip_variant %in% place_zip_variant_choices()
+  ])
+  if (length(place_rows) > 0L) {
+    place_out <- geocode_zip_place_candidates(
+      x,
+      candidates = candidates,
+      input_rows = place_rows,
+      offset = offset,
+      street_match_args = street_match_args,
+      year = year,
+      version = version,
+      preloaded_ref = rbind(ref_exact, ref_variant),
+      loaded_zips = c(zpcd, loaded_variant_zipcodes)
+    )
+    out$matched_zipcode[place_rows] <- place_out$matched_zipcode
+    out$matched_street[place_rows] <- place_out$matched_street
+    out$matched_geography[place_rows] <- place_out$matched_geography
+  }
+
   out
+}
+
+geocode_zip_place_candidates <- function(
+  x,
+  candidates,
+  input_rows,
+  offset,
+  street_match_args,
+  year,
+  version,
+  preloaded_ref,
+  loaded_zips
+) {
+  out <- geocode_no_match(x[input_rows])
+  candidates <- candidates[candidates$input_row %in% input_rows, , drop = FALSE]
+  candidate_zips <- unique(candidates$ZIP)
+  missing_zips <- setdiff(candidate_zips, loaded_zips)
+  ref_add <- if (length(missing_zips) > 0L) {
+    taf_zip(missing_zips, map = TRUE, year = year, version = version)
+  } else {
+    preloaded_ref[0, , drop = FALSE]
+  }
+  ref <- rbind(preloaded_ref, ref_add)
+  ref <- ref[ref$ZIP %in% candidate_zips, , drop = FALSE]
+  if (nrow(ref) == 0L) {
+    return(out)
+  }
+  ref$source_row <- seq_len(nrow(ref))
+
+  for (out_row in seq_along(input_rows)) {
+    input_row <- input_rows[[out_row]]
+    row_candidates <- candidates[
+      candidates$input_row == input_row,
+      ,
+      drop = FALSE
+    ]
+    tier_ranks <- sort(unique(row_candidates$source_zip_variant_rank))
+    street_only <- NULL
+    best_range <- NULL
+    number <- to_int(x@number@digits[[input_row]])
+
+    for (tier_rank in tier_ranks) {
+      tier_candidates <- row_candidates[
+        row_candidates$source_zip_variant_rank == tier_rank,
+        ,
+        drop = FALSE
+      ]
+      tier_ref <- ref[ref$ZIP %in% tier_candidates$ZIP, , drop = FALSE]
+      if (nrow(tier_ref) == 0L) {
+        next
+      }
+      tier_ref$candidate_rank <- tier_candidates$candidate_rank[
+        match(tier_ref$ZIP, tier_candidates$ZIP)
+      ]
+      tier_ref <- tier_ref[
+        order(tier_ref$candidate_rank, tier_ref$ZIP, tier_ref$source_row),
+        ,
+        drop = FALSE
+      ]
+      tier_streets <- geocode_unique_ref_streets(tier_ref)
+      matched_street <- do.call(
+        match_addr_street,
+        c(
+          list(
+            x = x@street[input_row],
+            y = tier_streets$addr_street
+          ),
+          street_match_args
+        )
+      )
+      matched_key <- geocode_street_key(matched_street)
+      if (
+        length(matched_street) == 0L ||
+          is.na(matched_key) ||
+          matched_key == ""
+      ) {
+        next
+      }
+
+      matched_ref <- tier_ref[
+        geocode_street_key(tier_ref$addr_street) == matched_key,
+        ,
+        drop = FALSE
+      ]
+      if (nrow(matched_ref) == 0L) {
+        next
+      }
+      if (is.null(street_only)) {
+        street_only <- list(
+          zipcode = matched_ref$ZIP[[1]],
+          street = matched_street
+        )
+      }
+      if (is.na(number)) {
+        next
+      }
+
+      number_parity <- if (number %% 2 == 0) "E" else "O"
+      has_range <- !is.na(matched_ref$FROMHN) & !is.na(matched_ref$TOHN)
+      in_range <- has_range &
+        number >= pmin(matched_ref$FROMHN, matched_ref$TOHN) &
+        number <= pmax(matched_ref$FROMHN, matched_ref$TOHN)
+      parity_ok <- in_range &
+        (
+          is.na(matched_ref$PARITY) |
+            matched_ref$PARITY %in% c("B", number_parity)
+        )
+      valid <- matched_ref[parity_ok, , drop = FALSE]
+      if (nrow(valid) == 0L) {
+        next
+      }
+      valid$parity_rank <- ifelse(
+        valid$PARITY == number_parity,
+        0L,
+        ifelse(valid$PARITY == "B", 1L, 2L)
+      )
+      valid$width <- abs(valid$FROMHN - valid$TOHN)
+      valid$mid_dist <- abs(number - (valid$FROMHN + valid$TOHN) / 2)
+      valid <- valid[
+        order(
+          valid$parity_rank,
+          valid$width,
+          valid$mid_dist,
+          valid$candidate_rank,
+          valid$ZIP,
+          valid$source_row,
+          na.last = TRUE
+        ),
+        ,
+        drop = FALSE
+      ]
+      best_range <- list(
+        zipcode = valid$ZIP[[1]],
+        street = matched_street,
+        range = valid[1, , drop = FALSE],
+        number = number
+      )
+      break
+    }
+
+    if (!is.null(best_range)) {
+      out$matched_zipcode[[out_row]] <- best_range$zipcode
+      out$matched_street[out_row] <- best_range$street
+      out$matched_geography[out_row] <- geocode_interpolate_range(
+        best_range$number,
+        best_range$range,
+        offset
+      )
+    } else if (!is.null(street_only)) {
+      out$matched_zipcode[[out_row]] <- street_only$zipcode
+      out$matched_street[out_row] <- street_only$street
+    }
+  }
+
+  out
+}
+
+geocode_interpolate_range <- function(number, range, offset) {
+  fraction <- geocode_range_fraction(number, range$FROMHN, range$TOHN)
+  point <- s2::s2_interpolate_normalized(range$s2_geography, fraction)
+  range_offset <- if (
+    "OFFSET" %in% names(range) &&
+      length(range$OFFSET) == 1L &&
+      !is.na(range$OFFSET) &&
+      range$OFFSET == "Y"
+  ) {
+    0
+  } else {
+    offset
+  }
+  side <- if ("side" %in% names(range)) range$side else NA_character_
+  geocode_offset_point(
+    point,
+    range$s2_geography,
+    fraction,
+    side,
+    range_offset
+  )
 }
 
 geocode_unique_ref_streets <- function(x) {

@@ -1,5 +1,11 @@
 # addr (development version)
 
+* `geocode()` and `geocode_zip()` now consider Census place- and
+  county-subdivision-derived ZCTAs by default after the exact input ZIP and
+  before typographical ZIP variants. The new `place_zip_variants` and
+  `place_zip_variant` arguments independently control this search. Valid
+  address ranges are preferred across all candidate tiers, and TIGER county
+  files for every enabled candidate are prepared before geocoding.
 * addr now uses stow 0.3.0 to retain the Census TIGER `FEATNAMES` and
   `ADDRFEAT` source ZIP files as durable managed local copies. These source
   files are stored under addr's `stow/tiger_feat_names` and

@@ -103,3 +103,75 @@ test_that("place_zip_candidates contains known Ohio relationships", {
   )
   expect_setequal(batavia$zcta, c("45102", "45103"))
 })
+
+test_that("geocode ZIP candidates respect place source selection and order", {
+  x <- as_addr(c(
+    "10 Main St Anderson OH 45220",
+    "10 Main St Cincinnati OH 45220"
+  ))
+
+  default <- geocode_zip_candidates(x, zip_variants = FALSE)
+  anderson <- default[default$input_row == 1L, ]
+  expect_equal(anderson$source_zip_variant[[1]], "exact")
+  expect_setequal(
+    anderson$ZIP[anderson$source_zip_variant == "county-sub"],
+    c("45226", "45230", "45244", "45255")
+  )
+  expect_false(any(anderson$source_zip_variant == "place"))
+
+  cincinnati <- default[default$input_row == 2L, ]
+  expect_true(any(cincinnati$source_zip_variant == "place"))
+  expect_false(any(cincinnati$source_zip_variant == "county-sub"))
+  expect_equal(anyDuplicated(cincinnati$ZIP), 0L)
+
+  all_tiers <- geocode_zip_candidates(x)
+  expect_equal(
+    anyDuplicated(all_tiers[c("input_row", "ZIP")]),
+    0L
+  )
+
+  reversed <- geocode_zip_candidates(
+    x[2],
+    zip_variants = FALSE,
+    place_zip_variant = c("county-sub", "place")
+  )
+  expect_true(any(reversed$source_zip_variant == "county-sub"))
+  expect_false(any(reversed$source_zip_variant == "place"))
+
+  place_only <- geocode_zip_candidates(
+    x[1],
+    zip_variants = FALSE,
+    place_zip_variant = "place"
+  )
+  expect_equal(place_only$source_zip_variant, "exact")
+})
+
+test_that("geocode ZIP candidates require ZIP, normalized place, and state", {
+  x <- addr(
+    addr_number(digits = rep("10", 5)),
+    addr_street(name = rep("Main", 5), posttype = rep("St", 5)),
+    addr_place(
+      name = c("  Anderson township ", "", "Anderson", "No Such", "Anderson"),
+      state = c("oh", "OH", "", "OH", "OH"),
+      zipcode = c("45220", "45220", "45220", "45220", NA_character_)
+    )
+  )
+  candidates <- geocode_zip_candidates(x, zip_variants = FALSE)
+
+  expect_true(any(
+    candidates$input_row == 1L &
+      candidates$source_zip_variant == "county-sub"
+  ))
+  expect_equal(
+    candidates$source_zip_variant[candidates$input_row %in% 2:4],
+    rep("exact", 3)
+  )
+  expect_false(any(candidates$input_row == 5L))
+
+  disabled <- geocode_zip_candidates(
+    x[1],
+    zip_variants = FALSE,
+    place_zip_variants = FALSE
+  )
+  expect_equal(disabled$source_zip_variant, "exact")
+})

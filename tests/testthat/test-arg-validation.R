@@ -135,6 +135,10 @@ test_that("geocode validates progress argument", {
     "zip_variants must be TRUE or FALSE"
   )
   expect_error(
+    geocode_zip(x, place_zip_variants = NA),
+    "place_zip_variants must be TRUE or FALSE"
+  )
+  expect_error(
     geocode(x, taf_install = NA),
     "taf_install must be TRUE or FALSE"
   )
@@ -149,6 +153,39 @@ test_that("geocode validates progress argument", {
   expect_error(
     geocode(x, zip_variant = character()),
     "zip_variant must not be empty"
+  )
+  expect_error(
+    geocode(x, place_zip_variant = character()),
+    "place_zip_variant must not be empty"
+  )
+  expect_error(
+    geocode_zip(x, place_zip_variant = NA_character_),
+    "place_zip_variant must not contain missing values"
+  )
+  expect_error(
+    geocode(x, place_zip_variant = "town"),
+    "should be one of"
+  )
+})
+
+test_that("geocode place ZIP arguments are appended and enabled by default", {
+  expect_identical(
+    tail(names(formals(geocode)), 2L),
+    c("place_zip_variants", "place_zip_variant")
+  )
+  expect_identical(
+    tail(names(formals(geocode_zip)), 2L),
+    c("place_zip_variants", "place_zip_variant")
+  )
+  expect_true(eval(formals(geocode)$place_zip_variants))
+  expect_true(eval(formals(geocode_zip)$place_zip_variants))
+  expect_equal(
+    eval(formals(geocode)$place_zip_variant),
+    c("place", "county-sub")
+  )
+  expect_equal(
+    eval(formals(geocode_zip)$place_zip_variant),
+    c("place", "county-sub")
   )
 })
 
