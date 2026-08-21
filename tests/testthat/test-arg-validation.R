@@ -168,10 +168,15 @@ test_that("geocode validates progress argument", {
   )
 })
 
-test_that("geocode place ZIP arguments are appended and enabled by default", {
+test_that("geocode place ZIP arguments are ordered and enabled by default", {
   expect_identical(
-    tail(names(formals(geocode)), 2L),
-    c("place_zip_variants", "place_zip_variant")
+    names(formals(geocode))[6:9],
+    c(
+      "place_zip_variants",
+      "place_zip_variant",
+      "zip_variants",
+      "zip_variant"
+    )
   )
   expect_identical(
     tail(names(formals(geocode_zip)), 2L),

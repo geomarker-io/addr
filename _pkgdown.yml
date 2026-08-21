@@ -20,7 +20,6 @@ reference:
       - addr
       - tag_usaddress
       - clean_address_text
-      - run_addr_explorer
   - title: Match addr
     contents:
       - addr_match
@@ -36,7 +35,6 @@ reference:
       - geocode
       - geocode_table
       - geocode_stage
-      - run_geocode_explorer
   - title: Tiger Address Features
     contents:
       - taf

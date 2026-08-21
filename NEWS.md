@@ -70,7 +70,6 @@
 * addr_left_join uses addr_match to left_join two data frames with addr columns by @cole-brokamp in https://github.com/geomarker-io/addr/pull/64
 * Add prepared NAD example data for faster addr_match examples and tests by @cole-brokamp in https://github.com/geomarker-io/addr/pull/65
 * Reduced dependencies on external packages by @cole-brokamp in https://github.com/geomarker-io/addr/pull/66
-* shiny address visualizer by @cole-brokamp in https://github.com/geomarker-io/addr/pull/69
 * cache NAD extracts (including pre-warmed cache for hamilton, ohio) by @cole-brokamp in https://github.com/geomarker-io/addr/pull/70
 * NAD downloaded by release; more NAD data binary functionality by @cole-brokamp in https://github.com/geomarker-io/addr/pull/71
 
