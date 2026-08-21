@@ -94,6 +94,68 @@ Revision 22 remains available for existing local source archives and derived cou
 The nationwide NAD geodatabase is large and county-based extracts are computationally expensive, so addr keeps derived county data in a persistent NAD workspace within its package-specific user data directory.
 The package also includes `nad_example_data()`, a small baked fixture derived from Hamilton County, Ohio. Use it for examples, tests, and matching workflows that should run without downloading NAD source data first; use `nad("Hamilton", "OH")` when you need complete Hamilton County data.
 
+##### Prebuilt NAD county extracts
+
+Prebuilt revision 23 extracts for seven counties in the Cincinnati region are available from the data-only [`nad-r23` GitHub release](https://github.com/geomarker-io/addr/releases/tag/nad-r23).
+They require an addr build that supports `nad(..., version = 23L)`, plus Bash, `curl`, and `Rscript`.
+The installer below places each extract where `nad()` already expects locally generated county data; it skips an existing county file so local data is never replaced.
+Remove entries from the `counties` array to install only a subset.
+
+```bash
+set -euo pipefail
+
+release_url="https://github.com/geomarker-io/addr/releases/download/nad-r23"
+nad_root="$(
+  Rscript -e 'cat(stow::stow_path(package = "addr", subdir = "nad"))'
+)/v1/NAD_r23"
+
+counties=(
+  "18137|IN|Ripley"
+  "21037|KY|Campbell"
+  "21117|KY|Kenton"
+  "39015|OH|Brown"
+  "39017|OH|Butler"
+  "39025|OH|Clermont"
+  "39061|OH|Hamilton"
+)
+
+for spec in "${counties[@]}"; do
+  IFS='|' read -r fips state county <<< "$spec"
+  destination="${nad_root}/${state}/${county}.rds"
+
+  if [[ -e "$destination" ]]; then
+    printf 'keeping existing %s\n' "$destination"
+    continue
+  fi
+
+  mkdir -p "$(dirname "$destination")"
+  temporary="${destination}.download"
+  rm -f "$temporary"
+  curl --fail --location --output "$temporary" \
+    "${release_url}/nad-r23-${fips}.rds"
+
+  if ! Rscript -e '
+    suppressPackageStartupMessages(library(addr))
+    x <- readRDS(commandArgs(trailingOnly = TRUE)[1])
+    stopifnot(
+      is.data.frame(x),
+      nrow(x) > 0L,
+      "nad_addr" %in% names(x),
+      inherits(x$nad_addr, "addr")
+    )
+  ' "$temporary"; then
+    rm -f "$temporary"
+    exit 1
+  fi
+
+  mv "$temporary" "$destination"
+  printf 'installed %s at %s\n' "$fips" "$destination"
+done
+```
+
+The destination is beneath `stow::stow_path(package = "addr", subdir = "nad")` and therefore respects `R_USER_DATA_DIR` when that variable is set before running the script.
+These extracts are derived from the [USDOT National Address Database](https://catalog.data.gov/dataset/national-address-database-nad-file-geodatabase); review the [official NAD disclaimer](https://www.transportation.gov/mission/open/gis/national-address-database/national-address-database-nad-disclaimer) before use.
+
 ### Geocoding
 
 Matched NAD coordinates can be used as a geocode, but placement often varies by the contributing organization and state.
