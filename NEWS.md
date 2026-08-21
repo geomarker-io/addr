@@ -1,5 +1,6 @@
 # addr (development version)
 
+- Breaking: `addr()`, `addr_number()`, `addr_street()`, `addr_place()`, and `as_addr()` now store every address component in uppercase after applying existing mappings. Mapping flags control abbreviation mapping but no longer preserve input case. `as_addr()` upgrades legacy mixed-case addr objects, and `nad()` rewrites older managed county caches once without reparsing the source addresses. Prepared `addr_match_index` objects created by an older version must be rebuilt with `addr_match_prepare()`.
 - `geocode()` and `geocode_zip()` now consider Census place- and county-subdivision-derived ZCTAs by default after the exact input ZIP and before typographical ZIP variants. The new `place_zip_variants` and `place_zip_variant` arguments independently control this search. Valid address ranges are preferred across all candidate tiers, and TIGER county files for every enabled candidate are prepared before geocoding.
 - addr now uses stow 0.3.0 to retain the Census TIGER `FEATNAMES` and `ADDRFEAT` source ZIP files as durable managed local copies. These source files are stored under addr's `stow/tiger_feat_names` and `stow/tiger_addr_feat` directories.
   - The addr container image now installs stow 0.3.0 so TIGER source ZIP files can also be retained as durable managed local copies when using the image.

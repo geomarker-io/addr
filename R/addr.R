@@ -1,6 +1,51 @@
 #' @include addr_part.R
 NULL
 
+canonicalize_addr_number <- function(x) {
+  if (addr_part_is_uppercase(x)) {
+    return(x)
+  }
+  addr_number(
+    prefix = x@prefix,
+    digits = x@digits,
+    suffix = x@suffix
+  )
+}
+
+canonicalize_addr_street <- function(x) {
+  if (addr_part_is_uppercase(x)) {
+    return(x)
+  }
+  addr_street(
+    predirectional = x@predirectional,
+    premodifier = x@premodifier,
+    pretype = x@pretype,
+    name = x@name,
+    posttype = x@posttype,
+    postdirectional = x@postdirectional,
+    map_posttype = FALSE,
+    map_directional = FALSE,
+    map_pretype = FALSE,
+    map_ordinal = FALSE
+  )
+}
+
+canonicalize_addr_place <- function(x) {
+  if (addr_part_is_uppercase(x)) {
+    return(x)
+  }
+  addr_place(
+    name = x@name,
+    state = x@state,
+    zipcode = x@zipcode,
+    map_state = FALSE
+  )
+}
+
+addr_is_uppercase <- function(x) {
+  all(vapply(S7::props(x), addr_part_is_uppercase, logical(1)))
+}
+
 #' addr classes
 #'
 #' @description
@@ -53,6 +98,10 @@ NULL
 #' All field values must be character vectors of at least length one
 #' (including missing values). Length-one fields are recycled to match the
 #' length of other fields.
+#'
+#' All letters in stored `addr` and `addr_` fields are converted to uppercase.
+#' The `map_*` arguments control abbreviation mapping, not this uppercase
+#' canonicalization.
 #'
 #' @param prefix address number prefix, often a fractional or grid component
 #' @param digits primary street number for the address; must be between 0 and
@@ -138,6 +187,9 @@ addr <- S7::new_class(
     street = addr_street(),
     place = addr_place()
   ) {
+    number <- canonicalize_addr_number(number)
+    street <- canonicalize_addr_street(street)
+    place <- canonicalize_addr_place(place)
     lens <- c(
       number = length(number@digits),
       street = length(street@name),
@@ -177,16 +229,28 @@ addr <- S7::new_class(
         do.call(addr_number, args = _)
     }
     if (lens[["street"]] == 1L && target > 1L) {
-      street <-
-        S7::props(street) |>
-        lapply(rep, target) |>
-        do.call(addr_street, args = _)
+      street_args <- S7::props(street) |>
+        lapply(rep, target)
+      street <- do.call(
+        addr_street,
+        c(
+          street_args,
+          list(
+            map_posttype = FALSE,
+            map_directional = FALSE,
+            map_pretype = FALSE,
+            map_ordinal = FALSE
+          )
+        )
+      )
     }
     if (lens[["place"]] == 1L && target > 1L) {
-      place <-
-        S7::props(place) |>
-        lapply(rep, target) |>
-        do.call(addr_place, args = _)
+      place_args <- S7::props(place) |>
+        lapply(rep, target)
+      place <- do.call(
+        addr_place,
+        c(place_args, list(map_state = FALSE))
+      )
     }
     S7::new_object(
       S7::S7_object(),
@@ -213,6 +277,9 @@ addr <- S7::new_class(
           lens[["place"]]
         )
       )
+    }
+    if (!addr_is_uppercase(self)) {
+      return("addr components must contain only uppercase letters")
     }
   }
 )

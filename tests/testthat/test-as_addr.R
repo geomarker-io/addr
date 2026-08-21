@@ -1,4 +1,4 @@
-test_that("as_addr returns addr unchanged", {
+test_that("as_addr returns canonical addr unchanged", {
   x <- addr(
     addr_number(digits = "290"),
     addr_street(name = "Burnet", posttype = "Ave"),
@@ -6,6 +6,33 @@ test_that("as_addr returns addr unchanged", {
   )
 
   expect_identical(as_addr(x), x)
+})
+
+test_that("as_addr upgrades legacy mixed-case addr objects", {
+  x <- addr(
+    addr_number(prefix = "N", digits = "290", suffix = "A"),
+    addr_street(name = "BURNET", posttype = "AVE"),
+    addr_place(name = "CINCINNATI", state = "OH", zipcode = "45229")
+  )
+  number <- x@number
+  street <- x@street
+  place <- x@place
+  attr(number, "prefix") <- "n"
+  attr(street, "name") <- "Burnet"
+  attr(street, "posttype") <- "Ave"
+  attr(place, "name") <- "Cincinnati"
+  attr(x, "number") <- number
+  attr(x, "street") <- street
+  attr(x, "place") <- place
+
+  out <- as_addr(x)
+
+  expect_identical(format(out), "N290A BURNET AVE CINCINNATI OH 45229")
+  expect_true(all(vapply(
+    as.data.frame(out),
+    function(value) identical(value, toupper(value)),
+    logical(1)
+  )))
 })
 
 test_that("as_addr handles character vectors", {
@@ -22,9 +49,9 @@ test_that("as_addr handles character vectors", {
         street_premodifier = "",
         street_pretype = "",
         street_name = "14TH",
-        street_posttype = "St",
+        street_posttype = "ST",
         street_postdirectional = "",
-        place_name = "Cincinnati",
+        place_name = "CINCINNATI",
         place_state = "OH",
         place_zipcode = "45222"
       ),
@@ -57,11 +84,11 @@ test_that("as_addr maps abbreviations for data.frame inputs", {
         number_suffix = "",
         street_predirectional = "W",
         street_premodifier = "",
-        street_pretype = "US Hwy",
-        street_name = "Main",
-        street_posttype = "Ave",
+        street_pretype = "US HWY",
+        street_name = "MAIN",
+        street_posttype = "AVE",
         street_postdirectional = "",
-        place_name = "Cincinnati",
+        place_name = "CINCINNATI",
         place_state = "OH",
         place_zipcode = "45220"
       ),
@@ -84,14 +111,14 @@ test_that("as_addr maps abbreviations for data.frame inputs", {
         number_prefix = "",
         number_digits = "200",
         number_suffix = "",
-        street_predirectional = "west",
+        street_predirectional = "WEST",
         street_premodifier = "",
         street_pretype = "US",
-        street_name = "Main",
-        street_posttype = "avenue",
+        street_name = "MAIN",
+        street_posttype = "AVENUE",
         street_postdirectional = "",
-        place_name = "Cincinnati",
-        place_state = "ohio",
+        place_name = "CINCINNATI",
+        place_state = "OHIO",
         place_zipcode = "45220"
       ),
       class = "data.frame",
@@ -113,7 +140,7 @@ test_that("as_addr preserves unmapped street tags for data.frame inputs", {
     mapped <- as_addr(df),
     "foofy"
   )
-  expect_equal(mapped@street@posttype, "Foofy")
+  expect_equal(mapped@street@posttype, "FOOFY")
 })
 
 test_that("as_addr handles NA and empty inputs", {
@@ -151,7 +178,7 @@ test_that("as_addr deals with multiples of an address tag", {
       "1234 Main St Clifton Cincinnati OH 45229"
     )
   )@place@name |>
-    expect_identical(c("Cincinnati", "Clifton Cincinnati"))
+    expect_identical(c("CINCINNATI", "CLIFTON CINCINNATI"))
 })
 
 test_that("as_addr tries to fix zipcodes", {

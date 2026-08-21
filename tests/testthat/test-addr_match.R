@@ -222,16 +222,16 @@ test_that("addr_match works with packaged prepared example data", {
   expect_equal(
     format(out[1:10]),
     c(
-      "3359 QUEEN CITY Ave CINCINNATI OH 45238",
-      "1040 KREIS Ln CINCINNATI OH 45205",
-      "9960 DALY Rd CINCINNATI OH 45231",
-      "413 VOLKERT Pl CINCINNATI OH 45219",
-      "8519 LINDERWOOD Ln CINCINNATI OH 45255",
-      "6361 BEECHMONT Ave CINCINNATI OH 45230",
-      "10466 ADVENTURE Ln CINCINNATI OH 45242",
-      "3156 LOOKOUT Cir CINCINNATI OH 45208",
-      "310 WYOMING Ave CINCINNATI OH 45215",
-      "118 SPRINGFIELD Pike CINCINNATI OH 45215"
+      "3359 QUEEN CITY AVE CINCINNATI OH 45238",
+      "1040 KREIS LN CINCINNATI OH 45205",
+      "9960 DALY RD CINCINNATI OH 45231",
+      "413 VOLKERT PL CINCINNATI OH 45219",
+      "8519 LINDERWOOD LN CINCINNATI OH 45255",
+      "6361 BEECHMONT AVE CINCINNATI OH 45230",
+      "10466 ADVENTURE LN CINCINNATI OH 45242",
+      "3156 LOOKOUT CIR CINCINNATI OH 45208",
+      "310 WYOMING AVE CINCINNATI OH 45215",
+      "118 SPRINGFIELD PIKE CINCINNATI OH 45215"
     )
   )
 })
@@ -274,7 +274,7 @@ test_that("addr_match honors matching tuning arguments", {
   )
   expect_identical(
     format(zip_true),
-    "2700 ALICE St CINCINNATI OH 45221"
+    "2700 ALICE ST CINCINNATI OH 45221"
   )
   expect_identical(as.character(addr_match_stage(zip_true)), "number")
   expect_identical(format(zip_false), "")
@@ -298,7 +298,7 @@ test_that("addr_match honors matching tuning arguments", {
   )
   expect_identical(
     format(fuzzy_name_on),
-    "10623 SPRINGFIELD Pike CINCINNATI OH 45215"
+    "10623 SPRINGFIELD PIKE CINCINNATI OH 45215"
   )
   expect_identical(as.character(addr_match_stage(fuzzy_name_on)), "number")
   expect_identical(format(fuzzy_name_off), "45215")
@@ -313,7 +313,7 @@ test_that("addr_match honors matching tuning arguments", {
   )
   expect_identical(
     format(phonetic_exact),
-    "173 WOOLPER Ave CINCINNATI OH 45220"
+    "173 WOOLPER AVE CINCINNATI OH 45220"
   )
   expect_identical(as.character(addr_match_stage(phonetic_exact)), "number")
 
@@ -333,7 +333,7 @@ test_that("addr_match honors matching tuning arguments", {
   )
   expect_identical(
     format(ordinal_phonetic_on),
-    "12176 7TH Ave CINCINNATI OH 45249"
+    "12176 7TH AVE CINCINNATI OH 45249"
   )
   expect_identical(
     as.character(addr_match_stage(ordinal_phonetic_on)),
@@ -358,7 +358,7 @@ test_that("addr_match honors matching tuning arguments", {
   )
   expect_identical(
     format(ordinal_fuzzy_on),
-    "12176 7TH Ave CINCINNATI OH 45249"
+    "12176 7TH AVE CINCINNATI OH 45249"
   )
   expect_identical(as.character(addr_match_stage(ordinal_fuzzy_on)), "number")
   expect_identical(format(ordinal_fuzzy_off), "45249")
@@ -378,10 +378,10 @@ test_that("addr_match honors matching tuning arguments", {
   )
   expect_identical(
     format(fuzzy_number_on),
-    "10623 SPRINGFIELD Pike CINCINNATI OH 45215"
+    "10623 SPRINGFIELD PIKE CINCINNATI OH 45215"
   )
   expect_identical(as.character(addr_match_stage(fuzzy_number_on)), "number")
-  expect_identical(format(fuzzy_number_off), "SPRINGFIELD Pike 45215")
+  expect_identical(format(fuzzy_number_off), "SPRINGFIELD PIKE 45215")
   expect_identical(as.character(addr_match_stage(fuzzy_number_off)), "street")
 })
 
@@ -439,15 +439,15 @@ test_that("addr_match honors street type and directional matching modes", {
 
   expect_identical(
     format(out_relaxed),
-    "10 Main Rd Testville OH 45220"
+    "10 MAIN RD TESTVILLE OH 45220"
   )
   expect_identical(
     format(out_default),
-    "10 US Hwy Main Rd E Testville OH 45220"
+    "10 US HWY MAIN RD E TESTVILLE OH 45220"
   )
   expect_identical(
     format(out_explicit_exact),
-    "10 US Hwy Main Rd E Testville OH 45220"
+    "10 US HWY MAIN RD E TESTVILLE OH 45220"
   )
 })
 
@@ -483,7 +483,7 @@ test_that("addr_match can ignore directionals and street type", {
   )
 
   expect_identical(format(out_pred_required), "45220")
-  expect_identical(format(out_pred_optional), "10 E 14TH St Testville OH 45220")
+  expect_identical(format(out_pred_optional), "10 E 14TH ST TESTVILLE OH 45220")
 
   y_type <- demo_addr("Oak", type = "Rd")
   x_type <- demo_addr("Oka", type = "Ave")
@@ -505,10 +505,33 @@ test_that("addr_match can ignore directionals and street type", {
   )
 
   expect_identical(format(out_type_required), "45220")
-  expect_identical(format(out_type_optional), "10 Oak Rd Testville OH 45220")
+  expect_identical(format(out_type_optional), "10 OAK RD TESTVILLE OH 45220")
 })
 
 test_that("nad_example_data can return prepared match data", {
   prepared <- nad_example_data(match_prepared = TRUE)
   expect_s3_class(prepared, "addr_match_index")
+  expect_identical(attr(prepared, "addr_match_index_version"), 1L)
+})
+
+test_that("legacy prepared match indexes must be rebuilt", {
+  x <- as_addr("10 MAIN ST CINCINNATI OH 45220")
+  prepared <- addr_match_prepare(x, progress = FALSE)
+  attr(prepared, "addr_match_index_version") <- NULL
+
+  expect_error(
+    addr_match(x, prepared, progress = FALSE),
+    "rebuild it with addr_match_prepare()",
+    fixed = TRUE
+  )
+  expect_error(
+    addr_left_join(
+      tibble::tibble(addr = x),
+      tibble::tibble(addr = x),
+      match_prepared = prepared,
+      progress = FALSE
+    ),
+    "rebuild it with addr_match_prepare()",
+    fixed = TRUE
+  )
 })

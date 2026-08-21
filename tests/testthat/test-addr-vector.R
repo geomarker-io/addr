@@ -41,14 +41,14 @@ test_that("unique, [, and length works for addr and addr_* vectors", {
   addr_vec <- addr(num, street, place)
 
   expect_length(addr_vec[2], 1)
-  expect_equal(addr_vec[3]@street@name, "Elm")
+  expect_equal(addr_vec[3]@street@name, "ELM")
 
   addr_unique <- unique(addr_vec)
 
   expect_equal(length(addr_unique), 2L)
   expect_equal(
     format(addr_unique),
-    c("1 Main St Cincinnati OH 45220", "2 Elm St Cincinnati OH 45220")
+    c("1 MAIN ST CINCINNATI OH 45220", "2 ELM ST CINCINNATI OH 45220")
   )
 })
 
@@ -71,7 +71,7 @@ test_that("[<- works for addr_* vectors", {
     map_pretype = FALSE,
     map_directional = FALSE
   )
-  expect_equal(format(street), c("Oak Ave", "Elm St", "Beech Ave"))
+  expect_equal(format(street), c("OAK AVE", "ELM ST", "BEECH AVE"))
 
   place <- addr_place(
     name = c("Cincinnati", "Columbus"),
@@ -81,7 +81,7 @@ test_that("[<- works for addr_* vectors", {
   place[] <- addr_place(name = "Dayton", state = "OH", zipcode = "45402")
   expect_equal(
     format(place),
-    c("Dayton OH 45402", "Dayton OH 45402")
+    c("DAYTON OH 45402", "DAYTON OH 45402")
   )
 })
 
@@ -122,7 +122,7 @@ test_that("[<- works for addr vectors", {
 
   expect_equal(
     format(x),
-    c("9 Oak Ave Dayton OH 45402", "2 Elm St Cincinnati OH 45220")
+    c("9 OAK AVE DAYTON OH 45402", "2 ELM ST CINCINNATI OH 45220")
   )
 })
 

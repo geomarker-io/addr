@@ -1,5 +1,38 @@
 as_norm_char <- function(x) tolower(trimws(as.character(x)))
 
+uppercase_addr_value <- function(x) {
+  if (is.character(x)) {
+    toupper(x)
+  } else {
+    x
+  }
+}
+
+uppercase_addr_fields <- function(fields) {
+  lapply(fields, uppercase_addr_value)
+}
+
+addr_part_is_uppercase <- function(x) {
+  all(vapply(
+    S7::props(x),
+    function(value) identical(value, toupper(value)),
+    logical(1)
+  ))
+}
+
+check_uppercase_fields <- function(self, field_names, class_name) {
+  fields <- lapply(field_names, function(name) S7::prop(self, name))
+  if (
+    !all(vapply(
+      fields,
+      function(value) identical(value, toupper(value)),
+      logical(1)
+    ))
+  ) {
+    sprintf("%s fields must contain only uppercase letters", class_name)
+  }
+}
+
 to_int <- function(x) {
   suppressWarnings(as.integer(gsub("[^0-9.-]", "", x)))
 }

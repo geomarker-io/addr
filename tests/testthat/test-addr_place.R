@@ -10,7 +10,7 @@ test_that("addr_place() maps state and formats", {
     as.data.frame(place),
     structure(
       list(
-        place_name = c("Washington", "San Juan"),
+        place_name = c("WASHINGTON", "SAN JUAN"),
         place_state = c("DC", "PR"),
         place_zipcode = c("20001", "00901")
       ),
@@ -20,7 +20,7 @@ test_that("addr_place() maps state and formats", {
   )
   expect_equal(
     format(place),
-    c("Washington DC 20001", "San Juan PR 00901")
+    c("WASHINGTON DC 20001", "SAN JUAN PR 00901")
   )
 })
 
@@ -62,7 +62,7 @@ test_that("addr_place() preserves empty strings", {
     as.data.frame(place),
     structure(
       list(
-        place_name = c("", "Columbus"),
+        place_name = c("", "COLUMBUS"),
         place_state = c("", "OH"),
         place_zipcode = c("", "43215")
       ),
@@ -72,7 +72,7 @@ test_that("addr_place() preserves empty strings", {
   )
   expect_equal(
     format(place),
-    c("", "Columbus OH 43215")
+    c("", "COLUMBUS OH 43215")
   )
 })
 

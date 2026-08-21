@@ -115,6 +115,10 @@ addr_fuzzy_left_join <- function(
       call. = FALSE
     )
   }
+  x_addr <- as_addr(x_addr)
+  y_addr <- as_addr(y_addr)
+  x[[x_by]] <- x_addr
+  y[[y_by]] <- y_addr
 
   x_zips <- unique(x_addr@place@zipcode)
   y_zips <- unique(y_addr@place@zipcode)

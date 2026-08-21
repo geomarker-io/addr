@@ -343,7 +343,7 @@ test_that("geocode keeps missing zipcode rows with geocoded rows", {
   expect_true(is.na(out$matched_zipcode[1]))
   expect_equal(out$matched_zipcode[2], "45220")
   expect_true(is.na(out$matched_street[1]))
-  expect_equal(format(out$matched_street[2]), "Main")
+  expect_equal(format(out$matched_street[2]), "MAIN")
   expect_true(is.na(out$s2_cell[1]))
   expect_false(is.na(out$s2_cell[2]))
 })
@@ -802,7 +802,7 @@ test_that("geocode_zip respects zipcode variant controls", {
   )
 
   expect_equal(out_swap$matched_zipcode, "42520")
-  expect_equal(format(out_swap$matched_street), "Main St")
+  expect_equal(format(out_swap$matched_street), "MAIN ST")
   expect_true(is.na(out_none$matched_zipcode))
   expect_true(is.na(out_none$matched_street))
 })
@@ -853,7 +853,7 @@ test_that("geocode_zip prioritizes valid ranges across ZIP candidate tiers", {
   )
   out <- run_case(street_only)
   expect_equal(out$matched_zipcode, "45220")
-  expect_equal(format(out$matched_street), "Main St")
+  expect_equal(format(out$matched_street), "MAIN ST")
   expect_true(is.na(out$matched_geography))
 })
 
@@ -1062,7 +1062,7 @@ test_that("geocode_zip matches duplicate TAF street ranges once", {
 
   expect_equal(matched_against, 2L)
   expect_equal(out$matched_zipcode, c("45219", "45219"))
-  expect_equal(format(out$matched_street), c("Main St", "Main St"))
+  expect_equal(format(out$matched_street), c("MAIN ST", "MAIN ST"))
   expect_false(any(is.na(out$matched_geography)))
 })
 
@@ -1272,7 +1272,7 @@ test_that("geocode_zip ignores matched TAF ranges with missing endpoints", {
   )
 
   expect_equal(out$matched_zipcode, "41018")
-  expect_equal(format(out$matched_street), "Barren River Dr")
+  expect_equal(format(out$matched_street), "BARREN RIVER DR")
   expect_true(is.na(out$matched_geography))
 })
 

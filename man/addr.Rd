@@ -128,6 +128,10 @@ single addr vector:
 All field values must be character vectors of at least length one
 (including missing values). Length-one fields are recycled to match the
 length of other fields.
+
+All letters in stored \code{addr} and \code{addr_} fields are converted to uppercase.
+The \verb{map_*} arguments control abbreviation mapping, not this uppercase
+canonicalization.
 }
 \examples{
 # define a new addr_number vector

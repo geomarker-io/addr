@@ -24,9 +24,9 @@ test_that("addr_left_join expands duplicate matched rows in y", {
   expect_equal(
     format(out$addr.y),
     c(
-      "10 MAIN St CINCINNATI OH 45220",
-      "10 MAIN St CINCINNATI OH 45220",
-      "20 MAIN St CINCINNATI OH 45220"
+      "10 MAIN ST CINCINNATI OH 45220",
+      "10 MAIN ST CINCINNATI OH 45220",
+      "20 MAIN ST CINCINNATI OH 45220"
     )
   )
 })

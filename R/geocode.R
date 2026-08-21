@@ -177,6 +177,7 @@ geocode <- function(
       length(progress) == 1L &&
       !is.na(progress)
   )
+  x <- as_addr(x)
   year <- match.arg(year)
   zip_variant <- validate_zip_variant(zip_variant)
   place_zip_variant <- validate_place_zip_variant(place_zip_variant)
@@ -1285,6 +1286,7 @@ geocode_zip <- function(
   place_zip_variant = c("place", "county-sub")
 ) {
   stopifnot("x must be an addr vector" = inherits(x, "addr"))
+  x <- as_addr(x)
   stopifnot(
     "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
       length(zip_variants) == 1L &&

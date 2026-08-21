@@ -155,8 +155,34 @@ addr_progress_update <- function(
   utils::flush.console()
 }
 
+addr_match_index_version <- 1L
+
 is_addr_match_index <- function(x) {
   inherits(x, "addr_match_index")
+}
+
+new_addr_match_index <- function(x) {
+  structure(
+    x,
+    class = "addr_match_index",
+    addr_match_index_version = addr_match_index_version
+  )
+}
+
+validate_addr_match_index_version <- function(x) {
+  if (
+    !identical(
+      attr(x, "addr_match_index_version", exact = TRUE),
+      addr_match_index_version
+    )
+  ) {
+    stop(
+      "addr_match_index predates uppercase addr canonicalization; ",
+      "rebuild it with addr_match_prepare()",
+      call. = FALSE
+    )
+  }
+  invisible(x)
 }
 
 match_zipcodes_prepared <- function(
@@ -408,6 +434,7 @@ addr_match <- function(
       length(progress) == 1L &&
       !is.na(progress)
   )
+  x <- as_addr(x)
   zip_variant <- validate_zip_variant(zip_variant)
 
   if (length(x) == 0L) {
@@ -415,6 +442,7 @@ addr_match <- function(
   }
 
   if (is_addr_match_index(y)) {
+    validate_addr_match_index_version(y)
     y_index <- y
   } else {
     if (!inherits(y, "addr")) {
@@ -527,6 +555,10 @@ addr_match <- function(
 #' `y` explicitly does not remove that work; it only moves it outside
 #' `addr_match()`.
 #'
+#' Prepared indexes record the addr canonicalization format. An index serialized
+#' by an older package version must be rebuilt with `addr_match_prepare()` before
+#' it can be used for matching.
+#'
 #' @rdname addr_match
 #' @export
 addr_match_prepare <- function(y, progress = interactive()) {
@@ -536,17 +568,15 @@ addr_match_prepare <- function(y, progress = interactive()) {
       length(progress) == 1L &&
       !is.na(progress)
   )
+  y <- as_addr(y)
 
   if (length(y) == 0L) {
-    return(structure(
-      list(
-        by_zip = list(),
-        zipcodes = character(),
-        n_unique = 0L,
-        keys_by_zip = list()
-      ),
-      class = "addr_match_index"
-    ))
+    return(new_addr_match_index(list(
+      by_zip = list(),
+      zipcodes = character(),
+      n_unique = 0L,
+      keys_by_zip = list()
+    )))
   }
 
   prep_start_time <- proc.time()[["elapsed"]]
@@ -602,15 +632,12 @@ addr_match_prepare <- function(y, progress = interactive()) {
     !is.na(uy@place@zipcode) & uy@place@zipcode != ""
   ])
 
-  structure(
-    list(
-      by_zip = by_zip,
-      zipcodes = zipcodes,
-      n_unique = length(uy),
-      keys_by_zip = split(addr_match_key(uy), uy@place@zipcode, drop = TRUE)
-    ),
-    class = "addr_match_index"
-  )
+  new_addr_match_index(list(
+    by_zip = by_zip,
+    zipcodes = zipcodes,
+    n_unique = length(uy),
+    keys_by_zip = split(addr_match_key(uy), uy@place@zipcode, drop = TRUE)
+  ))
 }
 
 #' @export

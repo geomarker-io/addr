@@ -1,3 +1,92 @@
+nad_cache_case_version <- 1L
+
+nad_cache_needs_case_migration <- function(x) {
+  is.data.frame(x) &&
+    "nad_addr" %in% names(x) &&
+    inherits(x$nad_addr, "addr") &&
+    !identical(
+      attr(x, "addr_nad_cache_case_version", exact = TRUE),
+      nad_cache_case_version
+    )
+}
+
+nad_cache_mark_uppercase <- function(x) {
+  if (
+    is.data.frame(x) &&
+      "nad_addr" %in% names(x) &&
+      inherits(x$nad_addr, "addr")
+  ) {
+    x$nad_addr <- as_addr(x$nad_addr)
+    attr(x, "addr_nad_cache_case_version") <- nad_cache_case_version
+  }
+  x
+}
+
+nad_cache_write_safely <- function(x, path) {
+  tmp <- tempfile(
+    pattern = paste0(basename(path), ".uppercase-"),
+    tmpdir = dirname(path)
+  )
+  backup <- tempfile(
+    pattern = paste0(basename(path), ".backup-"),
+    tmpdir = dirname(path)
+  )
+  on.exit(
+    {
+      if (file.exists(tmp)) {
+        unlink(tmp)
+      }
+      if (file.exists(backup) && !file.exists(path)) {
+        file.rename(backup, path)
+      }
+    },
+    add = TRUE
+  )
+
+  saveRDS(x, tmp)
+  had_existing <- file.exists(path)
+  if (had_existing && !file.rename(path, backup)) {
+    stop("failed to preserve the existing NAD cache before rewriting it")
+  }
+  if (!file.rename(tmp, path)) {
+    if (had_existing) {
+      file.rename(backup, path)
+    }
+    stop("failed to replace the NAD cache with its uppercase form")
+  }
+  if (had_existing && file.exists(backup)) {
+    unlink(backup)
+  }
+  invisible(path)
+}
+
+nad_cache_migrate_case <- function(x, path) {
+  if (!nad_cache_needs_case_migration(x)) {
+    return(x)
+  }
+  x <- nad_cache_mark_uppercase(x)
+  migrated <- tryCatch(
+    {
+      nad_cache_write_safely(x, path)
+      TRUE
+    },
+    error = function(e) {
+      warning(
+        "could not rewrite the NAD cache with uppercase addr values: ",
+        conditionMessage(e),
+        ". Returning uppercase values in memory; migration will be retried ",
+        "on the next read.",
+        call. = FALSE
+      )
+      FALSE
+    }
+  )
+  if (migrated) {
+    message("updated cached NAD addr values to uppercase: ", path)
+  }
+  x
+}
+
 #' Read National Address Database (NAD) tables into R
 #'
 #' @description
@@ -24,6 +113,10 @@
 #' NAD version, state, and named by county; e.g., see
 #' `list.files(stow::stow_path(package = "addr", subdir = "nad"),
 #' recursive = TRUE)`)
+#' Older data binaries containing mixed-case addr components are upgraded on
+#' first read. This reuses the existing parsed `nad_addr` vector, converts its
+#' stored components to uppercase, and rewrites the managed binary once without
+#' reading or reparsing the nationwide source geodatabase.
 #'
 #' @param county character, length one; county name or 5-digit county FIPS
 #'   identifier
@@ -132,9 +225,12 @@ nad <- function(
       version = version,
       refresh_source = refresh_source
     )
+    d <- nad_cache_mark_uppercase(d)
     saveRDS(d, file = nad_sd)
+    return(d)
   }
-  readRDS(nad_sd)
+  d <- readRDS(nad_sd)
+  nad_cache_migrate_case(d, nad_sd)
 }
 
 nad_version_metadata <- function(version = 22L) {

@@ -310,7 +310,7 @@ test_that("match_addr_street works", {
   )
   expect_identical(
     out@posttype,
-    c("Cir", "Pl", "Pike", "Rd", "Rd", "Cir", "Pl", "Pike", NA, "Rd", "Ave", NA)
+    c("CIR", "PL", "PIKE", "RD", "RD", "CIR", "PL", "PIKE", NA, "RD", "AVE", NA)
   )
 })
 
@@ -329,7 +329,7 @@ test_that("match_addr_street uses predirectional to resolve East 14th Street", {
 
   expect_identical(out@predirectional, c("E", NA_character_))
   expect_identical(out@name, c("14TH", NA_character_))
-  expect_identical(out@posttype, c("St", NA_character_))
+  expect_identical(out@posttype, c("ST", NA_character_))
   expect_false(is.na(out[1]))
   expect_true(is.na(out[2]))
 })
@@ -369,7 +369,7 @@ test_that("match_addr_street can ignore directionals", {
 
   expect_true(is.na(out_required))
   expect_identical(out_optional@predirectional, "E")
-  expect_identical(out_optional@name, "14th")
+  expect_identical(out_optional@name, "14TH")
 })
 
 test_that("match_addr_street can ignore street type", {
@@ -413,8 +413,8 @@ test_that("match_addr_street can ignore street type", {
   )
 
   expect_true(is.na(out_required))
-  expect_identical(out_optional@name, "Oak")
-  expect_identical(out_optional@posttype, "Rd")
+  expect_identical(out_optional@name, "OAK")
+  expect_identical(out_optional@posttype, "RD")
 })
 
 test_that("match_addr_street can require compatible street type", {
@@ -466,12 +466,12 @@ test_that("match_addr_street can require compatible street type", {
   )
 
   expect_true(is.na(out_exact))
-  expect_identical(out_cross_position@pretype, "Ave")
+  expect_identical(out_cross_position@pretype, "AVE")
   expect_true(is.na(out_conflict))
   expect_identical(out_blank@pretype, "")
   expect_identical(out_blank@posttype, "")
   expect_identical(out_prefer_exact@pretype, "")
-  expect_identical(out_prefer_exact@posttype, "Ave")
+  expect_identical(out_prefer_exact@posttype, "AVE")
 })
 
 test_that("match_addr_street applies compatible type during fuzzy name matching", {
@@ -515,8 +515,8 @@ test_that("match_addr_street applies compatible type during fuzzy name matching"
   )
 
   expect_true(is.na(out_exact))
-  expect_identical(out_compatible@pretype, "Ave")
-  expect_identical(out_compatible@name, "Main")
+  expect_identical(out_compatible@pretype, "AVE")
+  expect_identical(out_compatible@name, "MAIN")
 })
 
 test_that("match_addr_street can ignore type and directionals", {
@@ -559,7 +559,7 @@ test_that("match_addr_street can ignore type and directionals", {
   )
   expect_identical(out_relaxed@pretype, c("", ""))
   expect_identical(out_relaxed@postdirectional, c("", ""))
-  expect_identical(out_default@pretype, c("US Hwy", "US Hwy"))
+  expect_identical(out_default@pretype, c("US HWY", "US HWY"))
   expect_identical(out_default@postdirectional, c("E", "E"))
 })
 
@@ -689,7 +689,7 @@ test_that("match_addr_street matches typo and phonetic street-name variants", {
     out@name,
     c("SPRINGFIELD", "WOOLPER", "PFEIFFER", "VIVIAN", "BEECHVIEW")
   )
-  expect_identical(out@posttype, c("Pike", "Ave", "Rd", "Pl", "Cir"))
+  expect_identical(out@posttype, c("PIKE", "AVE", "RD", "PL", "CIR"))
   expect_false(any(is.na(out)))
 })
 
