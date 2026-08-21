@@ -1,21 +1,10 @@
 # addr (development version)
 
-* addr now uses stow 0.3.0 to retain the Census TIGER `FEATNAMES` and
-  `ADDRFEAT` source ZIP files as durable managed local copies. These source
-  files are stored under addr's `stow/tiger_feat_names` and
-  `stow/tiger_addr_feat` directories.
-* The addr container image now installs stow 0.3.0 so TIGER source ZIP files
-  can also be retained as durable managed local copies when using the image.
-* The processed TAF dataset used for geocoding is not managed by `stow()` and
-  remains under `v1/tiger_addr_feat/<year>` in addr's user data directory. By
-  default, when `geocode()` needs a missing county, `taf_install()` uses the
-  durable managed local copies of the source TIGER ZIP files to build that
-  county's processed TAF Parquet files locally. The optional preprocessed
-  national TAF release bundle, its manifest, and its installation workflow
-  remain separate from stow.
-* The specialized NAD download and processing pipeline now operates inside the
-  persistent workspace returned by `stow::stow_path(package = "addr", subdir =
-  "nad")`; its individual source and derived files are not managed by
+- `geocode()` and `geocode_zip()` now consider Census place- and county-subdivision-derived ZCTAs by default after the exact input ZIP and before typographical ZIP variants. The new `place_zip_variants` and `place_zip_variant` arguments independently control this search. Valid address ranges are preferred across all candidate tiers, and TIGER county files for every enabled candidate are prepared before geocoding.
+- addr now uses stow 0.3.0 to retain the Census TIGER `FEATNAMES` and `ADDRFEAT` source ZIP files as durable managed local copies. These source files are stored under addr's `stow/tiger_feat_names` and `stow/tiger_addr_feat` directories.
+  - The addr container image now installs stow 0.3.0 so TIGER source ZIP files can also be retained as durable managed local copies when using the image.
+  - The processed TAF dataset used for geocoding is not managed by `stow()` and remains under `v1/tiger_addr_feat/<year>` in addr's user data directory. By default, when `geocode()` needs a missing county, `taf_install()` uses the durable managed local copies of the source TIGER ZIP files to build that county's processed TAF Parquet files locally. The optional preprocessed national TAF release bundle, its manifest, and its installation workflow remain separate from stow.
+  - The specialized NAD download and processing pipeline now operates inside the persistent workspace returned by `stow::stow_path(package = "addr", subdir = "nad")`; its individual source and derived files are not managed by
   `stow()`.
 
 # addr 1.3.0
@@ -64,7 +53,6 @@
 * addr_left_join uses addr_match to left_join two data frames with addr columns by @cole-brokamp in https://github.com/geomarker-io/addr/pull/64
 * Add prepared NAD example data for faster addr_match examples and tests by @cole-brokamp in https://github.com/geomarker-io/addr/pull/65
 * Reduced dependencies on external packages by @cole-brokamp in https://github.com/geomarker-io/addr/pull/66
-* shiny address visualizer by @cole-brokamp in https://github.com/geomarker-io/addr/pull/69
 * cache NAD extracts (including pre-warmed cache for hamilton, ohio) by @cole-brokamp in https://github.com/geomarker-io/addr/pull/70
 * NAD downloaded by release; more NAD data binary functionality by @cole-brokamp in https://github.com/geomarker-io/addr/pull/71
 

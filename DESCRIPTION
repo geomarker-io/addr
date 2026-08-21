@@ -12,14 +12,12 @@ Copyright: See file inst/COPYRIGHTS for vendored Rust crate copyright informatio
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Suggests: 
-    htmltools,
     arrow,
     dplyr,
     leaflet,
     mirai,
     pkgload,
     sf,
-    shiny,
     testthat (>= 3.0.0),
     wk,
     withr
@@ -58,8 +56,7 @@ Collate:
     'geocode.R'
     'nad.R'
     'phonetic_street_key.R'
-    'shiny_addr_explorer.R'
-    'shiny_geocode_explorer.R'
+    'place_zip.R'
     'taf.R'
     'tag_usaddress.R'
     'tiger.R'

@@ -144,6 +144,14 @@ taf_needed_counties <- function(
     zip_variants = zip_variants,
     zip_variant = zip_variant
   )
+  taf_needed_counties_from_zipcodes(
+    zipcodes,
+    year = year,
+    version = version
+  )
+}
+
+taf_needed_counties_from_zipcodes <- function(zipcodes, year, version) {
   if (nrow(zipcodes) == 0L) {
     return(taf_empty_needed_counties())
   }
@@ -161,25 +169,41 @@ taf_needed_counties <- function(
     return(taf_empty_needed_counties())
   }
 
-  out <- out[
-    c(
-      "county_fips",
-      "ZIP",
-      "zip3",
-      "zip2",
-      "n_ranges",
-      "source_zip",
-      "source_zip_variant",
-      "source_zip_variant_rank"
-    )
-  ]
+  keep <- c(
+    "county_fips",
+    "ZIP",
+    "zip3",
+    "zip2",
+    "n_ranges",
+    "source_zip",
+    "source_zip_variant",
+    "source_zip_variant_rank"
+  )
+  if ("candidate_rank" %in% names(out)) {
+    keep <- c(keep, "candidate_rank")
+  }
+  out <- out[keep]
   out <- unique(out)
+  candidate_rank <- if ("candidate_rank" %in% names(out)) {
+    out$candidate_rank
+  } else {
+    rep.int(0L, nrow(out))
+  }
   out <- out[
-    order(out$source_zip, out$source_zip_variant_rank, out$county_fips),
+    order(
+      out$source_zip,
+      out$source_zip_variant_rank,
+      candidate_rank,
+      out$county_fips
+    ),
     ,
     drop = FALSE
   ]
   out$source_zip_variant_rank <- NULL
+  if ("candidate_rank" %in% names(out)) {
+    out$candidate_rank <- NULL
+  }
+  out <- unique(out)
   row.names(out) <- NULL
   tibble::as_tibble(out)
 }
@@ -315,14 +339,17 @@ taf_with_install_lock <- function(year, version, expr) {
     Sys.sleep(poll)
   }
 
-  on.exit({
-    if (acquired && file.exists(token_path)) {
-      owner <- readLines(token_path, warn = FALSE, n = 1L)
-      if (identical(owner, token)) {
-        unlink(lock_dir, recursive = TRUE, force = TRUE)
+  on.exit(
+    {
+      if (acquired && file.exists(token_path)) {
+        owner <- readLines(token_path, warn = FALSE, n = 1L)
+        if (identical(owner, token)) {
+          unlink(lock_dir, recursive = TRUE, force = TRUE)
+        }
       }
-    }
-  }, add = TRUE)
+    },
+    add = TRUE
+  )
 
   eval(substitute(expr), parent.frame())
 }

@@ -11,6 +11,8 @@ geocode(
   name_fuzzy_dist = 2L,
   match_street_type = c("exact", "compatible", "ignore"),
   match_street_directional = c("exact", "swap", "ignore"),
+  place_zip_variants = TRUE,
+  place_zip_variant = c("place", "county-sub"),
   zip_variants = TRUE,
   zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   year = as.character(2025:2011),
@@ -36,7 +38,9 @@ geocode_zip(
   taf_install = TRUE,
   taf_redownload = FALSE,
   progress_callback = NULL,
-  taf_check = TRUE
+  taf_check = TRUE,
+  place_zip_variants = TRUE,
+  place_zip_variant = c("place", "county-sub")
 )
 }
 \arguments{
@@ -64,11 +68,20 @@ predirectional to match postdirectional and postdirectional to match
 predirectional; \code{"ignore"} does not use street directional fields when
 selecting candidates.}
 
-\item{zip_variants}{logical; fuzzy match to common variants of
-\code{x} in \code{y}?}
+\item{place_zip_variants}{logical; consider ZCTAs associated with the exact
+normalized place and state after the input ZIP and before typographical ZIP
+variants? Defaults to \code{TRUE}.}
 
-\item{zip_variant}{character vector; zipcode variant types to use when
-\code{zip_variants} is \code{TRUE}; see \code{?zipcode_variant}}
+\item{place_zip_variant}{nonempty character vector containing \code{"place"}
+and/or \code{"county-sub"}. \code{"place"} uses Census places and \code{"county-sub"}
+uses Census county subdivisions. Requested order determines precedence;
+the default uses both in that order.}
+
+\item{zip_variants}{logical; consider typographical variants of the input ZIP
+code after exact and enabled place-derived candidates? Defaults to \code{TRUE}.}
+
+\item{zip_variant}{nonempty character vector selecting typographical ZIP
+variants; see \code{\link[=zipcode_variant]{zipcode_variant()}}. Requested order determines precedence.}
 
 \item{year}{integer, length one; vintage of TIGER addrfeat (address feature)
 files}
@@ -77,9 +90,9 @@ files}
 and taf dataset schema}
 
 \item{taf_install}{logical; install missing county TAF files needed for
-input ZIP codes and selected ZIP code variants before geocoding? If
-\code{FALSE}, geocoding proceeds with installed files only and warns when
-needed county files are missing.}
+input ZIP codes and all selected place-derived and typographical ZIP
+candidates before geocoding? If \code{FALSE}, geocoding proceeds with installed
+files only and warns when needed county files are missing.}
 
 \item{taf_redownload}{logical; replace existing durable managed local copies
 of TIGER ZIP files when installing missing TAF counties?}
@@ -110,9 +123,8 @@ vector).
 \code{geocode()} geocodes addr vectors using Census TIGER address
 features (see \code{?taf}) by:
 \enumerate{
-\item searching for a matching street (see \code{?match_addr_street}),
-within the same ZIP code, also searching similar ZIP codes for a matching
-street if necessary
+\item searching for a matching street (see \code{?match_addr_street}) in the input
+ZIP code, then in enabled place-derived and typographical ZIP candidates
 \item using the address number to select the best address feature range and
 side of the street (even/odd), breaking ties on smallest width and spread
 \item linearly interpolating a geographic point along the best range line based
@@ -122,9 +134,9 @@ on the actual and potential range of address numbers
 
 Only matched input addresses return non-missing matched ZIP code and street
 values. Missing or unmatched ZIP codes return missing matched ZIP code,
-street, geography, and s2 cell values. If all ranges on the matched ZIP code
-and street exclude the address number, only the geography and s2 cell values
-return \code{NA}.
+street, geography, and s2 cell values. If no matching street has a valid
+range for the address number, the best street-only match is retained and
+only the geography and s2 cell values return \code{NA}.
 }
 \details{
 \code{geocode_zip()} is the workhorse function and operates on addr vectors
@@ -139,15 +151,45 @@ Exact duplicates therefore do not trigger repeated TAF reads, street
 matching, or range interpolation, so callers usually do not need to call
 \code{unique()} themselves for geocoding performance.
 
+ZIP matching uses ordered candidate tiers. The exact input ZIP is first.
+When \code{place_zip_variants = TRUE}, ZCTAs whose normalized Census place or
+county-subdivision name exactly equals the input place and whose state equals
+the input state are next, in \code{place_zip_variant} order. Typographical ZIP
+candidates from \code{\link[=zipcode_variant]{zipcode_variant()}} follow in \code{zip_variant} order when
+\code{zip_variants = TRUE}. Place matching is deliberately conservative: it does
+not use fuzzy matching or infer a ZIP when the input ZIP is missing.
+
+Valid address ranges are preferred over street-only matches across all
+enabled tiers. Among valid ranges, exact ZIP wins, followed by the requested
+place geography order and then the requested typographical variant order.
+Consequently, a valid place-derived or typographical range can beat an
+earlier street-only match, but an exact-ZIP valid range always wins. If no
+candidate has a valid range, the earliest tier's best street-only match is
+retained.
+
+The \code{"place"} selector accepts ZCTAs supported by the Census place file or
+by both relationship files. The \code{"county-sub"} selector accepts ZCTAs
+supported by the county-subdivision file or by both files. A ZCTA supported
+by both is assigned to the first requested selector so it is tried only
+once. Input place names are uppercased, whitespace is normalized, and a
+trailing Census \code{CITY}, \code{VILLAGE}, \code{TOWN}, \code{TOWNSHIP}, \code{BOROUGH}, or \code{CDP}
+suffix is removed before exact matching. Internal punctuation, diacritics,
+and other descriptors are preserved.
+
 If the mirai package is installed and mirai daemons have already been
 configured by the caller, \code{geocode()} uses them for ZIP-code-level
 parallel processing. Otherwise it falls back to sequential processing.
 
 \code{geocode()} and \code{geocode_zip()} both download and install tiger address
 features by county (\code{?taf_install}) as needed based on the input addr ZIP
-codes (and possibly ZIP code variants). TAF install checks run before
-reading TAF ZIP files so parallel geocoding workers do not try to download
-county files at the same time.
+codes and all enabled candidate tiers. TAF install checks run before reading
+TAF ZIP files so parallel geocoding workers do not try to download county
+files at the same time. Because both place-derived and typographical ZIP
+variants are enabled by default, a geocode call can consider many ZCTAs and
+download many county TAF files. Common place/state names can increase this
+substantially. Disable
+\code{place_zip_variants}, \code{zip_variants}, or both when that broader search and
+its downloads are not wanted.
 }
 \examples{
 x <- as_addr(voter_addresses()[1:25])
