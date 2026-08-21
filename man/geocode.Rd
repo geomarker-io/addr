@@ -11,6 +11,8 @@ geocode(
   name_fuzzy_dist = 2L,
   match_street_type = c("exact", "compatible", "ignore"),
   match_street_directional = c("exact", "swap", "ignore"),
+  place_zip_variants = TRUE,
+  place_zip_variant = c("place", "county-sub"),
   zip_variants = TRUE,
   zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   year = as.character(2025:2011),
@@ -19,9 +21,7 @@ geocode(
   taf_redownload = FALSE,
   offset = 10L,
   add_s2_cell = TRUE,
-  progress = interactive(),
-  place_zip_variants = TRUE,
-  place_zip_variant = c("place", "county-sub")
+  progress = interactive()
 )
 
 geocode_zip(
@@ -68,6 +68,15 @@ predirectional to match postdirectional and postdirectional to match
 predirectional; \code{"ignore"} does not use street directional fields when
 selecting candidates.}
 
+\item{place_zip_variants}{logical; consider ZCTAs associated with the exact
+normalized place and state after the input ZIP and before typographical ZIP
+variants? Defaults to \code{TRUE}.}
+
+\item{place_zip_variant}{nonempty character vector containing \code{"place"}
+and/or \code{"county-sub"}. \code{"place"} uses Census places and \code{"county-sub"}
+uses Census county subdivisions. Requested order determines precedence;
+the default uses both in that order.}
+
 \item{zip_variants}{logical; consider typographical variants of the input ZIP
 code after exact and enabled place-derived candidates? Defaults to \code{TRUE}.}
 
@@ -96,15 +105,6 @@ computation.}
 
 \item{progress}{logical; show progress messages and a ZIP-code progress bar
 while geocoding?}
-
-\item{place_zip_variants}{logical; consider ZCTAs associated with the exact
-normalized place and state after the input ZIP and before typographical ZIP
-variants? Defaults to \code{TRUE}.}
-
-\item{place_zip_variant}{nonempty character vector containing \code{"place"}
-and/or \code{"county-sub"}. \code{"place"} uses Census places and \code{"county-sub"}
-uses Census county subdivisions. Requested order determines precedence;
-the default uses both in that order.}
 
 \item{progress_callback}{optional callback used internally by \code{geocode()}
 to update progress after ZIP-code reference data is loaded}
@@ -204,18 +204,6 @@ taf_needed_counties(x)
 
   # this is only for example purposes and usually not required; e.g.
   gcd <- geocode(x)
-
-  # restrict or disable the two independent ZIP candidate mechanisms
-  gcd_place_only <- geocode(
-    x,
-    place_zip_variant = "place",
-    zip_variants = FALSE
-  )
-  gcd_exact_only <- geocode(
-    x,
-    place_zip_variants = FALSE,
-    zip_variants = FALSE
-  )
 
   gcd
 

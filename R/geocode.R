@@ -116,18 +116,6 @@
 #'   # this is only for example purposes and usually not required; e.g.
 #'   gcd <- geocode(x)
 #'
-#'   # restrict or disable the two independent ZIP candidate mechanisms
-#'   gcd_place_only <- geocode(
-#'     x,
-#'     place_zip_variant = "place",
-#'     zip_variants = FALSE
-#'   )
-#'   gcd_exact_only <- geocode(
-#'     x,
-#'     place_zip_variants = FALSE,
-#'     zip_variants = FALSE
-#'   )
-#'
 #'   gcd
 #'
 #'   table(geocode_stage(gcd))
@@ -151,6 +139,8 @@ geocode <- function(
   name_fuzzy_dist = 2L,
   match_street_type = c("exact", "compatible", "ignore"),
   match_street_directional = c("exact", "swap", "ignore"),
+  place_zip_variants = TRUE,
+  place_zip_variant = c("place", "county-sub"),
   zip_variants = TRUE,
   zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   year = as.character(2025:2011),
@@ -159,9 +149,7 @@ geocode <- function(
   taf_redownload = FALSE,
   offset = 10L,
   add_s2_cell = TRUE,
-  progress = interactive(),
-  place_zip_variants = TRUE,
-  place_zip_variant = c("place", "county-sub")
+  progress = interactive()
 ) {
   stopifnot(
     "x must be an addr vector" = inherits(x, "addr"),
