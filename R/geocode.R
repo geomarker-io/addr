@@ -168,8 +168,9 @@ geocode <- function(
     "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
       length(zip_variants) == 1L &&
       !is.na(zip_variants),
-    "place_zip_variants must be TRUE or FALSE" =
-      is.logical(place_zip_variants) &&
+    "place_zip_variants must be TRUE or FALSE" = is.logical(
+      place_zip_variants
+    ) &&
       length(place_zip_variants) == 1L &&
       !is.na(place_zip_variants),
     "taf_install must be TRUE or FALSE" = is.logical(taf_install) &&
@@ -342,7 +343,10 @@ geocode_assemble_results <- function(
   if (is.null(result_names) || any(result_names == "")) {
     result_names <- names(plan$zip_groups)
     if (length(result_names) != length(results)) {
-      stop("geocoding result group count does not match planned ZIP groups", call. = FALSE)
+      stop(
+        "geocoding result group count does not match planned ZIP groups",
+        call. = FALSE
+      )
     }
     names(results) <- result_names
   }
@@ -359,7 +363,11 @@ geocode_assemble_results <- function(
   for (zip in names(results)) {
     rows <- plan$zip_group_idx[[zip]]
     if (is.null(rows)) {
-      stop("geocoding returned an unexpected ZIP result group: ", zip, call. = FALSE)
+      stop(
+        "geocoding returned an unexpected ZIP result group: ",
+        zip,
+        call. = FALSE
+      )
     }
     result <- results[[zip]]
     geocode_check_result(result, rows, zip)
@@ -406,11 +414,16 @@ geocode_assemble_results <- function(
   }
 
   if (progress) {
-    progress_step <- geocode_progress_step_begin("reordering geocode result rows")
+    progress_step <- geocode_progress_step_begin(
+      "reordering geocode result rows"
+    )
   }
   restore_unique_idx <- match(seq_len(n), row_order)
   if (anyNA(restore_unique_idx) || length(unique(row_order)) != n) {
-    stop("geocoding result rows do not match planned unique addr rows", call. = FALSE)
+    stop(
+      "geocoding result rows do not match planned unique addr rows",
+      call. = FALSE
+    )
   }
 
   out <- tibble::tibble(
@@ -442,7 +455,10 @@ geocode_c_addr_street <- function(x) {
     ))
   }
   addr_street(
-    predirectional = unlist(lapply(x, \(.) .@predirectional), use.names = FALSE),
+    predirectional = unlist(
+      lapply(x, \(.) .@predirectional),
+      use.names = FALSE
+    ),
     premodifier = unlist(lapply(x, \(.) .@premodifier), use.names = FALSE),
     pretype = unlist(lapply(x, \(.) .@pretype), use.names = FALSE),
     name = unlist(lapply(x, \(.) .@name), use.names = FALSE),
@@ -468,9 +484,19 @@ geocode_c_s2_geography <- function(x) {
 
 geocode_check_result <- function(x, rows, zip) {
   if (!is.data.frame(x)) {
-    stop("geocoding result for ZIP ", zip, " must be a data frame", call. = FALSE)
+    stop(
+      "geocoding result for ZIP ",
+      zip,
+      " must be a data frame",
+      call. = FALSE
+    )
   }
-  required <- c("addr", "matched_zipcode", "matched_street", "matched_geography")
+  required <- c(
+    "addr",
+    "matched_zipcode",
+    "matched_street",
+    "matched_geography"
+  )
   missing <- setdiff(required, names(x))
   if (length(missing) > 0L) {
     stop(
@@ -494,12 +520,18 @@ geocode_check_result <- function(x, rows, zip) {
     )
   }
   stopifnot(
-    "geocoding result addr column must be an addr vector" =
-      inherits(x$addr, "addr"),
-    "geocoding result matched_street column must be an addr_street vector" =
-      inherits(x$matched_street, "addr_street"),
-    "geocoding result matched_geography column must be an s2_geography vector" =
-      inherits(x$matched_geography, "s2_geography")
+    "geocoding result addr column must be an addr vector" = inherits(
+      x$addr,
+      "addr"
+    ),
+    "geocoding result matched_street column must be an addr_street vector" = inherits(
+      x$matched_street,
+      "addr_street"
+    ),
+    "geocoding result matched_geography column must be an s2_geography vector" = inherits(
+      x$matched_geography,
+      "s2_geography"
+    )
   )
   invisible(x)
 }
@@ -1020,14 +1052,14 @@ geocode_table <- function(x) {
       x$matched_street,
       "addr_street"
     ),
-    "x must contain a matched_geography column" =
-      "matched_geography" %in% names(x),
+    "x must contain a matched_geography column" = "matched_geography" %in%
+      names(x),
     "x$matched_geography must be an s2_geography vector" = inherits(
       x$matched_geography,
       "s2_geography"
     ),
-    "x$s2_cell must be an s2_cell vector" =
-      !("s2_cell" %in% names(x)) || inherits(x$s2_cell, "s2_cell")
+    "x$s2_cell must be an s2_cell vector" = !("s2_cell" %in% names(x)) ||
+      inherits(x$s2_cell, "s2_cell")
   )
 
   out <- data.frame(
@@ -1065,8 +1097,8 @@ geocode_stage <- function(x) {
       x$matched_street,
       "addr_street"
     ),
-    "x must contain a matched_geography column" =
-      "matched_geography" %in% names(x),
+    "x must contain a matched_geography column" = "matched_geography" %in%
+      names(x),
     "x$matched_geography must be an s2_geography vector" = inherits(
       x$matched_geography,
       "s2_geography"
@@ -1269,8 +1301,9 @@ geocode_zip <- function(
     "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
       length(zip_variants) == 1L &&
       !is.na(zip_variants),
-    "place_zip_variants must be TRUE or FALSE" =
-      is.logical(place_zip_variants) &&
+    "place_zip_variants must be TRUE or FALSE" = is.logical(
+      place_zip_variants
+    ) &&
       length(place_zip_variants) == 1L &&
       !is.na(place_zip_variants),
     "taf_install must be TRUE or FALSE" = is.logical(taf_install) &&
@@ -1581,10 +1614,8 @@ geocode_zip_place_candidates <- function(
         number >= pmin(matched_ref$FROMHN, matched_ref$TOHN) &
         number <= pmax(matched_ref$FROMHN, matched_ref$TOHN)
       parity_ok <- in_range &
-        (
-          is.na(matched_ref$PARITY) |
-            matched_ref$PARITY %in% c("B", number_parity)
-        )
+        (is.na(matched_ref$PARITY) |
+          matched_ref$PARITY %in% c("B", number_parity))
       valid <- matched_ref[parity_ok, , drop = FALSE]
       if (nrow(valid) == 0L) {
         next
@@ -1639,7 +1670,8 @@ geocode_interpolate_range <- function(number, range, offset) {
   fraction <- geocode_range_fraction(number, range$FROMHN, range$TOHN)
   point <- s2::s2_interpolate_normalized(range$s2_geography, fraction)
   range_offset <- if (
-    "OFFSET" %in% names(range) &&
+    "OFFSET" %in%
+      names(range) &&
       length(range$OFFSET) == 1L &&
       !is.na(range$OFFSET) &&
       range$OFFSET == "Y"

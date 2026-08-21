@@ -60,7 +60,12 @@ expect_error(
   "--input is required"
 )
 expect_error(
-  addr_geocode_cli_parse_args(c("--input", "x.csv", "--address-column", "addr")),
+  addr_geocode_cli_parse_args(c(
+    "--input",
+    "x.csv",
+    "--address-column",
+    "addr"
+  )),
   "unknown option"
 )
 

@@ -116,9 +116,12 @@ read_zcta_relationship <- function(source, url) {
   state <- unname(state_fips_to_usps[state_fips])
 
   valid <-
-    !is.na(place_name) & nzchar(place_name) &
-    !is.na(zcta) & grepl("^[0-9]{5}$", zcta) &
-    !is.na(geoid) & grepl(
+    !is.na(place_name) &
+    nzchar(place_name) &
+    !is.na(zcta) &
+    grepl("^[0-9]{5}$", zcta) &
+    !is.na(geoid) &
+    grepl(
       sprintf("^[0-9]{%d}$", geoid_length),
       geoid
     ) &

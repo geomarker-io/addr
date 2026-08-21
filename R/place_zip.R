@@ -19,11 +19,13 @@ place_zip_variant_choices <- function() {
 
 validate_place_zip_variant <- function(place_zip_variant) {
   stopifnot(
-    "place_zip_variant must be a character vector" =
-      is.character(place_zip_variant),
+    "place_zip_variant must be a character vector" = is.character(
+      place_zip_variant
+    ),
     "place_zip_variant must not be empty" = length(place_zip_variant) > 0L,
-    "place_zip_variant must not contain missing values" =
-      !any(is.na(place_zip_variant))
+    "place_zip_variant must not contain missing values" = !any(is.na(
+      place_zip_variant
+    ))
   )
   match.arg(
     place_zip_variant,
@@ -44,8 +46,9 @@ geocode_zip_candidates <- function(
     "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
       length(zip_variants) == 1L &&
       !is.na(zip_variants),
-    "place_zip_variants must be TRUE or FALSE" =
-      is.logical(place_zip_variants) &&
+    "place_zip_variants must be TRUE or FALSE" = is.logical(
+      place_zip_variants
+    ) &&
       length(place_zip_variants) == 1L &&
       !is.na(place_zip_variants)
   )
@@ -70,9 +73,12 @@ geocode_zip_candidates <- function(
   lookup_key <- paste(place_name, state, sep = "\r")
   place_lookup <- list()
   if (place_zip_variants) {
-    valid_lookup <- !is.na(place_name) & place_name != "" &
-      !is.na(state) & state != "" &
-      !is.na(zip) & zip != ""
+    valid_lookup <- !is.na(place_name) &
+      place_name != "" &
+      !is.na(state) &
+      state != "" &
+      !is.na(zip) &
+      zip != ""
     wanted_keys <- unique(lookup_key[valid_lookup])
     if (length(wanted_keys) > 0L) {
       candidate_key <- paste(

@@ -339,14 +339,17 @@ taf_with_install_lock <- function(year, version, expr) {
     Sys.sleep(poll)
   }
 
-  on.exit({
-    if (acquired && file.exists(token_path)) {
-      owner <- readLines(token_path, warn = FALSE, n = 1L)
-      if (identical(owner, token)) {
-        unlink(lock_dir, recursive = TRUE, force = TRUE)
+  on.exit(
+    {
+      if (acquired && file.exists(token_path)) {
+        owner <- readLines(token_path, warn = FALSE, n = 1L)
+        if (identical(owner, token)) {
+          unlink(lock_dir, recursive = TRUE, force = TRUE)
+        }
       }
-    }
-  }, add = TRUE)
+    },
+    add = TRUE
+  )
 
   eval(substitute(expr), parent.frame())
 }

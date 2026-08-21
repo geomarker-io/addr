@@ -908,10 +908,13 @@ test_that("geocode_zip uses number and parity within a place tier", {
     place_zips = c("45230", "45244"),
     typo_zip = character()
   )
-  candidates$source_zip_variant_rank[candidates$ZIP %in% c(
-    "45230",
-    "45244"
-  )] <- 1L
+  candidates$source_zip_variant_rank[
+    candidates$ZIP %in%
+      c(
+        "45230",
+        "45244"
+      )
+  ] <- 1L
   ref <- test_place_geocode_ref(
     c("45220", "45230", "45244"),
     c(NA_integer_, 1L, 2L),
@@ -1389,7 +1392,11 @@ test_that("geocode uses mirai mapping when daemons are configured", {
   expect_match(progress_text, "computing S2 cells")
   expect_match(progress_text, "\\(\\+([0-9.]+s|[0-9]+m [0-9]{2}s)\\)")
   expect_false(grepl("; total", progress_text, fixed = TRUE))
-  expect_false(grepl("TIGER address feature file check complete", progress_text, fixed = TRUE))
+  expect_false(grepl(
+    "TIGER address feature file check complete",
+    progress_text,
+    fixed = TRUE
+  ))
   expect_false(grepl("grouped ", progress_text, fixed = TRUE))
   expect_false(grepl("dispatching", progress_text, fixed = TRUE))
   expect_false(grepl("combining geocode results", progress_text, fixed = TRUE))

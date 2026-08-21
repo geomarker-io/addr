@@ -44,11 +44,14 @@ test_that("place_zip_candidates has a deterministic candidate schema", {
   expect_true(all(nzchar(place_zip_candidates$place_name)))
   expect_true(all(grepl("^[A-Z]{2}$", place_zip_candidates$state)))
   expect_true(all(grepl("^[0-9]{5}$", place_zip_candidates$zcta)))
-  expect_true(all(place_zip_candidates$source %in% c(
-    "place",
-    "cousub",
-    "both"
-  )))
+  expect_true(all(
+    place_zip_candidates$source %in%
+      c(
+        "place",
+        "cousub",
+        "both"
+      )
+  ))
 
   candidate_key <- with(
     place_zip_candidates,
