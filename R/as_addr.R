@@ -18,7 +18,12 @@ NULL
 #' - `data.frame`: must have columns named according to fields in
 #' `addr_number()`, `addr_street()`, or `addr_place()`; also passes
 #' the `map_*` arguments to `addr_street()` and `addr_place()`
-#' - `addr`: returned as-is
+#' - `addr`: returned as-is when already uppercase; legacy mixed-case objects
+#' are reconstructed in the current uppercase canonical form
+#'
+#' Legacy addr vectors loaded from user-owned serialized files can be upgraded
+#' explicitly with `as_addr(readRDS(...))`. The user-owned file is not rewritten
+#' automatically.
 #' @param x object to coerce to an addr vector
 #' @param ... additional arguments passed to methods
 #' @export
@@ -38,7 +43,16 @@ NULL
 as_addr <- S7::new_generic("as_addr", dispatch_args = "x")
 
 #' @export
-S7::method(as_addr, addr) <- function(x, ...) x
+S7::method(as_addr, addr) <- function(x, ...) {
+  if (addr_is_uppercase(x)) {
+    return(x)
+  }
+  addr(
+    number = x@number,
+    street = x@street,
+    place = x@place
+  )
+}
 
 #' @export
 S7::method(as_addr, S7::class_character) <- function(

@@ -1,3 +1,22 @@
+legacy_nad_cache_fixture <- function() {
+  x <- addr(
+    addr_number(prefix = "N", digits = "10", suffix = "A"),
+    addr_street(name = "MAIN", posttype = "ST"),
+    addr_place(name = "CINCINNATI", state = "OH", zipcode = "45220")
+  )
+  number <- x@number
+  street <- x@street
+  place <- x@place
+  attr(number, "prefix") <- "n"
+  attr(street, "name") <- "Main"
+  attr(street, "posttype") <- "St"
+  attr(place, "name") <- "Cincinnati"
+  attr(x, "number") <- number
+  attr(x, "street") <- street
+  attr(x, "place") <- place
+  tibble::tibble(nad_addr = x, untouched = "Keep This")
+}
+
 test_that("nad() requires a cached binary when refresh_binary is no", {
   withr::local_envvar(list("R_USER_DATA_DIR" = tempfile()))
 
@@ -16,6 +35,66 @@ test_that("nad() requires a cached binary when refresh_binary is no", {
     "was not found in `OH`",
     fixed = TRUE
   )
+})
+
+test_that("nad() rewrites legacy cached addr values to uppercase once", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  path <- nad_sd_path("Hamilton", "OH", 22L)
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  saveRDS(legacy_nad_cache_fixture(), path)
+
+  expect_message(
+    out <- nad(
+      "Hamilton",
+      "OH",
+      refresh_binary = "no",
+      refresh_source = "no"
+    ),
+    "updated cached NAD addr values to uppercase"
+  )
+
+  expect_identical(format(out$nad_addr), "N10A MAIN ST CINCINNATI OH 45220")
+  expect_identical(out$untouched, "Keep This")
+  expect_identical(attr(out, "addr_nad_cache_case_version"), 1L)
+
+  cached <- readRDS(path)
+  expect_identical(format(cached$nad_addr), format(out$nad_addr))
+  expect_identical(cached$untouched, "Keep This")
+  expect_identical(attr(cached, "addr_nad_cache_case_version"), 1L)
+  expect_silent(
+    again <- nad(
+      "Hamilton",
+      "OH",
+      refresh_binary = "no",
+      refresh_source = "no"
+    )
+  )
+  expect_identical(again, cached)
+})
+
+test_that("nad() returns uppercase values if cache rewriting fails", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  path <- nad_sd_path("Hamilton", "OH", 22L)
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  saveRDS(legacy_nad_cache_fixture(), path)
+  local_mocked_bindings(
+    nad_cache_write_safely = function(...) stop("read-only cache")
+  )
+
+  expect_warning(
+    out <- nad(
+      "Hamilton",
+      "OH",
+      refresh_binary = "no",
+      refresh_source = "no"
+    ),
+    "Returning uppercase values in memory"
+  )
+
+  expect_identical(format(out$nad_addr), "N10A MAIN ST CINCINNATI OH 45220")
+  cached <- readRDS(path)
+  expect_identical(format(cached$nad_addr), "n10A Main St Cincinnati OH 45220")
+  expect_null(attr(cached, "addr_nad_cache_case_version", exact = TRUE))
 })
 
 test_that("nad() read from gdb on disk", {

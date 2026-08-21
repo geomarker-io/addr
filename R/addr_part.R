@@ -110,10 +110,9 @@ addr_number <- S7::new_class(
     digits = NA_character_,
     suffix = NA_character_
   ) {
-    fields <- recycle_fields(
-      list(prefix = prefix, digits = digits, suffix = suffix),
-      "addr_number"
-    )
+    fields <- list(prefix = prefix, digits = digits, suffix = suffix) |>
+      uppercase_addr_fields() |>
+      recycle_fields("addr_number")
     S7::new_object(
       .parent = addr_part,
       prefix = fields$prefix,
@@ -129,6 +128,14 @@ addr_number <- S7::new_class(
     )
     if (!is.null(len_msg)) {
       return(len_msg)
+    }
+    uppercase_msg <- check_uppercase_fields(
+      self,
+      c("prefix", "digits", "suffix"),
+      "addr_number"
+    )
+    if (!is.null(uppercase_msg)) {
+      return(uppercase_msg)
     }
     bad <- !is.na(self@digits) &
       self@digits != "" &
@@ -199,17 +206,16 @@ addr_street <- S7::new_class(
     if (map_ordinal) {
       name <- map_ordinal_street_names(name)
     }
-    fields <- recycle_fields(
-      list(
-        predirectional = predirectional,
-        premodifier = premodifier,
-        pretype = pretype,
-        name = name,
-        posttype = posttype,
-        postdirectional = postdirectional
-      ),
-      "addr_street"
-    )
+    fields <- list(
+      predirectional = predirectional,
+      premodifier = premodifier,
+      pretype = pretype,
+      name = name,
+      posttype = posttype,
+      postdirectional = postdirectional
+    ) |>
+      uppercase_addr_fields() |>
+      recycle_fields("addr_street")
     S7::new_object(
       .parent = addr_part,
       predirectional = fields$predirectional,
@@ -221,7 +227,22 @@ addr_street <- S7::new_class(
     )
   },
   validator = function(self) {
-    check_recyclable_lengths(
+    len_msg <- check_recyclable_lengths(
+      self,
+      c(
+        "predirectional",
+        "premodifier",
+        "pretype",
+        "name",
+        "posttype",
+        "postdirectional"
+      ),
+      "addr_street"
+    )
+    if (!is.null(len_msg)) {
+      return(len_msg)
+    }
+    check_uppercase_fields(
       self,
       c(
         "predirectional",
@@ -261,10 +282,9 @@ addr_place <- S7::new_class(
     if (isTRUE(map_state)) {
       state <- map_state_to_abbrev(state)
     }
-    fields <- recycle_fields(
-      list(name = name, state = state, zipcode = zipcode),
-      "addr_place"
-    )
+    fields <- list(name = name, state = state, zipcode = zipcode) |>
+      uppercase_addr_fields() |>
+      recycle_fields("addr_place")
     S7::new_object(
       addr_part,
       name = fields$name,
@@ -280,6 +300,14 @@ addr_place <- S7::new_class(
     )
     if (!is.null(len_msg)) {
       return(len_msg)
+    }
+    uppercase_msg <- check_uppercase_fields(
+      self,
+      c("name", "state", "zipcode"),
+      "addr_place"
+    )
+    if (!is.null(uppercase_msg)) {
+      return(uppercase_msg)
     }
     bad <- is_invalid_zipcode(self@zipcode)
     if (any(bad)) {

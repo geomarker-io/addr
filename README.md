@@ -19,6 +19,7 @@ The goal of addr is to clean, parse, standardize, match, and geocode real-world,
 
 `addr` can parse address components from strings and build vctrs-based address vectors, including `addr()` vectors and the `addr_number()`, `addr_street()`, and `addr_place()` component vectors.
 Each are structured to reuse the United States Thoroughfare, Landmark, and Postal Address Data Standard from the US Federal Geographic Data Committee.
+Every component stored in these typed vectors is canonicalized to uppercase, making it visually distinct from raw input text and directly comparable without additional case handling.
 
 <img src="./man/figures/addr_data.png" height="430" />
 
@@ -62,11 +63,11 @@ as_addr(c("3333 Burnet Ave Cincinnati OH 45229",
 #>  .. @ predirectional : chr [1:2] "" ""
 #>  .. @ premodifier    : chr [1:2] "" ""
 #>  .. @ pretype        : chr [1:2] "" ""
-#>  .. @ name           : chr [1:2] "Burnet" "Rapid Run"
-#>  .. @ posttype       : chr [1:2] "Ave" "Rd"
+#>  .. @ name           : chr [1:2] "BURNET" "RAPID RUN"
+#>  .. @ posttype       : chr [1:2] "AVE" "RD"
 #>  .. @ postdirectional: chr [1:2] "" ""
 #>  @ place : <addr_place> function ()
-#>  .. @ name   : chr [1:2] "Cincinnati" "Cincinnati"
+#>  .. @ name   : chr [1:2] "CINCINNATI" "CINCINNATI"
 #>  .. @ state  : chr [1:2] "OH" "OH"
 #>  .. @ zipcode: chr [1:2] "45229" "45238"
 ```

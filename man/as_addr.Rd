@@ -30,8 +30,13 @@ warning
 \item \code{data.frame}: must have columns named according to fields in
 \code{addr_number()}, \code{addr_street()}, or \code{addr_place()}; also passes
 the \verb{map_*} arguments to \code{addr_street()} and \code{addr_place()}
-\item \code{addr}: returned as-is
+\item \code{addr}: returned as-is when already uppercase; legacy mixed-case objects
+are reconstructed in the current uppercase canonical form
 }
+
+Legacy addr vectors loaded from user-owned serialized files can be upgraded
+explicitly with \code{as_addr(readRDS(...))}. The user-owned file is not rewritten
+automatically.
 }
 
 \examples{

@@ -148,9 +148,14 @@ addr_left_join <- function(
       call. = FALSE
     )
   }
+  x_addr <- as_addr(x_addr)
+  y_addr <- as_addr(y_addr)
+  x[[x_by]] <- x_addr
+  y[[y_by]] <- y_addr
 
   y_addr_keys <- addr_match_key(y_addr)
   if (!is.null(match_prepared)) {
+    validate_addr_match_index_version(match_prepared)
     if (is.null(match_prepared$keys_by_zip)) {
       stop(
         "match_prepared must be created by addr_match_prepare() with validation metadata",

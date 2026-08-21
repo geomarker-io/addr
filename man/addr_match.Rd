@@ -94,6 +94,11 @@ with the same reference addresses. For a single end-to-end match, preparing
 \code{y} explicitly does not remove that work; it only moves it outside
 \code{addr_match()}.
 }
+\details{
+Prepared indexes record the addr canonicalization format. An index serialized
+by an older package version must be rebuilt with \code{addr_match_prepare()} before
+it can be used for matching.
+}
 \examples{
 the_addr <- nad_example_data(match_prepared = TRUE)
 my_addr <- as_addr(

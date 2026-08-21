@@ -69,6 +69,10 @@ geodatabase.
 (Files are organized by major package version,
 NAD version, state, and named by county; e.g., see
 \code{list.files(stow::stow_path(package = "addr", subdir = "nad"), recursive = TRUE)})
+Older data binaries containing mixed-case addr components are upgraded on
+first read. This reuses the existing parsed \code{nad_addr} vector, converts its
+stored components to uppercase, and rewrites the managed binary once without
+reading or reparsing the nationwide source geodatabase.
 }
 \details{
 NAD source geodatabases are downloaded from the transportation.gov data
