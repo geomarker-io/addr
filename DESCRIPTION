@@ -22,7 +22,6 @@ Suggests:
     wk,
     withr
 Imports: 
-    curl,
     nanoparquet,
     s2,
     S7,

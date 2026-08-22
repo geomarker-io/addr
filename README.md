@@ -89,7 +89,7 @@ For repeated matching against the same reference addresses, prepare the referenc
 `nad()` reads county-level address points from the U.S. Department of Transportation National Address Database.
 Counties can be requested by county name plus state, such as `"Hamilton", "OH"`, or by 5-digit county FIPS code, such as `"39061"`.
 
-The nationwide NAD geodatabase is large and county-based extracts are computationally expensive, so addr keeps derived county data in a persistent NAD workspace within its package-specific user data directory.
+The nationwide NAD source is large and county extraction requires a complete streaming scan, so addr keeps derived county data in a persistent NAD workspace within its package-specific user data directory.
 The package also includes `nad_example_data()`, a small baked fixture derived from Hamilton County, Ohio. Use it for examples, tests, and matching workflows that should run without downloading NAD source data first; use `nad("Hamilton", "OH")` when you need complete Hamilton County data.
 
 ### Geocoding
@@ -127,7 +127,7 @@ stow::stow_info(package = "addr")
 
 The former unmanaged TIGER ZIP layout is not searched after this cutover. A missing source ZIP is downloaded as a new durable managed local copy in its function-specific subdirectory.
 
-NAD keeps its resumable source download and derived county files in a persistent workspace returned by `stow::stow_path(package = "addr", subdir = "nad")`, inside addr's fixed `stow` directory. On first use, addr moves an existing top-level `NAD_r22.zip`, `.part` file, and derived `v1/NAD_r22` directory into that workspace if the corresponding destination does not exist; when both former and current paths exist, the current workspace wins and the former path is ignored. The NAD download and processing pipeline remains specialized and does not use `stow()` to manage individual files.
+`nad_download()` installs USDOT's compressed NAD revision 23 flat-file archive as a durable managed local copy using `stow()`. It is stored in the persistent workspace returned by `stow::stow_path(package = "addr", subdir = "nad")`, inside addr's fixed `stow` directory. `nad()` streams the requested county from the compressed source without unpacking its roughly 41 GB text member, transforms it into addr's standard NAD output, and caches the county under `v1/NAD_r23`. Subsequent calls load that county RDS directly.
 
 ## Container and command-line interface
 

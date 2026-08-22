@@ -8,5 +8,9 @@ crate-type = [ 'staticlib' ]
 name = 'addr'
 
 [dependencies]
+csv = '=1.3.0'
 extendr-api = '=0.7.1'
+flate2 = { version = '=1.0.28', default-features = false, features = [ 'rust_backend' ] }
+itoa = '=1.0.9'
+ryu = '=1.0.15'
 usaddress = '=0.1.0'

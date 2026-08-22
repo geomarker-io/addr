@@ -20,7 +20,6 @@ test_that("nad-family functions validate county inputs and path scalars", {
     nad_read(
       "Hamilton",
       NA_character_,
-      version = 22L,
       refresh_source = "no"
     ),
     "state must be NULL or not missing"

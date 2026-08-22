@@ -1,12 +1,9 @@
 devtools::load_all()
 
-nad_gdb_file <- nad_download(
-  version = 22L,
-  refresh_source = "no"
-)
+nad_download(refresh_source = "no")
 
 cnty_fips <- c(
-  "39061",
+  "39025",
   "39017",
   "39015",
   "39061",
