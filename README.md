@@ -90,7 +90,7 @@ For repeated matching against the same reference addresses, prepare the referenc
 Counties can be requested by county name plus state, such as `"Hamilton", "OH"`, or by 5-digit county FIPS code, such as `"39061"`.
 
 The nationwide NAD source is large and county extraction requires a complete streaming scan, so addr keeps derived county data in a persistent NAD workspace within its package-specific user data directory.
-The package also includes `nad_example_data()`, a small baked fixture derived from Hamilton County, Ohio. Use it for examples, tests, and matching workflows that should run without downloading NAD source data first; use `nad("Hamilton", "OH")` when you need complete Hamilton County data.
+The package also includes `nad_example_data()`, a small baked NAD revision 23 fixture derived from Hamilton County, Ohio. Use it for examples, tests, and matching workflows that should run without downloading NAD source data first; use `nad("Hamilton", "OH")` when you need complete Hamilton County data.
 
 ### Geocoding
 

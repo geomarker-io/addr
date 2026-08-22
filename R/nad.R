@@ -70,7 +70,7 @@
 #'   nad("39017")
 #' }
 #'
-#' # small packaged fixture derived from Hamilton County, OH
+#' # small packaged revision 23 fixture derived from Hamilton County, OH
 #' nad_example_data()
 nad <- function(
   county,
