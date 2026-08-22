@@ -56,19 +56,18 @@ using source data already downloaded with \code{nad_download()} or downloading
 it when \code{refresh_source = "yes"}, and readies it for R.
 Counties can be identified either by county name plus state, or by a
 5-digit county FIPS identifier. County names and state abbreviations are
-resolved internally and still determine the workspace path and source query.
+resolved internally and determine the processed-data path and source filter.
 The revision 23 source is a roughly 7.6 GB compressed archive containing a
 roughly 41 GB comma-delimited text member.
 
 Data binaries are the persistent outputs of \code{nad_read()} for each
 County/State and are created on first run with \code{nad()}.
-Source and derived files are kept in the persistent workspace returned by
-\code{stow::stow_path(package = "addr", subdir = "nad")}. Point R to files in
-that workspace to read NAD tables without downloading the nationwide NAD
-source again.
-(Files are organized by major package version,
-NAD version, state, and named by county; e.g., see
-\code{list.files(stow::stow_path(package = "addr", subdir = "nad"), recursive = TRUE)})
+The compressed national source is managed exclusively by \code{stow()} beneath
+\code{stow::stow_path(package = "addr", subdir = "nad")}. Derived county RDS
+files are separate processed data beneath
+\code{file.path(tools::R_user_dir("addr", "data"), "v1", "nad", "23")}, organized
+by state and county name. Set \code{R_USER_DATA_DIR} to relocate both areas while
+retaining their source-versus-processed-data separation.
 }
 \details{
 The revision 23 comma-delimited flat source archive is downloaded from the
@@ -77,7 +76,7 @@ transportation.gov data portal:
 \code{nad_download(version = 23L)} installs the pinned compressed archive as a
 durable managed local copy using \code{stow::stow()}. County installation streams
 the nationwide text member directly from that archive, retains the requested
-county, and writes a managed RDS file.
+county, and writes a separate processed RDS file.
 The roughly 41 GB text member is never unpacked on disk.
 Before downloading, review the source metadata and disclaimer in the data
 portal.

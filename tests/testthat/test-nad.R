@@ -138,12 +138,17 @@ test_that("nad_read routes through the flat extractor", {
   expect_identical(calls[[1L]]$fields, fields)
 })
 
-test_that("nad caches county output in the managed workspace", {
+test_that("nad creates processed county data outside stow and reuses it offline", {
   withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
   expected <- tibble::tibble(source = "flat")
+  source_workspace <- stow::stow_path(package = "addr", subdir = "nad")
   calls <- 0L
+  allow_source <- TRUE
   local_mocked_bindings(
     nad_read = function(county, state, version, refresh_source) {
+      if (!allow_source) {
+        stop("source was accessed after the county was cached")
+      }
       calls <<- calls + 1L
       expect_identical(county, "18137")
       expect_null(state)
@@ -159,19 +164,42 @@ test_that("nad caches county output in the managed workspace", {
     "installing from source"
   )
   path <- nad_sd_path("Ripley", "IN")
+  expect_identical(
+    path,
+    file.path(
+      tools::R_user_dir("addr", "data"),
+      "v1",
+      "nad",
+      "23",
+      "IN",
+      "Ripley.rds"
+    )
+  )
   expect_true(file.exists(path))
   expect_identical(out, expected)
   expect_identical(readRDS(path), expected)
+  expect_length(
+    list.files(source_workspace, all.files = TRUE, no.. = TRUE),
+    0L
+  )
+  allow_source <- FALSE
   expect_identical(
     nad("18137", refresh_binary = "no", refresh_source = "no"),
     expected
   )
   expect_identical(calls, 1L)
+  expect_length(
+    list.files(source_workspace, all.files = TRUE, no.. = TRUE),
+    0L
+  )
 })
 
 test_that("nad_download maps refresh modes to stow", {
   withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
-  managed <- tempfile("managed-nad-flat-")
+  managed <- file.path(
+    stow::stow_path(package = "addr", subdir = "nad"),
+    "managed-nad-flat"
+  )
   calls <- list()
 
   local_mocked_bindings(
@@ -281,16 +309,47 @@ test_that("NAD source validation requires both archive members", {
   ))
 })
 
-test_that("NAD source and derived paths use the stow workspace", {
+test_that("NAD and TIGER separate managed sources from processed data", {
   withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  data_root <- tools::R_user_dir("addr", "data")
   managed_root <- stow::stow_path(package = "addr")
-  workspace <- stow::stow_path(package = "addr", subdir = "nad")
+  source_workspace <- stow::stow_path(package = "addr", subdir = "nad")
+  processed_path <- nad_sd_path("Hamilton", "OH")
 
   expect_identical(basename(managed_root), "stow")
-  expect_identical(dirname(workspace), managed_root)
-  expect_identical(nad_workspace_path(), workspace)
+  expect_identical(dirname(source_workspace), managed_root)
   expect_identical(
-    basename(dirname(dirname(nad_sd_path("Hamilton", "OH")))),
-    "NAD_r23"
+    processed_path,
+    file.path(data_root, "v1", "nad", "23", "OH", "Hamilton.rds")
   )
+  expect_false(startsWith(
+    processed_path,
+    paste0(source_workspace, .Platform$file.sep)
+  ))
+  expect_identical(
+    taf_dataset_path(year = 2025L, version = "v1"),
+    file.path(data_root, "v1", "tiger_addr_feat", "2025")
+  )
+})
+
+test_that("NAD ignores processed data under the development stow layout", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  development_path <- file.path(
+    stow::stow_path(package = "addr", subdir = "nad"),
+    "v1",
+    "NAD_r23",
+    "IN",
+    "Ripley.rds"
+  )
+  dir.create(dirname(development_path), recursive = TRUE, showWarnings = FALSE)
+  saveRDS(tibble::tibble(source = "development stow layout"), development_path)
+
+  processed_path <- nad_sd_path("Ripley", "IN")
+  expect_error(
+    nad("18137", refresh_binary = "no", refresh_source = "no"),
+    paste0(processed_path, " does not exist"),
+    fixed = TRUE
+  )
+  expect_true(file.exists(development_path))
+  expect_false(file.exists(processed_path))
 })

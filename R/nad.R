@@ -11,20 +11,18 @@
 #' it when `refresh_source = "yes"`, and readies it for R.
 #' Counties can be identified either by county name plus state, or by a
 #' 5-digit county FIPS identifier. County names and state abbreviations are
-#' resolved internally and still determine the workspace path and source query.
+#' resolved internally and determine the processed-data path and source filter.
 #' The revision 23 source is a roughly 7.6 GB compressed archive containing a
 #' roughly 41 GB comma-delimited text member.
 #'
 #' Data binaries are the persistent outputs of `nad_read()` for each
 #' County/State and are created on first run with `nad()`.
-#' Source and derived files are kept in the persistent workspace returned by
-#' `stow::stow_path(package = "addr", subdir = "nad")`. Point R to files in
-#' that workspace to read NAD tables without downloading the nationwide NAD
-#' source again.
-#' (Files are organized by major package version,
-#' NAD version, state, and named by county; e.g., see
-#' `list.files(stow::stow_path(package = "addr", subdir = "nad"),
-#' recursive = TRUE)`)
+#' The compressed national source is managed exclusively by `stow()` beneath
+#' `stow::stow_path(package = "addr", subdir = "nad")`. Derived county RDS
+#' files are separate processed data beneath
+#' `file.path(tools::R_user_dir("addr", "data"), "v1", "nad", "23")`, organized
+#' by state and county name. Set `R_USER_DATA_DIR` to relocate both areas while
+#' retaining their source-versus-processed-data separation.
 #' @param county character, length one; county name or 5-digit county FIPS
 #'   identifier
 #' @param state character, length one; name or abbreviation of state. Required
@@ -45,7 +43,7 @@
 #' `nad_download(version = 23L)` installs the pinned compressed archive as a
 #' durable managed local copy using `stow::stow()`. County installation streams
 #' the nationwide text member directly from that archive, retains the requested
-#' county, and writes a managed RDS file.
+#' county, and writes a separate processed RDS file.
 #' The roughly 41 GB text member is never unpacked on disk.
 #' Before downloading, review the source metadata and disclaimer in the data
 #' portal.
@@ -151,7 +149,6 @@ nad_version_metadata <- function(version = 23L) {
   }
 
   list(
-    cache_dir = "NAD_r23",
     source_size = 7601412707,
     source_members = c(
       "TXT/NAD_r23.txt",
@@ -199,11 +196,12 @@ nad_sd_path <- function(county, state, version = 23L) {
     "state must be length one" = length(state) == 1L,
     "state must not be missing" = !is.na(state)
   )
-  cache_dir <- nad_version_metadata(version)$cache_dir
+  nad_version_metadata(version)
   file.path(
-    nad_workspace_path(),
+    tools::R_user_dir("addr", "data"),
     "v1",
-    cache_dir,
+    "nad",
+    as.character(version),
     state,
     sprintf("%s.rds", county)
   )
@@ -432,8 +430,4 @@ nad_raw_contains <- function(x, pattern) {
     },
     logical(1)
   ))
-}
-
-nad_workspace_path <- function() {
-  stow::stow_path(package = "addr", subdir = "nad")
 }
