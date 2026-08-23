@@ -14,13 +14,13 @@ for (yr in as.character(c(2024:2025))) {
       taf_install(
         .,
         year = yr,
-        version = "v1",
+        version = "v2",
         overwrite = TRUE,
         redownload = FALSE
       )
     },
     .progress = sprintf("%s: installing full taf and catalog", yr)
   )
-  manifest <- taf_read_county_zip_manifest(year = yr, version = "v1")
-  taf_write_catalog(manifest, year = yr, version = "v1")
+  manifest <- taf_read_county_zip_manifest(year = yr, version = "v2")
+  taf_write_catalog(manifest, year = yr, version = "v2")
 }

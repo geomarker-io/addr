@@ -7,6 +7,6 @@
 nad_flat_extract(path, member, state, county, fields)
 }
 \description{
-Use \code{nad_read()} instead of this function directly.
+Use \code{nad()} instead of this function directly.
 }
 \keyword{internal}

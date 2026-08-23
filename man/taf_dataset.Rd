@@ -4,7 +4,7 @@
 \alias{taf_dataset}
 \title{Open installed TIGER Address Features as an Arrow dataset}
 \usage{
-taf_dataset(year = as.character(2025:2011), version = "v1")
+taf_dataset(year = as.character(2025:2011), version = "v2")
 }
 \arguments{
 \item{year}{character, length one; vintage of TIGER addrfeat (address feature)

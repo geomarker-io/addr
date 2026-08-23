@@ -8,12 +8,12 @@
 taf_install(
   county,
   year = as.character(2025:2011),
-  version = "v1",
+  version = "v2",
   overwrite = FALSE,
   redownload = FALSE
 )
 
-taf(x, map = TRUE, year = as.character(2025:2011), version = "v1")
+taf(x, map = TRUE, year = as.character(2025:2011), version = "v2")
 }
 \arguments{
 \item{county}{character, length 1; county FIPS code}

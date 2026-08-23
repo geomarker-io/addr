@@ -102,6 +102,7 @@ test_that("geocode returns non-matches for missing zipcodes", {
 test_that("geocode warns when taf_install is FALSE and needed counties are missing", {
   local_mocked_bindings(
     taf_needed_counties = function(...) test_geocode_needed_counties(),
+    taf_installed_counties = function(x, ...) unique(x$county_fips),
     taf_read_county_zip_manifest = function(...) test_geocode_manifest(),
     geocode_zip = function(x, offset = 0L, ...) {
       tibble::tibble(
@@ -139,6 +140,7 @@ test_that("geocode installs and verifies TAF before ZIP geocoding", {
       invisible("39061")
     },
     taf_needed_counties = function(...) test_geocode_needed_counties(),
+    taf_installed_counties = function(x, ...) unique(x$county_fips),
     taf_read_county_zip_manifest = function(...) {
       if (installed) {
         return(test_geocode_manifest("39061", "45220"))
@@ -177,6 +179,7 @@ test_that("geocode stops before ZIP geocoding when TAF remains missing", {
     },
     taf_install = function(...) invisible("39061"),
     taf_needed_counties = function(...) test_geocode_needed_counties(),
+    taf_installed_counties = function(x, ...) unique(x$county_fips),
     taf_read_county_zip_manifest = function(...) test_geocode_manifest(),
     geocode_zip = function(...) {
       read_started <<- TRUE
@@ -209,6 +212,7 @@ test_that("geocode computes TAF needs once for the top-level plan", {
         ZIP = c("45219", "45220")
       )
     },
+    taf_installed_counties = function(x, ...) unique(x$county_fips),
     taf_read_county_zip_manifest = function(...) {
       manifest_calls <<- manifest_calls + 1L
       test_geocode_manifest("39061", "45219")
@@ -257,7 +261,7 @@ test_that("geocode eagerly prepares exact, place, and typo candidate tiers", {
   geocode_prepare_taf(
     x,
     year = "2025",
-    version = "v1",
+    version = "v2",
     zip_variants = TRUE,
     zip_variant = "plus1",
     place_zip_variants = TRUE,
@@ -290,7 +294,7 @@ test_that("disabling place lookup avoids place TAF candidate work", {
   geocode_prepare_taf(
     x,
     year = "2025",
-    version = "v1",
+    version = "v2",
     zip_variants = TRUE,
     zip_variant = "plus1",
     place_zip_variants = FALSE,
@@ -668,6 +672,7 @@ test_that("geocode_zip forwards street matching arguments to match_addr_street",
 test_that("geocode_zip warns when taf_install is FALSE and needed counties are missing", {
   local_mocked_bindings(
     taf_needed_counties = function(...) test_geocode_needed_counties(),
+    taf_installed_counties = function(x, ...) unique(x$county_fips),
     taf_read_county_zip_manifest = function(...) test_geocode_manifest(),
     taf = function(zipcode, map = TRUE, ...) {
       tibble::tibble(
@@ -708,6 +713,7 @@ test_that("geocode_zip serializes TAF install before reading ZIP files", {
       invisible("39061")
     },
     taf_needed_counties = function(...) test_geocode_needed_counties(),
+    taf_installed_counties = function(x, ...) unique(x$county_fips),
     taf_read_county_zip_manifest = function(...) {
       if (installed) {
         return(test_geocode_manifest("39061", "45220"))
@@ -1438,7 +1444,7 @@ test_that("geocode works with mirai daemons on voter addresses", {
   )
 
   year <- "2025"
-  version <- "v1"
+  version <- "v2"
   county <- "39061"
   taf_dataset_path <- getFromNamespace("taf_dataset_path", ns = "addr")
   taf_write_catalog <- getFromNamespace("taf_write_catalog", ns = "addr")
@@ -1522,7 +1528,12 @@ test_that("geocode works with mirai daemons on voter addresses", {
     )
   }
 
-  manifest <- taf_county_zip_manifest_rows(ref_tbl, county = county)
+  manifest <- taf_county_zip_manifest_rows(
+    ref_tbl,
+    county = county,
+    year = year,
+    version = version
+  )
   taf_write_county_zip_manifest(manifest, year = year, version = version)
   taf_write_catalog(manifest, year = year, version = version, root = temp_root)
 

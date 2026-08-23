@@ -193,6 +193,28 @@ test_that("geocode place ZIP arguments are ordered and enabled by default", {
   )
 })
 
+test_that("TAF county planning enables both ZIP candidate families", {
+  x <- as_addr("10 MAIN ST CINCINNATI OH 45220")
+  expect_error(
+    taf_needed_counties(x, place_zip_variants = NA),
+    "place_zip_variants must be TRUE or FALSE"
+  )
+  expect_error(
+    taf_ensure(x, place_zip_variant = character()),
+    "place_zip_variant must not be empty"
+  )
+  expect_true(eval(formals(taf_needed_counties)$place_zip_variants))
+  expect_true(eval(formals(taf_ensure)$place_zip_variants))
+  expect_equal(
+    eval(formals(taf_needed_counties)$place_zip_variant),
+    c("place", "county-sub")
+  )
+  expect_equal(
+    eval(formals(taf_ensure)$place_zip_variant),
+    c("place", "county-sub")
+  )
+})
+
 test_that("join helpers validate by, suffix, and progress arguments", {
   x <- tibble::tibble(addr = as_addr("10 MAIN ST CINCINNATI OH 45220"))
   y <- tibble::tibble(addr = as_addr("10 MAIN ST CINCINNATI OH 45220"))

@@ -48,6 +48,8 @@ test_that("nad() requires a cached binary when refresh_binary is no", {
 test_that("nad version metadata is local and validates versions", {
   nad_23 <- nad_version_metadata()
 
+  expect_false("nad_read" %in% getNamespaceExports("addr"))
+
   expect_equal(nad_23$source_size, 7601412707)
   expect_equal(
     nad_23$source_members,
@@ -202,7 +204,7 @@ test_that("nad creates processed county data outside stow and reuses it offline"
     path,
     file.path(
       tools::R_user_dir("addr", "data"),
-      "v1",
+      "v2",
       "nad",
       "23",
       "state=IN",
@@ -218,7 +220,7 @@ test_that("nad creates processed county data outside stow and reuses it offline"
     manifest_path,
     file.path(
       tools::R_user_dir("addr", "data"),
-      "v1",
+      "v2",
       "nad_manifest",
       "23",
       "counties.parquet"
@@ -399,10 +401,14 @@ test_that("NAD fuel scripts are installed with their validation contract", {
   expect_true(any(grepl("addr-nad-fuel", text[[1L]], fixed = TRUE)))
   expect_true(any(grepl("archive_sha256", text[[1L]], fixed = TRUE)))
   expect_true(any(grepl('"schema_version" "2"', text[[1L]], fixed = TRUE)))
+  expect_true(any(grepl('SCHEMA_VERSION" = "2"', text[[2L]], fixed = TRUE)))
   expect_true(any(grepl("county_file_format", text[[1L]], fixed = TRUE)))
   expect_true(any(grepl("nad_validate_manifest", text[[2L]], fixed = TRUE)))
   expect_true(any(grepl("Parquet files", text[[2L]], fixed = TRUE)))
-  expect_true(any(grepl("v1/nad_manifest", text[[2L]], fixed = TRUE)))
+  expect_true(any(grepl("v2/nad/", text[[1L]], fixed = TRUE)))
+  expect_true(any(grepl("v2/nad_manifest", text[[1L]], fixed = TRUE)))
+  expect_true(any(grepl("v2/nad/", text[[2L]], fixed = TRUE)))
+  expect_true(any(grepl("v2/nad_manifest", text[[2L]], fixed = TRUE)))
 })
 
 test_that("nad_download maps refresh modes to stow", {
@@ -534,7 +540,7 @@ test_that("NAD and TIGER separate managed sources from processed data", {
     processed_path,
     file.path(
       data_root,
-      "v1",
+      "v2",
       "nad",
       "23",
       "state=OH",
@@ -544,7 +550,7 @@ test_that("NAD and TIGER separate managed sources from processed data", {
   )
   expect_identical(
     manifest_path,
-    file.path(data_root, "v1", "nad_manifest", "23", "counties.parquet")
+    file.path(data_root, "v2", "nad_manifest", "23", "counties.parquet")
   )
   expect_false(startsWith(
     processed_path,
@@ -555,8 +561,8 @@ test_that("NAD and TIGER separate managed sources from processed data", {
     paste0(source_workspace, .Platform$file.sep)
   ))
   expect_identical(
-    taf_dataset_path(year = 2025L, version = "v1"),
-    file.path(data_root, "v1", "tiger_addr_feat", "2025")
+    taf_dataset_path(year = 2025L, version = "v2"),
+    file.path(data_root, "v2", "tiger_addr_feat", "2025")
   )
 })
 
@@ -564,7 +570,7 @@ test_that("NAD ignores processed data under the development stow layout", {
   withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
   development_path <- file.path(
     stow::stow_path(package = "addr", subdir = "nad"),
-    "v1",
+    "v2",
     "NAD_r23",
     "IN",
     "Ripley.rds"
@@ -586,7 +592,7 @@ test_that("NAD ignores the former processed RDS layout", {
   withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
   former_path <- file.path(
     tools::R_user_dir("addr", "data"),
-    "v1",
+    "v2",
     "nad",
     "23",
     "IN",

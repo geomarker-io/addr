@@ -18,7 +18,7 @@ usaddress_tag <- function(x) .Call(wrap__usaddress_tag, x)
 
 #' Stream one county from the compressed NAD flat source
 #'
-#' Use `nad_read()` instead of this function directly.
+#' Use `nad()` instead of this function directly.
 #' @keywords internal
 nad_flat_extract <- function(path, member, state, county, fields) {
   .Call(wrap__nad_flat_extract, path, member, state, county, fields)

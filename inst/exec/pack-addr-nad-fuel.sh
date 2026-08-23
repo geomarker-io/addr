@@ -111,8 +111,8 @@ ADDR_PACKAGE_VERSION="$(
 )"
 echo "packaging NAD fuel for addr package version ${ADDR_PACKAGE_VERSION}"
 
-DATA_PATH="v1/nad/${REVISION}"
-MANIFEST_PATH="v1/nad_manifest/${REVISION}"
+DATA_PATH="v2/nad/${REVISION}"
+MANIFEST_PATH="v2/nad_manifest/${REVISION}"
 REQUIRED_MANIFEST_FILE="${MANIFEST_PATH}/counties.parquet"
 DATA_DIR="${ADDR_DATA_DIR}/${DATA_PATH}"
 MANIFEST_DIR="${ADDR_DATA_DIR}/${MANIFEST_PATH}"

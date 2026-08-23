@@ -4,7 +4,7 @@
 \alias{taf_catalog}
 \title{Read TIGER address feature ZIP/county catalog}
 \usage{
-taf_catalog(year = as.character(2025:2011), version = "v1")
+taf_catalog(year = as.character(2025:2011), version = "v2")
 }
 \arguments{
 \item{year}{character, length 1; vintage of TIGER addrfeat (address feature)

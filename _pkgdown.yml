@@ -38,6 +38,7 @@ reference:
   - title: Tiger Address Features
     contents:
       - taf
+      - taf_manifest
       - taf_install
       - taf_dataset
       - taf_catalog
@@ -47,11 +48,10 @@ reference:
   - title: National Address Database
     contents:
       - nad
+      - nad_manifest
       - nad_install
       - nad_dataset
-      - nad_read
       - nad_download
-      - nad_manifest
       - nad_example_data
   - title: Fuzzy join addr
     contents:

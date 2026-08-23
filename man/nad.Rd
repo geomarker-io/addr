@@ -3,7 +3,6 @@
 \name{nad}
 \alias{nad}
 \alias{nad_install}
-\alias{nad_read}
 \alias{nad_download}
 \title{Read National Address Database (NAD) tables into R}
 \usage{
@@ -20,13 +19,6 @@ nad_install(
   state = NULL,
   version = 23L,
   overwrite = FALSE,
-  refresh_source = c("no", "yes", "force")
-)
-
-nad_read(
-  county,
-  state = NULL,
-  version = 23L,
   refresh_source = c("no", "yes", "force")
 )
 
@@ -55,8 +47,8 @@ exist, \code{"yes"} downloads it if missing, and \code{"force"} redownloads it}
 Parquet file?}
 }
 \value{
-\code{nad()} and \code{nad_read()} return a tibble for one county.
-\code{nad_install()} invisibly returns the installed county FIPS identifier.
+\code{nad()} returns a tibble for one county. \code{nad_install()} invisibly
+returns the installed county FIPS identifier.
 }
 \description{
 The U.S. Department of Transportation partners with address programs from
@@ -64,9 +56,8 @@ state, local, and tribal governments to compile their authoritative data
 into a database. Find more information in the source data portal:
 \url{https://data.transportation.gov/d/fc2s-wawr}
 
-\code{nad_read()} reads NAD source data by county,
-using source data already downloaded with \code{nad_download()} or downloading
-it when \code{refresh_source = "yes"}, and readies it for R.
+\code{nad()} reads processed NAD data for one county, installing that county from
+source data managed by \code{nad_download()} when needed.
 Counties can be identified either by county name plus state, or by a
 5-digit county FIPS identifier. County names and state abbreviations are
 resolved internally and determine the processed-data path and source filter.
@@ -78,9 +69,9 @@ Processed county Parquet files are created one county at a time with
 The compressed national source is managed exclusively by \code{stow()} beneath
 \code{stow::stow_path(package = "addr", subdir = "nad")}. Derived county Parquet
 files are a separate Hive-partitioned dataset beneath
-\code{file.path(tools::R_user_dir("addr", "data"), "v1", "nad", "23")}, organized
+\code{file.path(tools::R_user_dir("addr", "data"), "v2", "nad", "23")}, organized
 by \code{state} and \code{county_fips}. \code{nad_manifest()} inventories those county files
-from \code{v1/nad_manifest/23/counties.parquet}. Set \code{R_USER_DATA_DIR} to
+from \code{v2/nad_manifest/23/counties.parquet}. Set \code{R_USER_DATA_DIR} to
 relocate both areas while retaining their source-versus-processed-data
 separation.
 }

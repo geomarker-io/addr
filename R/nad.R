@@ -6,9 +6,8 @@
 #' into a database. Find more information in the source data portal:
 #' <https://data.transportation.gov/d/fc2s-wawr>
 #'
-#' `nad_read()` reads NAD source data by county,
-#' using source data already downloaded with `nad_download()` or downloading
-#' it when `refresh_source = "yes"`, and readies it for R.
+#' `nad()` reads processed NAD data for one county, installing that county from
+#' source data managed by `nad_download()` when needed.
 #' Counties can be identified either by county name plus state, or by a
 #' 5-digit county FIPS identifier. County names and state abbreviations are
 #' resolved internally and determine the processed-data path and source filter.
@@ -20,9 +19,9 @@
 #' The compressed national source is managed exclusively by `stow()` beneath
 #' `stow::stow_path(package = "addr", subdir = "nad")`. Derived county Parquet
 #' files are a separate Hive-partitioned dataset beneath
-#' `file.path(tools::R_user_dir("addr", "data"), "v1", "nad", "23")`, organized
+#' `file.path(tools::R_user_dir("addr", "data"), "v2", "nad", "23")`, organized
 #' by `state` and `county_fips`. `nad_manifest()` inventories those county files
-#' from `v1/nad_manifest/23/counties.parquet`. Set `R_USER_DATA_DIR` to
+#' from `v2/nad_manifest/23/counties.parquet`. Set `R_USER_DATA_DIR` to
 #' relocate both areas while retaining their source-versus-processed-data
 #' separation.
 #' @param county character, length one; county name or 5-digit county FIPS
@@ -40,8 +39,8 @@
 #' @param refresh_source character, length one; choose how to refresh the
 #'   compressed national source; `"no"` requires the stow-managed source to
 #'   exist, `"yes"` downloads it if missing, and `"force"` redownloads it
-#' @returns `nad()` and `nad_read()` return a tibble for one county.
-#'   `nad_install()` invisibly returns the installed county FIPS identifier.
+#' @returns `nad()` returns a tibble for one county. `nad_install()` invisibly
+#'   returns the installed county FIPS identifier.
 #'
 #' @details
 #' The revision 23 comma-delimited flat source archive is downloaded from the
@@ -382,7 +381,7 @@ nad_data_path <- function(version = 23L) {
   nad_version_metadata(version)
   file.path(
     tools::R_user_dir("addr", "data"),
-    "v1",
+    "v2",
     "nad",
     as.character(version)
   )
@@ -392,7 +391,7 @@ nad_manifest_path <- function(version = 23L) {
   nad_version_metadata(version)
   file.path(
     tools::R_user_dir("addr", "data"),
-    "v1",
+    "v2",
     "nad_manifest",
     as.character(version),
     "counties.parquet"
@@ -907,7 +906,7 @@ nad_manifest_lock_dir <- function(version = 23L) {
   nad_version_metadata(version)
   file.path(
     tools::R_user_dir("addr", "data"),
-    "v1",
+    "v2",
     "nad_manifest_locks",
     as.character(version),
     "update.lock"
@@ -945,7 +944,7 @@ nad_source_fields <- function() {
   )
 }
 
-#' @rdname nad
+# Internal source reader used while installing a county Parquet file.
 nad_read <- function(
   county,
   state = NULL,

@@ -41,7 +41,7 @@
 #'       dplyr::slice(1:10)
 #'   }
 #' }
-taf_dataset <- function(year = as.character(2025:2011), version = "v1") {
+taf_dataset <- function(year = as.character(2025:2011), version = "v2") {
   check_installed("arrow", "to open the multi-file taf dataset")
   stopifnot(
     "version must be a character vector" = is.character(version),
@@ -76,7 +76,7 @@ taf_dataset <- function(year = as.character(2025:2011), version = "v1") {
 #' @export
 #' @examples
 #' taf_catalog("2025")
-taf_catalog <- function(year = as.character(2025:2011), version = "v1") {
+taf_catalog <- function(year = as.character(2025:2011), version = "v2") {
   stopifnot(
     "version must be a character vector" = is.character(version),
     "version must be length one" = length(version) == 1L,
@@ -98,17 +98,73 @@ taf_catalog <- function(year = as.character(2025:2011), version = "v1") {
     tibble::as_tibble()
 }
 
+#' Inventory installed TIGER Address Feature files
+#'
+#' `taf_manifest()` reads the local inventory written as county TAF files are
+#' installed. Each row represents one installed county-ZIP Parquet file. Set
+#' `validate = TRUE` to verify the manifest schema and every inventoried file,
+#' including its storage schema, row count, byte size, and SHA-256 digest.
+#'
+#' The local manifest is distinct from [taf_catalog()]. The catalog describes
+#' every county-ZIP combination available from TIGER, while the manifest records
+#' only files installed on the current machine.
+#'
+#' @inheritParams taf
+#' @param validate logical, length one; validate every manifest row and reject
+#'   missing, untracked, unreadable, or modified Parquet files?
+#' @returns A tibble with one row per installed county-ZIP file and columns
+#'   `county_fips`, `ZIP`, `zip3`, `zip2`, `n_ranges`, `size_bytes`, `sha256`,
+#'   `taf_year`, `taf_version`, and `installed_at`.
+#' @export
+#' @examples
+#' \dontrun{
+#' taf_manifest()
+#' taf_manifest(validate = TRUE)
+#' }
+taf_manifest <- function(
+  year = as.character(2025:2011),
+  version = "v2",
+  validate = FALSE
+) {
+  stopifnot(
+    "version must be a character vector" = is.character(version),
+    "version must be length one" = length(version) == 1L,
+    "version must not be missing" = !is.na(version),
+    "validate must be logical" = is.logical(validate),
+    "validate must be length one" = length(validate) == 1L,
+    "validate must not be missing" = !is.na(validate)
+  )
+  year <- match.arg(year)
+  manifest <- taf_read_county_zip_manifest(year = year, version = version)
+  if (validate) {
+    taf_validate_manifest(
+      manifest,
+      data_root = taf_dataset_path(year = year, version = version),
+      year = year,
+      version = version,
+      verify_files = TRUE
+    )
+  }
+  manifest
+}
+
 #' Find and install TAF counties needed for ZIP codes
 #'
 #' `taf_needed_counties()` uses `taf_catalog()` to identify county TAF files
-#' that may contain address ranges for ZIP codes in `x`, including selected ZIP
-#' code variants when requested. `taf_ensure()` installs any of those counties
+#' that may contain address ranges for ZIP codes in `x`. For `addr` input it
+#' includes selected place, county-subdivision, and typographical ZIP candidates
+#' when requested. Character input contains ZIP codes only, so place-derived
+#' candidates cannot be inferred. `taf_ensure()` installs any needed counties
 #' that are not already present in the local TAF manifest.
 #'
 #' @param x an addr vector (`?as_addr`) or character vector of ZIP codes
 #' @inheritParams taf
 #' @inheritParams match_zipcodes
 #' @inheritParams taf_install
+#' @param place_zip_variants logical; for `addr` input, consider ZCTAs associated
+#'   with the normalized input place or county subdivision?
+#' @param place_zip_variant nonempty character vector containing `"place"`
+#'   and/or `"county-sub"`; requested order determines precedence
 #' @returns `taf_needed_counties()` returns a tibble with catalog columns plus
 #'   `source_zip` and `source_zip_variant`. `taf_ensure()` invisibly returns the
 #'   subset of needed counties that were missing before installation.
@@ -118,25 +174,43 @@ taf_catalog <- function(year = as.character(2025:2011), version = "v1") {
 taf_needed_counties <- function(
   x,
   year = as.character(2025:2011),
-  version = "v1",
+  version = "v2",
   zip_variants = TRUE,
-  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap")
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
+  place_zip_variants = TRUE,
+  place_zip_variant = c("place", "county-sub")
 ) {
   stopifnot(
     "x must be an addr vector or character vector" = inherits(x, "addr") ||
       is.character(x),
     "zip_variants must be TRUE or FALSE" = is.logical(zip_variants) &&
       length(zip_variants) == 1L &&
-      !is.na(zip_variants)
+      !is.na(zip_variants),
+    "place_zip_variants must be TRUE or FALSE" = is.logical(
+      place_zip_variants
+    ) &&
+      length(place_zip_variants) == 1L &&
+      !is.na(place_zip_variants)
   )
   zip_variant <- validate_zip_variant(zip_variant)
+  place_zip_variant <- validate_place_zip_variant(place_zip_variant)
   year <- match.arg(year)
 
-  zipcodes <- taf_needed_zipcodes(
-    x,
-    zip_variants = zip_variants,
-    zip_variant = zip_variant
-  )
+  zipcodes <- if (inherits(x, "addr")) {
+    geocode_zip_candidates(
+      x,
+      zip_variants = zip_variants,
+      zip_variant = zip_variant,
+      place_zip_variants = place_zip_variants,
+      place_zip_variant = place_zip_variant
+    )
+  } else {
+    taf_needed_zipcodes(
+      x,
+      zip_variants = zip_variants,
+      zip_variant = zip_variant
+    )
+  }
   taf_needed_counties_from_zipcodes(
     zipcodes,
     year = year,
@@ -206,9 +280,11 @@ taf_needed_counties_from_zipcodes <- function(zipcodes, year, version) {
 taf_ensure <- function(
   x,
   year = as.character(2025:2011),
-  version = "v1",
+  version = "v2",
   zip_variants = TRUE,
   zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
+  place_zip_variants = TRUE,
+  place_zip_variant = c("place", "county-sub"),
   redownload = FALSE
 ) {
   stopifnot(
@@ -222,7 +298,9 @@ taf_ensure <- function(
     year = year,
     version = version,
     zip_variants = zip_variants,
-    zip_variant = zip_variant
+    zip_variant = zip_variant,
+    place_zip_variants = place_zip_variants,
+    place_zip_variant = place_zip_variant
   )
   if (nrow(missing) == 0L) {
     return(invisible(missing))
@@ -246,6 +324,8 @@ taf_ensure_serial <- function(
   version,
   zip_variants,
   zip_variant,
+  place_zip_variants,
+  place_zip_variant,
   redownload
 ) {
   missing <- taf_missing_counties(
@@ -253,7 +333,9 @@ taf_ensure_serial <- function(
     year = year,
     version = version,
     zip_variants = zip_variants,
-    zip_variant = zip_variant
+    zip_variant = zip_variant,
+    place_zip_variants = place_zip_variants,
+    place_zip_variant = place_zip_variant
   )
   if (nrow(missing) == 0L) {
     return(invisible(missing))
@@ -266,6 +348,8 @@ taf_ensure_serial <- function(
       version = version,
       zip_variants = zip_variants,
       zip_variant = zip_variant,
+      place_zip_variants = place_zip_variants,
+      place_zip_variant = place_zip_variant,
       redownload = redownload
     )
   })
@@ -295,6 +379,15 @@ taf_with_install_lock <- function(year, version, expr) {
     sep = "-"
   )
   token_path <- file.path(lock_dir, "owner")
+  if (file.exists(token_path)) {
+    owner <- readLines(token_path, warn = FALSE, n = 1L)
+    if (
+      length(owner) == 1L &&
+        startsWith(owner, paste0(Sys.getpid(), "-"))
+    ) {
+      return(eval(substitute(expr), parent.frame()))
+    }
+  }
   start <- Sys.time()
   acquired <- FALSE
 
@@ -371,7 +464,7 @@ taf_install_lock_dir <- function(year, version) {
 taf_install <- function(
   county,
   year = as.character(2025:2011),
-  version = "v1",
+  version = "v2",
   overwrite = FALSE,
   redownload = FALSE
 ) {
@@ -396,11 +489,14 @@ taf_install <- function(
   )
   manifest <- taf_read_county_zip_manifest(year = year, version = version)
   county_manifest <- manifest[manifest$county_fips == county, , drop = FALSE]
-  if (nrow(county_manifest) > 0L && !overwrite) {
+  county_installed <- county %in%
+    taf_installed_counties(
+      manifest,
+      year = year,
+      version = version
+    )
+  if (county_installed && !overwrite) {
     return(invisible(county))
-  }
-  if (nrow(county_manifest) > 0L && overwrite) {
-    taf_delete_county_zip_files(county_manifest, year = year, version = version)
   }
 
   d_names <- tiger_feat_names(
@@ -461,16 +557,41 @@ taf_install <- function(
     out_file <- file.path(taf_path, sprintf("%s.parquet", county))
     out_part$zip2 <- NULL
     out_part$zip3 <- NULL
-    if (file.exists(out_file)) {
-      file.remove(out_file)
-    }
-    nanoparquet::write_parquet(out_part, out_file)
+    taf_write_county_parquet(
+      out_part,
+      out_file,
+      county = county,
+      ZIP = out_part$ZIP[[1L]]
+    )
   }
-  manifest <- taf_read_county_zip_manifest(year = year, version = version)
-  manifest <- manifest[manifest$county_fips != county, , drop = FALSE]
-  manifest_add <- taf_county_zip_manifest_rows(out, county = county)
-  manifest <- vctrs::vec_rbind(manifest, manifest_add)
-  taf_write_county_zip_manifest(manifest, year = year, version = version)
+  manifest_add <- taf_county_zip_manifest_rows(
+    out,
+    county = county,
+    year = year,
+    version = version
+  )
+  taf_with_install_lock(year, version, {
+    manifest <- taf_read_county_zip_manifest(year = year, version = version)
+    county_manifest <- manifest[
+      manifest$county_fips == county,
+      ,
+      drop = FALSE
+    ]
+    if (nrow(county_manifest) > 0L) {
+      old_paths <- taf_manifest_file_paths(
+        county_manifest,
+        data_root = taf_dataset_path(year = year, version = version)
+      )
+      new_paths <- taf_manifest_file_paths(
+        manifest_add,
+        data_root = taf_dataset_path(year = year, version = version)
+      )
+      unlink(setdiff(old_paths, new_paths), force = TRUE)
+    }
+    manifest <- manifest[manifest$county_fips != county, , drop = FALSE]
+    manifest <- vctrs::vec_rbind(manifest, manifest_add)
+    taf_write_county_zip_manifest(manifest, year = year, version = version)
+  })
   return(invisible(county))
 }
 
@@ -508,7 +629,7 @@ taf <- function(
   x,
   map = TRUE,
   year = as.character(2025:2011),
-  version = "v1"
+  version = "v2"
 ) {
   stopifnot(is.character(x), length(x) > 0, !any(is.na(x)))
   stopifnot(
@@ -631,20 +752,20 @@ taf_catalog_source_path <- function(year, version, root = ".") {
 taf_read_county_zip_manifest <- function(year, version) {
   manifest_path <- taf_county_zip_manifest_path(year = year, version = version)
   if (!file.exists(manifest_path)) {
-    return(tibble::tibble(
-      county_fips = character(),
-      ZIP = character(),
-      zip3 = character(),
-      zip2 = character(),
-      n_ranges = integer(),
-      installed_at = character()
-    ))
+    return(taf_empty_manifest())
   }
-  nanoparquet::read_parquet(manifest_path) |>
+  manifest <- nanoparquet::read_parquet(manifest_path) |>
     tibble::as_tibble()
+  taf_assert_manifest_schema(manifest, year = year, version = version)
+  manifest
 }
 
 taf_write_county_zip_manifest <- function(x, year, version) {
+  taf_assert_manifest_schema(x, year = year, version = version)
+  if (nrow(x) > 0L) {
+    x <- x[order(x$ZIP, x$county_fips), , drop = FALSE]
+    row.names(x) <- NULL
+  }
   manifest_path <- taf_county_zip_manifest_path(year = year, version = version)
   dir.create(dirname(manifest_path), recursive = TRUE, showWarnings = FALSE)
   tmp_path <- tempfile(
@@ -654,13 +775,217 @@ taf_write_county_zip_manifest <- function(x, year, version) {
   )
   on.exit(unlink(tmp_path, force = TRUE), add = TRUE)
   nanoparquet::write_parquet(x, tmp_path)
-  if (file.exists(manifest_path)) {
-    unlink(manifest_path, force = TRUE)
-  }
-  if (!file.rename(tmp_path, manifest_path)) {
-    file.copy(tmp_path, manifest_path, overwrite = TRUE)
-  }
+  written <- nanoparquet::read_parquet(tmp_path) |>
+    tibble::as_tibble()
+  taf_assert_manifest_schema(written, year = year, version = version)
+  taf_atomic_replace(tmp_path, manifest_path)
   invisible(manifest_path)
+}
+
+taf_empty_manifest <- function() {
+  tibble::tibble(
+    county_fips = character(),
+    ZIP = character(),
+    zip3 = character(),
+    zip2 = character(),
+    n_ranges = integer(),
+    size_bytes = numeric(),
+    sha256 = character(),
+    taf_year = character(),
+    taf_version = character(),
+    installed_at = character()
+  )
+}
+
+taf_manifest_required_columns <- function() {
+  names(taf_empty_manifest())
+}
+
+taf_assert_manifest_schema <- function(x, year, version) {
+  required <- taf_manifest_required_columns()
+  if (!is.data.frame(x) || !identical(names(x), required)) {
+    stop(
+      "TAF manifest must contain exactly: ",
+      paste(required, collapse = ", "),
+      call. = FALSE
+    )
+  }
+  if (
+    !is.character(x$county_fips) ||
+      !is.character(x$ZIP) ||
+      !is.character(x$zip3) ||
+      !is.character(x$zip2) ||
+      !is.numeric(x$n_ranges) ||
+      !is.numeric(x$size_bytes) ||
+      !is.character(x$sha256) ||
+      !is.character(x$taf_year) ||
+      !is.character(x$taf_version) ||
+      !is.character(x$installed_at)
+  ) {
+    stop("TAF manifest has invalid column types", call. = FALSE)
+  }
+  if (nrow(x) == 0L) {
+    return(invisible(TRUE))
+  }
+  if (anyNA(x)) {
+    stop("TAF manifest must not contain missing values", call. = FALSE)
+  }
+  if (any(!grepl("^[0-9]{5}$", x$county_fips))) {
+    stop("TAF manifest contains invalid county FIPS codes", call. = FALSE)
+  }
+  if (any(!grepl("^[0-9]{5}$", x$ZIP))) {
+    stop("TAF manifest contains invalid ZIP codes", call. = FALSE)
+  }
+  if (
+    any(x$zip3 != substr(x$ZIP, 1L, 3L)) ||
+      any(x$zip2 != substr(x$ZIP, 4L, 5L))
+  ) {
+    stop("TAF manifest ZIP partitions do not match ZIP", call. = FALSE)
+  }
+  whole_positive <- function(value) {
+    is.finite(value) & value > 0 & value == floor(value)
+  }
+  if (any(!whole_positive(x$n_ranges))) {
+    stop("TAF manifest contains invalid range counts", call. = FALSE)
+  }
+  if (any(!whole_positive(x$size_bytes))) {
+    stop("TAF manifest contains invalid file sizes", call. = FALSE)
+  }
+  if (any(!grepl("^[0-9a-f]{64}$", x$sha256))) {
+    stop("TAF manifest contains invalid SHA-256 digests", call. = FALSE)
+  }
+  if (any(x$taf_year != year)) {
+    stop("TAF manifest year does not match requested year", call. = FALSE)
+  }
+  if (any(x$taf_version != version)) {
+    stop("TAF manifest version does not match requested version", call. = FALSE)
+  }
+  if (any(!nzchar(x$installed_at))) {
+    stop("TAF manifest contains invalid installation timestamps", call. = FALSE)
+  }
+  keys <- paste(x$county_fips, x$ZIP, sep = "\r")
+  if (anyDuplicated(keys) != 0L) {
+    stop("TAF manifest contains duplicate county-ZIP rows", call. = FALSE)
+  }
+  invisible(TRUE)
+}
+
+taf_manifest_file_paths <- function(x, data_root) {
+  file.path(
+    data_root,
+    sprintf("zip3=%s", x$zip3),
+    sprintf("zip2=%s", x$zip2),
+    sprintf("%s.parquet", x$county_fips)
+  )
+}
+
+taf_validate_manifest <- function(
+  x,
+  data_root,
+  year,
+  version,
+  verify_files = TRUE
+) {
+  taf_assert_manifest_schema(x, year = year, version = version)
+  if (!verify_files) {
+    return(invisible(TRUE))
+  }
+
+  expected_paths <- taf_manifest_file_paths(x, data_root = data_root)
+  actual_paths <- if (dir.exists(data_root)) {
+    list.files(
+      data_root,
+      pattern = "[.]parquet$",
+      recursive = TRUE,
+      full.names = TRUE,
+      include.dirs = FALSE
+    )
+  } else {
+    character()
+  }
+  expected_normalized <- normalizePath(expected_paths, mustWork = FALSE)
+  actual_normalized <- normalizePath(actual_paths, mustWork = FALSE)
+  missing_paths <- expected_paths[!expected_normalized %in% actual_normalized]
+  if (length(missing_paths) > 0L) {
+    stop(
+      "TAF manifest file is missing: ",
+      missing_paths[[1L]],
+      call. = FALSE
+    )
+  }
+  untracked_paths <- actual_paths[!actual_normalized %in% expected_normalized]
+  if (length(untracked_paths) > 0L) {
+    stop(
+      "TAF data file is not inventoried in the manifest: ",
+      untracked_paths[[1L]],
+      call. = FALSE
+    )
+  }
+
+  for (i in seq_len(nrow(x))) {
+    path <- expected_paths[[i]]
+    size_bytes <- unname(file.info(path)$size)
+    if (!identical(as.numeric(size_bytes), as.numeric(x$size_bytes[[i]]))) {
+      stop("TAF manifest file size mismatch: ", path, call. = FALSE)
+    }
+    if (!identical(taf_file_sha256(path), x$sha256[[i]])) {
+      stop("TAF manifest SHA-256 mismatch: ", path, call. = FALSE)
+    }
+    value <- tryCatch(
+      nanoparquet::read_parquet(path) |> tibble::as_tibble(),
+      error = identity
+    )
+    if (inherits(value, "error")) {
+      stop("TAF manifest file is unreadable: ", path, call. = FALSE)
+    }
+    taf_assert_storage_schema(
+      value,
+      county = x$county_fips[[i]],
+      ZIP = x$ZIP[[i]],
+      path = path
+    )
+    if (nrow(value) != x$n_ranges[[i]]) {
+      stop("TAF manifest row count mismatch: ", path, call. = FALSE)
+    }
+  }
+  invisible(TRUE)
+}
+
+taf_refresh_manifest_file_metadata <- function(x, data_root, year, version) {
+  taf_assert_manifest_schema(x, year = year, version = version)
+  paths <- taf_manifest_file_paths(x, data_root = data_root)
+  if (any(!file.exists(paths))) {
+    stop(
+      "cannot refresh metadata for missing TAF file: ",
+      paths[!file.exists(paths)][[1L]],
+      call. = FALSE
+    )
+  }
+  x$size_bytes <- unname(file.info(paths)$size)
+  x$sha256 <- vapply(paths, taf_file_sha256, character(1))
+  taf_assert_manifest_schema(x, year = year, version = version)
+  x
+}
+
+taf_installed_counties <- function(x, year, version) {
+  if (nrow(x) == 0L) {
+    return(character())
+  }
+  paths <- taf_manifest_file_paths(
+    x,
+    data_root = taf_dataset_path(year = year, version = version)
+  )
+  present <- file.exists(paths)
+  by_county <- split(present, x$county_fips)
+  names(by_county)[vapply(by_county, all, logical(1))]
+}
+
+taf_file_sha256 <- function(path) {
+  digest::digest(
+    algo = "sha256",
+    serialize = FALSE,
+    file = path
+  )
 }
 
 taf_write_catalog <- function(x, year, version, root = ".") {
@@ -770,23 +1095,32 @@ taf_missing_counties <- function(
   year,
   version,
   zip_variants = TRUE,
-  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap")
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
+  place_zip_variants = TRUE,
+  place_zip_variant = c("place", "county-sub")
 ) {
   needed <- taf_needed_counties(
     x,
     year = year,
     version = version,
     zip_variants = zip_variants,
-    zip_variant = zip_variant
+    zip_variant = zip_variant,
+    place_zip_variants = place_zip_variants,
+    place_zip_variant = place_zip_variant
   )
   if (nrow(needed) == 0L) {
     return(needed)
   }
 
   manifest <- taf_read_county_zip_manifest(year = year, version = version)
+  installed_counties <- taf_installed_counties(
+    manifest,
+    year = year,
+    version = version
+  )
   missing_counties <- setdiff(
     unique(needed$county_fips),
-    unique(manifest$county_fips)
+    installed_counties
   )
   needed[needed$county_fips %in% missing_counties, , drop = FALSE]
 }
@@ -826,7 +1160,7 @@ taf_collapse_for_message <- function(x, n = 8L) {
   paste0(paste(x[seq_len(n)], collapse = ", "), ", ...")
 }
 
-taf_county_zip_manifest_rows <- function(x, county) {
+taf_county_zip_manifest_rows <- function(x, county, year, version) {
   n_ranges <- stats::aggregate(
     rep.int(1L, nrow(x)),
     by = list(
@@ -838,11 +1172,123 @@ taf_county_zip_manifest_rows <- function(x, county) {
   )
   names(n_ranges)[names(n_ranges) == "x"] <- "n_ranges"
   n_ranges$county_fips <- county
-  n_ranges$installed_at <- format(Sys.time(), tz = "UTC", usetz = TRUE)
+  paths <- taf_manifest_file_paths(
+    n_ranges,
+    data_root = taf_dataset_path(year = year, version = version)
+  )
+  if (any(!file.exists(paths))) {
+    stop(
+      "cannot inventory missing TAF county file: ",
+      paths[!file.exists(paths)][[1L]],
+      call. = FALSE
+    )
+  }
+  n_ranges$size_bytes <- unname(file.info(paths)$size)
+  n_ranges$sha256 <- vapply(paths, taf_file_sha256, character(1))
+  n_ranges$taf_year <- year
+  n_ranges$taf_version <- version
+  n_ranges$installed_at <- format(
+    Sys.time(),
+    tz = "UTC",
+    format = "%Y-%m-%dT%H:%M:%SZ"
+  )
   n_ranges <- n_ranges[
-    c("county_fips", "ZIP", "zip3", "zip2", "n_ranges", "installed_at")
+    taf_manifest_required_columns()
   ]
   tibble::as_tibble(n_ranges)
+}
+
+taf_write_county_parquet <- function(x, path, county, ZIP) {
+  taf_assert_storage_schema(x, county = county, ZIP = ZIP, path = path)
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  tmp_path <- tempfile(
+    pattern = paste0(".", tools::file_path_sans_ext(basename(path)), "-"),
+    tmpdir = dirname(path),
+    fileext = ".parquet"
+  )
+  on.exit(unlink(tmp_path, force = TRUE), add = TRUE)
+  nanoparquet::write_parquet(x, tmp_path, compression = "snappy")
+  written <- tryCatch(
+    nanoparquet::read_parquet(tmp_path) |> tibble::as_tibble(),
+    error = identity
+  )
+  if (inherits(written, "error")) {
+    stop("temporary TAF county Parquet file is unreadable", call. = FALSE)
+  }
+  taf_assert_storage_schema(
+    written,
+    county = county,
+    ZIP = ZIP,
+    path = tmp_path
+  )
+  if (nrow(written) != nrow(x)) {
+    stop("temporary TAF county Parquet row count mismatch", call. = FALSE)
+  }
+  taf_atomic_replace(tmp_path, path)
+  invisible(path)
+}
+
+taf_storage_required_columns <- function() {
+  names(taf_empty_zip_tibble())
+}
+
+taf_assert_storage_schema <- function(x, county, ZIP, path = "TAF data") {
+  required <- taf_storage_required_columns()
+  if (
+    !is.data.frame(x) ||
+      length(names(x)) != length(required) ||
+      !setequal(names(x), required)
+  ) {
+    stop(
+      "TAF county Parquet data must contain exactly: ",
+      paste(required, collapse = ", "),
+      "; file: ",
+      path,
+      call. = FALSE
+    )
+  }
+  if (nrow(x) == 0L) {
+    stop("TAF county Parquet data must not be empty: ", path, call. = FALSE)
+  }
+  if (any(is.na(x$county_fips)) || any(x$county_fips != county)) {
+    stop("TAF county Parquet contains the wrong county: ", path, call. = FALSE)
+  }
+  if (any(is.na(x$ZIP)) || any(x$ZIP != ZIP)) {
+    stop("TAF county Parquet contains the wrong ZIP: ", path, call. = FALSE)
+  }
+  invisible(TRUE)
+}
+
+taf_atomic_replace <- function(tmp_path, path) {
+  if (isTRUE(suppressWarnings(file.rename(tmp_path, path)))) {
+    return(invisible(path))
+  }
+  if (!file.exists(path)) {
+    stop("could not atomically install TAF file: ", path, call. = FALSE)
+  }
+
+  backup_path <- tempfile(
+    pattern = paste0(".", basename(path), "-backup-"),
+    tmpdir = dirname(path)
+  )
+  if (!isTRUE(suppressWarnings(file.rename(path, backup_path)))) {
+    stop("could not prepare TAF file for replacement: ", path, call. = FALSE)
+  }
+  replaced <- FALSE
+  on.exit(
+    {
+      if (!replaced && file.exists(backup_path) && !file.exists(path)) {
+        suppressWarnings(file.rename(backup_path, path))
+      }
+    },
+    add = TRUE
+  )
+  if (!isTRUE(suppressWarnings(file.rename(tmp_path, path)))) {
+    stop("could not atomically replace TAF file: ", path, call. = FALSE)
+  }
+  replaced <- TRUE
+  unlink(backup_path, force = TRUE)
+  invisible(path)
 }
 
 taf_delete_county_zip_files <- function(x, year, version) {

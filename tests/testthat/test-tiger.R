@@ -19,6 +19,62 @@ make_tiger_test_zip <- function(path) {
   invisible(path)
 }
 
+taf_test_storage <- function(zip = "45220", county = "39061", n = 1L) {
+  tibble::tibble(
+    LINEARID = sprintf("fixture-line-%d", seq_len(n)),
+    FULLNAME = rep.int("MAIN ST", n),
+    side = rep.int("L", n),
+    ZIP = rep.int(zip, n),
+    FROMHN = rep.int(1L, n),
+    TOHN = rep.int(99L, n),
+    PARITY = rep.int("B", n),
+    OFFSET = rep.int(0, n),
+    geometry_wkt = rep.int(
+      "LINESTRING (-84.5 39.1, -84.49 39.11)",
+      n
+    ),
+    street_predirectional = rep.int("", n),
+    street_premodifier = rep.int("", n),
+    street_pretype = rep.int("", n),
+    street_name = rep.int("MAIN", n),
+    street_posttype = rep.int("ST", n),
+    street_postdirectional = rep.int("", n),
+    street_tag_parsed = rep.int(FALSE, n),
+    county_fips = rep.int(county, n)
+  )
+}
+
+taf_install_test_file <- function(
+  zip = "45220",
+  county = "39061",
+  n = 1L,
+  year = "2025",
+  version = "v2"
+) {
+  storage <- taf_test_storage(zip = zip, county = county, n = n)
+  path <- file.path(
+    taf_dataset_path(year = year, version = version),
+    sprintf("zip3=%s", substr(zip, 1L, 3L)),
+    sprintf("zip2=%s", substr(zip, 4L, 5L)),
+    sprintf("%s.parquet", county)
+  )
+  taf_write_county_parquet(
+    storage,
+    path,
+    county = county,
+    ZIP = zip
+  )
+  source <- storage
+  source$zip3 <- substr(zip, 1L, 3L)
+  source$zip2 <- substr(zip, 4L, 5L)
+  taf_county_zip_manifest_rows(
+    source,
+    county = county,
+    year = year,
+    version = version
+  )
+}
+
 test_that("tiger_download fixes ownership and forwards managed-copy controls", {
   tiger_path <- "TIGER2024/INTERNATIONALBOUNDARY/tl_2024_us_internationalboundary.zip"
   expected_url <- paste0("https://www2.census.gov/geo/tiger/", tiger_path)
@@ -180,48 +236,88 @@ test_that("taf_dataset requires arrow for the dataset interface", {
   expect_error(taf_dataset("2025"), "arrow.*multi-file taf dataset")
 })
 
+test_that("TAF install locks are reentrant within one R process", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-taf-lock-"))
+  calls <- 0L
+
+  taf_with_install_lock("2025", "v2", {
+    taf_with_install_lock("2025", "v2", {
+      calls <- calls + 1L
+    })
+  })
+
+  expect_equal(calls, 1L)
+  expect_false(dir.exists(taf_install_lock_dir("2025", "v2")))
+})
+
+test_that("taf_install writes and repairs a validated county manifest", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-taf-install-"))
+  year <- "2025"
+  version <- "v2"
+  county <- "39061"
+  linear_id <- c("fixture-45220", "fixture-45229")
+  feature_names <- tibble::tibble(
+    LINEARID = linear_id,
+    addr_street = addr_street(
+      name = c("MAIN", "BURNET"),
+      posttype = "ST"
+    )
+  )
+  address_features <- tibble::tibble(
+    LINEARID = linear_id,
+    FULLNAME = c("MAIN ST", "BURNET ST"),
+    side = "L",
+    ZIP = c("45220", "45229"),
+    FROMHN = 1L,
+    TOHN = 999L,
+    PARITY = "B",
+    OFFSET = 0,
+    s2_geography = s2::as_s2_geography(c(
+      "LINESTRING (-84.5 39.1, -84.49 39.11)",
+      "LINESTRING (-84.6 39.2, -84.59 39.21)"
+    ))
+  )
+  source_calls <- 0L
+  local_mocked_bindings(
+    tiger_feat_names = function(...) {
+      source_calls <<- source_calls + 1L
+      feature_names
+    },
+    tiger_addr_feat = function(...) {
+      source_calls <<- source_calls + 1L
+      address_features
+    }
+  )
+
+  expect_identical(
+    taf_install(county, year = year, version = version),
+    county
+  )
+  manifest <- taf_manifest(year = year, version = version, validate = TRUE)
+  expect_equal(nrow(manifest), 2L)
+  expect_setequal(manifest$ZIP, c("45220", "45229"))
+  expect_equal(source_calls, 2L)
+
+  taf_install(county, year = year, version = version)
+  expect_equal(source_calls, 2L)
+
+  missing_path <- taf_manifest_file_paths(
+    manifest[manifest$ZIP == "45220", , drop = FALSE],
+    data_root = taf_dataset_path(year = year, version = version)
+  )
+  unlink(missing_path, force = TRUE)
+  taf_install(county, year = year, version = version)
+  expect_equal(source_calls, 4L)
+  expect_silent(taf_manifest(year = year, version = version, validate = TRUE))
+})
+
 test_that("taf reads installed Parquet files by ZIP code", {
   withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-taf-data-"))
   year <- "2025"
-  version <- "v1"
-  path <- file.path(
-    taf_dataset_path(year = year, version = version),
-    "zip3=452",
-    "zip2=20",
-    "39061.parquet"
-  )
-  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
-  nanoparquet::write_parquet(
-    tibble::tibble(
-      LINEARID = "fixture-line",
-      FULLNAME = "MAIN ST",
-      side = "L",
-      ZIP = "45220",
-      FROMHN = 1L,
-      TOHN = 99L,
-      PARITY = "B",
-      OFFSET = 0,
-      geometry_wkt = "LINESTRING (-84.5 39.1, -84.49 39.11)",
-      street_predirectional = "",
-      street_premodifier = "",
-      street_pretype = "",
-      street_name = "MAIN",
-      street_posttype = "ST",
-      street_postdirectional = "",
-      street_tag_parsed = FALSE,
-      county_fips = "39061"
-    ),
-    path
-  )
+  version <- "v2"
+  manifest <- taf_install_test_file(year = year, version = version)
   taf_write_county_zip_manifest(
-    tibble::tibble(
-      county_fips = "39061",
-      ZIP = "45220",
-      zip3 = "452",
-      zip2 = "20",
-      n_ranges = 1L,
-      installed_at = "2026-08-23 UTC"
-    ),
+    manifest,
     year = year,
     version = version
   )
@@ -235,8 +331,75 @@ test_that("taf reads installed Parquet files by ZIP code", {
 
 test_that("TAF public reader names are hard renamed", {
   exports <- getNamespaceExports("addr")
-  expect_true(all(c("taf", "taf_dataset") %in% exports))
+  expect_true(all(c("taf", "taf_dataset", "taf_manifest") %in% exports))
   expect_false("taf_zip" %in% exports)
+  expect_true(all(vapply(
+    list(
+      taf,
+      taf_dataset,
+      taf_catalog,
+      taf_manifest,
+      taf_needed_counties,
+      taf_ensure,
+      taf_install
+    ),
+    function(fun) identical(eval(formals(fun)$version), "v2"),
+    logical(1)
+  )))
+})
+
+test_that("taf_manifest inventories and validates installed county ZIP files", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-taf-manifest-"))
+  year <- "2025"
+  version <- "v2"
+  rows <- vctrs::vec_rbind(
+    taf_install_test_file(
+      zip = "45220",
+      county = "39061",
+      n = 2L,
+      year = year,
+      version = version
+    ),
+    taf_install_test_file(
+      zip = "45249",
+      county = "39017",
+      n = 3L,
+      year = year,
+      version = version
+    )
+  )
+  taf_write_county_zip_manifest(rows, year = year, version = version)
+
+  manifest <- taf_manifest(year = year, version = version, validate = TRUE)
+  expect_named(manifest, taf_manifest_required_columns())
+  expect_equal(manifest$n_ranges, c(2L, 3L))
+  expect_true(all(manifest$size_bytes > 0))
+  expect_true(all(grepl("^[0-9a-f]{64}$", manifest$sha256)))
+
+  manifest$sha256[[1L]] <- paste(rep.int("0", 64L), collapse = "")
+  taf_write_county_zip_manifest(manifest, year = year, version = version)
+  expect_error(
+    taf_manifest(year = year, version = version, validate = TRUE),
+    "SHA-256 mismatch"
+  )
+})
+
+test_that("TAF fuel scripts carry the schema-v2 manifest contract", {
+  scripts <- system.file(
+    "exec",
+    c("pack-addr-taf-fuel.sh", "install-addr-taf-fuel.sh"),
+    package = "addr"
+  )
+  expect_true(all(nzchar(scripts)))
+  text <- lapply(scripts, readLines, warn = FALSE)
+  expect_true(any(grepl('"schema_version" "2"', text[[1L]], fixed = TRUE)))
+  expect_true(any(grepl('VERSION="${2:-v2}"', text[[1L]], fixed = TRUE)))
+  expect_true(any(grepl('SCHEMA_VERSION" = "2"', text[[2L]], fixed = TRUE)))
+  expect_true(any(grepl('TAF_VERSION" = "v2"', text[[2L]], fixed = TRUE)))
+  expect_true(any(grepl("manifest_row_count", text[[1L]], fixed = TRUE)))
+  expect_true(any(grepl("taf_validate_manifest", text[[1L]], fixed = TRUE)))
+  expect_true(any(grepl("taf_validate_manifest", text[[2L]], fixed = TRUE)))
+  expect_true(any(grepl("taf_manifest", text[[2L]], fixed = TRUE)))
 })
 
 test_that("taf_catalog reads installed ZIP county catalog", {
@@ -256,12 +419,12 @@ test_that("taf_catalog reads installed ZIP county catalog", {
   taf_write_catalog(
     manifest,
     year = "2025",
-    version = "v1",
+    version = "v2",
     root = catalog_root
   )
 
   expect_equal(
-    taf_catalog(year = "2025", version = "v1"),
+    taf_catalog(year = "2025", version = "v2"),
     tibble::tibble(
       county_fips = c("39061", "39017"),
       ZIP = c("45220", "45249"),
@@ -288,14 +451,14 @@ test_that("taf_needed_counties uses catalog and selected ZIP variants", {
       installed_at = rep("2026-01-01 UTC", 4)
     ),
     year = "2025",
-    version = "v1",
+    version = "v2",
     root = catalog_root
   )
 
   needed <- taf_needed_counties(
     "45220",
     year = "2025",
-    version = "v1",
+    version = "v2",
     zip_variant = c("minus1", "swap")
   )
 
@@ -306,6 +469,43 @@ test_that("taf_needed_counties uses catalog and selected ZIP variants", {
       ZIP = c("45220", "45219", "42520"),
       source_zip = c("45220", "45220", "45220"),
       source_zip_variant = c("exact", "minus1", "swap")
+    )
+  )
+})
+
+test_that("taf_needed_counties includes geographic and typographical variants", {
+  catalog_root <- tempfile()
+  withr::local_options(list(
+    addr.taf_catalog_dir = file.path(catalog_root, "inst", "extdata")
+  ))
+
+  taf_write_catalog(
+    tibble::tibble(
+      county_fips = c("39061", "39017", "21117"),
+      ZIP = c("45220", "45226", "45219"),
+      zip3 = c("452", "452", "452"),
+      zip2 = c("20", "26", "19"),
+      n_ranges = c(10L, 4L, 3L)
+    ),
+    year = "2025",
+    version = "v2",
+    root = catalog_root
+  )
+
+  needed <- taf_needed_counties(
+    as_addr("10 MAIN ST ANDERSON OH 45220"),
+    year = "2025",
+    version = "v2",
+    zip_variant = "minus1",
+    place_zip_variant = "county-sub"
+  )
+
+  expect_equal(
+    needed[c("county_fips", "ZIP", "source_zip_variant")],
+    tibble::tibble(
+      county_fips = c("39061", "39017", "21117"),
+      ZIP = c("45220", "45226", "45219"),
+      source_zip_variant = c("exact", "county-sub", "minus1")
     )
   )
 })
@@ -327,21 +527,11 @@ test_that("taf_ensure installs only missing needed counties", {
       installed_at = c("2026-01-01 UTC", "2026-01-01 UTC")
     ),
     year = "2025",
-    version = "v1",
+    version = "v2",
     root = catalog_root
   )
-  taf_write_county_zip_manifest(
-    tibble::tibble(
-      county_fips = "39061",
-      ZIP = "45220",
-      zip3 = "452",
-      zip2 = "20",
-      n_ranges = 10L,
-      installed_at = "2026-01-01 UTC"
-    ),
-    year = "2025",
-    version = "v1"
-  )
+  manifest <- taf_install_test_file(n = 10L)
+  taf_write_county_zip_manifest(manifest, year = "2025", version = "v2")
 
   installed <- character()
   local_mocked_bindings(
@@ -354,7 +544,7 @@ test_that("taf_ensure installs only missing needed counties", {
   missing <- taf_ensure(
     "45220",
     year = "2025",
-    version = "v1",
+    version = "v2",
     zip_variants = FALSE
   )
 

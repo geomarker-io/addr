@@ -144,7 +144,7 @@ geocode <- function(
   zip_variants = TRUE,
   zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   year = as.character(2025:2011),
-  version = "v1",
+  version = "v2",
   taf_install = TRUE,
   taf_redownload = FALSE,
   offset = 10L,
@@ -1201,9 +1201,14 @@ geocode_missing_taf_counties <- function(needed, year, version) {
     return(needed)
   }
   manifest <- taf_read_county_zip_manifest(year = year, version = version)
+  installed_counties <- taf_installed_counties(
+    manifest,
+    year = year,
+    version = version
+  )
   missing_counties <- setdiff(
     unique(needed$county_fips),
-    unique(manifest$county_fips)
+    installed_counties
   )
   needed[needed$county_fips %in% missing_counties, , drop = FALSE]
 }
@@ -1277,7 +1282,7 @@ geocode_zip <- function(
   zip_variants = TRUE,
   zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   year = as.character(2025:2011),
-  version = "v1",
+  version = "v2",
   taf_install = TRUE,
   taf_redownload = FALSE,
   progress_callback = NULL,
