@@ -108,10 +108,13 @@ Addresses with malformed ZIP codes are removed.
 \examples{
 # explicitly download source data, then create county output on first read
 \dontrun{
-  # install the compressed revision 23 flat source archive, then build a
-  # county Parquet file from it
+  # manually install the compressed revision 23 flat source archive
   nad_download()
+  # manually build a county Parquet file
   nad_install("39017")
+
+  # read files by name or fips id into R,
+  # nad will be downloaded and counties installed as needed
   nad("Butler", "OH")
   nad("39017")
 }
