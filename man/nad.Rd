@@ -66,8 +66,10 @@ The compressed national source is managed exclusively by \code{stow()} beneath
 \code{stow::stow_path(package = "addr", subdir = "nad")}. Derived county RDS
 files are separate processed data beneath
 \code{file.path(tools::R_user_dir("addr", "data"), "v1", "nad", "23")}, organized
-by state and county name. Set \code{R_USER_DATA_DIR} to relocate both areas while
-retaining their source-versus-processed-data separation.
+by state and county name. \code{nad_manifest()} inventories those county files
+from \code{v1/nad_manifest/23/counties.parquet}. Set \code{R_USER_DATA_DIR} to
+relocate both areas while retaining their source-versus-processed-data
+separation.
 }
 \details{
 The revision 23 comma-delimited flat source archive is downloaded from the

@@ -90,6 +90,7 @@ For repeated matching against the same reference addresses, prepare the referenc
 Counties can be requested by county name plus state, such as `"Hamilton", "OH"`, or by 5-digit county FIPS code, such as `"39061"`.
 
 The nationwide NAD source is large and county extraction requires a complete streaming scan, so addr caches each processed county under `v1/nad/23` in its package-specific user data directory.
+`nad_manifest()` inventories those files from `v1/nad_manifest/23/counties.parquet`; use `nad_manifest(validate = TRUE)` to verify every installed county's row count, size, and SHA-256 digest.
 The package also includes `nad_example_data()`, a small baked NAD revision 23 fixture derived from Hamilton County, Ohio. Use it for examples, tests, and matching workflows that should run without downloading NAD source data first; use `nad("Hamilton", "OH")` when you need complete Hamilton County data.
 
 ### Geocoding
@@ -127,7 +128,36 @@ stow::stow_info(package = "addr")
 
 The former unmanaged TIGER ZIP layout is not searched after this cutover. A missing source ZIP is downloaded as a new durable managed local copy in its function-specific subdirectory.
 
-`nad_download()` installs USDOT's compressed NAD revision 23 flat-file archive as a durable managed local copy using `stow()`. The national source is managed exclusively beneath `stow::stow_path(package = "addr", subdir = "nad")`. `nad()` streams the requested county from that compressed source without unpacking its roughly 41 GB text member, transforms it into addr's standard NAD output, and stores the processed county separately beneath `file.path(tools::R_user_dir("addr", "data"), "v1", "nad", "23")`. Subsequent calls load that county RDS directly without accessing the national source. This is the same source-versus-processed-data architecture used for TIGER address features.
+`nad_download()` installs USDOT's compressed NAD revision 23 flat-file archive as a durable managed local copy using `stow()`. The national source is managed exclusively beneath `stow::stow_path(package = "addr", subdir = "nad")`. `nad()` streams the requested county from that compressed source without unpacking its roughly 41 GB text member, transforms it into addr's standard NAD output, and stores the processed county separately beneath `file.path(tools::R_user_dir("addr", "data"), "v1", "nad", "23")`. After atomically installing a county RDS, addr adds or replaces its row in `v1/nad_manifest/23/counties.parquet`. Subsequent calls use the county RDS path as the primary existence check and load it without accessing the national source. This is the same source-versus-processed-data architecture used for TIGER address features.
+
+## NAD fuel bundles
+
+Installed NAD counties can be packaged as a portable `addr-nad-fuel` archive without including the stow-managed national source.
+The packer validates the local county manifest and every RDS before creating `addr-nad-r23.tar.zst` and its JSON sidecar:
+
+```sh
+bash "$(Rscript -e 'cat(system.file("exec", "pack-addr-nad-fuel.sh", package = "addr"))')" \
+  23 "$PWD"
+```
+
+The sidecar records the artifact schema, exact required addr version, NAD revision, archive size and SHA-256 digest, installed paths, county count, and expected file counts.
+Install the archive and adjacent sidecar with:
+
+```sh
+bash "$(Rscript -e 'cat(system.file("exec", "install-addr-nad-fuel.sh", package = "addr"))')" \
+  addr-nad-r23.tar.zst
+```
+
+Before moving any files into addr's user data directory, the installer validates the JSON, archive, staged `counties.parquet`, and every staged county RDS.
+It installs both revision directories:
+
+```text
+v1/nad/23
+v1/nad_manifest/23
+```
+
+The installer refuses to overwrite either directory.
+Set `R_USER_DATA_DIR` before packing or installing to select a different package-specific user data root.
 
 ## Container and command-line interface
 
