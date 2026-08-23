@@ -11,7 +11,7 @@ nad_manifest(version = 23L, validate = FALSE)
 23 is supported.}
 
 \item{validate}{logical, length one; validate every manifest row against its
-county RDS, including its readable row count, byte size, and SHA-256
+county Parquet file, including its schema, row count, byte size, and SHA-256
 digest? This can be slow for a large inventory.}
 }
 \value{
@@ -20,10 +20,10 @@ A tibble with one row per installed county and columns
 \code{nad_revision}, and \code{installed_at}.
 }
 \description{
-\code{nad_manifest()} reads the local manifest written as county RDS files are
-installed by \code{nad()}. The RDS path remains the primary existence check used
-by \code{nad()}; the manifest provides a compact inventory and integrity metadata
-for validation and portable NAD fuel bundles.
+\code{nad_manifest()} reads the local manifest written as county Parquet files are
+installed. The Parquet path remains the primary existence check used by
+\code{nad()}; the manifest provides a compact inventory and integrity metadata for
+validation and portable NAD fuel bundles.
 }
 \examples{
 nad_manifest()

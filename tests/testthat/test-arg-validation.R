@@ -29,8 +29,8 @@ test_that("nad-family functions validate county inputs and path scalars", {
     "version must be an integer vector"
   )
   expect_error(
-    nad_sd_path(1, "OH"),
-    "county must be a character vector"
+    nad_county_path(1, "OH"),
+    "county_fips must be a character vector"
   )
 })
 

@@ -15,13 +15,13 @@
 #' The revision 23 source is a roughly 7.6 GB compressed archive containing a
 #' roughly 41 GB comma-delimited text member.
 #'
-#' Data binaries are the persistent outputs of `nad_read()` for each
-#' County/State and are created on first run with `nad()`.
+#' Processed county Parquet files are created one county at a time with
+#' `nad_install()` or on first use with `nad()`.
 #' The compressed national source is managed exclusively by `stow()` beneath
-#' `stow::stow_path(package = "addr", subdir = "nad")`. Derived county RDS
-#' files are separate processed data beneath
+#' `stow::stow_path(package = "addr", subdir = "nad")`. Derived county Parquet
+#' files are a separate Hive-partitioned dataset beneath
 #' `file.path(tools::R_user_dir("addr", "data"), "v1", "nad", "23")`, organized
-#' by state and county name. `nad_manifest()` inventories those county files
+#' by `state` and `county_fips`. `nad_manifest()` inventories those county files
 #' from `v1/nad_manifest/23/counties.parquet`. Set `R_USER_DATA_DIR` to
 #' relocate both areas while retaining their source-versus-processed-data
 #' separation.
@@ -32,11 +32,16 @@
 #'   FIPS identifier
 #' @param version integer, length one; NAD revision to use. Only revision 23 is
 #'   supported.
-#' @param refresh_binary character, length one; choose how to refresh NAD
-#' data binaries stored on disk if not already present; "yes" will
-#' create data binary if not already present, "no" will
-#' error if data binary is not already present, "force" will
-#' create the data binary and overwrite any existing data binary
+#' @param refresh_binary character, length one; choose how to refresh a
+#' processed NAD county Parquet file if not already present; `"yes"` creates a
+#' missing file, `"no"` requires it to exist, and `"force"` recreates it
+#' @param overwrite logical, length one; overwrite an existing processed county
+#'   Parquet file?
+#' @param refresh_source character, length one; choose how to refresh the
+#'   compressed national source; `"no"` requires the stow-managed source to
+#'   exist, `"yes"` downloads it if missing, and `"force"` redownloads it
+#' @returns `nad()` and `nad_read()` return a tibble for one county.
+#'   `nad_install()` invisibly returns the installed county FIPS identifier.
 #'
 #' @details
 #' The revision 23 comma-delimited flat source archive is downloaded from the
@@ -45,7 +50,7 @@
 #' `nad_download(version = 23L)` installs the pinned compressed archive as a
 #' durable managed local copy using `stow::stow()`. County installation streams
 #' the nationwide text member directly from that archive, retains the requested
-#' county, and writes a separate processed RDS file.
+#' county, and writes a separate processed Parquet file.
 #' The roughly 41 GB text member is never unpacked on disk.
 #' Before downloading, review the source metadata and disclaimer in the data
 #' portal.
@@ -64,8 +69,9 @@
 #' # explicitly download source data, then create county output on first read
 #' \dontrun{
 #'   # install the compressed revision 23 flat source archive, then build a
-#'   # county RDS from it
+#'   # county Parquet file from it
 #'   nad_download()
+#'   nad_install("39017")
 #'   nad("Butler", "OH")
 #'   nad("39017")
 #' }
@@ -103,48 +109,101 @@ nad <- function(
   refresh_source <- match.arg(refresh_source)
   county_info <- nad_county_info(county, state)
   nad_version_metadata(version)
-  nad_sd <- nad_sd_path(
-    county = county_info$county,
+  nad_path <- nad_county_path(
+    county_fips = county_info$county_fips,
     state = county_info$state,
     version = version
   )
-  if (!file.exists(nad_sd) || refresh_binary == "force") {
+  if (!file.exists(nad_path) || refresh_binary == "force") {
     if (refresh_binary == "no") {
       stop(
-        nad_sd,
+        nad_path,
         " does not exist; set `refresh_binary = 'yes'`",
         " to install from source NAD"
       )
     }
-    if (refresh_binary == "yes") {
-      message(nad_sd, " does not exist; installing from source...")
-    } else {
-      message("forcing install from source...")
-    }
-    dir.create(dirname(nad_sd), recursive = TRUE, showWarnings = FALSE)
-    d <- nad_read(
+    nad_install(
       county = county,
       state = state,
       version = version,
+      overwrite = identical(refresh_binary, "force"),
       refresh_source = refresh_source
     )
-    nad_write_county_rds(d, nad_sd)
-    nad_upsert_manifest(
-      path = nad_sd,
-      data = d,
-      county_info = county_info,
-      version = version
-    )
-    return(d)
   }
-  d <- readRDS(nad_sd)
+  storage <- nad_read_county_parquet(nad_path)
   nad_upsert_manifest(
-    path = nad_sd,
-    data = d,
+    path = nad_path,
+    data = storage,
     county_info = county_info,
     version = version
   )
-  d
+  nad_storage_to_nad(storage, state = county_info$state)
+}
+
+#' @rdname nad
+#' @export
+nad_install <- function(
+  county,
+  state = NULL,
+  version = 23L,
+  overwrite = FALSE,
+  refresh_source = c("no", "yes", "force")
+) {
+  stopifnot(
+    "county must be a character vector" = is.character(county),
+    "county must be length one" = length(county) == 1L,
+    "county must not be missing" = !is.na(county),
+    "state must be NULL or a character vector" = is.null(state) ||
+      is.character(state),
+    "state must be NULL or length one" = is.null(state) || length(state) == 1L,
+    "state must be NULL or not missing" = is.null(state) || !is.na(state),
+    "version must be an integer vector" = is.integer(version),
+    "version must be length one" = length(version) == 1L,
+    "version must not be missing" = !is.na(version),
+    "overwrite must be logical" = is.logical(overwrite),
+    "overwrite must be length one" = length(overwrite) == 1L,
+    "overwrite must not be missing" = !is.na(overwrite),
+    "refresh_source must be a character vector" = is.character(refresh_source),
+    "refresh_source must not contain missing values" = !any(is.na(
+      refresh_source
+    ))
+  )
+  refresh_source <- match.arg(refresh_source)
+  county_info <- nad_county_info(county, state)
+  nad_path <- nad_county_path(
+    county_fips = county_info$county_fips,
+    state = county_info$state,
+    version = version
+  )
+  if (file.exists(nad_path) && !overwrite) {
+    storage <- nad_read_county_parquet(nad_path)
+    nad_upsert_manifest(
+      path = nad_path,
+      data = storage,
+      county_info = county_info,
+      version = version
+    )
+    return(invisible(county_info$county_fips))
+  }
+  if (overwrite) {
+    message("forcing county Parquet install from source...")
+  } else {
+    message(nad_path, " does not exist; installing from source...")
+  }
+  storage <- nad_read_storage(
+    county = county,
+    state = state,
+    version = version,
+    refresh_source = refresh_source
+  )
+  nad_write_county_parquet(storage, nad_path)
+  nad_upsert_manifest(
+    path = nad_path,
+    data = storage,
+    county_info = county_info,
+    version = version
+  )
+  invisible(county_info$county_fips)
 }
 
 nad_version_metadata <- function(version = 23L) {
@@ -202,37 +261,92 @@ nad_county_info <- function(county, state = NULL) {
   )
 }
 
-nad_sd_path <- function(county, state, version = 23L) {
+nad_county_path <- function(county_fips, state, version = 23L) {
   stopifnot(
-    "county must be a character vector" = is.character(county),
-    "county must be length one" = length(county) == 1L,
-    "county must not be missing" = !is.na(county),
+    "county_fips must be a character vector" = is.character(county_fips),
+    "county_fips must be length one" = length(county_fips) == 1L,
+    "county_fips must not be missing" = !is.na(county_fips),
+    "county_fips must be a 5-digit FIPS identifier" =
+      grepl("^[0-9]{5}$", county_fips),
     "state must be a character vector" = is.character(state),
     "state must be length one" = length(state) == 1L,
     "state must not be missing" = !is.na(state)
   )
   nad_version_metadata(version)
   file.path(
-    tools::R_user_dir("addr", "data"),
-    "v1",
-    "nad",
-    as.character(version),
-    state,
-    sprintf("%s.rds", county)
+    nad_data_path(version = version),
+    nad_county_relative_path(county_fips = county_fips, state = state)
+  )
+}
+
+nad_county_relative_path <- function(county_fips, state) {
+  file.path(
+    sprintf("state=%s", state),
+    sprintf("county_fips=%s", county_fips),
+    "part-0.parquet"
+  )
+}
+
+#' Open installed National Address Database counties as an Arrow dataset
+#'
+#' `nad_dataset()` opens every installed county Parquet file as one lazy Arrow
+#' dataset. The storage schema contains primitive columns suitable for
+#' filtering, projection, and collection with dplyr. `state` and `county_fips`
+#' are Hive partition columns. Use `nad()` when reconstructed `addr` and `s2`
+#' columns are needed for one county.
+#'
+#' @inheritParams nad
+#' @returns An Arrow `FileSystemDataset`.
+#' @export
+#' @examples
+#' \dontrun{
+#' nad_dataset() |>
+#'   dplyr::filter(state == "OH", county_fips == "39017") |>
+#'   dplyr::select(uuid, address_number, street_name, longitude, latitude) |>
+#'   dplyr::collect()
+#' }
+nad_dataset <- function(version = 23L) {
+  check_installed("arrow", "to open the multi-file NAD dataset")
+  data_path <- nad_data_path(version = version)
+  county_files <- if (dir.exists(data_path)) {
+    list.files(
+      data_path,
+      pattern = "[.]parquet$",
+      recursive = TRUE,
+      full.names = TRUE
+    )
+  } else {
+    character()
+  }
+  if (length(county_files) == 0L) {
+    stop(
+      "no installed NAD county Parquet files were found under `",
+      data_path,
+      "`",
+      call. = FALSE
+    )
+  }
+  arrow::open_dataset(
+    data_path,
+    format = "parquet",
+    partitioning = arrow::hive_partition(
+      state = arrow::string(),
+      county_fips = arrow::string()
+    )
   )
 }
 
 #' Inventory installed National Address Database counties
 #'
-#' `nad_manifest()` reads the local manifest written as county RDS files are
-#' installed by `nad()`. The RDS path remains the primary existence check used
-#' by `nad()`; the manifest provides a compact inventory and integrity metadata
-#' for validation and portable NAD fuel bundles.
+#' `nad_manifest()` reads the local manifest written as county Parquet files are
+#' installed. The Parquet path remains the primary existence check used by
+#' `nad()`; the manifest provides a compact inventory and integrity metadata for
+#' validation and portable NAD fuel bundles.
 #'
 #' @param version integer, length one; NAD revision to inventory. Only revision
 #'   23 is supported.
 #' @param validate logical, length one; validate every manifest row against its
-#'   county RDS, including its readable row count, byte size, and SHA-256
+#'   county Parquet file, including its schema, row count, byte size, and SHA-256
 #'   digest? This can be slow for a large inventory.
 #' @returns A tibble with one row per installed county and columns
 #'   `county_fips`, `state`, `county`, `row_count`, `size_bytes`, `sha256`,
@@ -326,25 +440,87 @@ nad_write_manifest <- function(x, version = 23L) {
   invisible(manifest_path)
 }
 
-nad_write_county_rds <- function(x, path) {
+nad_write_county_parquet <- function(x, path) {
+  nad_assert_storage_schema(x)
   dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
   tmp_path <- tempfile(
     pattern = paste0(".", tools::file_path_sans_ext(basename(path)), "-"),
     tmpdir = dirname(path),
-    fileext = ".rds"
+    fileext = ".parquet"
   )
   on.exit(unlink(tmp_path, force = TRUE), add = TRUE)
-  saveRDS(x, file = tmp_path)
-  written <- readRDS(tmp_path)
-  if (!is.data.frame(written) || nrow(written) != nrow(x)) {
+  nanoparquet::write_parquet(x, tmp_path, compression = "snappy")
+  written <- tryCatch(
+    nad_read_county_parquet(tmp_path),
+    error = identity
+  )
+  if (inherits(written, "error") || nrow(written) != nrow(x)) {
     stop(
-      "temporary NAD county RDS failed validation: ",
+      "temporary NAD county Parquet file failed validation: ",
       tmp_path,
       call. = FALSE
     )
   }
   nad_atomic_replace(tmp_path, path)
   invisible(path)
+}
+
+nad_read_county_parquet <- function(path) {
+  value <- nanoparquet::read_parquet(path) |>
+    tibble::as_tibble()
+  nad_assert_storage_schema(value)
+  value
+}
+
+nad_storage_required_columns <- function() {
+  c(
+    "address_number_prefix",
+    "address_number",
+    "address_number_suffix",
+    "street_predirectional",
+    "street_premodifier",
+    "street_pretype",
+    "street_name",
+    "street_posttype",
+    "street_postdirectional",
+    "subaddress",
+    "county",
+    "place_name",
+    "zipcode",
+    "uuid",
+    "date_update",
+    "latitude",
+    "longitude",
+    "national_grid",
+    "placement",
+    "address_class",
+    "address_type",
+    "parcel_id"
+  )
+}
+
+nad_assert_storage_schema <- function(x) {
+  required <- nad_storage_required_columns()
+  if (!is.data.frame(x) || !identical(names(x), required)) {
+    stop(
+      "NAD county Parquet data must contain exactly: ",
+      paste(required, collapse = ", "),
+      call. = FALSE
+    )
+  }
+  character_columns <- setdiff(
+    required,
+    c("date_update", "latitude", "longitude")
+  )
+  if (
+    !all(vapply(x[character_columns], is.character, logical(1))) ||
+      !inherits(x$date_update, "Date") ||
+      !is.numeric(x$latitude) ||
+      !is.numeric(x$longitude)
+  ) {
+    stop("NAD county Parquet data has invalid column types", call. = FALSE)
+  }
+  invisible(TRUE)
 }
 
 nad_atomic_replace <- function(tmp_path, path) {
@@ -570,15 +746,21 @@ nad_validate_manifest <- function(
     return(invisible(TRUE))
   }
 
-  expected_paths <- file.path(
-    data_root,
-    x$state,
-    paste0(x$county, ".rds")
-  )
+  relative_paths <- if (nrow(x) == 0L) {
+    character()
+  } else {
+    mapply(
+      nad_county_relative_path,
+      county_fips = x$county_fips,
+      state = x$state,
+      USE.NAMES = FALSE
+    )
+  }
+  expected_paths <- file.path(data_root, relative_paths)
   actual_paths <- if (dir.exists(data_root)) {
     list.files(
       data_root,
-      pattern = "[.]rds$",
+      pattern = "[.]parquet$",
       recursive = TRUE,
       full.names = TRUE,
       ignore.case = TRUE
@@ -593,7 +775,7 @@ nad_validate_manifest <- function(
     !identical(sort(normalize(actual_paths)), sort(normalize(expected_paths)))
   ) {
     stop(
-      "NAD county manifest does not match the installed RDS inventory",
+      "NAD county manifest does not match the installed Parquet inventory",
       call. = FALSE
     )
   }
@@ -602,25 +784,40 @@ nad_validate_manifest <- function(
     path <- expected_paths[[i]]
     info <- file.info(path)
     if (!isTRUE(info$isdir == FALSE)) {
-      stop("NAD county RDS is missing: ", path, call. = FALSE)
+      stop("NAD county Parquet file is missing: ", path, call. = FALSE)
     }
     if (!identical(as.numeric(info$size), as.numeric(x$size_bytes[[i]]))) {
-      stop("NAD county RDS size does not match manifest: ", path, call. = FALSE)
+      stop(
+        "NAD county Parquet size does not match manifest: ",
+        path,
+        call. = FALSE
+      )
     }
-    value <- tryCatch(readRDS(path), error = identity)
-    if (inherits(value, "error") || !is.data.frame(value)) {
-      stop("NAD county RDS is not readable tabular data: ", path, call. = FALSE)
+    value <- tryCatch(nad_read_county_parquet(path), error = identity)
+    if (inherits(value, "error")) {
+      stop(
+        "NAD county Parquet file is not readable with the required schema: ",
+        path,
+        call. = FALSE
+      )
     }
     if (!identical(as.numeric(nrow(value)), as.numeric(x$row_count[[i]]))) {
       stop(
-        "NAD county RDS row count does not match manifest: ",
+        "NAD county Parquet row count does not match manifest: ",
+        path,
+        call. = FALSE
+      )
+    }
+    if (nrow(value) > 0L && any(value$county != x$county[[i]])) {
+      stop(
+        "NAD county Parquet county name does not match manifest: ",
         path,
         call. = FALSE
       )
     }
     if (!identical(nad_file_sha256(path), x$sha256[[i]])) {
       stop(
-        "NAD county RDS SHA-256 does not match manifest: ",
+        "NAD county Parquet SHA-256 does not match manifest: ",
         path,
         call. = FALSE
       )
@@ -763,6 +960,22 @@ nad_read <- function(
     "version must not be missing" = !is.na(version)
   )
   county_info <- nad_county_info(county, state)
+  storage <- nad_read_storage(
+    county = county,
+    state = state,
+    version = version,
+    refresh_source = refresh_source
+  )
+  nad_storage_to_nad(storage, state = county_info$state)
+}
+
+nad_read_storage <- function(
+  county,
+  state = NULL,
+  version = 23L,
+  refresh_source = c("no", "yes", "force")
+) {
+  county_info <- nad_county_info(county, state)
   nad_md <- nad_version_metadata(version)
   nad_fields <- nad_source_fields()
   nad_source <- nad_download(
@@ -776,13 +989,10 @@ nad_read <- function(
     county = county_info$county,
     fields = nad_fields
   ))
-  rnad$Longitude <- as.numeric(rnad$Longitude)
-  rnad$Latitude <- as.numeric(rnad$Latitude)
-  nad_transform(rnad, county_info$county_fips)
+  nad_prepare_storage(rnad, county_info$county_fips)
 }
 
-nad_transform <- function(rnad, county_fips) {
-  na_to_empty <- \(x) ifelse(is.na(x), "", x)
+nad_prepare_storage <- function(rnad, county_fips) {
   bad_zips <- which(nchar(rnad$Zip_Code) != 5L)
   if (length(bad_zips) > 0) {
     warning(
@@ -794,48 +1004,79 @@ nad_transform <- function(rnad, county_fips) {
     )
     rnad <- rnad[-bad_zips, ]
   }
-  rnad_addr <-
-    with(rnad, {
-      addr(
-        addr_number(
-          prefix = na_to_empty(AddNum_Pre),
-          digits = as.character(Add_Number),
-          suffix = na_to_empty(AddNum_Suf)
-        ),
-        addr_street(
-          predirectional = na_to_empty(St_PreDir),
-          premodifier = na_to_empty(St_PreMod),
-          pretype = na_to_empty(St_PreTyp),
-          name = St_Name,
-          posttype = na_to_empty(St_PosTyp),
-          postdirectional = na_to_empty(St_PosDir)
-        ),
-        addr_place(
-          name = na_to_empty(Post_City),
-          state = na_to_empty(State),
-          zip = Zip_Code
-        )
-      )
-    })
-  rnad_s2 <- s2::as_s2_cell(s2::s2_lnglat(rnad$Longitude, rnad$Latitude))
   tibble::tibble(
-    nad_addr = rnad_addr,
-    subaddress = rnad$SubAddress,
-    uuid = rnad$UUID,
+    address_number_prefix = as.character(rnad$AddNum_Pre),
+    address_number = as.character(rnad$Add_Number),
+    address_number_suffix = as.character(rnad$AddNum_Suf),
+    street_predirectional = as.character(rnad$St_PreDir),
+    street_premodifier = as.character(rnad$St_PreMod),
+    street_pretype = as.character(rnad$St_PreTyp),
+    street_name = as.character(rnad$St_Name),
+    street_posttype = as.character(rnad$St_PosTyp),
+    street_postdirectional = as.character(rnad$St_PosDir),
+    subaddress = as.character(rnad$SubAddress),
+    county = as.character(rnad$County),
+    place_name = as.character(rnad$Post_City),
+    zipcode = as.character(rnad$Zip_Code),
+    uuid = as.character(rnad$UUID),
     date_update = as.Date(rnad$DateUpdate),
-    s2 = rnad_s2,
-    national_grid = rnad$NatGrid,
-    placement = rnad$Placement,
-    address_class = rnad$AddrClass,
-    address_type = rnad$Addr_Type,
-    parcel_id = rnad$Parcel_ID
+    latitude = as.numeric(rnad$Latitude),
+    longitude = as.numeric(rnad$Longitude),
+    national_grid = as.character(rnad$NatGrid),
+    placement = as.character(rnad$Placement),
+    address_class = as.character(rnad$AddrClass),
+    address_type = as.character(rnad$Addr_Type),
+    parcel_id = as.character(rnad$Parcel_ID)
   )
 }
 
-#' @param refresh_source character, length one; choose how to refresh NAD
-#' source archive on disk if not already present; "yes" will download the
-#' archive if needed, "no" will require an existing local source, and "force"
-#' will download and overwrite an existing source
+nad_storage_to_nad <- function(storage, state) {
+  nad_assert_storage_schema(storage)
+  na_to_empty <- \(x) ifelse(is.na(x), "", x)
+  nad_addr <-
+    with(storage, {
+      addr(
+        addr_number(
+          prefix = na_to_empty(address_number_prefix),
+          digits = address_number,
+          suffix = na_to_empty(address_number_suffix)
+        ),
+        addr_street(
+          predirectional = na_to_empty(street_predirectional),
+          premodifier = na_to_empty(street_premodifier),
+          pretype = na_to_empty(street_pretype),
+          name = street_name,
+          posttype = na_to_empty(street_posttype),
+          postdirectional = na_to_empty(street_postdirectional)
+        ),
+        addr_place(
+          name = na_to_empty(place_name),
+          state = rep.int(state, nrow(storage)),
+          zip = zipcode
+        )
+      )
+    })
+  nad_s2 <- s2::as_s2_cell(s2::s2_lnglat(
+    storage$longitude,
+    storage$latitude
+  ))
+  tibble::tibble(
+    nad_addr = nad_addr,
+    subaddress = storage$subaddress,
+    uuid = storage$uuid,
+    date_update = storage$date_update,
+    s2 = nad_s2,
+    national_grid = storage$national_grid,
+    placement = storage$placement,
+    address_class = storage$address_class,
+    address_type = storage$address_type,
+    parcel_id = storage$parcel_id
+  )
+}
+
+#' @param refresh_source character, length one; choose how to refresh the
+#' compressed national source; `"no"` requires the stow-managed source to
+#' exist, `"yes"` downloads it if missing, and `"force"` redownloads it
 #' @rdname nad
 nad_download <- function(
   version = 23L,

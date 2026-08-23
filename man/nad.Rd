@@ -2,6 +2,7 @@
 % Please edit documentation in R/nad.R
 \name{nad}
 \alias{nad}
+\alias{nad_install}
 \alias{nad_read}
 \alias{nad_download}
 \title{Read National Address Database (NAD) tables into R}
@@ -11,6 +12,14 @@ nad(
   state = NULL,
   version = 23L,
   refresh_binary = c("yes", "no", "force"),
+  refresh_source = c("no", "yes", "force")
+)
+
+nad_install(
+  county,
+  state = NULL,
+  version = 23L,
+  overwrite = FALSE,
   refresh_source = c("no", "yes", "force")
 )
 
@@ -34,16 +43,20 @@ FIPS identifier}
 \item{version}{integer, length one; NAD revision to use. Only revision 23 is
 supported.}
 
-\item{refresh_binary}{character, length one; choose how to refresh NAD
-data binaries stored on disk if not already present; "yes" will
-create data binary if not already present, "no" will
-error if data binary is not already present, "force" will
-create the data binary and overwrite any existing data binary}
+\item{refresh_binary}{character, length one; choose how to refresh a
+processed NAD county Parquet file if not already present; \code{"yes"} creates a
+missing file, \code{"no"} requires it to exist, and \code{"force"} recreates it}
 
-\item{refresh_source}{character, length one; choose how to refresh NAD
-source archive on disk if not already present; "yes" will download the
-archive if needed, "no" will require an existing local source, and "force"
-will download and overwrite an existing source}
+\item{refresh_source}{character, length one; choose how to refresh the
+compressed national source; \code{"no"} requires the stow-managed source to
+exist, \code{"yes"} downloads it if missing, and \code{"force"} redownloads it}
+
+\item{overwrite}{logical, length one; overwrite an existing processed county
+Parquet file?}
+}
+\value{
+\code{nad()} and \code{nad_read()} return a tibble for one county.
+\code{nad_install()} invisibly returns the installed county FIPS identifier.
 }
 \description{
 The U.S. Department of Transportation partners with address programs from
@@ -60,13 +73,13 @@ resolved internally and determine the processed-data path and source filter.
 The revision 23 source is a roughly 7.6 GB compressed archive containing a
 roughly 41 GB comma-delimited text member.
 
-Data binaries are the persistent outputs of \code{nad_read()} for each
-County/State and are created on first run with \code{nad()}.
+Processed county Parquet files are created one county at a time with
+\code{nad_install()} or on first use with \code{nad()}.
 The compressed national source is managed exclusively by \code{stow()} beneath
-\code{stow::stow_path(package = "addr", subdir = "nad")}. Derived county RDS
-files are separate processed data beneath
+\code{stow::stow_path(package = "addr", subdir = "nad")}. Derived county Parquet
+files are a separate Hive-partitioned dataset beneath
 \code{file.path(tools::R_user_dir("addr", "data"), "v1", "nad", "23")}, organized
-by state and county name. \code{nad_manifest()} inventories those county files
+by \code{state} and \code{county_fips}. \code{nad_manifest()} inventories those county files
 from \code{v1/nad_manifest/23/counties.parquet}. Set \code{R_USER_DATA_DIR} to
 relocate both areas while retaining their source-versus-processed-data
 separation.
@@ -78,7 +91,7 @@ transportation.gov data portal:
 \code{nad_download(version = 23L)} installs the pinned compressed archive as a
 durable managed local copy using \code{stow::stow()}. County installation streams
 the nationwide text member directly from that archive, retains the requested
-county, and writes a separate processed RDS file.
+county, and writes a separate processed Parquet file.
 The roughly 41 GB text member is never unpacked on disk.
 Before downloading, review the source metadata and disclaimer in the data
 portal.
@@ -96,8 +109,9 @@ Addresses with malformed ZIP codes are removed.
 # explicitly download source data, then create county output on first read
 \dontrun{
   # install the compressed revision 23 flat source archive, then build a
-  # county RDS from it
+  # county Parquet file from it
   nad_download()
+  nad_install("39017")
   nad("Butler", "OH")
   nad("39017")
 }

@@ -128,19 +128,32 @@ stow::stow_info(package = "addr")
 
 The former unmanaged TIGER ZIP layout is not searched after this cutover. A missing source ZIP is downloaded as a new durable managed local copy in its function-specific subdirectory.
 
-`nad_download()` installs USDOT's compressed NAD revision 23 flat-file archive as a durable managed local copy using `stow()`. The national source is managed exclusively beneath `stow::stow_path(package = "addr", subdir = "nad")`. `nad()` streams the requested county from that compressed source without unpacking its roughly 41 GB text member, transforms it into addr's standard NAD output, and stores the processed county separately beneath `file.path(tools::R_user_dir("addr", "data"), "v1", "nad", "23")`. After atomically installing a county RDS, addr adds or replaces its row in `v1/nad_manifest/23/counties.parquet`. Subsequent calls use the county RDS path as the primary existence check and load it without accessing the national source. This is the same source-versus-processed-data architecture used for TIGER address features.
+`nad_download()` installs USDOT's compressed NAD revision 23 flat-file archive as a durable managed local copy using `stow()`. The national source is managed exclusively beneath `stow::stow_path(package = "addr", subdir = "nad")`. `nad_install()` accepts exactly one county and streams that county from the compressed source without unpacking its roughly 41 GB text member. `nad()` performs the same installation on first use, then reconstructs addr and s2 columns for the requested county.
+
+Processed counties form a Hive-partitioned Parquet dataset beneath `file.path(tools::R_user_dir("addr", "data"), "v1", "nad", "23")`, with one file per county such as `state=OH/county_fips=39017/part-0.parquet`. After atomically installing a county, addr adds or replaces its row in `v1/nad_manifest/23/counties.parquet`. The county Parquet path remains the primary existence check, so later offline `nad()` calls do not access the national source. This is the same source-versus-processed-data architecture used for TIGER address features.
+
+Use `nad_dataset()` to open all installed counties as one lazy Arrow dataset and filter or project the primitive address columns before collecting them:
+
+```r
+nad_dataset() |>
+  dplyr::filter(state == "OH", county_fips == "39017") |>
+  dplyr::select(uuid, address_number, street_name, longitude, latitude) |>
+  dplyr::collect()
+```
+
+Arrow is optional and is only required for `nad_dataset()`. Installing from the national source remains intentionally county-at-a-time; there is no multi-county `nad_install()` mode.
 
 ## NAD fuel bundles
 
-Installed NAD counties can be packaged as a portable `addr-nad-fuel` archive without including the stow-managed national source.
-The packer validates the local county manifest and every RDS before creating `addr-nad-r23.tar.zst` and its JSON sidecar:
+Installed NAD counties can be packaged as a portable `addr-nad-fuel` archive without including the stow-managed national source. A full national fuel bundle can therefore be installed once and queried as a multi-file dataset with `nad_dataset()`, without installing counties from the source archive.
+The packer validates the local county manifest and every county Parquet file before creating `addr-nad-r23.tar.zst` and its JSON sidecar:
 
 ```sh
 bash "$(Rscript -e 'cat(system.file("exec", "pack-addr-nad-fuel.sh", package = "addr"))')" \
   23 "$PWD"
 ```
 
-The sidecar records the artifact schema, exact required addr version, NAD revision, archive size and SHA-256 digest, installed paths, county count, and expected file counts.
+The sidecar records the artifact schema, Parquet and Hive layout, exact required addr version, NAD revision, archive size and SHA-256 digest, installed paths, county count, and expected file counts.
 Install the archive and adjacent sidecar with:
 
 ```sh
@@ -148,7 +161,7 @@ bash "$(Rscript -e 'cat(system.file("exec", "install-addr-nad-fuel.sh", package 
   addr-nad-r23.tar.zst
 ```
 
-Before moving any files into addr's user data directory, the installer validates the JSON, archive, staged `counties.parquet`, and every staged county RDS.
+Before moving any files into addr's user data directory, the installer validates the JSON, archive, staged `counties.parquet`, and every staged county Parquet file.
 It installs both revision directories:
 
 ```text

@@ -1,3 +1,30 @@
+nad_test_storage <- function(county = "Ripley", n = 1L) {
+  tibble::tibble(
+    address_number_prefix = rep.int("", n),
+    address_number = as.character(seq_len(n) + 9L),
+    address_number_suffix = rep.int("", n),
+    street_predirectional = rep.int("", n),
+    street_premodifier = rep.int("", n),
+    street_pretype = rep.int("", n),
+    street_name = rep.int("MAIN", n),
+    street_posttype = rep.int("ST", n),
+    street_postdirectional = rep.int("", n),
+    subaddress = rep.int("", n),
+    county = rep.int(county, n),
+    place_name = rep.int("VERSAILLES", n),
+    zipcode = rep.int("47042", n),
+    uuid = paste0("fixture-", seq_len(n)),
+    date_update = rep.int(as.Date("2026-06-30"), n),
+    latitude = rep.int(39.071, n),
+    longitude = rep.int(-85.251, n),
+    national_grid = rep.int("", n),
+    placement = rep.int("", n),
+    address_class = rep.int("", n),
+    address_type = rep.int("", n),
+    parcel_id = rep.int("", n)
+  )
+}
+
 test_that("nad() requires a cached binary when refresh_binary is no", {
   withr::local_envvar(list("R_USER_DATA_DIR" = tempfile()))
 
@@ -37,8 +64,14 @@ test_that("nad version metadata is local and validates versions", {
     )
   )
   expect_equal(eval(formals(nad)$refresh_source), c("no", "yes", "force"))
+  expect_equal(
+    eval(formals(nad_install)$refresh_source),
+    c("no", "yes", "force")
+  )
   expect_equal(eval(formals(nad_read)$refresh_source), c("no", "yes", "force"))
   expect_identical(eval(formals(nad)$version), 23L)
+  expect_identical(eval(formals(nad_install)$version), 23L)
+  expect_identical(eval(formals(nad_dataset)$version), 23L)
   expect_identical(eval(formals(nad_read)$version), 23L)
   expect_identical(eval(formals(nad_download)$version), 23L)
   expect_identical(eval(formals(nad_version_metadata)$version), 23L)
@@ -140,12 +173,13 @@ test_that("nad_read routes through the flat extractor", {
 
 test_that("nad creates processed county data outside stow and reuses it offline", {
   withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
-  expected <- tibble::tibble(source = "flat")
+  storage <- nad_test_storage()
+  expected <- nad_storage_to_nad(storage, state = "IN")
   source_workspace <- stow::stow_path(package = "addr", subdir = "nad")
   calls <- 0L
   allow_source <- TRUE
   local_mocked_bindings(
-    nad_read = function(county, state, version, refresh_source) {
+    nad_read_storage = function(county, state, version, refresh_source) {
       if (!allow_source) {
         stop("source was accessed after the county was cached")
       }
@@ -154,7 +188,7 @@ test_that("nad creates processed county data outside stow and reuses it offline"
       expect_null(state)
       expect_identical(version, 23L)
       expect_identical(refresh_source, "no")
-      expected
+      storage
     },
     .package = "addr"
   )
@@ -163,7 +197,7 @@ test_that("nad creates processed county data outside stow and reuses it offline"
     out <- nad("18137", refresh_binary = "yes", refresh_source = "no"),
     "installing from source"
   )
-  path <- nad_sd_path("Ripley", "IN")
+  path <- nad_county_path("18137", "IN")
   expect_identical(
     path,
     file.path(
@@ -171,13 +205,14 @@ test_that("nad creates processed county data outside stow and reuses it offline"
       "v1",
       "nad",
       "23",
-      "IN",
-      "Ripley.rds"
+      "state=IN",
+      "county_fips=18137",
+      "part-0.parquet"
     )
   )
   expect_true(file.exists(path))
-  expect_identical(out, expected)
-  expect_identical(readRDS(path), expected)
+  expect_equal(out, expected)
+  expect_equal(nad_read_county_parquet(path), storage)
   manifest_path <- nad_manifest_path()
   expect_identical(
     manifest_path,
@@ -209,7 +244,7 @@ test_that("nad creates processed county data outside stow and reuses it offline"
     0L
   )
   allow_source <- FALSE
-  expect_identical(
+  expect_equal(
     nad("18137", refresh_binary = "no", refresh_source = "no"),
     expected
   )
@@ -220,20 +255,20 @@ test_that("nad creates processed county data outside stow and reuses it offline"
   )
 })
 
-test_that("nad uses an existing county RDS before repairing its manifest", {
+test_that("nad uses an existing county Parquet before repairing its manifest", {
   withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-nad-data-"))
-  expected <- tibble::tibble(source = c("cached", "cached"))
-  path <- nad_sd_path("Ripley", "IN")
-  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
-  saveRDS(expected, path)
+  storage <- nad_test_storage(n = 2L)
+  expected <- nad_storage_to_nad(storage, state = "IN")
+  path <- nad_county_path("18137", "IN")
+  nad_write_county_parquet(storage, path)
   expect_false(file.exists(nad_manifest_path()))
 
   local_mocked_bindings(
-    nad_read = function(...) stop("the national source was accessed"),
+    nad_read_storage = function(...) stop("the national source was accessed"),
     .package = "addr"
   )
 
-  expect_identical(
+  expect_equal(
     nad("18137", refresh_binary = "no", refresh_source = "no"),
     expected
   )
@@ -244,10 +279,9 @@ test_that("nad uses an existing county RDS before repairing its manifest", {
 
 test_that("nad manifest validation detects inventory and file corruption", {
   withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-nad-data-"))
-  value <- tibble::tibble(source = "cached")
-  path <- nad_sd_path("Ripley", "IN")
-  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
-  nad_write_county_rds(value, path)
+  value <- nad_test_storage()
+  path <- nad_county_path("18137", "IN")
+  nad_write_county_parquet(value, path)
   nad_upsert_manifest(
     path,
     value,
@@ -256,17 +290,16 @@ test_that("nad manifest validation detects inventory and file corruption", {
   )
   expect_silent(nad_manifest(validate = TRUE))
 
-  extra <- nad_sd_path("Campbell", "KY")
-  dir.create(dirname(extra), recursive = TRUE, showWarnings = FALSE)
-  saveRDS(value, extra)
+  extra <- nad_county_path("21037", "KY")
+  nad_write_county_parquet(nad_test_storage(county = "Campbell"), extra)
   expect_error(
     nad_manifest(validate = TRUE),
-    "does not match the installed RDS inventory",
+    "does not match the installed Parquet inventory",
     fixed = TRUE
   )
   unlink(extra)
 
-  writeLines("not an RDS", path)
+  writeLines("not Parquet", path)
   expect_error(
     nad_manifest(validate = TRUE),
     "size does not match manifest",
@@ -274,13 +307,23 @@ test_that("nad manifest validation detects inventory and file corruption", {
   )
 })
 
+test_that("an empty NAD manifest validates against an empty dataset", {
+  data_root <- tempfile("empty-nad-data-")
+  expect_silent(nad_validate_manifest(
+    nad_empty_manifest(),
+    data_root = data_root,
+    version = 23L,
+    verify_files = TRUE
+  ))
+})
+
 test_that("nad force refresh replaces one manifest row", {
   withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-nad-data-"))
   call <- 0L
   local_mocked_bindings(
-    nad_read = function(...) {
+    nad_read_storage = function(...) {
       call <<- call + 1L
-      tibble::tibble(source = rep.int(paste0("run-", call), call))
+      nad_test_storage(n = call)
     },
     .package = "addr"
   )
@@ -296,6 +339,55 @@ test_that("nad force refresh replaces one manifest row", {
   expect_false(identical(second$sha256, first$sha256))
 })
 
+test_that("nad_install accepts exactly one county", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-nad-data-"))
+  calls <- character()
+  local_mocked_bindings(
+    nad_read_storage = function(county, ...) {
+      calls <<- c(calls, county)
+      nad_test_storage()
+    },
+    .package = "addr"
+  )
+
+  expect_error(
+    nad_install(c("18137", "39061")),
+    "county must be length one",
+    fixed = TRUE
+  )
+  expect_identical(
+    withVisible(nad_install("18137", refresh_source = "no")),
+    list(value = "18137", visible = FALSE)
+  )
+  expect_identical(calls, "18137")
+  expect_true(file.exists(nad_county_path("18137", "IN")))
+})
+
+test_that("nad_dataset opens installed counties as one Hive dataset", {
+  skip_if_not_installed("arrow")
+  skip_if_not_installed("dplyr")
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-nad-data-"))
+  nad_write_county_parquet(
+    nad_test_storage(county = "Ripley"),
+    nad_county_path("18137", "IN")
+  )
+  nad_write_county_parquet(
+    nad_test_storage(county = "Butler"),
+    nad_county_path("39017", "OH")
+  )
+
+  dataset <- nad_dataset()
+  expect_s3_class(dataset, "FileSystemDataset")
+  expect_true(all(c("state", "county_fips") %in% dataset$schema$names))
+  butler <- dataset |>
+    dplyr::filter(state == "OH", county_fips == "39017") |>
+    dplyr::collect()
+  expect_equal(nrow(butler), 1L)
+  expect_identical(butler$county, "Butler")
+  expect_identical(butler$state, "OH")
+  expect_identical(butler$county_fips, "39017")
+})
+
 test_that("NAD fuel scripts are installed with their validation contract", {
   scripts <- system.file(
     "exec",
@@ -306,7 +398,10 @@ test_that("NAD fuel scripts are installed with their validation contract", {
   text <- lapply(scripts, readLines, warn = FALSE)
   expect_true(any(grepl("addr-nad-fuel", text[[1L]], fixed = TRUE)))
   expect_true(any(grepl("archive_sha256", text[[1L]], fixed = TRUE)))
+  expect_true(any(grepl('"schema_version" "2"', text[[1L]], fixed = TRUE)))
+  expect_true(any(grepl("county_file_format", text[[1L]], fixed = TRUE)))
   expect_true(any(grepl("nad_validate_manifest", text[[2L]], fixed = TRUE)))
+  expect_true(any(grepl("Parquet files", text[[2L]], fixed = TRUE)))
   expect_true(any(grepl("v1/nad_manifest", text[[2L]], fixed = TRUE)))
 })
 
@@ -430,14 +525,22 @@ test_that("NAD and TIGER separate managed sources from processed data", {
   data_root <- tools::R_user_dir("addr", "data")
   managed_root <- stow::stow_path(package = "addr")
   source_workspace <- stow::stow_path(package = "addr", subdir = "nad")
-  processed_path <- nad_sd_path("Hamilton", "OH")
+  processed_path <- nad_county_path("39061", "OH")
   manifest_path <- nad_manifest_path()
 
   expect_identical(basename(managed_root), "stow")
   expect_identical(dirname(source_workspace), managed_root)
   expect_identical(
     processed_path,
-    file.path(data_root, "v1", "nad", "23", "OH", "Hamilton.rds")
+    file.path(
+      data_root,
+      "v1",
+      "nad",
+      "23",
+      "state=OH",
+      "county_fips=39061",
+      "part-0.parquet"
+    )
   )
   expect_identical(
     manifest_path,
@@ -469,12 +572,35 @@ test_that("NAD ignores processed data under the development stow layout", {
   dir.create(dirname(development_path), recursive = TRUE, showWarnings = FALSE)
   saveRDS(tibble::tibble(source = "development stow layout"), development_path)
 
-  processed_path <- nad_sd_path("Ripley", "IN")
+  processed_path <- nad_county_path("18137", "IN")
   expect_error(
     nad("18137", refresh_binary = "no", refresh_source = "no"),
     paste0(processed_path, " does not exist"),
     fixed = TRUE
   )
   expect_true(file.exists(development_path))
+  expect_false(file.exists(processed_path))
+})
+
+test_that("NAD ignores the former processed RDS layout", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  former_path <- file.path(
+    tools::R_user_dir("addr", "data"),
+    "v1",
+    "nad",
+    "23",
+    "IN",
+    "Ripley.rds"
+  )
+  dir.create(dirname(former_path), recursive = TRUE, showWarnings = FALSE)
+  saveRDS(tibble::tibble(source = "former RDS layout"), former_path)
+
+  processed_path <- nad_county_path("18137", "IN")
+  expect_error(
+    nad("18137", refresh_binary = "no", refresh_source = "no"),
+    paste0(processed_path, " does not exist"),
+    fixed = TRUE
+  )
+  expect_true(file.exists(former_path))
   expect_false(file.exists(processed_path))
 })

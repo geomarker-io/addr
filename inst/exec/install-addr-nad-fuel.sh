@@ -138,6 +138,10 @@ SCHEMA_VERSION="$(json_required schema_version)"
 NAD_REVISION="$(json_required nad_revision)"
 META_ADDR_PACKAGE_VERSION="$(json_required addr_package_version)"
 META_ADDR_PACKAGE_VERSION_REQUIRED="$(json_required addr_package_version_required)"
+META_COUNTY_FILE_FORMAT="$(json_required county_file_format)"
+META_DATASET_PARTITIONING="$(json_required dataset_partitioning)"
+META_STATE_PARTITION_FIELD="$(json_required state_partition_field)"
+META_COUNTY_PARTITION_FIELD="$(json_required county_partition_field)"
 META_ARCHIVE_FILE="$(json_required archive_file)"
 META_ARCHIVE_SHA256="$(json_required archive_sha256)"
 META_ARCHIVE_SIZE_BYTES="$(json_required archive_size_bytes)"
@@ -161,9 +165,13 @@ if ! [[ "$META_CREATED_UTC" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-
 fi
 
 [ "$ARTIFACT_TYPE" = "addr-nad-fuel" ] || die "unexpected artifact_type: ${ARTIFACT_TYPE}"
-[ "$SCHEMA_VERSION" = "1" ] || die "unsupported schema_version: ${SCHEMA_VERSION}"
+[ "$SCHEMA_VERSION" = "2" ] || die "unsupported schema_version: ${SCHEMA_VERSION}"
 [ "$NAD_REVISION" = "23" ] || die "unsupported NAD revision: ${NAD_REVISION}"
 [ "$META_ADDR_PACKAGE_VERSION" = "$META_ADDR_PACKAGE_VERSION_REQUIRED" ] || die "metadata package versions do not match"
+[ "$META_COUNTY_FILE_FORMAT" = "parquet" ] || die "unsupported county_file_format: ${META_COUNTY_FILE_FORMAT}"
+[ "$META_DATASET_PARTITIONING" = "hive" ] || die "unsupported dataset_partitioning: ${META_DATASET_PARTITIONING}"
+[ "$META_STATE_PARTITION_FIELD" = "state" ] || die "unexpected state_partition_field: ${META_STATE_PARTITION_FIELD}"
+[ "$META_COUNTY_PARTITION_FIELD" = "county_fips" ] || die "unexpected county_partition_field: ${META_COUNTY_PARTITION_FIELD}"
 [ "$META_ARCHIVE_FILE" = "$ARCHIVE_BASENAME" ] || die "metadata archive_file does not match archive: ${META_ARCHIVE_FILE}"
 [ "$META_COUNTY_COUNT" -gt 0 ] || die "metadata county_count must be greater than zero"
 [ "$META_DATA_FILE_COUNT" = "$META_COUNTY_COUNT" ] || die "metadata data_file_count must match county_count"
@@ -260,7 +268,7 @@ STAGED_MANIFEST_FILE_COUNT="$(count_files "$STAGED_MANIFEST_DIR")"
 [ "$STAGED_DATA_FILE_COUNT" = "$META_DATA_FILE_COUNT" ] || die "staged data file count does not match metadata"
 [ "$STAGED_MANIFEST_FILE_COUNT" = "$META_MANIFEST_FILE_COUNT" ] || die "staged manifest file count does not match metadata"
 
-echo "validating staged NAD county manifest and RDS files"
+echo "validating staged NAD county manifest and Parquet files"
 ADDR_NAD_INSTALL_DATA_DIR="$STAGED_DATA_DIR" \
   ADDR_NAD_INSTALL_MANIFEST_FILE="$STAGED_MANIFEST_FILE" \
   ADDR_NAD_INSTALL_REVISION="$NAD_REVISION" \
@@ -286,7 +294,7 @@ validator(
 RSCRIPT
 
 # Recheck immediately before installation. The manifest moves first so that a
-# failed second move cannot expose county RDS files without their inventory.
+# failed second move cannot expose county Parquet files without their inventory.
 for path in "$NAD_DATA_DIR" "$NAD_MANIFEST_DIR"; do
   if [ -e "$path" ] || [ -L "$path" ]; then
     die "destination appeared during validation: ${path}"
