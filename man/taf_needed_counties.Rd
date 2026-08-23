@@ -25,10 +25,10 @@ taf_ensure(
 \arguments{
 \item{x}{an addr vector (\code{?as_addr}) or character vector of ZIP codes}
 
-\item{year}{integer, length one; vintage of TIGER addrfeat (address feature)
+\item{year}{character, length 1; vintage of TIGER addrfeat (address feature)
 files}
 
-\item{version}{character, length one; major version of the package
+\item{version}{character, length 1; major version of the package
 and taf dataset schema}
 
 \item{zip_variants}{logical; fuzzy match to common variants of

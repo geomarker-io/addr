@@ -39,7 +39,7 @@ reference:
     contents:
       - taf
       - taf_install
-      - taf_zip
+      - taf_dataset
       - taf_catalog
       - taf_needed_counties
       - tiger_addr_feat

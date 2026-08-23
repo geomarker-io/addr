@@ -170,14 +170,73 @@ test_that("tiger_addr_feat() can download addr feat from tiger", {
   expect_s3_class(d$s2_geography, "s2_geography")
 })
 
-test_that("taf requires arrow for the dataset interface", {
+test_that("taf_dataset requires arrow for the dataset interface", {
   local_mocked_bindings(
     check_installed = function(pkg, reason = NULL) {
       stop(paste(pkg, reason), call. = FALSE)
     }
   )
 
-  expect_error(taf("2025"), "arrow.*multi-file taf dataset")
+  expect_error(taf_dataset("2025"), "arrow.*multi-file taf dataset")
+})
+
+test_that("taf reads installed Parquet files by ZIP code", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-taf-data-"))
+  year <- "2025"
+  version <- "v1"
+  path <- file.path(
+    taf_dataset_path(year = year, version = version),
+    "zip3=452",
+    "zip2=20",
+    "39061.parquet"
+  )
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  nanoparquet::write_parquet(
+    tibble::tibble(
+      LINEARID = "fixture-line",
+      FULLNAME = "MAIN ST",
+      side = "L",
+      ZIP = "45220",
+      FROMHN = 1L,
+      TOHN = 99L,
+      PARITY = "B",
+      OFFSET = 0,
+      geometry_wkt = "LINESTRING (-84.5 39.1, -84.49 39.11)",
+      street_predirectional = "",
+      street_premodifier = "",
+      street_pretype = "",
+      street_name = "MAIN",
+      street_posttype = "ST",
+      street_postdirectional = "",
+      street_tag_parsed = FALSE,
+      county_fips = "39061"
+    ),
+    path
+  )
+  taf_write_county_zip_manifest(
+    tibble::tibble(
+      county_fips = "39061",
+      ZIP = "45220",
+      zip3 = "452",
+      zip2 = "20",
+      n_ranges = 1L,
+      installed_at = "2026-08-23 UTC"
+    ),
+    year = year,
+    version = version
+  )
+
+  out <- taf(c("45220", "45220"), year = year, version = version)
+  expect_equal(nrow(out), 1L)
+  expect_identical(out$county_fips, "39061")
+  expect_identical(format(out$addr_street), "MAIN ST")
+  expect_s3_class(out$s2_geography, "s2_geography")
+})
+
+test_that("TAF public reader names are hard renamed", {
+  exports <- getNamespaceExports("addr")
+  expect_true(all(c("taf", "taf_dataset") %in% exports))
+  expect_false("taf_zip" %in% exports)
 })
 
 test_that("taf_catalog reads installed ZIP county catalog", {

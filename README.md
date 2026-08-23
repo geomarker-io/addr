@@ -115,9 +115,9 @@ TIGER address features are Census street-segment address ranges.
 addr stores them as a hive-partitioned, multi-file parquet dataset, grouped by ZIP-code partitions and county files, so geocoding can read only the local files needed for the input ZIP codes.
 
 `taf_install()` installs TIGER address features for one county; however, `geocode()` installs all county files that may contain the ZIP codes in an input address vector as needed.
-Read TIGER address features for one or more ZIP codes with `taf_zip()`.
+Read TIGER address features for one or more ZIP codes with `taf()`.
 `taf_needed_counties()` identifies which county files may contain the ZIP codes in an input address vector, including selected ZIP-code variants.
-`taf_ensure()` installs any missing county files, and `geocode()` calls it by default before geocoding. addr uses nanoparquet for flat parquet reads and writes in these geocoding helpers. Use `taf()` to open the installed multi-file dataset with arrow for advanced lazy dataset queries; arrow is optional and is only required for `taf()`.
+`taf_ensure()` installs any missing county files, and `geocode()` calls it by default before geocoding. addr uses nanoparquet for flat parquet reads and writes in these geocoding helpers. Use `taf_dataset()` to open the installed multi-file dataset with arrow for advanced lazy dataset queries; arrow is optional and is only required for `taf_dataset()`.
 
 The source TIGER ZIP files used by `tiger_feat_names()` and `tiger_addr_feat()` are durable managed local copies created by `stow()`. They live beneath the fixed `stow` directory in addr's package-specific user data directory and are organized into separate `tiger_feat_names` and `tiger_addr_feat` subdirectories. Locate the managed local copy directory and inspect retained managed local copies with:
 

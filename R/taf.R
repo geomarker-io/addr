@@ -1,25 +1,18 @@
-#' TIGER Address Features dataset
+#' Open installed TIGER Address Features as an Arrow dataset
 #'
 #' @description
 #'
-#' `taf()` uses the arrow package to open the hive-partitioned parquet dataset
-#' of TIGER address features in the addr user data directory.
+#' `taf_dataset()` uses the arrow package to open the Hive-partitioned Parquet
+#' dataset of TIGER address features in the addr user data directory.
 #' Arrow `FileSystemDataset` objects are database-like backends for
 #' larger-than-memory datasets and support dplyr syntax for data manipulation;
 #' see <https://arrow.apache.org/docs/r/articles/data_wrangling.html>.
-#' Other TAF helpers such as `taf_catalog()`, `taf_install()`, and `taf_zip()`
+#' Other TAF helpers such as `taf_catalog()`, `taf_install()`, and `taf()`
 #' use nanoparquet directly for flat parquet file reads and writes. Arrow is
-#' only required for the advanced dataset interface returned by `taf()`.
+#' only required for the advanced dataset interface returned by
+#' `taf_dataset()`.
 #'
-#' @details
-#' `taf_install()` downloads and links TIGER address features and
-#' feature names for a specific year and county, installing the resulting
-#' file in the addr user data directory.
-#' About 6% of ADDRFEAT rows do not have a county-local primary FEATNAMES
-#' match by LINEARID. In these cases, street tags are parsed from the
-#' ADDRFEAT full name, and the `street_tag_parsed` column is set to TRUE.
-#'
-#' @param year integer, length one; vintage of TIGER addrfeat (address feature)
+#' @param year character, length one; vintage of TIGER addrfeat (address feature)
 #'   files
 #' @param version character, length one; major version of the package
 #' and taf dataset schema
@@ -33,10 +26,10 @@
 #'
 #'   if (requireNamespace("arrow", quietly = TRUE) &&
 #'     requireNamespace("dplyr", quietly = TRUE)) {
-#'     taf()
+#'     taf_dataset()
 #'
 #'     # find top ten most frequent street name-posttype combinations
-#'     taf() |>
+#'     taf_dataset() |>
 #'       dplyr::group_by(street_name, street_posttype) |>
 #'       dplyr::summarize(
 #'         n_zips = dplyr::n_distinct(ZIP),
@@ -48,7 +41,7 @@
 #'       dplyr::slice(1:10)
 #'   }
 #' }
-taf <- function(year = as.character(2025:2011), version = "v1") {
+taf_dataset <- function(year = as.character(2025:2011), version = "v1") {
   check_installed("arrow", "to open the multi-file taf dataset")
   stopifnot(
     "version must be a character vector" = is.character(version),
@@ -364,7 +357,7 @@ taf_install_lock_dir <- function(year, version) {
   )
 }
 
-#' @rdname taf
+#' @name taf
 #' @param county character, length 1; county FIPS code
 #' @param overwrite logical, length 1; overwrite an existing county install?
 #' @param redownload logical, length 1; replace existing durable managed local
@@ -481,29 +474,37 @@ taf_install <- function(
   return(invisible(county))
 }
 
-#' Read taf() data for ZIP codes across all installed counties
+#' Read TIGER Address Features into R
 #'
-#' `taf_zip()` reads and transforms `taf()` data for a subset of ZIP codes.
+#' `taf()` reads installed TIGER Address Features for one or more ZIP codes.
 #' It reconstructs the `county_fips`, `s2_geography`, and `addr_street`
-#' vectors in the returned data frame.
+#' vectors in the returned data frame. `taf_install()` installs one county's
+#' processed Parquet files from the stow-managed TIGER sources.
+#' Use `taf_dataset()` to query all installed flat files lazily with Arrow.
+#'
+#' About 6% of ADDRFEAT rows do not have a county-local primary FEATNAMES
+#' match by LINEARID. In these cases, street tags are parsed from the
+#' ADDRFEAT full name, and the `street_tag_parsed` column is set to `TRUE`.
 #' @param x character vector of five-digit ZIP codes
-#' @param map logical, length 1; map street tags read from taf() data
+#' @param map logical, length 1; map street tags read from the TAF data
 #' (type, directional, ordinal) when converting to `addr_street()` vector?
 #' @param year character, length 1; vintage of TIGER addrfeat (address feature)
 #'   files
 #' @param version character, length 1; major version of the package
 #' and taf dataset schema
-#' @returns a tibble with `LINEARID`, `FULLNAME`, `side`, `ZIP`,
-#' `FROMHN`, `TOHN`, `PARITY`, `OFFSET`, `s2_geography`, `addr_street`,
-#' `county_fips`, and `street_tag_parsed` columns
+#' @returns `taf()` returns a tibble with `LINEARID`, `FULLNAME`, `side`,
+#'   `ZIP`, `FROMHN`, `TOHN`, `PARITY`, `OFFSET`, `s2_geography`,
+#'   `addr_street`, `county_fips`, and `street_tag_parsed` columns.
+#'   `taf_install()` invisibly returns the installed county FIPS identifier.
+#' @name taf
 #' @export
 #' @examples
 #' \dontrun{
 #'   Sys.setenv("R_USER_DATA_DIR" = tempfile())
 #'   taf_install("39061", "2025")
-#'   taf_zip(c("45249", "45230", "45220"))
+#'   taf(c("45249", "45230", "45220"))
 #' }
-taf_zip <- function(
+taf <- function(
   x,
   map = TRUE,
   year = as.character(2025:2011),

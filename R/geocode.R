@@ -1358,7 +1358,7 @@ geocode_zip <- function(
     )
   }
 
-  ref_exact <- taf_zip(zpcd, map = TRUE, year = year, version = version)
+  ref_exact <- taf(zpcd, map = TRUE, year = year, version = version)
   ref_exact_streets <- geocode_unique_ref_streets(ref_exact)
   ref_exact_rng_idx <- geocode_ref_range_index(ref_exact)
   if (is.function(progress_callback)) {
@@ -1382,7 +1382,7 @@ geocode_zip <- function(
   if (length(no) != 0 && zip_variants && length(variant_zipcodes) > 0L) {
     out$matched_zipcode[no] <- NA_character_
     loaded_variant_zipcodes <- variant_zipcodes
-    ref_variant <- taf_zip(
+    ref_variant <- taf(
       variant_zipcodes,
       map = TRUE,
       year = year,
@@ -1519,7 +1519,7 @@ geocode_zip_place_candidates <- function(
   candidate_zips <- unique(candidates$ZIP)
   missing_zips <- setdiff(candidate_zips, loaded_zips)
   ref_add <- if (length(missing_zips) > 0L) {
-    taf_zip(missing_zips, map = TRUE, year = year, version = version)
+    taf(missing_zips, map = TRUE, year = year, version = version)
   } else {
     preloaded_ref[0, , drop = FALSE]
   }

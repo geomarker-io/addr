@@ -299,8 +299,8 @@ echo "installed manifest: $TAF_MANIFEST_DIR"
 ADDR_TAF_YEAR="$TAF_YEAR" ADDR_TAF_VERSION="$TAF_VERSION" Rscript -e '
 year <- Sys.getenv("ADDR_TAF_YEAR")
 version <- Sys.getenv("ADDR_TAF_VERSION")
-stopifnot(nrow(addr::taf_zip("45220", year = year, version = version)) > 0)
-message("taf_zip verification passed")
+stopifnot(nrow(addr::taf("45220", year = year, version = version)) > 0)
+message("TAF verification passed")
 '
 
 ADDR_TAF_YEAR="$TAF_YEAR" ADDR_TAF_VERSION="$TAF_VERSION" Rscript -e '
