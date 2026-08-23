@@ -266,8 +266,10 @@ nad_county_path <- function(county_fips, state, version = 23L) {
     "county_fips must be a character vector" = is.character(county_fips),
     "county_fips must be length one" = length(county_fips) == 1L,
     "county_fips must not be missing" = !is.na(county_fips),
-    "county_fips must be a 5-digit FIPS identifier" =
-      grepl("^[0-9]{5}$", county_fips),
+    "county_fips must be a 5-digit FIPS identifier" = grepl(
+      "^[0-9]{5}$",
+      county_fips
+    ),
     "state must be a character vector" = is.character(state),
     "state must be length one" = length(state) == 1L,
     "state must not be missing" = !is.na(state)
