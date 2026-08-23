@@ -49,6 +49,7 @@ reference:
       - nad
       - nad_read
       - nad_download
+      - nad_manifest
       - nad_example_data
   - title: Fuzzy join addr
     contents:
