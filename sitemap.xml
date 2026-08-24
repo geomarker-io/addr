@@ -24,12 +24,16 @@
 <url><loc>https://geomarker.io/addr/reference/match_addr_street.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/match_zipcodes.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/nad.html</loc></url>
+<url><loc>https://geomarker.io/addr/reference/nad_dataset.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/nad_example_data.html</loc></url>
+<url><loc>https://geomarker.io/addr/reference/nad_flat_extract.html</loc></url>
+<url><loc>https://geomarker.io/addr/reference/nad_manifest.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/phonetic_street_key.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/taf.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/taf_catalog.html</loc></url>
+<url><loc>https://geomarker.io/addr/reference/taf_dataset.html</loc></url>
+<url><loc>https://geomarker.io/addr/reference/taf_manifest.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/taf_needed_counties.html</loc></url>
-<url><loc>https://geomarker.io/addr/reference/taf_zip.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/tag_usaddress.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/tiger_addr_feat.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/tiger_feat_names.html</loc></url>

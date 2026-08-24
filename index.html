@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -118,8 +118,13 @@
 <div class="section level4">
 <h4 id="national-address-database">National Address Database<a class="anchor" aria-label="anchor" href="#national-address-database"></a>
 </h4>
-<p><code><a href="reference/nad.html">nad()</a></code> reads county-level address points from the U.S. Department of Transportation National Address Database. Counties can be requested by county name plus state, such as <code>"Hamilton", "OH"</code>, or by 5-digit county FIPS code, such as <code>"39061"</code>.</p>
-<p>The nationwide NAD geodatabase is large and county-based extracts are computationally expensive, so addr keeps derived county data in a persistent NAD workspace within its package-specific user data directory. The package also includes <code><a href="reference/nad_example_data.html">nad_example_data()</a></code>, a small baked fixture derived from Hamilton County, Ohio. Use it for examples, tests, and matching workflows that should run without downloading NAD source data first; use <code>nad("Hamilton", "OH")</code> when you need complete Hamilton County data.</p>
+<p><code><a href="reference/nad.html">nad()</a></code> reads county-level address points from the U.S. Department of Transportation National Address Database, including reconstruction of addr and s2 columns. Counties can be requested by county name plus state, such as <code>"Hamilton", "OH"</code>, or by 5-digit county FIPS code, such as <code>"39061"</code>. On first use, <code><a href="reference/nad.html">nad_download()</a></code> installs USDOT’s compressed NAD revision 23 flat-file archive as a durable managed local copy using <code>stow()</code>. The nationwide NAD source is large and county extraction requires a complete streaming scan, so addr caches each processed county under <code>v2/nad/23</code> in its package-specific user data directory.</p>
+<p>Processed counties form a Hive-partitioned Parquet dataset; use <code><a href="reference/nad_dataset.html">nad_dataset()</a></code> to open all installed counties as one lazy Arrow dataset and filter or project the primitive address columns before collecting them:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/nad_dataset.html">nad_dataset</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">state</span> <span class="op">==</span> <span class="st">"OH"</span>, <span class="va">county_fips</span> <span class="op">==</span> <span class="st">"39017"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">uuid</span>, <span class="va">address_number</span>, <span class="va">street_name</span>, <span class="va">longitude</span>, <span class="va">latitude</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">
@@ -132,79 +137,104 @@
 <div class="section level4">
 <h4 id="tiger-address-features">TIGER Address Features<a class="anchor" aria-label="anchor" href="#tiger-address-features"></a>
 </h4>
-<p>TIGER address features are Census street-segment address ranges. addr stores them as a hive-partitioned, multi-file parquet dataset, grouped by ZIP-code partitions and county files, so geocoding can read only the local files needed for the input ZIP codes.</p>
-<p><code><a href="reference/taf.html">taf_install()</a></code> installs TIGER address features for one county; however, <code><a href="reference/geocode.html">geocode()</a></code> installs all county files that may contain the ZIP codes in an input address vector as needed. Read TIGER address features for one or more ZIP codes with <code><a href="reference/taf_zip.html">taf_zip()</a></code>. <code><a href="reference/taf_needed_counties.html">taf_needed_counties()</a></code> identifies which county files may contain the ZIP codes in an input address vector, including selected ZIP-code variants. <code><a href="reference/taf_needed_counties.html">taf_ensure()</a></code> installs any missing county files, and <code><a href="reference/geocode.html">geocode()</a></code> calls it by default before geocoding. addr uses nanoparquet for flat parquet reads and writes in these geocoding helpers. Use <code><a href="reference/taf.html">taf()</a></code> to open the installed multi-file dataset with arrow for advanced lazy dataset queries; arrow is optional and is only required for <code><a href="reference/taf.html">taf()</a></code>.</p>
-<p>The source TIGER ZIP files used by <code><a href="reference/tiger_feat_names.html">tiger_feat_names()</a></code> and <code><a href="reference/tiger_addr_feat.html">tiger_addr_feat()</a></code> are durable managed local copies created by <code>stow()</code>. They live beneath the fixed <code>stow</code> directory in addr’s package-specific user data directory and are organized into separate <code>tiger_feat_names</code> and <code>tiger_addr_feat</code> subdirectories. Locate the managed local copy directory and inspect retained managed local copies with:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">stow</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/stow/man/stow_path.html" class="external-link">stow_path</a></span><span class="op">(</span>package <span class="op">=</span> <span class="st">"addr"</span><span class="op">)</span></span>
-<span><span class="fu">stow</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/stow/man/stow_info.html" class="external-link">stow_info</a></span><span class="op">(</span>package <span class="op">=</span> <span class="st">"addr"</span><span class="op">)</span></span></code></pre></div>
-<p>The former unmanaged TIGER ZIP layout is not searched after this cutover. A missing source ZIP is downloaded as a new durable managed local copy in its function-specific subdirectory.</p>
-<p>NAD keeps its resumable source download and derived county files in a persistent workspace returned by <code>stow::stow_path(package = "addr", subdir = "nad")</code>, inside addr’s fixed <code>stow</code> directory. On first use, addr moves an existing top-level <code>NAD_r22.zip</code>, <code>.part</code> file, and derived <code>v1/NAD_r22</code> directory into that workspace if the corresponding destination does not exist; when both former and current paths exist, the current workspace wins and the former path is ignored. The NAD download and processing pipeline remains specialized and does not use <code>stow()</code> to manage individual files.</p>
+<p>TIGER address features are Census street-segment address ranges. addr stores them as a hive-partitioned, multi-file parquet dataset, grouped by ZIP-code partitions and county files, so geocoding can read only the local files needed for the input ZIP codes. Read TIGER address features for one or more ZIP codes with <code><a href="reference/taf.html">taf()</a></code>, but <code><a href="reference/geocode.html">geocode()</a></code> automatically installs all county files that may contain the ZIP codes in an input address vector as needed. Like with the NAD dataset, use <code><a href="reference/taf_dataset.html">taf_dataset()</a></code> to open the installed multi-file dataset with arrow for advanced lazy dataset queries.</p>
 </div>
 </div>
+</div>
+<div class="section level2">
+<h2 id="nad-fuel-bundle">NAD fuel bundle<a class="anchor" aria-label="anchor" href="#nad-fuel-bundle"></a>
+</h2>
+<p>The addr 2.0.0 GitHub release provides a schema-v2 NAD revision 23 fuel bundle for users who prefer one large download instead of extracting counties from the national source as needed. The bundle contains the processed county dataset and its manifest but not the stow-managed national source. It requires addr 2.0.0 and the <code>bash</code>, <code>tar</code>, <code>zstd</code>, and <code>shasum</code> command-line tools.</p>
+<p>Download the archive and its JSON sidecar from the release:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">curl</span> <span class="at">--fail</span> <span class="at">--location</span> <span class="at">--remote-name</span> <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  https://github.com/geomarker-io/addr/releases/download/v2.0.0/addr-nad-r23.tar.zst</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="ex">curl</span> <span class="at">--fail</span> <span class="at">--location</span> <span class="at">--remote-name</span> <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  https://github.com/geomarker-io/addr/releases/download/v2.0.0/addr-nad-r23.json</span></code></pre></div>
+<p>Run the installer from a shell:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">bash</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "install-addr-nad-fuel.sh", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  addr-nad-r23.tar.zst</span></code></pre></div>
+<p>The installer reads the adjacent JSON sidecar, verifies the archive’s SHA-256 digest, confirms exact package compatibility and expected paths and file counts, and validates the staged <code>counties.parquet</code> manifest and every inventoried county Parquet file before moving either directory.</p>
+<p>By default, files are installed beneath the directory returned by:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(tools::R_user_dir("addr", "data"))'</span></span></code></pre></div>
+<p>The installed data and manifest paths are:</p>
+<pre class="text"><code><span><span class="va">v2</span><span class="op">/</span><span class="va">nad</span><span class="op">/</span><span class="fl">23</span></span>
+<span><span class="va">v2</span><span class="op">/</span><span class="va">nad_manifest</span><span class="op">/</span><span class="fl">23</span></span></code></pre>
+<p>Set <code>R_USER_DATA_DIR</code> before installation to use another storage location, such as scratch space on a cluster:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="bu">export</span> <span class="va">R_USER_DATA_DIR</span><span class="op">=</span>/scratch/<span class="op">&lt;</span>user<span class="op">&gt;</span>/addr-data</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">bash</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "install-addr-nad-fuel.sh", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  addr-nad-r23.tar.zst</span></code></pre></div>
+<p>The installer refuses to overwrite either existing revision-specific directory. Remove both directories before deliberately replacing an installation, or set <code>R_USER_DATA_DIR</code> to install in a different location.</p>
+<p>To create the same artifact from locally installed counties, run the packer. It validates the local manifest and every county Parquet file before writing the archive and sidecar:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">bash</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "pack-addr-nad-fuel.sh", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  23 <span class="st">"</span><span class="va">$PWD</span><span class="st">"</span></span></code></pre></div>
+<p>The sidecar records the schema, exact required addr version, NAD revision, Parquet and Hive layout, archive size and SHA-256 digest, installed paths, county count, and expected file counts.</p>
+</div>
+<div class="section level2">
+<h2 id="taf-fuel-bundle">TAF fuel bundle<a class="anchor" aria-label="anchor" href="#taf-fuel-bundle"></a>
+</h2>
+<p>The addr 2.0.0 GitHub release provides a schema-v2 national 2025 TIGER Address Features fuel bundle for users who prefer one large download instead of installing county data as needed. The bundle contains the processed county-ZIP dataset and its manifest but not the stow-managed TIGER source ZIP files. It requires addr 2.0.0 and the <code>bash</code>, <code>tar</code>, <code>zstd</code>, and <code>shasum</code> command-line tools.</p>
+<p>Download the archive and its JSON sidecar from the release:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="ex">curl</span> <span class="at">--fail</span> <span class="at">--location</span> <span class="at">--remote-name</span> <span class="dt">\</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  https://github.com/geomarker-io/addr/releases/download/v2.0.0/addr-taf-v2-2025.tar.zst</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="ex">curl</span> <span class="at">--fail</span> <span class="at">--location</span> <span class="at">--remote-name</span> <span class="dt">\</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  https://github.com/geomarker-io/addr/releases/download/v2.0.0/addr-taf-v2-2025.json</span></code></pre></div>
+<p>Run the installer from a shell:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">bash</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "install-addr-taf-fuel.sh", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  addr-taf-v2-2025.tar.zst</span></code></pre></div>
+<p>The installer reads the adjacent JSON sidecar, verifies the archive’s SHA-256 digest, confirms exact package compatibility and expected paths and file counts, and validates the staged <code>county_zip.parquet</code> manifest and every inventoried county-ZIP Parquet file. It then restores runtime-optimized Snappy Parquet files before moving either directory. The download is about 1.4 GiB and installation requires several additional gigabytes of temporary and destination disk space.</p>
+<p>By default, files are installed beneath the directory returned by:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(tools::R_user_dir("addr", "data"))'</span></span></code></pre></div>
+<p>The installed data and manifest paths are:</p>
+<pre class="text"><code><span><span class="va">v2</span><span class="op">/</span><span class="va">tiger_addr_feat</span><span class="op">/</span><span class="fl">2025</span></span>
+<span><span class="va">v2</span><span class="op">/</span><span class="va">tiger_addr_feat_manifest</span><span class="op">/</span><span class="fl">2025</span></span></code></pre>
+<p>Set <code>R_USER_DATA_DIR</code> before installation to use another storage location, such as scratch space on a cluster:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="bu">export</span> <span class="va">R_USER_DATA_DIR</span><span class="op">=</span>/scratch/<span class="op">&lt;</span>user<span class="op">&gt;</span>/addr-data</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="fu">bash</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "install-addr-taf-fuel.sh", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>  addr-taf-v2-2025.tar.zst</span></code></pre></div>
+<p>The installer refuses to overwrite either existing year-specific directory. Remove both directories before deliberately replacing an installation, or set <code>R_USER_DATA_DIR</code> to install in a different location.</p>
+<p>To create the same artifact from locally installed counties, run the packer. It validates the local manifest and every county-ZIP Parquet file before writing the archive and sidecar:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">bash</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "pack-addr-taf-fuel.sh", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>  2025 v2 <span class="st">"</span><span class="va">$PWD</span><span class="st">"</span></span></code></pre></div>
+<p>The sidecar records the schema, exact required addr version, TAF dataset version and year, archive and installed Parquet codecs, archive size and SHA-256 digest, installed paths, manifest row count, and expected file counts.</p>
 </div>
 <div class="section level2">
 <h2 id="container-and-command-line-interface">Container and command-line interface<a class="anchor" aria-label="anchor" href="#container-and-command-line-interface"></a>
 </h2>
 <p>An OCI-compatible runtime image with R and addr installed is published to the GitHub Container Registry:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">docker</span> pull ghcr.io/geomarker-io/addr:v1.3.0</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">-it</span> ghcr.io/geomarker-io/addr:v1.3.0</span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="ex">docker</span> pull ghcr.io/geomarker-io/addr:v1.3.0</span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">-it</span> ghcr.io/geomarker-io/addr:v1.3.0</span></code></pre></div>
 <p>Container release tags mirror addr package release versions. For reproducible work, use a specific release such as <code>ghcr.io/geomarker-io/addr:v1.3.0</code>.</p>
 <p>The image does not include or pre-install TIGER/Line or National Address Database data. Runtime data uses the standard addr user data directory under <code>/opt/addr-data/R/addr</code>. Mount <code>/opt/addr-data</code> when you want downloads or derived data to persist across runs:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">-it</span> <span class="at">-v</span> addr-data:/opt/addr-data ghcr.io/geomarker-io/addr:v1.3.0</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">-it</span> <span class="at">-v</span> addr-data:/opt/addr-data ghcr.io/geomarker-io/addr:v1.3.0</span></code></pre></div>
 <div class="section level3">
 <h3 id="batch-geocoding-on-a-cluster">Batch geocoding on a cluster<a class="anchor" aria-label="anchor" href="#batch-geocoding-on-a-cluster"></a>
 </h3>
 <p>The container includes an <code>addr-geocode</code> command for CSV or parquet files with a column named exactly <code>address</code>. The command writes a deterministic output file next to the input, matching the input file type and appending TIGER range geocoding columns. On systems that use Apptainer, pull a release-tagged image and bind user-specific scratch directories for persistent addr data and temporary files:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">apptainer</span> pull addr_v1.3.0.sif docker://ghcr.io/geomarker-io/addr:v1.3.0</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> /scratch/<span class="op">&lt;</span>cchmc-user<span class="op">&gt;</span>/addr-data /scratch/<span class="op">&lt;</span>cchmc-user<span class="op">&gt;</span>/addr-tmp</span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a></span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="ex">apptainer</span> exec <span class="at">--cleanenv</span> <span class="at">--contain</span> <span class="dt">\</span></span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="at">--bind</span> /scratch/<span class="op">&lt;</span>cchmc-user<span class="op">&gt;</span>/addr-data:/opt/addr-data <span class="dt">\</span></span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">--bind</span> /scratch/<span class="op">&lt;</span>cchmc-user<span class="op">&gt;</span>/addr-tmp:/tmp <span class="dt">\</span></span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="at">--bind</span> <span class="st">"</span><span class="va">$PWD</span><span class="st">:/work"</span> <span class="dt">\</span></span>
-<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  addr_v1.3.0.sif <span class="dt">\</span></span>
-<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>  addr-geocode <span class="dt">\</span></span>
-<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>    <span class="at">--input</span> /work/addresses.csv</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="ex">apptainer</span> pull addr_v1.3.0.sif docker://ghcr.io/geomarker-io/addr:v1.3.0</span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> /scratch/<span class="op">&lt;</span>cchmc-user<span class="op">&gt;</span>/addr-data /scratch/<span class="op">&lt;</span>cchmc-user<span class="op">&gt;</span>/addr-tmp</span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a><span class="ex">apptainer</span> exec <span class="at">--cleanenv</span> <span class="at">--contain</span> <span class="dt">\</span></span>
+<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a>  <span class="at">--bind</span> /scratch/<span class="op">&lt;</span>cchmc-user<span class="op">&gt;</span>/addr-data:/opt/addr-data <span class="dt">\</span></span>
+<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a>  <span class="at">--bind</span> /scratch/<span class="op">&lt;</span>cchmc-user<span class="op">&gt;</span>/addr-tmp:/tmp <span class="dt">\</span></span>
+<span id="cb19-8"><a href="#cb19-8" tabindex="-1"></a>  <span class="at">--bind</span> <span class="st">"</span><span class="va">$PWD</span><span class="st">:/work"</span> <span class="dt">\</span></span>
+<span id="cb19-9"><a href="#cb19-9" tabindex="-1"></a>  addr_v1.3.0.sif <span class="dt">\</span></span>
+<span id="cb19-10"><a href="#cb19-10" tabindex="-1"></a>  addr-geocode <span class="dt">\</span></span>
+<span id="cb19-11"><a href="#cb19-11" tabindex="-1"></a>    <span class="at">--input</span> /work/addresses.csv</span></code></pre></div>
 <p>For example, Cole’s CCHMC username is <code>broeg1</code>, so his scratch directories use <code>/scratch/broeg1/</code>:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> /scratch/broeg1/addr-data /scratch/broeg1/addr-tmp</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> /scratch/broeg1/addr-data /scratch/broeg1/addr-tmp</span></code></pre></div>
 <p>Use <code>--cleanenv</code> and <code>--contain</code> so the container does not inherit host R environment variables, home-directory data, or temporary directories.</p>
 <p>For local R installations, run the installed script from the shell:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "addr-geocode", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="at">--input</span> addresses.csv</span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "addr-geocode", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>  <span class="at">--input</span> addresses.csv</span></code></pre></div>
 <p>You can also create a one-time shell symlink:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> <span class="st">"</span><span class="va">$HOME</span><span class="st">/.local/bin"</span></span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">ln</span> <span class="at">-s</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "addr-geocode", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="st">"</span><span class="va">$HOME</span><span class="st">/.local/bin/addr-geocode"</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> <span class="st">"</span><span class="va">$HOME</span><span class="st">/.local/bin"</span></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="fu">ln</span> <span class="at">-s</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "addr-geocode", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a>  <span class="st">"</span><span class="va">$HOME</span><span class="st">/.local/bin/addr-geocode"</span></span></code></pre></div>
 <p>Then run:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="ex">addr-geocode</span> <span class="at">--input</span> addresses.csv</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="ex">addr-geocode</span> <span class="at">--input</span> addresses.csv</span></code></pre></div>
 <p>For local image development, use <code>just build</code>, <code>just run</code>, and <code>just test-container</code> with the <code>container</code> CLI. The <code>just run</code> target resolves <code>tools::R_user_dir("addr", "data")</code> with the local R installation and mounts that directory into the container when it already exists.</p>
 </div>
-</div>
-<div class="section level2">
-<h2 id="full-taf-bundle">Full TAF bundle<a class="anchor" aria-label="anchor" href="#full-taf-bundle"></a>
-</h2>
-<p>The addr 1.3.0 GitHub release provides a national 2025 TIGER Address Features bundle for users who prefer one large download instead of installing county data as needed. The bundle requires addr 1.3.0 and the <code>bash</code>, <code>tar</code>, <code>zstd</code>, and <code>shasum</code> command-line tools.</p>
-<p>Download the archive and its small JSON manifest from the release:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="ex">curl</span> <span class="at">--fail</span> <span class="at">--location</span> <span class="at">--remote-name</span> <span class="dt">\</span></span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  https://github.com/geomarker-io/addr/releases/download/v1.3.0/addr-taf-v1-2025.tar.zst</span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="ex">curl</span> <span class="at">--fail</span> <span class="at">--location</span> <span class="at">--remote-name</span> <span class="dt">\</span></span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  https://github.com/geomarker-io/addr/releases/download/v1.3.0/addr-taf-v1-2025.json</span></code></pre></div>
-<p>Run the installer from a shell:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">bash</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "install-addr-taf-fuel.sh", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  addr-taf-v1-2025.tar.zst</span></code></pre></div>
-<p>The installer reads the JSON manifest next to the archive, verifies the embedded SHA-256 checksum, confirms package compatibility and file counts, and then installs runtime-optimized Snappy parquet files. The download is about 1.4 GiB and installation requires several additional gigabytes of temporary and destination disk space.</p>
-<p>By default, files are installed under the directory returned by:</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(tools::R_user_dir("addr", "data"))'</span></span></code></pre></div>
-<p>Set <code>R_USER_DATA_DIR</code> before installation to use another storage location, such as scratch space on a cluster:</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="bu">export</span> <span class="va">R_USER_DATA_DIR</span><span class="op">=</span>/scratch/<span class="op">&lt;</span>user<span class="op">&gt;</span>/addr-data</span>
-<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="fu">bash</span> <span class="st">"</span><span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("exec", "install-addr-taf-fuel.sh", package = "addr"))'</span><span class="va">)</span><span class="st">"</span> <span class="dt">\</span></span>
-<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>  addr-taf-v1-2025.tar.zst</span></code></pre></div>
-<p>With that setting, the installed data and manifest are placed under:</p>
-<pre class="text"><code>${R_USER_DATA_DIR}/R/addr/v1/tiger_addr_feat/2025
-${R_USER_DATA_DIR}/R/addr/v1/tiger_addr_feat_manifest/2025</code></pre>
-<p>The installer refuses to overwrite either existing year-specific directory. Remove both directories before deliberately replacing an existing full installation, or set <code>R_USER_DATA_DIR</code> to install in a different location.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
