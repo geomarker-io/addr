@@ -365,6 +365,27 @@ test_that("nad_install accepts exactly one county", {
   expect_true(file.exists(nad_county_path("18137", "IN")))
 })
 
+test_that("nad_install rejects a zero-row county extraction", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-nad-data-"))
+  local_mocked_bindings(
+    nad_read_storage = function(...) nad_test_storage(n = 0L),
+    .package = "addr"
+  )
+
+  expect_error(
+    nad_install("18137", refresh_source = "no"),
+    paste0(
+      "NAD revision 23 extraction returned zero rows for county `18137` ",
+      "(Ripley, IN). This is an installation error, not a valid empty ",
+      "county"
+    ),
+    fixed = TRUE
+  )
+  expect_false(file.exists(nad_county_path("18137", "IN")))
+  expect_false(file.exists(nad_manifest_path()))
+  expect_equal(nrow(nad_manifest()), 0L)
+})
+
 test_that("nad_dataset opens installed counties as one Hive dataset", {
   skip_if_not_installed("arrow")
   skip_if_not_installed("dplyr")

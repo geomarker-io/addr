@@ -198,6 +198,25 @@ nad_install <- function(
     version = version,
     refresh_source = refresh_source
   )
+  if (nrow(storage) == 0L) {
+    stop(
+      "NAD revision ",
+      version,
+      " extraction returned zero rows for county `",
+      county_info$county_fips,
+      "` (",
+      county_info$county,
+      ", ",
+      county_info$state,
+      "). This is an installation error, not a valid empty county: ",
+      "the result means the release contains no matching source records, ",
+      "either because the county is unavailable or because its source label ",
+      "does not match addr's county reference. Installing an empty Parquet ",
+      "file would incorrectly mark the county as available, so no file or ",
+      "manifest entry was written.",
+      call. = FALSE
+    )
+  }
   nad_write_county_parquet(storage, nad_path)
   nad_upsert_manifest(
     path = nad_path,
