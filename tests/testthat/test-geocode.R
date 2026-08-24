@@ -102,6 +102,7 @@ test_that("geocode returns non-matches for missing zipcodes", {
 test_that("geocode warns when taf_install is FALSE and needed counties are missing", {
   local_mocked_bindings(
     taf_needed_counties = function(...) test_geocode_needed_counties(),
+    taf_installed_counties = function(x, ...) unique(x$county_fips),
     taf_read_county_zip_manifest = function(...) test_geocode_manifest(),
     geocode_zip = function(x, offset = 0L, ...) {
       tibble::tibble(
@@ -139,6 +140,7 @@ test_that("geocode installs and verifies TAF before ZIP geocoding", {
       invisible("39061")
     },
     taf_needed_counties = function(...) test_geocode_needed_counties(),
+    taf_installed_counties = function(x, ...) unique(x$county_fips),
     taf_read_county_zip_manifest = function(...) {
       if (installed) {
         return(test_geocode_manifest("39061", "45220"))
@@ -177,6 +179,7 @@ test_that("geocode stops before ZIP geocoding when TAF remains missing", {
     },
     taf_install = function(...) invisible("39061"),
     taf_needed_counties = function(...) test_geocode_needed_counties(),
+    taf_installed_counties = function(x, ...) unique(x$county_fips),
     taf_read_county_zip_manifest = function(...) test_geocode_manifest(),
     geocode_zip = function(...) {
       read_started <<- TRUE
@@ -209,6 +212,7 @@ test_that("geocode computes TAF needs once for the top-level plan", {
         ZIP = c("45219", "45220")
       )
     },
+    taf_installed_counties = function(x, ...) unique(x$county_fips),
     taf_read_county_zip_manifest = function(...) {
       manifest_calls <<- manifest_calls + 1L
       test_geocode_manifest("39061", "45219")
@@ -257,7 +261,7 @@ test_that("geocode eagerly prepares exact, place, and typo candidate tiers", {
   geocode_prepare_taf(
     x,
     year = "2025",
-    version = "v1",
+    version = "v2",
     zip_variants = TRUE,
     zip_variant = "plus1",
     place_zip_variants = TRUE,
@@ -290,7 +294,7 @@ test_that("disabling place lookup avoids place TAF candidate work", {
   geocode_prepare_taf(
     x,
     year = "2025",
-    version = "v1",
+    version = "v2",
     zip_variants = TRUE,
     zip_variant = "plus1",
     place_zip_variants = FALSE,
@@ -623,7 +627,7 @@ test_that("geocode can skip S2 cell output", {
 test_that("geocode_zip forwards street matching arguments to match_addr_street", {
   seen <- NULL
   local_mocked_bindings(
-    taf_zip = function(zipcode, map = TRUE, ...) {
+    taf = function(zipcode, map = TRUE, ...) {
       tibble::tibble(
         ZIP = zipcode,
         addr_street = addr_street(name = "Main", posttype = "St"),
@@ -668,8 +672,9 @@ test_that("geocode_zip forwards street matching arguments to match_addr_street",
 test_that("geocode_zip warns when taf_install is FALSE and needed counties are missing", {
   local_mocked_bindings(
     taf_needed_counties = function(...) test_geocode_needed_counties(),
+    taf_installed_counties = function(x, ...) unique(x$county_fips),
     taf_read_county_zip_manifest = function(...) test_geocode_manifest(),
-    taf_zip = function(zipcode, map = TRUE, ...) {
+    taf = function(zipcode, map = TRUE, ...) {
       tibble::tibble(
         ZIP = zipcode,
         addr_street = addr_street(name = "Main", posttype = "St"),
@@ -708,13 +713,14 @@ test_that("geocode_zip serializes TAF install before reading ZIP files", {
       invisible("39061")
     },
     taf_needed_counties = function(...) test_geocode_needed_counties(),
+    taf_installed_counties = function(x, ...) unique(x$county_fips),
     taf_read_county_zip_manifest = function(...) {
       if (installed) {
         return(test_geocode_manifest("39061", "45220"))
       }
       test_geocode_manifest()
     },
-    taf_zip = function(zipcode, map = TRUE, ...) {
+    taf = function(zipcode, map = TRUE, ...) {
       expect_true(lock_used)
       expect_true(installed)
       tibble::tibble(
@@ -745,7 +751,7 @@ test_that("geocode_zip serializes TAF install before reading ZIP files", {
 
 test_that("geocode_zip respects zipcode variant controls", {
   local_mocked_bindings(
-    taf_zip = function(zipcode, map = TRUE, ...) {
+    taf = function(zipcode, map = TRUE, ...) {
       if (identical(zipcode, "45220")) {
         return(tibble::tibble(
           ZIP = "45220",
@@ -813,7 +819,7 @@ test_that("geocode_zip prioritizes valid ranges across ZIP candidate tiers", {
   run_case <- function(ref) {
     local_mocked_bindings(
       geocode_zip_candidates = function(...) candidates,
-      taf_zip = function(zipcode, map = TRUE, ...) {
+      taf = function(zipcode, map = TRUE, ...) {
         ref[ref$ZIP %in% zipcode, , drop = FALSE]
       }
     )
@@ -877,7 +883,7 @@ test_that("geocode_zip uses requested place geography order", {
         typo_zip = character()
       )
     },
-    taf_zip = function(zipcode, map = TRUE, ...) {
+    taf = function(zipcode, map = TRUE, ...) {
       ref[ref$ZIP %in% zipcode, , drop = FALSE]
     }
   )
@@ -923,7 +929,7 @@ test_that("geocode_zip uses number and parity within a place tier", {
   )
   local_mocked_bindings(
     geocode_zip_candidates = function(...) candidates,
-    taf_zip = function(zipcode, map = TRUE, ...) {
+    taf = function(zipcode, map = TRUE, ...) {
       ref[ref$ZIP %in% zipcode, , drop = FALSE]
     }
   )
@@ -963,7 +969,7 @@ test_that("geocode_zip keeps place candidates isolated by input row", {
   )
   local_mocked_bindings(
     geocode_zip_candidates = function(...) candidates,
-    taf_zip = function(zipcode, map = TRUE, ...) {
+    taf = function(zipcode, map = TRUE, ...) {
       ref[ref$ZIP %in% zipcode, , drop = FALSE]
     }
   )
@@ -985,7 +991,7 @@ test_that("geocode_zip place lookup can be disabled independently", {
     c(NA_integer_, 99L)
   )
   local_mocked_bindings(
-    taf_zip = function(zipcode, map = TRUE, ...) {
+    taf = function(zipcode, map = TRUE, ...) {
       ref[ref$ZIP %in% zipcode, , drop = FALSE]
     }
   )
@@ -1013,7 +1019,7 @@ test_that("geocode_zip place lookup can be disabled independently", {
 test_that("geocode_zip matches duplicate TAF street ranges once", {
   matched_against <- NULL
   local_mocked_bindings(
-    taf_zip = function(zipcode, map = TRUE, ...) {
+    taf = function(zipcode, map = TRUE, ...) {
       tibble::tibble(
         ZIP = rep("45219", 4),
         addr_street = addr_street(
@@ -1067,10 +1073,10 @@ test_that("geocode_zip matches duplicate TAF street ranges once", {
 })
 
 test_that("geocode_zip skips generated invalid zipcode variants", {
-  taf_zip_calls <- list()
+  taf_calls <- list()
   local_mocked_bindings(
-    taf_zip = function(zipcode, map = TRUE, ...) {
-      taf_zip_calls <<- c(taf_zip_calls, list(zipcode))
+    taf = function(zipcode, map = TRUE, ...) {
+      taf_calls <<- c(taf_calls, list(zipcode))
       expect_false(any(is_invalid_zipcode(zipcode)))
       tibble::tibble(
         ZIP = character(),
@@ -1101,8 +1107,8 @@ test_that("geocode_zip skips generated invalid zipcode variants", {
     taf_check = FALSE
   )
 
-  expect_length(taf_zip_calls, 1L)
-  expect_equal(taf_zip_calls[[1]], "00100")
+  expect_length(taf_calls, 1L)
+  expect_equal(taf_calls[[1]], "00100")
   expect_true(is.na(out$matched_zipcode))
   expect_true(is.na(out$matched_street))
 })
@@ -1135,7 +1141,7 @@ test_that("geocode reports ZIP and address context for ZIP-level errors", {
 
 test_that("geocode_zip offsets matched points by TIGER side", {
   local_mocked_bindings(
-    taf_zip = function(zipcode, map = TRUE, ...) {
+    taf = function(zipcode, map = TRUE, ...) {
       tibble::tibble(
         ZIP = rep("45219", 2),
         addr_street = addr_street(
@@ -1185,7 +1191,7 @@ test_that("geocode_zip offsets matched points by TIGER side", {
 
 test_that("geocode_zip suppresses default offset for TIGER offset ranges", {
   local_mocked_bindings(
-    taf_zip = function(zipcode, map = TRUE, ...) {
+    taf = function(zipcode, map = TRUE, ...) {
       tibble::tibble(
         ZIP = rep("45219", 2),
         addr_street = addr_street(
@@ -1234,7 +1240,7 @@ test_that("geocode_zip suppresses default offset for TIGER offset ranges", {
 
 test_that("geocode_zip ignores matched TAF ranges with missing endpoints", {
   local_mocked_bindings(
-    taf_zip = function(zipcode, map = TRUE, ...) {
+    taf = function(zipcode, map = TRUE, ...) {
       tibble::tibble(
         ZIP = rep(zipcode, 4),
         addr_street = addr_street(
@@ -1438,7 +1444,7 @@ test_that("geocode works with mirai daemons on voter addresses", {
   )
 
   year <- "2025"
-  version <- "v1"
+  version <- "v2"
   county <- "39061"
   taf_dataset_path <- getFromNamespace("taf_dataset_path", ns = "addr")
   taf_write_catalog <- getFromNamespace("taf_write_catalog", ns = "addr")
@@ -1522,7 +1528,12 @@ test_that("geocode works with mirai daemons on voter addresses", {
     )
   }
 
-  manifest <- taf_county_zip_manifest_rows(ref_tbl, county = county)
+  manifest <- taf_county_zip_manifest_rows(
+    ref_tbl,
+    county = county,
+    year = year,
+    version = version
+  )
   taf_write_county_zip_manifest(manifest, year = year, version = version)
   taf_write_catalog(manifest, year = year, version = version, root = temp_root)
 

@@ -14,7 +14,7 @@ EOF
 
 die() {
   echo "install-addr-taf-fuel: $*" >&2
-  echo "See https://github.com/geomarker-io/addr#full-taf-bundle for installation details." >&2
+  echo "See https://github.com/geomarker-io/addr#taf-fuel-bundle for installation details." >&2
   exit 1
 }
 
@@ -136,6 +136,7 @@ META_ADDR_PACKAGE_VERSION_REQUIRED="$(json_required addr_package_version_require
 META_DATA_PATH="$(json_required data_path)"
 META_MANIFEST_PATH="$(json_required manifest_path)"
 META_REQUIRED_MANIFEST_FILE="$(json_required required_manifest_file)"
+META_MANIFEST_ROW_COUNT="$(json_required manifest_row_count)"
 META_DATA_FILE_COUNT="$(json_required data_file_count)"
 META_MANIFEST_FILE_COUNT="$(json_required manifest_file_count)"
 META_ARCHIVE_PARQUET_COMPRESSION="$(json_required archive_parquet_compression)"
@@ -144,11 +145,15 @@ META_INSTALLED_PARQUET_COMPRESSION="$(json_required installed_parquet_compressio
 
 validate_unsigned_integer "$SCHEMA_VERSION" "metadata schema_version"
 validate_unsigned_integer "$META_ARCHIVE_SIZE_BYTES" "metadata archive_size_bytes"
+validate_unsigned_integer "$META_MANIFEST_ROW_COUNT" "metadata manifest_row_count"
 validate_unsigned_integer "$META_DATA_FILE_COUNT" "metadata data_file_count"
 validate_unsigned_integer "$META_MANIFEST_FILE_COUNT" "metadata manifest_file_count"
 
 [ "$ARTIFACT_TYPE" = "addr-taf-fuel" ] || die "unexpected artifact_type: ${ARTIFACT_TYPE}"
-[ "$SCHEMA_VERSION" = "1" ] || die "unsupported schema_version: ${SCHEMA_VERSION}"
+[ "$SCHEMA_VERSION" = "2" ] || die "unsupported schema_version: ${SCHEMA_VERSION}"
+[ "$TAF_VERSION" = "v2" ] || die "unsupported taf_version: ${TAF_VERSION}"
+[ "$META_MANIFEST_ROW_COUNT" -gt 0 ] || die "metadata manifest_row_count must be positive"
+[ "$META_DATA_FILE_COUNT" = "$META_MANIFEST_ROW_COUNT" ] || die "metadata data_file_count does not match manifest_row_count"
 validate_unsigned_integer "$META_ARCHIVE_PARQUET_COMPRESSION_LEVEL" "metadata archive_parquet_compression_level"
 [ "$META_ARCHIVE_PARQUET_COMPRESSION" = "zstd" ] || die "unsupported archive parquet compression: ${META_ARCHIVE_PARQUET_COMPRESSION}"
 [ "$META_INSTALLED_PARQUET_COMPRESSION" = "snappy" ] || die "unsupported installed parquet compression: ${META_INSTALLED_PARQUET_COMPRESSION}"
@@ -196,7 +201,7 @@ if [ "${#existing_paths[@]}" -gt 0 ]; then
     echo "The installer refuses to overwrite existing TAF fuel."
     echo "Delete the existing path(s) first, then rerun this script."
     echo "To install somewhere else, set R_USER_DATA_DIR before running this script."
-    echo "See https://github.com/geomarker-io/addr#full-taf-bundle for replacement details."
+    echo "See https://github.com/geomarker-io/addr#taf-fuel-bundle for replacement details."
   } >&2
   exit 1
 fi
@@ -234,20 +239,56 @@ STAGED_REQUIRED_MANIFEST_FILE="${STAGING_DIR}/${META_REQUIRED_MANIFEST_FILE}"
 
 STAGED_DATA_FILE_COUNT="$(count_files "$STAGED_DATA_DIR")"
 STAGED_MANIFEST_FILE_COUNT="$(count_files "$STAGED_MANIFEST_DIR")"
+STAGED_SYMLINK_COUNT="$(find "$STAGED_DATA_DIR" "$STAGED_MANIFEST_DIR" -type l | wc -l | tr -d '[:space:]')"
 
 [ "$STAGED_DATA_FILE_COUNT" = "$META_DATA_FILE_COUNT" ] || die "staged data file count does not match metadata"
 [ "$STAGED_MANIFEST_FILE_COUNT" = "$META_MANIFEST_FILE_COUNT" ] || die "staged manifest file count does not match metadata"
+[ "$STAGED_SYMLINK_COUNT" = "0" ] || die "staged TAF fuel must not contain symbolic links"
+
+echo "validating staged TAF manifest and distribution Parquet files"
+ADDR_TAF_INSTALL_DATA_DIR="$STAGED_DATA_DIR" \
+  ADDR_TAF_INSTALL_MANIFEST_FILE="$STAGED_REQUIRED_MANIFEST_FILE" \
+  ADDR_TAF_INSTALL_YEAR="$TAF_YEAR" \
+  ADDR_TAF_INSTALL_VERSION="$TAF_VERSION" \
+  ADDR_TAF_INSTALL_MANIFEST_ROW_COUNT="$META_MANIFEST_ROW_COUNT" \
+  Rscript - <<'RSCRIPT'
+data_dir <- Sys.getenv("ADDR_TAF_INSTALL_DATA_DIR")
+manifest_file <- Sys.getenv("ADDR_TAF_INSTALL_MANIFEST_FILE")
+year <- Sys.getenv("ADDR_TAF_INSTALL_YEAR")
+version <- Sys.getenv("ADDR_TAF_INSTALL_VERSION")
+expected_rows <- as.integer(Sys.getenv("ADDR_TAF_INSTALL_MANIFEST_ROW_COUNT"))
+
+manifest <- nanoparquet::read_parquet(manifest_file) |>
+  tibble::as_tibble()
+if (nrow(manifest) != expected_rows) {
+  stop("staged TAF manifest row count does not match metadata", call. = FALSE)
+}
+validator <- getFromNamespace("taf_validate_manifest", "addr")
+validator(
+  manifest,
+  data_root = data_dir,
+  year = year,
+  version = version,
+  verify_files = TRUE
+)
+RSCRIPT
 
 echo "transcoding installed parquet to ${META_INSTALLED_PARQUET_COMPRESSION}"
 ADDR_TAF_INSTALL_DATA_DIR="$STAGED_DATA_DIR" \
   ADDR_TAF_INSTALL_MANIFEST_DIR="$STAGED_MANIFEST_DIR" \
+  ADDR_TAF_INSTALL_MANIFEST_FILE="$STAGED_REQUIRED_MANIFEST_FILE" \
   ADDR_TAF_INSTALL_COMPRESSION="$META_INSTALLED_PARQUET_COMPRESSION" \
+  ADDR_TAF_INSTALL_YEAR="$TAF_YEAR" \
+  ADDR_TAF_INSTALL_VERSION="$TAF_VERSION" \
   Rscript - <<'RSCRIPT'
 roots <- c(
   Sys.getenv("ADDR_TAF_INSTALL_DATA_DIR"),
   Sys.getenv("ADDR_TAF_INSTALL_MANIFEST_DIR")
 )
 compression <- Sys.getenv("ADDR_TAF_INSTALL_COMPRESSION")
+manifest_file <- Sys.getenv("ADDR_TAF_INSTALL_MANIFEST_FILE")
+year <- Sys.getenv("ADDR_TAF_INSTALL_YEAR")
+version <- Sys.getenv("ADDR_TAF_INSTALL_VERSION")
 
 if (!requireNamespace("nanoparquet", quietly = TRUE)) {
   stop("nanoparquet is required to install TAF fuel", call. = FALSE)
@@ -284,23 +325,99 @@ for (i in seq_along(files)) {
     message("transcoded ", i, " of ", length(files), " files")
   }
 }
+
+manifest <- nanoparquet::read_parquet(manifest_file) |>
+  tibble::as_tibble()
+refresh <- getFromNamespace("taf_refresh_manifest_file_metadata", "addr")
+manifest <- refresh(
+  manifest,
+  data_root = Sys.getenv("ADDR_TAF_INSTALL_DATA_DIR"),
+  year = year,
+  version = version
+)
+temporary_manifest <- paste0(manifest_file, ".refreshing")
+nanoparquet::write_parquet(
+  manifest,
+  temporary_manifest,
+  compression = compression
+)
+unlink(manifest_file, force = TRUE)
+if (!file.rename(temporary_manifest, manifest_file)) {
+  stop("could not replace staged TAF manifest", call. = FALSE)
+}
 RSCRIPT
 
+echo "validating staged TAF manifest and installed Parquet files"
+ADDR_TAF_INSTALL_DATA_DIR="$STAGED_DATA_DIR" \
+  ADDR_TAF_INSTALL_MANIFEST_FILE="$STAGED_REQUIRED_MANIFEST_FILE" \
+  ADDR_TAF_INSTALL_YEAR="$TAF_YEAR" \
+  ADDR_TAF_INSTALL_VERSION="$TAF_VERSION" \
+  ADDR_TAF_INSTALL_MANIFEST_ROW_COUNT="$META_MANIFEST_ROW_COUNT" \
+  Rscript - <<'RSCRIPT'
+data_dir <- Sys.getenv("ADDR_TAF_INSTALL_DATA_DIR")
+manifest_file <- Sys.getenv("ADDR_TAF_INSTALL_MANIFEST_FILE")
+year <- Sys.getenv("ADDR_TAF_INSTALL_YEAR")
+version <- Sys.getenv("ADDR_TAF_INSTALL_VERSION")
+expected_rows <- as.integer(Sys.getenv("ADDR_TAF_INSTALL_MANIFEST_ROW_COUNT"))
+
+manifest <- nanoparquet::read_parquet(manifest_file) |>
+  tibble::as_tibble()
+if (nrow(manifest) != expected_rows) {
+  stop("staged TAF manifest row count does not match metadata", call. = FALSE)
+}
+validator <- getFromNamespace("taf_validate_manifest", "addr")
+validator(
+  manifest,
+  data_root = data_dir,
+  year = year,
+  version = version,
+  verify_files = TRUE
+)
+RSCRIPT
+
+# Move the manifest first so a failed data move can be rolled back without
+# exposing uninventoried files.
+for path in "$TAF_DATA_DIR" "$TAF_MANIFEST_DIR"; do
+  if [ -e "$path" ] || [ -L "$path" ]; then
+    die "destination appeared during validation: ${path}"
+  fi
+done
 mkdir -p "$(dirname "$TAF_DATA_DIR")"
 mkdir -p "$(dirname "$TAF_MANIFEST_DIR")"
 
-mv "$STAGED_DATA_DIR" "$TAF_DATA_DIR"
 mv "$STAGED_MANIFEST_DIR" "$TAF_MANIFEST_DIR"
+if ! mv "$STAGED_DATA_DIR" "$TAF_DATA_DIR"; then
+  if ! mv "$TAF_MANIFEST_DIR" "$STAGED_MANIFEST_DIR"; then
+    die "could not install TAF data and could not roll back its manifest"
+  fi
+  die "could not install TAF data; manifest move was rolled back"
+fi
 
 echo "installed addr TAF fuel under: $ADDR_DATA_DIR"
 echo "installed data: $TAF_DATA_DIR"
 echo "installed manifest: $TAF_MANIFEST_DIR"
 
+ADDR_TAF_YEAR="$TAF_YEAR" \
+  ADDR_TAF_VERSION="$TAF_VERSION" \
+  ADDR_TAF_MANIFEST_ROW_COUNT="$META_MANIFEST_ROW_COUNT" \
+  Rscript - <<'RSCRIPT'
+year <- Sys.getenv("ADDR_TAF_YEAR")
+version <- Sys.getenv("ADDR_TAF_VERSION")
+expected_rows <- as.integer(Sys.getenv("ADDR_TAF_MANIFEST_ROW_COUNT"))
+manifest <- addr::taf_manifest(
+  year = year,
+  version = version,
+  validate = TRUE
+)
+stopifnot(nrow(manifest) == expected_rows)
+message("TAF fuel manifest verification passed for ", expected_rows, " files")
+RSCRIPT
+
 ADDR_TAF_YEAR="$TAF_YEAR" ADDR_TAF_VERSION="$TAF_VERSION" Rscript -e '
 year <- Sys.getenv("ADDR_TAF_YEAR")
 version <- Sys.getenv("ADDR_TAF_VERSION")
-stopifnot(nrow(addr::taf_zip("45220", year = year, version = version)) > 0)
-message("taf_zip verification passed")
+stopifnot(nrow(addr::taf("45220", year = year, version = version)) > 0)
+message("TAF verification passed")
 '
 
 ADDR_TAF_YEAR="$TAF_YEAR" ADDR_TAF_VERSION="$TAF_VERSION" Rscript -e '

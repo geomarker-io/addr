@@ -2,26 +2,27 @@
 % Please edit documentation in R/nad.R
 \name{nad}
 \alias{nad}
-\alias{nad_read}
+\alias{nad_install}
 \alias{nad_download}
 \title{Read National Address Database (NAD) tables into R}
 \usage{
 nad(
   county,
   state = NULL,
-  version = 22L,
+  version = 23L,
   refresh_binary = c("yes", "no", "force"),
   refresh_source = c("no", "yes", "force")
 )
 
-nad_read(
+nad_install(
   county,
   state = NULL,
-  version = 22L,
+  version = 23L,
+  overwrite = FALSE,
   refresh_source = c("no", "yes", "force")
 )
 
-nad_download(version = 22L, refresh_source = c("yes", "no", "force"))
+nad_download(version = 23L, refresh_source = c("yes", "no", "force"))
 }
 \arguments{
 \item{county}{character, length one; county name or 5-digit county FIPS
@@ -31,63 +32,58 @@ identifier}
 when \code{county} is a county name; ignored when \code{county} is a 5-digit county
 FIPS identifier}
 
-\item{version}{integer, length one; NAD revision to use. Defaults to \code{22L},
-revision 22 of the National Address Database.}
+\item{version}{integer, length one; NAD revision to use. Only revision 23 is
+supported.}
 
-\item{refresh_binary}{character, length one; choose how to refresh NAD
-data binaries stored on disk if not already present; "yes" will
-create data binary if not already present, "no" will
-error if data binary is not already present, "force" will
-create the data binary and overwrite any existing data binary}
+\item{refresh_binary}{character, length one; choose how to refresh a
+processed NAD county Parquet file if not already present; \code{"yes"} creates a
+missing file, \code{"no"} requires it to exist, and \code{"force"} recreates it}
 
-\item{refresh_source}{character, length one; choose how to refresh NAD
-source geodatabase on disk if not already present; "yes" will download
-the geodatabase if not already present, "no" will error if the file does
-not already exist, "force" will download and overwrite any existing
-geodatabase}
+\item{refresh_source}{character, length one; choose how to refresh the
+compressed national source; \code{"no"} requires the stow-managed source to
+exist, \code{"yes"} downloads it if missing, and \code{"force"} redownloads it}
+
+\item{overwrite}{logical, length one; overwrite an existing processed county
+Parquet file?}
+}
+\value{
+\code{nad()} returns a tibble for one county. \code{nad_install()} invisibly
+returns the installed county FIPS identifier.
 }
 \description{
 The U.S. Department of Transportation partners with address programs from
 state, local, and tribal governments to compile their authoritative data
 into a database. Find more information in the source data portal:
-\url{https://data.transportation.gov/d/yw36-suxr}
+\url{https://data.transportation.gov/d/fc2s-wawr}
 
-\code{nad_read()} reads data from the NAD geodatabase by county,
-using source data already downloaded with \code{nad_download()} or downloading
-it when \code{refresh_source = "yes"}, and readies it for R.
+\code{nad()} reads processed NAD data for one county, installing that county from
+source data managed by \code{nad_download()} when needed.
 Counties can be identified either by county name plus state, or by a
 5-digit county FIPS identifier. County names and state abbreviations are
-resolved internally and still determine the workspace path and source query.
-The NAD geodatabase has a very large size on disk (~10 GB).
+resolved internally and determine the processed-data path and source filter.
+The revision 23 source is a roughly 7.6 GB compressed archive containing a
+roughly 41 GB comma-delimited text member.
 
-Data binaries are the persistent outputs of \code{nad_read()} for each
-County/State and are created on first run with \code{nad()}.
-Source and derived files are kept in the persistent workspace returned by
-\code{stow::stow_path(package = "addr", subdir = "nad")}. Point R to files in
-that workspace to read NAD tables without downloading the nationwide NAD
-geodatabase.
-(Files are organized by major package version,
-NAD version, state, and named by county; e.g., see
-\code{list.files(stow::stow_path(package = "addr", subdir = "nad"), recursive = TRUE)})
-Older data binaries containing mixed-case addr components are upgraded on
-first read. This reuses the existing parsed \code{nad_addr} vector, converts its
-stored components to uppercase, and rewrites the managed binary once without
-reading or reparsing the nationwide source geodatabase.
+Processed county Parquet files are created one county at a time with
+\code{nad_install()} or on first use with \code{nad()}.
+The compressed national source is managed exclusively by \code{stow()} beneath
+\code{stow::stow_path(package = "addr", subdir = "nad")}. Derived county Parquet
+files are a separate Hive-partitioned dataset beneath
+\code{file.path(tools::R_user_dir("addr", "data"), "v2", "nad", "23")}, organized
+by \code{state} and \code{county_fips}. \code{nad_manifest()} inventories those county files
+from \code{v2/nad_manifest/23/counties.parquet}. Set \code{R_USER_DATA_DIR} to
+relocate both areas while retaining their source-versus-processed-data
+separation.
 }
 \details{
-NAD source geodatabases are downloaded from the transportation.gov data
-portal:
-\url{https://data.transportation.gov/d/yw36-suxr}
-Downloads use the R \code{curl} package and resume from any interrupted
-partial download left in the NAD workspace.
-If the download cannot complete, \code{nad_download()} will also work with a
-NAD ZIP file that was downloaded another way and placed where
-\code{stow::stow_path(package = "addr", subdir = "nad")} can find it.
-
-On first use after upgrading, an existing \code{NAD_r22.zip}, partial download,
-and derived \code{v1/NAD_r22} directory in the former top-level addr data
-directory are moved into the NAD workspace when the corresponding new path
-does not already exist. Other former data paths are not searched.
+The revision 23 comma-delimited flat source archive is downloaded from the
+transportation.gov data portal:
+\url{https://data.transportation.gov/d/fc2s-wawr}.
+\code{nad_download(version = 23L)} installs the pinned compressed archive as a
+durable managed local copy using \code{stow::stow()}. County installation streams
+the nationwide text member directly from that archive, retains the requested
+county, and writes a separate processed Parquet file.
+The roughly 41 GB text member is never unpacked on disk.
 Before downloading, review the source metadata and disclaimer in the data
 portal.
 
@@ -103,11 +99,17 @@ Addresses with malformed ZIP codes are removed.
 \examples{
 # explicitly download source data, then create county output on first read
 \dontrun{
-  nad_download(version = 22L)
+  # manually install the compressed revision 23 flat source archive
+  nad_download()
+  # manually build a county Parquet file
+  nad_install("39017")
+
+  # read files by name or fips id into R,
+  # nad will be downloaded and counties installed as needed
   nad("Butler", "OH")
   nad("39017")
 }
 
-# small packaged fixture derived from Hamilton County, OH
+# small packaged revision 23 fixture derived from Hamilton County, OH
 nad_example_data()
 }

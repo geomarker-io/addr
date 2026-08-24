@@ -3,78 +3,63 @@
 \name{taf}
 \alias{taf}
 \alias{taf_install}
-\title{TIGER Address Features dataset}
+\title{Read TIGER Address Features into R}
 \usage{
-taf(year = as.character(2025:2011), version = "v1")
-
 taf_install(
   county,
   year = as.character(2025:2011),
-  version = "v1",
+  version = "v2",
   overwrite = FALSE,
   redownload = FALSE
 )
+
+taf(x, map = TRUE, year = as.character(2025:2011), version = "v2")
 }
 \arguments{
-\item{year}{integer, length one; vintage of TIGER addrfeat (address feature)
+\item{county}{character, length 1; county FIPS code}
+
+\item{year}{character, length 1; vintage of TIGER addrfeat (address feature)
 files}
 
-\item{version}{character, length one; major version of the package
+\item{version}{character, length 1; major version of the package
 and taf dataset schema}
-
-\item{county}{character, length 1; county FIPS code}
 
 \item{overwrite}{logical, length 1; overwrite an existing county install?}
 
 \item{redownload}{logical, length 1; replace existing durable managed local
 copies of TIGER ZIP files?}
+
+\item{x}{character vector of five-digit ZIP codes}
+
+\item{map}{logical, length 1; map street tags read from the TAF data
+(type, directional, ordinal) when converting to \code{addr_street()} vector?}
 }
 \value{
-a Dataset R6 object (see \code{?arrow::open_dataset}); use \code{dplyr}
-verbs to query the data and get results, see examples
+\code{taf()} returns a tibble with \code{LINEARID}, \code{FULLNAME}, \code{side},
+\code{ZIP}, \code{FROMHN}, \code{TOHN}, \code{PARITY}, \code{OFFSET}, \code{s2_geography},
+\code{addr_street}, \code{county_fips}, and \code{street_tag_parsed} columns.
+\code{taf_install()} invisibly returns the installed county FIPS identifier.
 }
 \description{
-\code{taf()} uses the arrow package to open the hive-partitioned parquet dataset
-of TIGER address features in the addr user data directory.
-Arrow \code{FileSystemDataset} objects are database-like backends for
-larger-than-memory datasets and support dplyr syntax for data manipulation;
-see \url{https://arrow.apache.org/docs/r/articles/data_wrangling.html}.
-Other TAF helpers such as \code{taf_catalog()}, \code{taf_install()}, and \code{taf_zip()}
-use nanoparquet directly for flat parquet file reads and writes. Arrow is
-only required for the advanced dataset interface returned by \code{taf()}.
+\code{taf()} reads installed TIGER Address Features for one or more ZIP codes.
+It reconstructs the \code{county_fips}, \code{s2_geography}, and \code{addr_street}
+vectors in the returned data frame. \code{taf_install()} installs one county's
+processed Parquet files from the stow-managed TIGER sources.
+Use \code{taf_dataset()} to query all installed flat files lazily with Arrow.
 }
 \details{
-\code{taf_install()} downloads and links TIGER address features and
-feature names for a specific year and county, installing the resulting
-file in the addr user data directory.
 About 6\% of ADDRFEAT rows do not have a county-local primary FEATNAMES
 match by LINEARID. In these cases, street tags are parsed from the
-ADDRFEAT full name, and the \code{street_tag_parsed} column is set to TRUE.
+ADDRFEAT full name, and the \code{street_tag_parsed} column is set to \code{TRUE}.
 }
 \examples{
 \dontrun{
   Sys.setenv("R_USER_DATA_DIR" = tempfile())
   taf_install("39061", "2025")
-
-  if (requireNamespace("arrow", quietly = TRUE) &&
-    requireNamespace("dplyr", quietly = TRUE)) {
-    taf()
-
-    # find top ten most frequent street name-posttype combinations
-    taf() |>
-      dplyr::group_by(street_name, street_posttype) |>
-      dplyr::summarize(
-        n_zips = dplyr::n_distinct(ZIP),
-        n_ranges = dplyr::n(),
-        .groups = "drop"
-      ) |>
-      dplyr::arrange(dplyr::desc(n_zips), dplyr::desc(n_ranges)) |>
-      dplyr::collect() |>
-      dplyr::slice(1:10)
-  }
 }
 \dontrun{
   Sys.setenv("R_USER_DATA_DIR" = tempfile())
   taf_install("39061", "2025")
+  taf(c("45249", "45230", "45220"))
 }
 }

@@ -1,20 +1,28 @@
-legacy_nad_cache_fixture <- function() {
-  x <- addr(
-    addr_number(prefix = "N", digits = "10", suffix = "A"),
-    addr_street(name = "MAIN", posttype = "ST"),
-    addr_place(name = "CINCINNATI", state = "OH", zipcode = "45220")
+nad_test_storage <- function(county = "Ripley", n = 1L) {
+  tibble::tibble(
+    address_number_prefix = rep.int("", n),
+    address_number = as.character(seq_len(n) + 9L),
+    address_number_suffix = rep.int("", n),
+    street_predirectional = rep.int("", n),
+    street_premodifier = rep.int("", n),
+    street_pretype = rep.int("", n),
+    street_name = rep.int("MAIN", n),
+    street_posttype = rep.int("ST", n),
+    street_postdirectional = rep.int("", n),
+    subaddress = rep.int("", n),
+    county = rep.int(county, n),
+    place_name = rep.int("VERSAILLES", n),
+    zipcode = rep.int("47042", n),
+    uuid = paste0("fixture-", seq_len(n)),
+    date_update = rep.int(as.Date("2026-06-30"), n),
+    latitude = rep.int(39.071, n),
+    longitude = rep.int(-85.251, n),
+    national_grid = rep.int("", n),
+    placement = rep.int("", n),
+    address_class = rep.int("", n),
+    address_type = rep.int("", n),
+    parcel_id = rep.int("", n)
   )
-  number <- x@number
-  street <- x@street
-  place <- x@place
-  attr(number, "prefix") <- "n"
-  attr(street, "name") <- "Main"
-  attr(street, "posttype") <- "St"
-  attr(place, "name") <- "Cincinnati"
-  attr(x, "number") <- number
-  attr(x, "street") <- street
-  attr(x, "place") <- place
-  tibble::tibble(nad_addr = x, untouched = "Keep This")
 }
 
 test_that("nad() requires a cached binary when refresh_binary is no", {
@@ -37,254 +45,568 @@ test_that("nad() requires a cached binary when refresh_binary is no", {
   )
 })
 
-test_that("nad() rewrites legacy cached addr values to uppercase once", {
-  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
-  path <- nad_sd_path("Hamilton", "OH", 22L)
-  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
-  saveRDS(legacy_nad_cache_fixture(), path)
+test_that("nad version metadata is local and validates versions", {
+  nad_23 <- nad_version_metadata()
 
-  expect_message(
-    out <- nad(
-      "Hamilton",
-      "OH",
-      refresh_binary = "no",
-      refresh_source = "no"
-    ),
-    "updated cached NAD addr values to uppercase"
-  )
+  expect_false("nad_read" %in% getNamespaceExports("addr"))
 
-  expect_identical(format(out$nad_addr), "N10A MAIN ST CINCINNATI OH 45220")
-  expect_identical(out$untouched, "Keep This")
-  expect_identical(attr(out, "addr_nad_cache_case_version"), 1L)
-
-  cached <- readRDS(path)
-  expect_identical(format(cached$nad_addr), format(out$nad_addr))
-  expect_identical(cached$untouched, "Keep This")
-  expect_identical(attr(cached, "addr_nad_cache_case_version"), 1L)
-  expect_silent(
-    again <- nad(
-      "Hamilton",
-      "OH",
-      refresh_binary = "no",
-      refresh_source = "no"
+  expect_equal(nad_23$source_size, 7601412707)
+  expect_equal(
+    nad_23$source_members,
+    c(
+      "TXT/NAD_r23.txt",
+      "TXT/NationalAddressDatabaseMetadata.xml"
     )
   )
-  expect_identical(again, cached)
-})
-
-test_that("nad() returns uppercase values if cache rewriting fails", {
-  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
-  path <- nad_sd_path("Hamilton", "OH", 22L)
-  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
-  saveRDS(legacy_nad_cache_fixture(), path)
-  local_mocked_bindings(
-    nad_cache_write_safely = function(...) stop("read-only cache")
+  expect_equal(
+    nad_23$dlurl,
+    paste0(
+      "https://data.transportation.gov/api/views/fc2s-wawr/files/",
+      "b189f78b-2262-44e8-b3b6-5c4094c12da5"
+    )
   )
-
-  expect_warning(
-    out <- nad(
-      "Hamilton",
-      "OH",
-      refresh_binary = "no",
-      refresh_source = "no"
-    ),
-    "Returning uppercase values in memory"
-  )
-
-  expect_identical(format(out$nad_addr), "N10A MAIN ST CINCINNATI OH 45220")
-  cached <- readRDS(path)
-  expect_identical(format(cached$nad_addr), "n10A Main St Cincinnati OH 45220")
-  expect_null(attr(cached, "addr_nad_cache_case_version", exact = TRUE))
-})
-
-test_that("nad() read from gdb on disk", {
-  skip("it takes forever")
-  nad_db <- nad_data_path(22L)
-  d <- nad("King", "TX", version = 22L, refresh_binary = "force")
-})
-
-test_that("nad version metadata is local and validates versions", {
-  expect_equal(nad_version_metadata(22L)$flnm, "NAD_r22.zip")
   expect_equal(eval(formals(nad)$refresh_source), c("no", "yes", "force"))
+  expect_equal(
+    eval(formals(nad_install)$refresh_source),
+    c("no", "yes", "force")
+  )
   expect_equal(eval(formals(nad_read)$refresh_source), c("no", "yes", "force"))
+  expect_identical(eval(formals(nad)$version), 23L)
+  expect_identical(eval(formals(nad_install)$version), 23L)
+  expect_identical(eval(formals(nad_dataset)$version), 23L)
+  expect_identical(eval(formals(nad_read)$version), 23L)
+  expect_identical(eval(formals(nad_download)$version), 23L)
+  expect_identical(eval(formals(nad_version_metadata)$version), 23L)
   expect_error(
     nad_version_metadata("latest"),
     "version must be an integer vector"
   )
   expect_error(
-    nad_version_metadata(23L),
-    "NAD version `23` is not supported"
-  )
-})
-
-test_that("NAD source and derived paths use the stow workspace", {
-  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
-  managed_root <- stow::stow_path(package = "addr")
-  workspace <- stow::stow_path(package = "addr", subdir = "nad")
-
-  expect_identical(basename(managed_root), "stow")
-  expect_identical(dirname(workspace), managed_root)
-  expect_identical(nad_workspace_path(), workspace)
-  expect_identical(dirname(nad_data_path(22L)), workspace)
-  expect_identical(
-    dirname(dirname(dirname(nad_sd_path("Hamilton", "OH", 22L)))),
-    file.path(workspace, "v1")
-  )
-})
-
-test_that("nad_download moves the legacy source instead of downloading it", {
-  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
-  nad_md <- nad_version_metadata(22L)
-  legacy_root <- dirname(stow::stow_path(package = "addr"))
-  legacy <- file.path(legacy_root, nad_md$flnm)
-  writeBin(charToRaw("legacy"), legacy)
-
-  local_mocked_bindings(
-    nad_download_archive = function(...) {
-      stop("should not download", call. = FALSE)
-    }
-  )
-
-  expect_message(
-    out <- nad_download(version = 22L, refresh_source = "yes"),
-    "moved legacy NAD data path"
-  )
-  migrated <- nad_data_path(22L)
-  expect_false(file.exists(legacy))
-  expect_true(file.exists(migrated))
-  expect_identical(rawToChar(readBin(migrated, "raw", n = 6L)), "legacy")
-  expect_identical(
-    out,
-    file.path("/vsizip", migrated, sub("(_FGDB)?\\.zip$", ".gdb", nad_md$flnm))
-  )
-})
-
-test_that("nad() migrates legacy derived county data", {
-  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
-  legacy_root <- dirname(stow::stow_path(package = "addr"))
-  legacy <- file.path(
-    legacy_root,
-    "v1",
-    "NAD_r22",
-    "OH",
-    "Hamilton.rds"
-  )
-  dir.create(dirname(legacy), recursive = TRUE, showWarnings = FALSE)
-  saveRDS(list(source = "legacy"), legacy)
-
-  expect_message(
-    out <- nad(
-      "Hamilton",
-      "OH",
-      refresh_binary = "no",
-      refresh_source = "no"
-    ),
-    "moved legacy NAD data path"
-  )
-  migrated <- nad_sd_path("Hamilton", "OH", 22L)
-  expect_false(file.exists(legacy))
-  expect_true(file.exists(migrated))
-  expect_identical(out, list(source = "legacy"))
-})
-
-test_that("NAD does not search the transient stow 0.2 workspace", {
-  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
-  managed_root <- stow::stow_path(package = "addr")
-  old_workspace <- file.path(dirname(managed_root), "nad")
-  old_source <- file.path(old_workspace, "NAD_r22.zip")
-  dir.create(old_workspace, recursive = TRUE, showWarnings = FALSE)
-  writeBin(charToRaw("stow 0.2"), old_source)
-
-  expect_error(
-    nad_download(version = 22L, refresh_source = "no"),
-    "does not exist; set `refresh_source = 'yes'`",
+    nad_version_metadata(24L),
+    "NAD version `24` is not supported; supported version: 23",
     fixed = TRUE
   )
-  expect_true(file.exists(old_source))
 })
 
-test_that("nad_download() resumes interrupted downloads from a .part file", {
-  data_root <- tempfile()
-  withr::local_envvar(list("R_USER_DATA_DIR" = data_root))
-
-  nad_md <- nad_version_metadata(22L)
-  dest <- nad_data_path(22L)
-  partial_dest <- paste0(dest, ".part")
-  dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
-  writeBin(charToRaw("abc"), partial_dest)
-
-  local_mocked_bindings(
-    nad_download_archive = function(url, dest) {
-      expect_equal(url, nad_md$dlurl)
-      expect_equal(dest, partial_dest)
-      expect_true(file.exists(dest))
-      expect_equal(file.info(dest)$size[[1]], 3)
-      con <- file(dest, open = "ab")
-      on.exit(close(con), add = TRUE)
-      writeBin(charToRaw("def"), con)
-      invisible(dest)
-    }
+test_that("native flat extraction filters records and selected columns", {
+  root <- tempfile("nad-flat-extract-fixture-")
+  dir.create(file.path(root, "TXT"), recursive = TRUE)
+  writeLines(
+    c(
+      "OID_,State,County,Post_City",
+      "1,IN,Ripley,Versailles",
+      "2,OH,Hamilton,Cincinnati",
+      "3,IN,Ripley,"
+    ),
+    file.path(root, "TXT", "NAD_r23.txt")
+  )
+  archive <- paste0(tempfile("nad-flat-extract-"), ".zip")
+  withr::local_dir(root)
+  utils::zip(
+    zipfile = archive,
+    files = "TXT/NAD_r23.txt",
+    flags = "-q"
   )
 
-  out <- nad_download(version = 22L, refresh_source = "yes")
+  out <- nad_flat_extract(
+    archive,
+    "TXT/NAD_r23.txt",
+    "IN",
+    "Ripley",
+    c("State", "County", "Post_City")
+  )
+  expect_named(out, c("State", "County", "Post_City"))
+  expect_identical(out$State, c("IN", "IN"))
+  expect_identical(out$County, c("Ripley", "Ripley"))
+  expect_identical(out$Post_City, c("Versailles", NA_character_))
+  expect_error(
+    nad_flat_extract(
+      archive,
+      "TXT/NAD_r23.txt",
+      "IN",
+      "Ripley",
+      "missing"
+    ),
+    "NAD CSV is missing field `missing`",
+    fixed = TRUE
+  )
+})
+
+test_that("nad_read routes through the flat extractor", {
+  fields <- nad_source_fields()
+  flat <- stats::setNames(rep(list(NA_character_), length(fields)), fields)
+  flat$Add_Number <- "10"
+  flat$St_Name <- "MAIN"
+  flat$County <- "Ripley"
+  flat$Post_City <- "VERSAILLES"
+  flat$State <- "IN"
+  flat$Zip_Code <- "47042"
+  flat$UUID <- "fixture-uuid"
+  flat$Latitude <- "39.071"
+  flat$Longitude <- "-85.251"
+  flat$DateUpdate <- "2026-06-30 00:00:00"
+  calls <- list()
+
+  local_mocked_bindings(
+    nad_download = function(version, refresh_source) "managed-flat-source",
+    nad_flat_extract = function(path, member, state, county, fields) {
+      calls[[1L]] <<- list(
+        path = path,
+        member = member,
+        state = state,
+        county = county,
+        fields = fields
+      )
+      flat
+    },
+    .package = "addr"
+  )
+
+  out <- nad_read("18137", refresh_source = "no")
+  expect_s3_class(out, "tbl_df")
+  expect_equal(nrow(out), 1L)
+  expect_identical(out$uuid, "fixture-uuid")
+  expect_identical(calls[[1L]]$path, "managed-flat-source")
+  expect_identical(calls[[1L]]$member, "TXT/NAD_r23.txt")
+  expect_identical(calls[[1L]]$state, "IN")
+  expect_identical(calls[[1L]]$county, "Ripley")
+  expect_identical(calls[[1L]]$fields, fields)
+})
+
+test_that("nad creates processed county data outside stow and reuses it offline", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  storage <- nad_test_storage()
+  expected <- nad_storage_to_nad(storage, state = "IN")
+  source_workspace <- stow::stow_path(package = "addr", subdir = "nad")
+  calls <- 0L
+  allow_source <- TRUE
+  local_mocked_bindings(
+    nad_read_storage = function(county, state, version, refresh_source) {
+      if (!allow_source) {
+        stop("source was accessed after the county was cached")
+      }
+      calls <<- calls + 1L
+      expect_identical(county, "18137")
+      expect_null(state)
+      expect_identical(version, 23L)
+      expect_identical(refresh_source, "no")
+      storage
+    },
+    .package = "addr"
+  )
+
+  expect_message(
+    out <- nad("18137", refresh_binary = "yes", refresh_source = "no"),
+    "installing from source"
+  )
+  path <- nad_county_path("18137", "IN")
+  expect_identical(
+    path,
+    file.path(
+      tools::R_user_dir("addr", "data"),
+      "v2",
+      "nad",
+      "23",
+      "state=IN",
+      "county_fips=18137",
+      "part-0.parquet"
+    )
+  )
+  expect_true(file.exists(path))
+  expect_equal(out, expected)
+  expect_equal(nad_read_county_parquet(path), storage)
+  manifest_path <- nad_manifest_path()
+  expect_identical(
+    manifest_path,
+    file.path(
+      tools::R_user_dir("addr", "data"),
+      "v2",
+      "nad_manifest",
+      "23",
+      "counties.parquet"
+    )
+  )
+  expect_true(file.exists(manifest_path))
+  manifest <- nad_manifest(validate = TRUE)
+  expect_named(manifest, nad_manifest_required_columns())
+  expect_equal(nrow(manifest), 1L)
+  expect_identical(manifest$county_fips, "18137")
+  expect_identical(manifest$state, "IN")
+  expect_identical(manifest$county, "Ripley")
+  expect_identical(manifest$row_count, 1L)
+  expect_identical(manifest$size_bytes, unname(file.info(path)$size))
+  expect_identical(manifest$sha256, nad_file_sha256(path))
+  expect_identical(manifest$nad_revision, 23L)
+  expect_match(
+    manifest$installed_at,
+    "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+  )
+  expect_length(
+    list.files(source_workspace, all.files = TRUE, no.. = TRUE),
+    0L
+  )
+  allow_source <- FALSE
+  expect_equal(
+    nad("18137", refresh_binary = "no", refresh_source = "no"),
+    expected
+  )
+  expect_identical(calls, 1L)
+  expect_length(
+    list.files(source_workspace, all.files = TRUE, no.. = TRUE),
+    0L
+  )
+})
+
+test_that("nad uses an existing county Parquet before repairing its manifest", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-nad-data-"))
+  storage <- nad_test_storage(n = 2L)
+  expected <- nad_storage_to_nad(storage, state = "IN")
+  path <- nad_county_path("18137", "IN")
+  nad_write_county_parquet(storage, path)
+  expect_false(file.exists(nad_manifest_path()))
+
+  local_mocked_bindings(
+    nad_read_storage = function(...) stop("the national source was accessed"),
+    .package = "addr"
+  )
 
   expect_equal(
-    out,
-    file.path("/vsizip", dest, sub("(_FGDB)?\\.zip$", ".gdb", nad_md$flnm))
+    nad("18137", refresh_binary = "no", refresh_source = "no"),
+    expected
   )
-  expect_true(file.exists(dest))
-  expect_false(file.exists(partial_dest))
-  expect_equal(rawToChar(readBin(dest, "raw", n = 6L)), "abcdef")
+  manifest <- nad_manifest(validate = TRUE)
+  expect_identical(manifest$county_fips, "18137")
+  expect_identical(manifest$row_count, 2L)
 })
 
-test_that("nad_download() force refresh clears completed and partial downloads", {
-  data_root <- tempfile()
-  withr::local_envvar(list("R_USER_DATA_DIR" = data_root))
-
-  nad_md <- nad_version_metadata(22L)
-  dest <- nad_data_path(22L)
-  partial_dest <- paste0(dest, ".part")
-  dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
-  writeBin(charToRaw("old"), dest)
-  writeBin(charToRaw("partial"), partial_dest)
-
-  local_mocked_bindings(
-    nad_download_archive = function(url, dest) {
-      expect_equal(url, nad_md$dlurl)
-      expect_equal(dest, partial_dest)
-      expect_false(file.exists(dest))
-      writeBin(charToRaw("new"), dest)
-      invisible(dest)
-    }
+test_that("nad manifest validation detects inventory and file corruption", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-nad-data-"))
+  value <- nad_test_storage()
+  path <- nad_county_path("18137", "IN")
+  nad_write_county_parquet(value, path)
+  nad_upsert_manifest(
+    path,
+    value,
+    nad_county_info("18137"),
+    version = 23L
   )
+  expect_silent(nad_manifest(validate = TRUE))
 
-  nad_download(version = 22L, refresh_source = "force")
+  extra <- nad_county_path("21037", "KY")
+  nad_write_county_parquet(nad_test_storage(county = "Campbell"), extra)
+  expect_error(
+    nad_manifest(validate = TRUE),
+    "does not match the installed Parquet inventory",
+    fixed = TRUE
+  )
+  unlink(extra)
 
-  expect_true(file.exists(dest))
-  expect_false(file.exists(partial_dest))
-  expect_equal(rawToChar(readBin(dest, "raw", n = 3L)), "new")
+  writeLines("not Parquet", path)
+  expect_error(
+    nad_manifest(validate = TRUE),
+    "size does not match manifest",
+    fixed = TRUE
+  )
 })
 
-test_that("nad_download() reports manual placement guidance after failures", {
-  data_root <- tempfile()
-  withr::local_envvar(list("R_USER_DATA_DIR" = data_root))
+test_that("an empty NAD manifest validates against an empty dataset", {
+  data_root <- tempfile("empty-nad-data-")
+  expect_silent(nad_validate_manifest(
+    nad_empty_manifest(),
+    data_root = data_root,
+    version = 23L,
+    verify_files = TRUE
+  ))
+})
 
-  dest <- nad_data_path(22L)
-
+test_that("nad force refresh replaces one manifest row", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-nad-data-"))
+  call <- 0L
   local_mocked_bindings(
-    nad_download_archive = function(url, dest) {
-      stop("network broke", call. = FALSE)
-    }
+    nad_read_storage = function(...) {
+      call <<- call + 1L
+      nad_test_storage(n = call)
+    },
+    .package = "addr"
+  )
+
+  nad("18137", refresh_binary = "yes", refresh_source = "no")
+  first <- nad_manifest()
+  nad("18137", refresh_binary = "force", refresh_source = "no")
+  second <- nad_manifest(validate = TRUE)
+
+  expect_equal(nrow(second), 1L)
+  expect_identical(second$county_fips, "18137")
+  expect_identical(second$row_count, 2L)
+  expect_false(identical(second$sha256, first$sha256))
+})
+
+test_that("nad_install accepts exactly one county", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-nad-data-"))
+  calls <- character()
+  local_mocked_bindings(
+    nad_read_storage = function(county, ...) {
+      calls <<- c(calls, county)
+      nad_test_storage()
+    },
+    .package = "addr"
   )
 
   expect_error(
-    nad_download(version = 22L, refresh_source = "yes"),
-    paste0(
-      "If you can download it another way, place it at `",
-      dest,
-      "` or set `R_USER_DATA_DIR` so ",
-      "`stow::stow_path(package = \"addr\", subdir = \"nad\")`"
-    ),
+    nad_install(c("18137", "39061")),
+    "county must be length one",
     fixed = TRUE
   )
+  expect_identical(
+    withVisible(nad_install("18137", refresh_source = "no")),
+    list(value = "18137", visible = FALSE)
+  )
+  expect_identical(calls, "18137")
+  expect_true(file.exists(nad_county_path("18137", "IN")))
+})
+
+test_that("nad_dataset opens installed counties as one Hive dataset", {
+  skip_if_not_installed("arrow")
+  skip_if_not_installed("dplyr")
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-nad-data-"))
+  nad_write_county_parquet(
+    nad_test_storage(county = "Ripley"),
+    nad_county_path("18137", "IN")
+  )
+  nad_write_county_parquet(
+    nad_test_storage(county = "Butler"),
+    nad_county_path("39017", "OH")
+  )
+
+  dataset <- nad_dataset()
+  expect_s3_class(dataset, "FileSystemDataset")
+  expect_true(all(c("state", "county_fips") %in% dataset$schema$names))
+  butler <- dataset |>
+    dplyr::filter(state == "OH", county_fips == "39017") |>
+    dplyr::collect()
+  expect_equal(nrow(butler), 1L)
+  expect_identical(butler$county, "Butler")
+  expect_identical(butler$state, "OH")
+  expect_identical(butler$county_fips, "39017")
+})
+
+test_that("NAD fuel scripts are installed with their validation contract", {
+  scripts <- system.file(
+    "exec",
+    c("pack-addr-nad-fuel.sh", "install-addr-nad-fuel.sh"),
+    package = "addr"
+  )
+  expect_true(all(nzchar(scripts)))
+  text <- lapply(scripts, readLines, warn = FALSE)
+  expect_true(any(grepl("addr-nad-fuel", text[[1L]], fixed = TRUE)))
+  expect_true(any(grepl("archive_sha256", text[[1L]], fixed = TRUE)))
+  expect_true(any(grepl('"schema_version" "2"', text[[1L]], fixed = TRUE)))
+  expect_true(any(grepl('SCHEMA_VERSION" = "2"', text[[2L]], fixed = TRUE)))
+  expect_true(any(grepl("county_file_format", text[[1L]], fixed = TRUE)))
+  expect_true(any(grepl("nad_validate_manifest", text[[2L]], fixed = TRUE)))
+  expect_true(any(grepl("Parquet files", text[[2L]], fixed = TRUE)))
+  expect_true(any(grepl("v2/nad/", text[[1L]], fixed = TRUE)))
+  expect_true(any(grepl("v2/nad_manifest", text[[1L]], fixed = TRUE)))
+  expect_true(any(grepl("v2/nad/", text[[2L]], fixed = TRUE)))
+  expect_true(any(grepl("v2/nad_manifest", text[[2L]], fixed = TRUE)))
+})
+
+test_that("nad_download maps refresh modes to stow", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  managed <- file.path(
+    stow::stow_path(package = "addr", subdir = "nad"),
+    "managed-nad-flat"
+  )
+  calls <- list()
+
+  local_mocked_bindings(
+    stow = function(
+      url,
+      package,
+      subdir,
+      overwrite,
+      offline,
+      etag,
+      validate
+    ) {
+      calls[[length(calls) + 1L]] <<- list(
+        url = url,
+        package = package,
+        subdir = subdir,
+        overwrite = overwrite,
+        offline = offline,
+        etag = etag,
+        validate = validate
+      )
+      managed
+    },
+    .package = "stow"
+  )
+
+  expect_identical(
+    nad_download(refresh_source = "yes"),
+    managed
+  )
+  expect_identical(
+    nad_download(version = 23L, refresh_source = "no"),
+    managed
+  )
+  expect_identical(
+    nad_download(version = 23L, refresh_source = "force"),
+    managed
+  )
+
+  expect_length(calls, 3L)
+  expect_true(all(vapply(
+    calls,
+    function(x) {
+      identical(x$url, nad_version_metadata(23L)$dlurl) &&
+        identical(x$package, "addr") &&
+        identical(x$subdir, "nad") &&
+        identical(x$etag, FALSE) &&
+        is.function(x$validate)
+    },
+    logical(1)
+  )))
+  expect_identical(calls[[1L]]$overwrite, FALSE)
+  expect_identical(calls[[1L]]$offline, FALSE)
+  expect_identical(calls[[2L]]$overwrite, FALSE)
+  expect_identical(calls[[2L]]$offline, TRUE)
+  expect_identical(calls[[3L]]$overwrite, TRUE)
+  expect_identical(calls[[3L]]$offline, FALSE)
+})
+
+test_that("NAD source validation requires both archive members", {
+  root <- tempfile("nad-flat-fixture-")
+  dir.create(file.path(root, "TXT"), recursive = TRUE)
+  writeLines("address data", file.path(root, "TXT", "NAD_r23.txt"))
+  writeLines(
+    "<metadata />",
+    file.path(root, "TXT", "NationalAddressDatabaseMetadata.xml")
+  )
+  archive_zip <- paste0(tempfile("nad-flat-archive-"), ".zip")
+  withr::local_dir(root)
+  utils::zip(
+    zipfile = archive_zip,
+    files = c(
+      "TXT/NAD_r23.txt",
+      "TXT/NationalAddressDatabaseMetadata.xml"
+    ),
+    flags = "-q"
+  )
+  archive <- sub("\\.zip$", "", archive_zip)
+  expect_true(file.rename(archive_zip, archive))
+
+  expect_true(nad_validate_flat_source(
+    archive,
+    nad_version_metadata()$source_members
+  ))
+  expect_false(nad_validate_flat_source(
+    archive,
+    c(nad_version_metadata()$source_members, "TXT/missing.txt")
+  ))
+  expect_false(nad_validate_flat_source(
+    tempfile("missing-flat-source-"),
+    nad_version_metadata()$source_members
+  ))
+  expect_false(nad_validate_flat_source(
+    archive,
+    nad_version_metadata()$source_members,
+    file.info(archive)$size + 1
+  ))
+
+  local_mocked_bindings(
+    unzip = function(...) stop("ZIP64 listing unavailable"),
+    .package = "utils"
+  )
+  expect_true(nad_validate_flat_source(
+    archive,
+    nad_version_metadata()$source_members,
+    file.info(archive)$size
+  ))
+})
+
+test_that("NAD and TIGER separate managed sources from processed data", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  data_root <- tools::R_user_dir("addr", "data")
+  managed_root <- stow::stow_path(package = "addr")
+  source_workspace <- stow::stow_path(package = "addr", subdir = "nad")
+  processed_path <- nad_county_path("39061", "OH")
+  manifest_path <- nad_manifest_path()
+
+  expect_identical(basename(managed_root), "stow")
+  expect_identical(dirname(source_workspace), managed_root)
+  expect_identical(
+    processed_path,
+    file.path(
+      data_root,
+      "v2",
+      "nad",
+      "23",
+      "state=OH",
+      "county_fips=39061",
+      "part-0.parquet"
+    )
+  )
+  expect_identical(
+    manifest_path,
+    file.path(data_root, "v2", "nad_manifest", "23", "counties.parquet")
+  )
+  expect_false(startsWith(
+    processed_path,
+    paste0(source_workspace, .Platform$file.sep)
+  ))
+  expect_false(startsWith(
+    manifest_path,
+    paste0(source_workspace, .Platform$file.sep)
+  ))
+  expect_identical(
+    taf_dataset_path(year = 2025L, version = "v2"),
+    file.path(data_root, "v2", "tiger_addr_feat", "2025")
+  )
+})
+
+test_that("NAD ignores processed data under the development stow layout", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  development_path <- file.path(
+    stow::stow_path(package = "addr", subdir = "nad"),
+    "v2",
+    "NAD_r23",
+    "IN",
+    "Ripley.rds"
+  )
+  dir.create(dirname(development_path), recursive = TRUE, showWarnings = FALSE)
+  saveRDS(tibble::tibble(source = "development stow layout"), development_path)
+
+  processed_path <- nad_county_path("18137", "IN")
+  expect_error(
+    nad("18137", refresh_binary = "no", refresh_source = "no"),
+    paste0(processed_path, " does not exist"),
+    fixed = TRUE
+  )
+  expect_true(file.exists(development_path))
+  expect_false(file.exists(processed_path))
+})
+
+test_that("NAD ignores the former processed RDS layout", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
+  former_path <- file.path(
+    tools::R_user_dir("addr", "data"),
+    "v2",
+    "nad",
+    "23",
+    "IN",
+    "Ripley.rds"
+  )
+  dir.create(dirname(former_path), recursive = TRUE, showWarnings = FALSE)
+  saveRDS(tibble::tibble(source = "former RDS layout"), former_path)
+
+  processed_path <- nad_county_path("18137", "IN")
+  expect_error(
+    nad("18137", refresh_binary = "no", refresh_source = "no"),
+    paste0(processed_path, " does not exist"),
+    fixed = TRUE
+  )
+  expect_true(file.exists(former_path))
+  expect_false(file.exists(processed_path))
 })

@@ -16,7 +16,7 @@ geocode(
   zip_variants = TRUE,
   zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   year = as.character(2025:2011),
-  version = "v1",
+  version = "v2",
   taf_install = TRUE,
   taf_redownload = FALSE,
   offset = 10L,
@@ -34,7 +34,7 @@ geocode_zip(
   zip_variants = TRUE,
   zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   year = as.character(2025:2011),
-  version = "v1",
+  version = "v2",
   taf_install = TRUE,
   taf_redownload = FALSE,
   progress_callback = NULL,
@@ -83,10 +83,10 @@ code after exact and enabled place-derived candidates? Defaults to \code{TRUE}.}
 \item{zip_variant}{nonempty character vector selecting typographical ZIP
 variants; see \code{\link[=zipcode_variant]{zipcode_variant()}}. Requested order determines precedence.}
 
-\item{year}{integer, length one; vintage of TIGER addrfeat (address feature)
+\item{year}{character, length 1; vintage of TIGER addrfeat (address feature)
 files}
 
-\item{version}{character, length one; major version of the package
+\item{version}{character, length 1; major version of the package
 and taf dataset schema}
 
 \item{taf_install}{logical; install missing county TAF files needed for

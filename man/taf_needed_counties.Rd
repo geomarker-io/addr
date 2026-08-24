@@ -8,27 +8,31 @@
 taf_needed_counties(
   x,
   year = as.character(2025:2011),
-  version = "v1",
+  version = "v2",
   zip_variants = TRUE,
-  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap")
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
+  place_zip_variants = TRUE,
+  place_zip_variant = c("place", "county-sub")
 )
 
 taf_ensure(
   x,
   year = as.character(2025:2011),
-  version = "v1",
+  version = "v2",
   zip_variants = TRUE,
   zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
+  place_zip_variants = TRUE,
+  place_zip_variant = c("place", "county-sub"),
   redownload = FALSE
 )
 }
 \arguments{
 \item{x}{an addr vector (\code{?as_addr}) or character vector of ZIP codes}
 
-\item{year}{integer, length one; vintage of TIGER addrfeat (address feature)
+\item{year}{character, length 1; vintage of TIGER addrfeat (address feature)
 files}
 
-\item{version}{character, length one; major version of the package
+\item{version}{character, length 1; major version of the package
 and taf dataset schema}
 
 \item{zip_variants}{logical; fuzzy match to common variants of
@@ -36,6 +40,12 @@ and taf dataset schema}
 
 \item{zip_variant}{character vector; zipcode variant types to use when
 \code{zip_variants} is \code{TRUE}; see \code{?zipcode_variant}}
+
+\item{place_zip_variants}{logical; for \code{addr} input, consider ZCTAs associated
+with the normalized input place or county subdivision?}
+
+\item{place_zip_variant}{nonempty character vector containing \code{"place"}
+and/or \code{"county-sub"}; requested order determines precedence}
 
 \item{redownload}{logical, length 1; replace existing durable managed local
 copies of TIGER ZIP files?}
@@ -47,8 +57,10 @@ subset of needed counties that were missing before installation.
 }
 \description{
 \code{taf_needed_counties()} uses \code{taf_catalog()} to identify county TAF files
-that may contain address ranges for ZIP codes in \code{x}, including selected ZIP
-code variants when requested. \code{taf_ensure()} installs any of those counties
+that may contain address ranges for ZIP codes in \code{x}. For \code{addr} input it
+includes selected place, county-subdivision, and typographical ZIP candidates
+when requested. Character input contains ZIP codes only, so place-derived
+candidates cannot be inferred. \code{taf_ensure()} installs any needed counties
 that are not already present in the local TAF manifest.
 }
 \examples{
