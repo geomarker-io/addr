@@ -1,5 +1,6 @@
 use extendr_api::prelude::*;
 use flate2::read::DeflateDecoder;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Read, Take};
 use std::sync::Once;
@@ -261,6 +262,77 @@ fn nad_flat_extract_impl(
     Ok(output)
 }
 
+/// Inventory state and county labels in the compressed NAD flat source.
+///
+/// Use `nad_catalog()` instead of this function directly.
+/// @keywords internal
+#[extendr]
+fn nad_flat_catalog(path: &str, member: &str) -> List {
+    match nad_flat_catalog_impl(path, member) {
+        Ok(output) => output,
+        Err(error) => throw_r_error(error.to_string()),
+    }
+}
+
+fn nad_flat_catalog_impl(path: &str, member: &str) -> Result<List> {
+    let source = nad_zip_member(path, member)?;
+    let mut reader = csv::ReaderBuilder::new()
+        .has_headers(true)
+        .from_reader(source);
+    let headers = reader
+        .headers()
+        .map_err(|error| nad_error(format!("could not read NAD CSV header: {error}")))?
+        .clone();
+    let state_position = headers
+        .iter()
+        .position(|header| header == "State")
+        .ok_or_else(|| nad_error("NAD CSV is missing field `State`"))?;
+    let county_position = headers
+        .iter()
+        .position(|header| header == "County")
+        .ok_or_else(|| nad_error("NAD CSV is missing field `County`"))?;
+    let mut counts: HashMap<(String, String), u64> = HashMap::new();
+    for record in reader.records() {
+        let record = record
+            .map_err(|error| nad_error(format!("could not parse NAD CSV record: {error}")))?;
+        let state = record
+            .get(state_position)
+            .ok_or_else(|| nad_error("NAD CSV record has no `State` value"))?;
+        let county = record
+            .get(county_position)
+            .ok_or_else(|| nad_error("NAD CSV record has no `County` value"))?;
+        if state.is_empty() || county.is_empty() {
+            return Err(nad_error(
+                "NAD CSV record has an empty `State` or `County` value",
+            ));
+        }
+        let count = counts
+            .entry((state.to_owned(), county.to_owned()))
+            .or_insert(0);
+        *count = count
+            .checked_add(1)
+            .ok_or_else(|| nad_error("NAD county row count overflowed"))?;
+    }
+    let mut rows: Vec<((String, String), u64)> = counts.into_iter().collect();
+    rows.sort_by(|a, b| a.0.cmp(&b.0));
+    let mut states = Vec::with_capacity(rows.len());
+    let mut counties = Vec::with_capacity(rows.len());
+    let mut source_row_counts = Vec::with_capacity(rows.len());
+    for ((state, county), count) in rows {
+        states.push(state);
+        counties.push(county);
+        source_row_counts.push(count as f64);
+    }
+    let values = vec![
+        Strings::from_values(states).into_robj(),
+        Strings::from_values(counties).into_robj(),
+        source_row_counts.into_robj(),
+    ];
+    let mut output = List::from_values(values);
+    output.set_names(["state", "source_county", "source_row_count"])?;
+    Ok(output)
+}
+
 // Macro to generate exports.
 // This ensures exported functions are registered with R.
 // See corresponding C code in `entrypoint.c`.
@@ -268,4 +340,5 @@ extendr_module! {
     mod addr;
     fn usaddress_tag;
     fn nad_flat_extract;
+    fn nad_flat_catalog;
 }

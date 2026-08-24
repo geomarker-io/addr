@@ -119,6 +119,18 @@ test_that("native flat extraction filters records and selected columns", {
   expect_identical(out$State, c("IN", "IN"))
   expect_identical(out$County, c("Ripley", "Ripley"))
   expect_identical(out$Post_City, c("Versailles", NA_character_))
+  catalog <- tibble::as_tibble(nad_flat_catalog(
+    archive,
+    "TXT/NAD_r23.txt"
+  ))
+  expect_identical(
+    catalog,
+    tibble::tibble(
+      state = c("IN", "OH"),
+      source_county = c("Ripley", "Hamilton"),
+      source_row_count = c(2, 1)
+    )
+  )
   expect_error(
     nad_flat_extract(
       archive,
@@ -132,15 +144,86 @@ test_that("native flat extraction filters records and selected columns", {
   )
 })
 
+test_that("NAD source inventory maps county and independent-city labels", {
+  source <- tibble::tibble(
+    state = c("CT", "IL", "IN", "MD"),
+    source_county = c(
+      "Lower Connecticut River Valley Planning",
+      "DeWitt",
+      "Ripley",
+      "Baltimore"
+    ),
+    source_row_count = c(30, 20, 10, 40)
+  )
+
+  catalog <- nad_catalog_rows(source)
+  expect_identical(
+    catalog$county_fips,
+    c("09130", "17039", "18137", "24005")
+  )
+  expect_identical(
+    catalog$source_county,
+    c(
+      "Lower Connecticut River Valley Planning",
+      "DeWitt",
+      "Ripley",
+      "Baltimore"
+    )
+  )
+  expect_error(
+    nad_catalog_rows(tibble::tibble(
+      state = "IN",
+      source_county = "Not A County",
+      source_row_count = 1
+    )),
+    "cannot be mapped to one county FIPS",
+    fixed = TRUE
+  )
+})
+
+test_that("packaged NAD revision 23 catalog is complete and valid", {
+  catalog_path <- system.file(
+    "extdata",
+    "v2",
+    "nad_catalog",
+    "23",
+    "counties.parquet",
+    package = "addr"
+  )
+  expect_true(nzchar(catalog_path))
+
+  catalog <- nad_catalog()
+  expect_named(catalog, nad_catalog_required_columns())
+  expect_equal(nrow(catalog), 2259L)
+  expect_equal(sum(catalog$source_row_count), 97928946)
+  expect_identical(unique(catalog$nad_revision), 23L)
+  expect_true(all(catalog$source_row_count > 0))
+  expect_true(all(c(
+    "24005",
+    "24510",
+    "29189",
+    "29510",
+    "51059",
+    "51600",
+    "51067",
+    "51620",
+    "51159",
+    "51760",
+    "51161",
+    "51770"
+  ) %in% catalog$county_fips))
+  expect_true("nad_catalog" %in% getNamespaceExports("addr"))
+})
+
 test_that("nad_read routes through the flat extractor", {
   fields <- nad_source_fields()
   flat <- stats::setNames(rep(list(NA_character_), length(fields)), fields)
   flat$Add_Number <- "10"
   flat$St_Name <- "MAIN"
-  flat$County <- "Ripley"
-  flat$Post_City <- "VERSAILLES"
-  flat$State <- "IN"
-  flat$Zip_Code <- "47042"
+  flat$County <- "DeWitt"
+  flat$Post_City <- "CLINTON"
+  flat$State <- "IL"
+  flat$Zip_Code <- "61727"
   flat$UUID <- "fixture-uuid"
   flat$Latitude <- "39.071"
   flat$Longitude <- "-85.251"
@@ -162,14 +245,14 @@ test_that("nad_read routes through the flat extractor", {
     .package = "addr"
   )
 
-  out <- nad_read("18137", refresh_source = "no")
+  out <- nad_read("17039", refresh_source = "no")
   expect_s3_class(out, "tbl_df")
   expect_equal(nrow(out), 1L)
   expect_identical(out$uuid, "fixture-uuid")
   expect_identical(calls[[1L]]$path, "managed-flat-source")
   expect_identical(calls[[1L]]$member, "TXT/NAD_r23.txt")
-  expect_identical(calls[[1L]]$state, "IN")
-  expect_identical(calls[[1L]]$county, "Ripley")
+  expect_identical(calls[[1L]]$state, "IL")
+  expect_identical(calls[[1L]]$county, "DeWitt")
   expect_identical(calls[[1L]]$fields, fields)
 })
 
@@ -384,6 +467,28 @@ test_that("nad_install rejects a zero-row county extraction", {
   expect_false(file.exists(nad_county_path("18137", "IN")))
   expect_false(file.exists(nad_manifest_path()))
   expect_equal(nrow(nad_manifest()), 0L)
+})
+
+test_that("nad_install rejects counties absent from the packaged catalog", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-nad-data-"))
+  source_accessed <- FALSE
+  local_mocked_bindings(
+    nad_download = function(...) {
+      source_accessed <<- TRUE
+      stop("the national source was accessed")
+    },
+    .package = "addr"
+  )
+
+  expect_error(
+    nad_install("06001", refresh_source = "no"),
+    paste0(
+      "county `06001` (Alameda, CA) is not available in the packaged ",
+      "NAD revision 23 catalog"
+    ),
+    fixed = TRUE
+  )
+  expect_false(source_accessed)
 })
 
 test_that("nad_dataset opens installed counties as one Hive dataset", {

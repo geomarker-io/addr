@@ -1,14 +1,17 @@
 library(addr)
 
-county_fips_reference <- getFromNamespace(
-  "county_fips_reference",
+nad_build_catalog <- getFromNamespace(
+  "nad_build_catalog",
   ns = "addr"
 )
-nad_download <- getFromNamespace("nad_download", ns = "addr")
+nad_write_catalog <- getFromNamespace("nad_write_catalog", ns = "addr")
 
-nad_download(version = 23L, refresh_source = "no")
+catalog <- nad_build_catalog(version = 23L, refresh_source = "no")
+nad_write_catalog(catalog, version = 23L)
+options(addr.nad_catalog_dir = file.path(getwd(), "inst", "extdata"))
+catalog <- addr::nad_catalog(version = 23L)
 
-cnty_fips <- county_fips_reference$county_fips
+cnty_fips <- catalog$county_fips
 
 options(nwarnings = 10000)
 
@@ -30,8 +33,11 @@ for (i in seq_along(cnty_fips)) {
 
 manifest <- addr::nad_manifest(version = 23L, validate = TRUE)
 stopifnot(
-  "NAD manifest must contain every reference county" = setequal(
+  "NAD manifest must contain every catalog county" = setequal(
     manifest$county_fips,
     cnty_fips
+  ),
+  "NAD manifest counties must contain source records" = all(
+    manifest$row_count > 0L
   )
 )

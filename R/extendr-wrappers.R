@@ -24,5 +24,13 @@ nad_flat_extract <- function(path, member, state, county, fields) {
   .Call(wrap__nad_flat_extract, path, member, state, county, fields)
 }
 
+#' Inventory counties in the compressed NAD flat source
+#'
+#' Use `nad_catalog()` instead of this function directly.
+#' @keywords internal
+nad_flat_catalog <- function(path, member) {
+  .Call(wrap__nad_flat_catalog, path, member)
+}
+
 
 # nolint end

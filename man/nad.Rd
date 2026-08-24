@@ -63,6 +63,8 @@ Counties can be identified either by county name plus state, or by a
 resolved internally and determine the processed-data path and source filter.
 The revision 23 source is a roughly 7.6 GB compressed archive containing a
 roughly 41 GB comma-delimited text member.
+\code{nad_catalog()} reads the packaged revision 23 catalog of source-available
+counties and is consulted before extracting a missing county.
 
 Processed county Parquet files are created one county at a time with
 \code{nad_install()} or on first use with \code{nad()}.

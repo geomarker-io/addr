@@ -13,6 +13,8 @@
 #' resolved internally and determine the processed-data path and source filter.
 #' The revision 23 source is a roughly 7.6 GB compressed archive containing a
 #' roughly 41 GB comma-delimited text member.
+#' `nad_catalog()` reads the packaged revision 23 catalog of source-available
+#' counties and is consulted before extracting a missing county.
 #'
 #' Processed county Parquet files are created one county at a time with
 #' `nad_install()` or on first use with `nad()`.
@@ -357,6 +359,334 @@ nad_dataset <- function(version = 23L) {
       county_fips = arrow::string()
     )
   )
+}
+
+#' Read the National Address Database county catalog
+#'
+#' `nad_catalog()` reads the revision-specific catalog installed with addr.
+#' The catalog describes counties that can be mapped unambiguously from the
+#' pinned NAD source to Census county FIPS identifiers. It is distinct from
+#' [nad_manifest()], which inventories county Parquet files installed in the
+#' current user's data directory.
+#'
+#' NAD23 does not include a county FIPS field. For six county/independent-city
+#' pairs, the source uses an unsuffixed label for the county and a separate
+#' explicit `city` label for the independent city. The catalog preserves those
+#' exact source labels while mapping each one to its distinct county FIPS code.
+#' `source_row_count` counts raw NAD records before county installation removes
+#' records with malformed ZIP codes.
+#'
+#' @inheritParams nad
+#' @returns A tibble with one row per source-available county and columns
+#'   `county_fips`, `state`, `county`, `source_county`, `source_row_count`, and
+#'   `nad_revision`.
+#' @export
+#' @examples
+#' nad_catalog()
+nad_catalog <- function(version = 23L) {
+  nad_version_metadata(version)
+  catalog_path <- nad_catalog_path(version = version)
+  if (catalog_path == "" || !file.exists(catalog_path)) {
+    stop(
+      "NAD catalog is not installed for revision `",
+      version,
+      "`",
+      call. = FALSE
+    )
+  }
+  catalog <- nanoparquet::read_parquet(catalog_path) |>
+    tibble::as_tibble()
+  nad_assert_catalog_schema(catalog, version = version)
+  catalog
+}
+
+nad_catalog_path <- function(version = 23L) {
+  nad_version_metadata(version)
+  override_dir <- getOption("addr.nad_catalog_dir")
+  if (!is.null(override_dir)) {
+    return(file.path(
+      override_dir,
+      "v2",
+      "nad_catalog",
+      as.character(version),
+      "counties.parquet"
+    ))
+  }
+
+  package_path <- system.file(
+    "extdata",
+    "v2",
+    "nad_catalog",
+    as.character(version),
+    "counties.parquet",
+    package = "addr"
+  )
+  if (nzchar(package_path)) {
+    return(package_path)
+  }
+
+  source_path <- nad_catalog_source_path(version = version)
+  if (file.exists(source_path)) {
+    return(source_path)
+  }
+
+  ""
+}
+
+nad_catalog_source_path <- function(version = 23L, root = ".") {
+  nad_version_metadata(version)
+  file.path(
+    root,
+    "inst",
+    "extdata",
+    "v2",
+    "nad_catalog",
+    as.character(version),
+    "counties.parquet"
+  )
+}
+
+nad_empty_catalog <- function() {
+  tibble::tibble(
+    county_fips = character(),
+    state = character(),
+    county = character(),
+    source_county = character(),
+    source_row_count = numeric(),
+    nad_revision = integer()
+  )
+}
+
+nad_catalog_required_columns <- function() {
+  names(nad_empty_catalog())
+}
+
+nad_assert_catalog_schema <- function(x, version = 23L) {
+  nad_version_metadata(version)
+  required <- nad_catalog_required_columns()
+  if (!is.data.frame(x) || !identical(names(x), required)) {
+    stop(
+      "NAD catalog must contain exactly: ",
+      paste(required, collapse = ", "),
+      call. = FALSE
+    )
+  }
+  if (
+    !is.character(x$county_fips) ||
+      !is.character(x$state) ||
+      !is.character(x$county) ||
+      !is.character(x$source_county) ||
+      !is.numeric(x$source_row_count) ||
+      !is.numeric(x$nad_revision)
+  ) {
+    stop("NAD catalog has invalid column types", call. = FALSE)
+  }
+  if (nrow(x) == 0L) {
+    stop("NAD catalog must contain at least one county", call. = FALSE)
+  }
+  if (anyNA(x)) {
+    stop("NAD catalog must not contain missing values", call. = FALSE)
+  }
+  if (any(!grepl("^[0-9]{5}$", x$county_fips))) {
+    stop("NAD catalog contains invalid county FIPS codes", call. = FALSE)
+  }
+  if (any(!grepl("^[A-Z]{2}$", x$state))) {
+    stop("NAD catalog contains invalid state abbreviations", call. = FALSE)
+  }
+  unsafe_label <- function(value) {
+    value == "" | value %in% c(".", "..") | grepl("[/\\\\]", value)
+  }
+  if (any(unsafe_label(x$county)) || any(unsafe_label(x$source_county))) {
+    stop("NAD catalog contains unsafe county labels", call. = FALSE)
+  }
+  whole_positive <- function(value) {
+    is.finite(value) & value > 0 & value == floor(value)
+  }
+  if (any(!whole_positive(x$source_row_count))) {
+    stop("NAD catalog contains invalid source row counts", call. = FALSE)
+  }
+  if (any(x$nad_revision != version)) {
+    stop("NAD catalog revision does not match requested revision", call. = FALSE)
+  }
+  source_keys <- paste(x$state, x$source_county, sep = "\r")
+  if (anyDuplicated(x$county_fips) || anyDuplicated(source_keys)) {
+    stop("NAD catalog contains duplicate county rows", call. = FALSE)
+  }
+  resolved <- lapply(x$county_fips, nad_county_info)
+  resolved_state <- vapply(resolved, `[[`, character(1), "state")
+  resolved_county <- vapply(resolved, `[[`, character(1), "county")
+  if (
+    !identical(x$state, resolved_state) ||
+      !identical(x$county, resolved_county)
+  ) {
+    stop(
+      "NAD catalog county metadata does not match its FIPS code",
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
+}
+
+nad_catalog_label_key <- function(x) {
+  gsub("[^A-Z0-9]", "", toupper(x))
+}
+
+nad_catalog_rows <- function(x, version = 23L) {
+  nad_version_metadata(version)
+  required <- c("state", "source_county", "source_row_count")
+  if (!is.data.frame(x) || !identical(names(x), required)) {
+    stop(
+      "NAD source inventory must contain exactly: ",
+      paste(required, collapse = ", "),
+      call. = FALSE
+    )
+  }
+  if (
+    !is.character(x$state) ||
+      !is.character(x$source_county) ||
+      !is.numeric(x$source_row_count) ||
+      anyNA(x)
+  ) {
+    stop("NAD source inventory has invalid values", call. = FALSE)
+  }
+  source_keys <- paste(x$state, x$source_county, sep = "\r")
+  if (anyDuplicated(source_keys)) {
+    stop("NAD source inventory contains duplicate county labels", call. = FALSE)
+  }
+  if (
+    any(!grepl("^[A-Z]{2}$", x$state)) ||
+      any(x$source_county == "") ||
+      any(!is.finite(x$source_row_count)) ||
+      any(x$source_row_count <= 0) ||
+      any(x$source_row_count != floor(x$source_row_count))
+  ) {
+    stop("NAD source inventory contains invalid county rows", call. = FALSE)
+  }
+
+  reference <- county_fips_reference
+  reference_full_key <- nad_catalog_label_key(reference$county_full)
+  reference_short_key <- nad_catalog_label_key(reference$county)
+  source_label_key <- nad_catalog_label_key(x$source_county)
+  matched <- vapply(seq_len(nrow(x)), function(i) {
+    in_state <- reference$state == x$state[[i]]
+    full_exact <- which(
+      in_state & reference_full_key == source_label_key[[i]]
+    )
+    if (length(full_exact) == 1L) {
+      return(full_exact)
+    }
+    if (length(full_exact) > 1L) {
+      return(NA_integer_)
+    }
+    short_exact <- which(
+      in_state & reference_short_key == source_label_key[[i]]
+    )
+    if (length(short_exact) == 1L) {
+      return(short_exact)
+    }
+    if (length(short_exact) > 1L) {
+      county_equivalent <- short_exact[
+        !grepl(" city$", reference$county_full[short_exact])
+      ]
+      if (length(county_equivalent) == 1L) {
+        return(county_equivalent)
+      }
+      return(NA_integer_)
+    }
+    truncated <- which(
+      in_state & startsWith(reference_full_key, source_label_key[[i]])
+    )
+    if (length(truncated) == 1L) truncated else NA_integer_
+  }, integer(1))
+
+  unresolved <- is.na(matched)
+  if (any(unresolved)) {
+    unresolved_keys <- source_keys[unresolved]
+    stop(
+      "NAD source county label cannot be mapped to one county FIPS: ",
+      gsub("\r", "/", unresolved_keys[[1L]], fixed = TRUE),
+      call. = FALSE
+    )
+  }
+
+  keep <- !unresolved
+  reference_rows <- reference[matched[keep], , drop = FALSE]
+  catalog <- tibble::tibble(
+    county_fips = reference_rows$county_fips,
+    state = reference_rows$state,
+    county = reference_rows$county,
+    source_county = x$source_county[keep],
+    source_row_count = as.numeric(x$source_row_count[keep]),
+    nad_revision = rep.int(version, sum(keep))
+  )
+  catalog <- catalog[
+    order(catalog$state, catalog$county, catalog$county_fips),
+    ,
+    drop = FALSE
+  ]
+  row.names(catalog) <- NULL
+  nad_assert_catalog_schema(catalog, version = version)
+  catalog
+}
+
+nad_build_catalog <- function(
+  version = 23L,
+  refresh_source = c("no", "yes", "force")
+) {
+  refresh_source <- match.arg(refresh_source)
+  nad_md <- nad_version_metadata(version)
+  nad_source <- nad_download(
+    version = version,
+    refresh_source = refresh_source
+  )
+  source_rows <- tibble::as_tibble(nad_flat_catalog(
+    path = nad_source,
+    member = nad_md$source_members[[1L]]
+  ))
+  nad_catalog_rows(source_rows, version = version)
+}
+
+nad_write_catalog <- function(x, version = 23L, root = ".") {
+  nad_assert_catalog_schema(x, version = version)
+  catalog_path <- nad_catalog_source_path(
+    version = version,
+    root = root
+  )
+  dir.create(dirname(catalog_path), recursive = TRUE, showWarnings = FALSE)
+  tmp_path <- tempfile(
+    pattern = ".nad-catalog-",
+    tmpdir = dirname(catalog_path),
+    fileext = ".parquet"
+  )
+  on.exit(unlink(tmp_path, force = TRUE), add = TRUE)
+  nanoparquet::write_parquet(x, tmp_path)
+  written <- nanoparquet::read_parquet(tmp_path) |>
+    tibble::as_tibble()
+  nad_assert_catalog_schema(written, version = version)
+  nad_atomic_replace(tmp_path, catalog_path)
+  invisible(catalog_path)
+}
+
+nad_catalog_county <- function(county_info, version = 23L) {
+  catalog <- nad_catalog(version = version)
+  hit <- catalog$county_fips == county_info$county_fips
+  if (!any(hit)) {
+    stop(
+      "county `",
+      county_info$county_fips,
+      "` (",
+      county_info$county,
+      ", ",
+      county_info$state,
+      ") is not available in the packaged NAD revision ",
+      version,
+      " catalog. NAD does not contain a source county label that addr can ",
+      "map unambiguously to this FIPS code, so the county cannot be installed ",
+      "from source.",
+      call. = FALSE
+    )
+  }
+  catalog[hit, , drop = FALSE]
 }
 
 #' Inventory installed National Address Database counties
@@ -1000,6 +1330,7 @@ nad_read_storage <- function(
 ) {
   county_info <- nad_county_info(county, state)
   nad_md <- nad_version_metadata(version)
+  catalog_row <- nad_catalog_county(county_info, version = version)
   nad_fields <- nad_source_fields()
   nad_source <- nad_download(
     version = version,
@@ -1009,7 +1340,7 @@ nad_read_storage <- function(
     path = nad_source,
     member = nad_md$source_members[[1L]],
     state = county_info$state,
-    county = county_info$county,
+    county = catalog_row$source_county[[1L]],
     fields = nad_fields
   ))
   nad_prepare_storage(rnad, county_info$county_fips)
