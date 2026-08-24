@@ -1,4 +1,14 @@
-devtools::load_all()
+library(addr)
+
+county_fips_reference <- getFromNamespace(
+  "county_fips_reference",
+  ns = "addr"
+)
+taf_catalog_source_path <- getFromNamespace(
+  "taf_catalog_source_path",
+  ns = "addr"
+)
+taf_write_catalog <- getFromNamespace("taf_write_catalog", ns = "addr")
 
 cnty_fips <- county_fips_reference$county_fips
 
@@ -18,28 +28,35 @@ addrfeat_unavailable <- c(
 options(nwarnings = 10000)
 
 for (yr in as.character(c(2024:2025))) {
-  purrr::walk(
-    cnty_fips,
-    \(.) {
-      if (. %in% addrfeat_unavailable) {
-        return(invisible(.))
-      }
-      taf_install(
-        .,
-        year = yr,
-        version = "v2",
-        overwrite = FALSE,
-        redownload = FALSE
-      )
-    },
-    .progress = sprintf("%s: installing full taf and catalog", yr)
-  )
+  available_fips <- setdiff(cnty_fips, addrfeat_unavailable)
 
-  manifest <- taf_manifest(year = yr, version = "v2", validate = TRUE)
+  for (i in seq_along(available_fips)) {
+    county <- available_fips[[i]]
+    message(sprintf(
+      "%s: installing TAF county %s (%d/%d)",
+      yr,
+      county,
+      i,
+      length(available_fips)
+    ))
+    addr::taf_install(
+      county,
+      year = yr,
+      version = "v2",
+      overwrite = FALSE,
+      redownload = FALSE
+    )
+  }
+
+  manifest <- addr::taf_manifest(
+    year = yr,
+    version = "v2",
+    validate = TRUE
+  )
   stopifnot(
     "TAF manifest must contain every county with published ADDRFEAT data" = setequal(
       unique(manifest$county_fips),
-      setdiff(cnty_fips, addrfeat_unavailable)
+      available_fips
     )
   )
   taf_write_catalog(manifest, year = yr, version = "v2")
