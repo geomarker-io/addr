@@ -13,7 +13,7 @@ EOF
 
 die() {
   echo "install-addr-nad-fuel: $*" >&2
-  echo "See https://github.com/geomarker-io/addr#nad-fuel-bundles for installation details." >&2
+  echo "See https://github.com/geomarker-io/addr#nad-fuel-bundle for installation details." >&2
   exit 1
 }
 

@@ -14,7 +14,7 @@ EOF
 
 die() {
   echo "install-addr-taf-fuel: $*" >&2
-  echo "See https://github.com/geomarker-io/addr#full-taf-bundle for installation details." >&2
+  echo "See https://github.com/geomarker-io/addr#taf-fuel-bundle for installation details." >&2
   exit 1
 }
 
@@ -201,7 +201,7 @@ if [ "${#existing_paths[@]}" -gt 0 ]; then
     echo "The installer refuses to overwrite existing TAF fuel."
     echo "Delete the existing path(s) first, then rerun this script."
     echo "To install somewhere else, set R_USER_DATA_DIR before running this script."
-    echo "See https://github.com/geomarker-io/addr#full-taf-bundle for replacement details."
+    echo "See https://github.com/geomarker-io/addr#taf-fuel-bundle for replacement details."
   } >&2
   exit 1
 fi
