@@ -10,6 +10,8 @@ Counties can be identified either by county name plus state, or by a
 resolved internally and determine the processed-data path and source filter.
 The revision 23 source is a roughly 7.6 GB compressed archive containing a
 roughly 41 GB comma-delimited text member.
+nad_catalog() reads the packaged revision 23 catalog of source-available
+counties and is consulted before extracting a missing county.
 Processed county Parquet files are created one county at a time with
 nad_install() or on first use with nad().
 The compressed national source is managed exclusively by stow() beneath
@@ -30,6 +32,8 @@ Counties can be identified either by county name plus state, or by a
 resolved internally and determine the processed-data path and source filter.
 The revision 23 source is a roughly 7.6 GB compressed archive containing a
 roughly 41 GB comma-delimited text member.
+nad_catalog() reads the packaged revision 23 catalog of source-available
+counties and is consulted before extracting a missing county.
 Processed county Parquet files are created one county at a time with
 nad_install() or on first use with nad().
 The compressed national source is managed exclusively by stow() beneath
@@ -47,7 +51,7 @@ separation.'><meta property="og:image" content="https://geomarker.io/addr/logo.s
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0.9003</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -83,7 +87,9 @@ Counties can be identified either by county name plus state, or by a
 5-digit county FIPS identifier. County names and state abbreviations are
 resolved internally and determine the processed-data path and source filter.
 The revision 23 source is a roughly 7.6 GB compressed archive containing a
-roughly 41 GB comma-delimited text member.</p>
+roughly 41 GB comma-delimited text member.
+<code><a href="nad_catalog.html">nad_catalog()</a></code> reads the packaged revision 23 catalog of source-available
+counties and is consulted before extracting a missing county.</p>
 <p>Processed county Parquet files are created one county at a time with
 <code>nad_install()</code> or on first use with <code>nad()</code>.
 The compressed national source is managed exclusively by <code>stow()</code> beneath

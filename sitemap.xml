@@ -24,8 +24,10 @@
 <url><loc>https://geomarker.io/addr/reference/match_addr_street.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/match_zipcodes.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/nad.html</loc></url>
+<url><loc>https://geomarker.io/addr/reference/nad_catalog.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/nad_dataset.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/nad_example_data.html</loc></url>
+<url><loc>https://geomarker.io/addr/reference/nad_flat_catalog.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/nad_flat_extract.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/nad_manifest.html</loc></url>
 <url><loc>https://geomarker.io/addr/reference/phonetic_street_key.html</loc></url>
