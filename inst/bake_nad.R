@@ -6,7 +6,7 @@ nad_build_catalog <- getFromNamespace(
 )
 nad_write_catalog <- getFromNamespace("nad_write_catalog", ns = "addr")
 
-catalog <- nad_build_catalog(version = 23L, refresh_source = "no")
+catalog <- nad_build_catalog(version = 23L, refresh_source = "yes")
 nad_write_catalog(catalog, version = 23L)
 options(addr.nad_catalog_dir = file.path(getwd(), "inst", "extdata"))
 catalog <- addr::nad_catalog(version = 23L)
