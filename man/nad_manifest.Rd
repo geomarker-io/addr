@@ -23,7 +23,7 @@ A tibble with one row per installed county and columns
 \code{nad_manifest()} reads the local manifest written as county Parquet files are
 installed. The Parquet path remains the primary existence check used by
 \code{nad()}; the manifest provides a compact inventory and integrity metadata for
-validation and portable NAD fuel bundles.
+validation.
 }
 \examples{
 nad_manifest()

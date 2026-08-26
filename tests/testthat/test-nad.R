@@ -516,27 +516,6 @@ test_that("nad_dataset opens installed counties as one Hive dataset", {
   expect_identical(butler$county_fips, "39017")
 })
 
-test_that("NAD fuel scripts are installed with their validation contract", {
-  scripts <- system.file(
-    "exec",
-    c("pack-addr-nad-fuel.sh", "install-addr-nad-fuel.sh"),
-    package = "addr"
-  )
-  expect_true(all(nzchar(scripts)))
-  text <- lapply(scripts, readLines, warn = FALSE)
-  expect_true(any(grepl("addr-nad-fuel", text[[1L]], fixed = TRUE)))
-  expect_true(any(grepl("archive_sha256", text[[1L]], fixed = TRUE)))
-  expect_true(any(grepl('"schema_version" "2"', text[[1L]], fixed = TRUE)))
-  expect_true(any(grepl('SCHEMA_VERSION" = "2"', text[[2L]], fixed = TRUE)))
-  expect_true(any(grepl("county_file_format", text[[1L]], fixed = TRUE)))
-  expect_true(any(grepl("nad_validate_manifest", text[[2L]], fixed = TRUE)))
-  expect_true(any(grepl("Parquet files", text[[2L]], fixed = TRUE)))
-  expect_true(any(grepl("v2/nad/", text[[1L]], fixed = TRUE)))
-  expect_true(any(grepl("v2/nad_manifest", text[[1L]], fixed = TRUE)))
-  expect_true(any(grepl("v2/nad/", text[[2L]], fixed = TRUE)))
-  expect_true(any(grepl("v2/nad_manifest", text[[2L]], fixed = TRUE)))
-})
-
 test_that("nad_download maps refresh modes to stow", {
   withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-stow-data-"))
   managed <- file.path(

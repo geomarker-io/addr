@@ -694,7 +694,7 @@ nad_catalog_county <- function(county_info, version = 23L) {
 #' `nad_manifest()` reads the local manifest written as county Parquet files are
 #' installed. The Parquet path remains the primary existence check used by
 #' `nad()`; the manifest provides a compact inventory and integrity metadata for
-#' validation and portable NAD fuel bundles.
+#' validation.
 #'
 #' @param version integer, length one; NAD revision to inventory. Only revision
 #'   23 is supported.

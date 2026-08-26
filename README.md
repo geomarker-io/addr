@@ -126,61 +126,6 @@ Read TIGER address features for one or more ZIP codes with `taf()`, but `geocode
 Like with the NAD dataset, use `taf_dataset()` to open the installed multi-file dataset with arrow for advanced lazy dataset queries.
 
 
-## NAD fuel bundle
-
-The addr 2.0.0 GitHub release provides a schema-v2 NAD revision 23 fuel bundle for users who prefer one large download instead of extracting counties from the national source as needed.
-The bundle contains the processed county dataset and its manifest but not the stow-managed national source. It requires addr 2.0.0 and the `bash`, `tar`, `zstd`, and `shasum` command-line tools.
-
-Download the archive and its JSON sidecar from the release:
-
-```sh
-curl --fail --location --remote-name \
-  https://github.com/geomarker-io/addr/releases/download/v2.0.0/addr-nad-r23.tar.zst
-curl --fail --location --remote-name \
-  https://github.com/geomarker-io/addr/releases/download/v2.0.0/addr-nad-r23.json
-```
-
-Run the installer from a shell:
-
-```sh
-bash "$(Rscript -e 'cat(system.file("exec", "install-addr-nad-fuel.sh", package = "addr"))')" \
-  addr-nad-r23.tar.zst
-```
-
-The installer reads the adjacent JSON sidecar, verifies the archive's SHA-256 digest, confirms exact package compatibility and expected paths and file counts, and validates the staged `counties.parquet` manifest and every inventoried county Parquet file before moving either directory.
-
-By default, files are installed beneath the directory returned by:
-
-```sh
-Rscript -e 'cat(tools::R_user_dir("addr", "data"))'
-```
-
-The installed data and manifest paths are:
-
-```text
-v2/nad/23
-v2/nad_manifest/23
-```
-
-Set `R_USER_DATA_DIR` before installation to use another storage location, such as scratch space on a cluster:
-
-```sh
-export R_USER_DATA_DIR=/scratch/<user>/addr-data
-bash "$(Rscript -e 'cat(system.file("exec", "install-addr-nad-fuel.sh", package = "addr"))')" \
-  addr-nad-r23.tar.zst
-```
-
-The installer refuses to overwrite either existing revision-specific directory. Remove both directories before deliberately replacing an installation, or set `R_USER_DATA_DIR` to install in a different location.
-
-To create the same artifact from locally installed counties, run the packer. It validates the local manifest and every county Parquet file before writing the archive and sidecar:
-
-```sh
-bash "$(Rscript -e 'cat(system.file("exec", "pack-addr-nad-fuel.sh", package = "addr"))')" \
-  23 "$PWD"
-```
-
-The sidecar records the schema, exact required addr version, NAD revision, Parquet and Hive layout, archive size and SHA-256 digest, installed paths, county count, and expected file counts.
-
 ## TAF fuel bundle
 
 The addr 2.0.0 GitHub release provides a schema-v2 national 2025 TIGER Address Features fuel bundle for users who prefer one large download instead of installing county data as needed.
