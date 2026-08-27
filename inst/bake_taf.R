@@ -26,7 +26,14 @@ addrfeat_unavailable <- c(
   "69120"
 )
 
-options(nwarnings = 10000)
+# Census recommends anonymous FTP for a large number of TIGER files. This
+# protocol is intentionally selected only for this bulk development script;
+# normal package use remains on encrypted HTTPS.
+options(
+  nwarnings = 10000,
+  addr.tiger_download_protocol = "ftp",
+  addr.tiger_download_interval = 1
+)
 
 for (yr in as.character(taf_years)) {
   available_fips <- setdiff(cnty_fips, addrfeat_unavailable)

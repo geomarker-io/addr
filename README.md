@@ -125,6 +125,35 @@ addr stores them as a hive-partitioned, multi-file parquet dataset, grouped by Z
 Read TIGER address features for one or more ZIP codes with `taf()`, but `geocode()` automatically installs all county files that may contain the ZIP codes in an input address vector as needed. 
 Like with the NAD dataset, use `taf_dataset()` to open the installed multi-file dataset with arrow for advanced lazy dataset queries.
 
+Each missing county requires two Census downloads, one `FEATNAMES` ZIP and one `ADDRFEAT` ZIP. addr sends actual HTTPS requests at least one second apart and retries transient failures three times with increasing delays. Successfully downloaded source ZIPs remain in the managed cache, so rerun the same call with `redownload = FALSE` after a failure to resume rather than start over.
+
+Census does not publish a numeric TIGER request limit. Plan downloads by the number of unique missing counties, not the number of input ZIP codes: a ZIP can cross county lines, and place or typographical ZIP variants can expand the county set substantially. In the packaged 2025 catalog, one exact ZIP needs a median of one county and 95% need no more than three; with typographical variants enabled, the median is seven and 95% need no more than 15. Place and county-subdivision variants can produce larger outliers, so no ZIP-count limit is reliable when variants are enabled.
+
+As a conservative addr guideline, on-demand HTTPS installation is intended for at most 10 missing counties (at most 20 source requests) in one job. Preview the exact number without downloading anything:
+
+```r
+needed <- taf_needed_counties(
+  x,
+  year = "2025",
+  zip_variants = TRUE,
+  place_zip_variants = TRUE
+)
+installed <- unique(taf_manifest("2025")$county_fips)
+length(setdiff(unique(needed$county_fips), installed))
+```
+
+For more than 10 missing counties, install the 2025 TAF fuel bundle below. Setting `place_zip_variants = FALSE` and `zip_variants = FALSE` can reduce downloads when the broader matching search is not needed.
+
+For bulk development work when the bundle is not suitable, [Census recommends an anonymous FTP client for a large number of TIGER files](https://www2.census.gov/geo/pdfs/maps-data/data/tiger/tgrshp2021/TGRSHP2021_TechDoc_Ch6.pdf). FTP is unencrypted, so addr never switches to it automatically. Select it explicitly for the current R session, then restore HTTPS afterward:
+
+```r
+options(addr.tiger_download_protocol = "ftp")
+# taf_install(...) or taf_ensure(...)
+options(addr.tiger_download_protocol = "https")
+```
+
+An invalid HTML `Request Rejected` response is never cached as a TIGER ZIP. If all retries fail, the error identifies the rejection and includes the Census support ID when the response provides one.
+
 
 ## TAF fuel bundle
 

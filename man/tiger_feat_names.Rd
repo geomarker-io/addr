@@ -21,9 +21,9 @@ a tibble with unique \code{LINEARID} and \code{addr} columns
 TIGER primary feature names are read from compressed feature-name databases
 for each county and Census vintage.
 If not already present, compressed addrfeat (address feature) shapefiles are
-downloaded from the Census TIGER HTTPS endpoint as durable managed local
-copies in addr's \code{stow/tiger_feat_names} directory. Files from the former
-unmanaged TIGER layout are not searched.
+downloaded from the Census TIGER HTTPS endpoint by default as durable
+managed local copies in addr's \code{stow/tiger_feat_names} directory. Files from
+the former unmanaged TIGER layout are not searched.
 
 When reading into R, the data is filtered to addressable MTFCCs
 (S1100, S1200, S1400, S1640) that have a name.

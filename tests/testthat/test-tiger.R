@@ -79,10 +79,16 @@ test_that("tiger_download fixes ownership and forwards managed-copy controls", {
   tiger_path <- "TIGER2024/INTERNATIONALBOUNDARY/tl_2024_us_internationalboundary.zip"
   expected_url <- paste0("https://www2.census.gov/geo/tiger/", tiger_path)
   received <- NULL
+  withr::local_options(list(addr.tiger_download_interval = 0))
+  tiger_download_state$last_request <- NULL
 
   local_mocked_bindings(
     stow = function(...) {
-      received <<- list(...)
+      args <- list(...)
+      if (isTRUE(args$offline)) {
+        stop("No managed local copy is available in offline mode")
+      }
+      received <<- args
       "/managed/canonical.zip"
     },
     .package = "stow"
@@ -103,6 +109,115 @@ test_that("tiger_download fixes ownership and forwards managed-copy controls", {
   expect_identical(received$offline, FALSE)
   expect_identical(received$etag, FALSE)
   expect_identical(received$validate, tiger_validate_zip)
+})
+
+test_that("tiger_download returns cached files without request pacing", {
+  tiger_path <- "TIGER2025/FEATNAMES/tl_2025_39061_featnames.zip"
+  calls <- 0L
+  tiger_download_state$last_request <- 123
+
+  local_mocked_bindings(
+    stow = function(...) {
+      calls <<- calls + 1L
+      expect_true(list(...)$offline)
+      "/managed/cached.zip"
+    },
+    .package = "stow"
+  )
+
+  expect_identical(
+    tiger_download(tiger_path, subdir = "tiger_feat_names"),
+    "/managed/cached.zip"
+  )
+  expect_identical(calls, 1L)
+  expect_identical(tiger_download_state$last_request, 123)
+})
+
+test_that("tiger_download retries rejected HTML and explains the failure", {
+  tiger_path <- "TIGER2025/ADDRFEAT/tl_2025_12003_addrfeat.zip"
+  download_attempts <- 0L
+  withr::local_options(list(
+    addr.tiger_download_attempts = 2L,
+    addr.tiger_download_interval = 0,
+    addr.tiger_download_retry_base = 0,
+    addr.tiger_download_retry_jitter = 0
+  ))
+  tiger_download_state$last_request <- NULL
+
+  local_mocked_bindings(
+    stow = function(...) {
+      args <- list(...)
+      if (isTRUE(args$offline)) {
+        stop("No managed local copy is available in offline mode")
+      }
+      download_attempts <<- download_attempts + 1L
+      rejected <- tempfile()
+      writeLines(
+        "<html>Request Rejected. Support ID: ABC-123</html>",
+        rejected
+      )
+      expect_false(args$validate(rejected))
+      stop("Downloaded content failed validation and was not committed.")
+    },
+    .package = "stow"
+  )
+
+  expect_error(
+    tiger_download(tiger_path, subdir = "tiger_addr_feat"),
+    "server rejection, not an empty or valid TIGER archive",
+    fixed = TRUE
+  )
+  expect_identical(download_attempts, 2L)
+  expect_identical(tiger_download_state$rejection$support_id, "ABC-123")
+})
+
+test_that("tiger_download does not retry a missing TIGER file", {
+  tiger_path <- "TIGER2025/ADDRFEAT/tl_2025_99999_addrfeat.zip"
+  download_attempts <- 0L
+  withr::local_options(list(
+    addr.tiger_download_attempts = 4L,
+    addr.tiger_download_interval = 0
+  ))
+  tiger_download_state$last_request <- NULL
+
+  local_mocked_bindings(
+    stow = function(...) {
+      args <- list(...)
+      if (isTRUE(args$offline)) {
+        stop("No managed local copy is available in offline mode")
+      }
+      download_attempts <<- download_attempts + 1L
+      stop("Download failed. Original error: HTTP response code said error [404]")
+    },
+    .package = "stow"
+  )
+
+  expect_error(
+    tiger_download(tiger_path, subdir = "tiger_addr_feat"),
+    "failed after 1 attempt",
+    fixed = TRUE
+  )
+  expect_identical(download_attempts, 1L)
+})
+
+test_that("tiger_download_url supports only explicit HTTPS or FTP", {
+  tiger_path <- "TIGER2025/FEATNAMES/tl_2025_39061_featnames.zip"
+
+  expect_identical(
+    tiger_download_url(tiger_path),
+    paste0("https://www2.census.gov/geo/tiger/", tiger_path)
+  )
+  withr::local_options(list(addr.tiger_download_protocol = "ftp"))
+  expect_identical(
+    tiger_download_url(tiger_path),
+    paste0("ftp://ftp2.census.gov/geo/tiger/", tiger_path)
+  )
+  options(addr.tiger_download_protocol = "file")
+  expect_error(
+    tiger_download_url(tiger_path),
+    'must be either "https" or "ftp"',
+    fixed = TRUE
+  )
 })
 
 test_that("public TIGER consumers own separate stow subdirectories", {
@@ -137,6 +252,20 @@ test_that("tiger ZIP validator accepts ZIPs and rejects other content", {
 
   expect_identical(tiger_validate_zip(zip_file), TRUE)
   expect_identical(tiger_validate_zip(invalid_file), FALSE)
+})
+
+test_that("tiger ZIP validator extracts Census rejection support IDs", {
+  invalid_file <- tempfile()
+  writeLines(
+    "<html>The requested URL was rejected. Support ID is: 987654321</html>",
+    invalid_file
+  )
+
+  expect_false(tiger_validate_zip(invalid_file))
+  expect_identical(
+    tiger_download_state$rejection$support_id,
+    "987654321"
+  )
 })
 
 test_that("tiger_download supports offline managed local copies", {
