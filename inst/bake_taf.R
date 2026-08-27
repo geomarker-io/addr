@@ -11,9 +11,10 @@ taf_catalog_source_path <- getFromNamespace(
 taf_write_catalog <- getFromNamespace("taf_write_catalog", ns = "addr")
 
 cnty_fips <- county_fips_reference$county_fips
+taf_years <- 2025L
 
 # Census publishes FEATNAMES but not ADDRFEAT files for these county
-# equivalents in the 2024 and 2025 TIGER releases.
+# equivalents in the 2025 TIGER release.
 addrfeat_unavailable <- c(
   "60010",
   "60020",
@@ -27,7 +28,7 @@ addrfeat_unavailable <- c(
 
 options(nwarnings = 10000)
 
-for (yr in as.character(c(2024:2025))) {
+for (yr in as.character(taf_years)) {
   available_fips <- setdiff(cnty_fips, addrfeat_unavailable)
 
   for (i in seq_along(available_fips)) {
