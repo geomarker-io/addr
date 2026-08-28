@@ -1,5 +1,6 @@
 # addr 2.0.0
 
+- The published addr container image now supports both linux/amd64 and linux/arm64 through a multi-platform OCI index. Each architecture is built and smoke-tested on a native GitHub-hosted runner, and controlled release backfills can preserve an existing amd64 child image by digest.
 - Breaking: `addr-geocode` now uses the installed `geocode()` defaults, including its TIGER year, and selects matching behavior with `--preset default`, `strict`, `exact-zip`, or `loose`. The former `--taf-year` option has been removed. The same preset argument works for local and container invocations, and deterministic output filenames record the selected preset alongside the addr version.
 - Breaking: addr now requires R 4.2.0 or newer.
 - The vendored Rust bridge now uses `extendr-api` 0.9.0. The minimum supported Cargo and rustc versions are now 1.71.
