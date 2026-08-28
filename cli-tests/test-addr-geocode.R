@@ -1,6 +1,6 @@
 script <- Sys.getenv(
   "ADDR_GEOCODE_CLI_SCRIPT",
-  unset = file.path(getwd(), "inst", "exec", "addr-geocode")
+  unset = file.path(getwd(), "exec", "addr-geocode")
 )
 if (!file.exists(script)) {
   stop("addr-geocode CLI script does not exist: ", script, call. = FALSE)

@@ -1,6 +1,6 @@
 Package: addr
 Title: Clean, Parse, Harmonize, Match, and Geocode Messy Real-World US Addresses
-Version: 2.0.0.9008
+Version: 2.0.0.9009
 Authors@R: 
     c(person("Cole", "Brokamp", email = "cole@colebrokamp.com", role = c("aut", "cre")),
       person("Erika", "Manning", role = c("aut")))
@@ -35,7 +35,7 @@ Remotes:
 SystemRequirements: Cargo (>= 1.65), rustc (>= 1.65)
 Config/testthat/edition: 3
 Depends: 
-    R (>= 4.0.0)
+    R (>= 4.2.0)
 Config/rextendr/version: 0.4.2
 Collate: 
     'addr_helpers.R'
