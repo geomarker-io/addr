@@ -1,5 +1,6 @@
 # addr 2.0.0
 
+- Breaking: `addr-geocode` now uses the installed `geocode()` defaults, including its TIGER year, and selects matching behavior with `--preset default`, `strict`, `exact-zip`, or `loose`. The former `--taf-year` option has been removed. The same preset argument works for local and container invocations, and deterministic output filenames record the selected preset alongside the addr version.
 - The vendored Rust bridge now uses `extendr-api` 0.9.0. The minimum supported Cargo and rustc versions are now 1.71.
 - Breaking: `addr()`, `addr_number()`, `addr_street()`, `addr_place()`, and `as_addr()` now store every address component in uppercase after applying existing mappings. Mapping flags control abbreviation mapping but no longer preserve input case. `as_addr()` upgrades legacy mixed-case addr objects. Prepared `addr_match_index` objects created by an older version must be rebuilt with `addr_match_prepare()`.
 - `geocode()` and `geocode_zip()` now consider Census place- and county-subdivision-derived ZCTAs by default after the exact input ZIP and before typographical ZIP variants. The new `place_zip_variants` and `place_zip_variant` arguments independently control this search. Valid address ranges are preferred across all candidate tiers, and TIGER county files for every enabled candidate are prepared before geocoding.

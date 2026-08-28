@@ -48,12 +48,66 @@ opts <- addr_geocode_cli_parse_args(c(
   "addresses.csv",
   "--workers",
   "2",
-  "--taf-year=2025",
+  "--preset=strict",
   "--overwrite"
 ))
 assert(identical(opts$input, "addresses.csv"), "input option was not parsed")
 assert(identical(opts$workers, 2L), "workers option was not parsed")
+assert(identical(opts$preset, "strict"), "preset option was not parsed")
 assert(isTRUE(opts$overwrite), "overwrite option was not parsed")
+
+presets <- addr_geocode_cli_presets()
+assert(
+  identical(names(presets), c("default", "strict", "exact-zip", "loose")),
+  "preset names are wrong"
+)
+assert(length(presets$default) == 0L, "default preset must not override geocode")
+assert(
+  identical(
+    presets$strict,
+    list(
+      name_phonetic_dist = 0L,
+      name_fuzzy_dist = 0L,
+      place_zip_variants = FALSE,
+      zip_variants = FALSE
+    )
+  ),
+  "strict preset arguments are wrong"
+)
+assert(
+  identical(
+    presets[["exact-zip"]],
+    list(place_zip_variants = FALSE, zip_variants = FALSE)
+  ),
+  "exact-zip preset arguments are wrong"
+)
+assert(
+  identical(
+    presets$loose,
+    list(
+      name_fuzzy_dist = 3L,
+      match_street_type = "ignore",
+      match_street_directional = "ignore"
+    )
+  ),
+  "loose preset arguments are wrong"
+)
+
+usage <- addr_geocode_cli_usage()
+for (preset in names(presets)) {
+  assert(
+    grepl(preset, usage, fixed = TRUE),
+    paste("help does not describe preset:", preset)
+  )
+}
+assert(
+  grepl(
+    "https://geomarker.io/addr/reference/geocode.html",
+    usage,
+    fixed = TRUE
+  ),
+  "help does not link to the geocode reference"
+)
 
 expect_error(
   addr_geocode_cli_parse_args(character()),
@@ -68,24 +122,46 @@ expect_error(
   )),
   "unknown option"
 )
+expect_error(
+  addr_geocode_cli_parse_args(c(
+    "--input",
+    "x.csv",
+    "--preset",
+    "unknown"
+  )),
+  "--preset must be one of"
+)
+expect_error(
+  addr_geocode_cli_parse_args(c(
+    "--input",
+    "x.csv",
+    "--taf-year",
+    "2025"
+  )),
+  "unknown option"
+)
 
 out_path <- addr_geocode_cli_output_path(
   file.path(tmp, "addresses.csv"),
   version = "1.2.0"
 )
 assert(
-  identical(basename(out_path), "addresses__addr-v1.2.0__geocoded.csv"),
+  identical(
+    basename(out_path),
+    "addresses__addr-v1.2.0__preset-default__geocoded.csv"
+  ),
   "csv output path was not deterministic"
 )
 
 parquet_out_path <- addr_geocode_cli_output_path(
   file.path(tmp, "addresses.parquet"),
-  version = "1.2.0"
+  version = "1.2.0",
+  preset = "strict"
 )
 assert(
   identical(
     basename(parquet_out_path),
-    "addresses__addr-v1.2.0__geocoded.parquet"
+    "addresses__addr-v1.2.0__preset-strict__geocoded.parquet"
   ),
   "parquet output path was not deterministic"
 )
@@ -188,9 +264,23 @@ utils::write.csv(
   na = ""
 )
 Sys.unsetenv("ADDR_GEOCODE_CLI_SOURCE_ONLY")
+run_preset <- if (
+  "place_zip_variants" %in% names(formals(addr::geocode))
+) {
+  "strict"
+} else {
+  "default"
+}
 run_out <- system2(
   script,
-  c("--input", run_input, "--data-dir", file.path(tmp, "addr-data")),
+  c(
+    "--input",
+    run_input,
+    "--preset",
+    run_preset,
+    "--data-dir",
+    file.path(tmp, "addr-data")
+  ),
   stdout = TRUE,
   stderr = TRUE
 )
@@ -203,7 +293,10 @@ assert(
   any(grepl("preparing geocoding input", run_out, fixed = TRUE)),
   "CLI invocation did not emit geocode progress"
 )
-expected_run_output <- addr_geocode_cli_output_path(run_input)
+expected_run_output <- addr_geocode_cli_output_path(
+  run_input,
+  preset = run_preset
+)
 assert(file.exists(expected_run_output), "CLI invocation failed")
 
 cat("addr-geocode CLI tests passed\n")

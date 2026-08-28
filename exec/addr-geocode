@@ -1,16 +1,51 @@
 #!/usr/bin/env Rscript
 
+addr_geocode_cli_presets <- function() {
+  list(
+    default = list(),
+    strict = list(
+      name_phonetic_dist = 0L,
+      name_fuzzy_dist = 0L,
+      place_zip_variants = FALSE,
+      zip_variants = FALSE
+    ),
+    `exact-zip` = list(
+      place_zip_variants = FALSE,
+      zip_variants = FALSE
+    ),
+    loose = list(
+      name_fuzzy_dist = 3L,
+      match_street_type = "ignore",
+      match_street_directional = "ignore"
+    )
+  )
+}
+
 addr_geocode_cli_usage <- function() {
   paste(
     "Usage:",
-    "  addr-geocode --input PATH [--output-dir DIR] [--workers N] [--taf-year YEAR] [--data-dir DIR] [--overwrite]",
+    "  addr-geocode --input PATH [--output-dir DIR] [--workers N] [--preset NAME] [--data-dir DIR] [--overwrite]",
     "",
     "Input:",
     "  PATH must be a .csv or .parquet file containing a column named exactly `address`.",
     "",
     "Output:",
     "  Writes one geocoded file matching the input file type. The output file",
-    "  name is deterministic and includes the installed addr package version.",
+    "  name is deterministic and includes the installed addr package version",
+    "  and selected preset.",
+    "",
+    "Geocoding presets:",
+    "  default    Use all defaults from addr::geocode().",
+    "  strict     Search only the input ZIP; set both name distances to 0.",
+    "  exact-zip  Search only the input ZIP with default street matching.",
+    "  loose      Set fuzzy name distance to 3; ignore street type and",
+    "             directionals. This favors recall over precision.",
+    "",
+    "  All geocode() arguments not overridden by a preset use the installed",
+    "  addr package defaults, including the default TIGER year.",
+    "",
+    "Reference:",
+    "  https://geomarker.io/addr/reference/geocode.html",
     sep = "\n"
   )
 }
@@ -40,7 +75,7 @@ addr_geocode_cli_parse_args <- function(args) {
     input = NULL,
     output_dir = NULL,
     workers = 1L,
-    taf_year = "2025",
+    preset = "default",
     data_dir = NULL,
     overwrite = FALSE,
     help = FALSE
@@ -50,7 +85,7 @@ addr_geocode_cli_parse_args <- function(args) {
     "input",
     "output-dir",
     "workers",
-    "taf-year",
+    "preset",
     "data-dir"
   )
   flag_options <- c("overwrite", "help")
@@ -112,6 +147,16 @@ addr_geocode_cli_parse_args <- function(args) {
   }
   opts$workers <- workers
 
+  preset_choices <- names(addr_geocode_cli_presets())
+  if (length(opts$preset) != 1L ||
+      is.na(opts$preset) ||
+      !opts$preset %in% preset_choices) {
+    addr_geocode_cli_stop(
+      "--preset must be one of: ",
+      paste(preset_choices, collapse = ", ")
+    )
+  }
+
   opts
 }
 
@@ -164,7 +209,12 @@ addr_geocode_cli_write <- function(x, path) {
   invisible(path)
 }
 
-addr_geocode_cli_output_path <- function(input, output_dir = NULL, version = NULL) {
+addr_geocode_cli_output_path <- function(
+  input,
+  output_dir = NULL,
+  version = NULL,
+  preset = "default"
+) {
   input <- normalizePath(input, mustWork = FALSE)
   input_dir <- dirname(input)
   if (is.null(output_dir)) {
@@ -176,9 +226,16 @@ addr_geocode_cli_output_path <- function(input, output_dir = NULL, version = NUL
   ext <- tolower(tools::file_ext(input))
   stem <- tools::file_path_sans_ext(basename(input))
   version <- gsub("[^A-Za-z0-9._-]+", "-", version)
+  preset <- gsub("[^A-Za-z0-9._-]+", "-", preset)
   file.path(
     output_dir,
-    sprintf("%s__addr-v%s__geocoded.%s", stem, version, ext)
+    sprintf(
+      "%s__addr-v%s__preset-%s__geocoded.%s",
+      stem,
+      version,
+      preset,
+      ext
+    )
   )
 }
 
@@ -241,7 +298,7 @@ addr_geocode_cli_empty_output <- function(n = 0L) {
   )
 }
 
-addr_geocode_cli_geocode <- function(address, taf_year, workers) {
+addr_geocode_cli_geocode <- function(address, preset, workers) {
   if (length(address) == 0L) {
     return(addr_geocode_cli_empty_output())
   }
@@ -258,11 +315,12 @@ addr_geocode_cli_geocode <- function(address, taf_year, workers) {
     addr::as_addr(as.character(address))
   )
 
-  geocoded <- addr::geocode(
-    parsed_address,
-    year = taf_year,
-    progress = TRUE
+  geocode_args <- c(
+    list(x = parsed_address),
+    addr_geocode_cli_presets()[[preset]],
+    list(progress = TRUE)
   )
+  geocoded <- do.call(addr::geocode, geocode_args)
   addr_geocode_cli_flatten(geocoded)
 }
 
@@ -288,7 +346,8 @@ addr_geocode_cli_main <- function(args = commandArgs(trailingOnly = TRUE)) {
   input <- normalizePath(opts$input, mustWork = TRUE)
   output <- addr_geocode_cli_output_path(
     input,
-    output_dir = opts$output_dir
+    output_dir = opts$output_dir,
+    preset = opts$preset
   )
   output_dir <- dirname(output)
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
@@ -306,7 +365,7 @@ addr_geocode_cli_main <- function(args = commandArgs(trailingOnly = TRUE)) {
   addr_geocode_cli_validate_input(data)
   geocoded <- addr_geocode_cli_geocode(
     data$address,
-    taf_year = opts$taf_year,
+    preset = opts$preset,
     workers = opts$workers
   )
   out <- cbind(data, geocoded, stringsAsFactors = FALSE)

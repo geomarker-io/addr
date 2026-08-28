@@ -235,6 +235,18 @@ docker run --rm -it -v addr-data:/opt/addr-data ghcr.io/geomarker-io/addr:v2.0.0
 
 The container includes an `addr-geocode` command for CSV or parquet files with a column named exactly `address`.
 The command writes a deterministic output file next to the input, matching the input file type and appending TIGER range geocoding columns.
+The filename records both the installed addr version and selected preset; for example, strict geocoding of `addresses.csv` with addr 2.0.0 writes `addresses__addr-v2.0.0__preset-strict__geocoded.csv`.
+Geocoding uses the installed `geocode()` defaults, including its default TIGER year.
+Use `--preset` to select one of four matching strategies:
+
+| Preset | Behavior |
+|---|---|
+| `default` | Use all `geocode()` defaults. |
+| `strict` | Search only the input ZIP and set both street-name distances to zero. |
+| `exact-zip` | Search only the input ZIP with default street matching. |
+| `loose` | Set fuzzy street-name distance to three and ignore street type and directionals, favoring recall over precision. |
+
+See the [`geocode()` reference](https://geomarker.io/addr/reference/geocode.html) for the underlying arguments and defaults.
 On systems that use Apptainer, pull a release-tagged image and bind user-specific scratch directories for persistent addr data and temporary files:
 
 ```sh
@@ -248,7 +260,8 @@ apptainer exec --cleanenv --contain \
   --bind "$PWD:/work" \
   addr_v2.0.0.sif \
   addr-geocode \
-    --input /work/addresses.csv
+    --input /work/addresses.csv \
+    --preset strict
 ```
 
 For example, Cole's CCHMC username is `broeg1`, so his scratch directories use `/scratch/broeg1/`:
@@ -277,7 +290,7 @@ ln -s "$(Rscript -e 'cat(system.file("exec", "addr-geocode", package = "addr"))'
 Then run:
 
 ```sh
-addr-geocode --input addresses.csv
+addr-geocode --input addresses.csv --preset strict
 ```
 
 For local image development, use `just build`, `just run`, and `just test-container` with the `container` CLI.
