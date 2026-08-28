@@ -594,6 +594,26 @@ test_that("TAF bake packer writes a validated archive and sidecar", {
     ),
     fixed = TRUE
   )
+
+  tar_file <- tempfile(fileext = ".tar")
+  expect_identical(
+    system2(
+      Sys.which("zstd"),
+      c("-dc", shQuote(assets[["archive"]])),
+      stdout = tar_file
+    ),
+    0L
+  )
+  archive_members <- utils::untar(tar_file, list = TRUE)
+  expect_true(any(grepl(
+    "v2/tiger_addr_feat/2025/.*/39061[.]parquet$",
+    archive_members
+  )))
+  expect_true(
+    "v2/tiger_addr_feat_manifest/2025/county_zip.parquet" %in%
+      archive_members
+  )
+  expect_equal(sum(grepl("[.]parquet$", archive_members)), 2L)
 })
 
 test_that("taf_catalog reads installed ZIP county catalog", {

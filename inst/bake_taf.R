@@ -244,6 +244,23 @@ pack_taf_fuel <- function(
   temporary_archive <- file.path(temporary_dir, archive_name)
   old_wd <- setwd(staging_root)
   on.exit(setwd(old_wd), add = TRUE)
+  archive_members <- unique(unlist(lapply(relative_roots, function(root) {
+    c(
+      root,
+      list.files(
+        root,
+        all.files = TRUE,
+        no.. = TRUE,
+        recursive = TRUE,
+        full.names = TRUE,
+        include.dirs = TRUE
+      )
+    )
+  }), use.names = FALSE))
+  archive_file_count <- sum(!file.info(archive_members)$isdir)
+  if (archive_file_count != files_total) {
+    stop("TAF archive member count does not match staged files", call. = FALSE)
+  }
   zstd_command <- paste(
     shQuote(zstd),
     "-T0 -19 --force -o",
@@ -253,7 +270,7 @@ pack_taf_fuel <- function(
   tar_status <- tryCatch(
     utils::tar(
       tarfile = archive_connection,
-      files = relative_roots,
+      files = archive_members,
       compression = "none",
       tar = "internal"
     ),
