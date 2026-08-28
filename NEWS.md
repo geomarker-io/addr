@@ -1,4 +1,4 @@
-# addr (development version)
+# addr 2.0.0
 
 - The vendored Rust bridge now uses `extendr-api` 0.9.0. The minimum supported Cargo and rustc versions are now 1.71.
 - Breaking: `addr()`, `addr_number()`, `addr_street()`, `addr_place()`, and `as_addr()` now store every address component in uppercase after applying existing mappings. Mapping flags control abbreviation mapping but no longer preserve input case. `as_addr()` upgrades legacy mixed-case addr objects. Prepared `addr_match_index` objects created by an older version must be rebuilt with `addr_match_prepare()`.

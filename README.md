@@ -216,19 +216,19 @@ The sidecar records the schema, exact required addr version, TAF dataset version
 An OCI-compatible runtime image with R and addr installed is published to the GitHub Container Registry:
 
 ```sh
-docker pull ghcr.io/geomarker-io/addr:v1.3.0
-docker run --rm -it ghcr.io/geomarker-io/addr:v1.3.0
+docker pull ghcr.io/geomarker-io/addr:v2.0.0
+docker run --rm -it ghcr.io/geomarker-io/addr:v2.0.0
 ```
 
 Container release tags mirror addr package release versions.
-For reproducible work, use a specific release such as `ghcr.io/geomarker-io/addr:v1.3.0`.
+For reproducible work, use a specific release such as `ghcr.io/geomarker-io/addr:v2.0.0`.
 
 The image does not include or pre-install TIGER/Line or National Address Database data.
 Runtime data uses the standard addr user data directory under `/opt/addr-data/R/addr`.
 Mount `/opt/addr-data` when you want downloads or derived data to persist across runs:
 
 ```sh
-docker run --rm -it -v addr-data:/opt/addr-data ghcr.io/geomarker-io/addr:v1.3.0
+docker run --rm -it -v addr-data:/opt/addr-data ghcr.io/geomarker-io/addr:v2.0.0
 ```
 
 ### Batch geocoding on a cluster
@@ -238,7 +238,7 @@ The command writes a deterministic output file next to the input, matching the i
 On systems that use Apptainer, pull a release-tagged image and bind user-specific scratch directories for persistent addr data and temporary files:
 
 ```sh
-apptainer pull addr_v1.3.0.sif docker://ghcr.io/geomarker-io/addr:v1.3.0
+apptainer pull addr_v2.0.0.sif docker://ghcr.io/geomarker-io/addr:v2.0.0
 
 mkdir -p /scratch/<cchmc-user>/addr-data /scratch/<cchmc-user>/addr-tmp
 
@@ -246,7 +246,7 @@ apptainer exec --cleanenv --contain \
   --bind /scratch/<cchmc-user>/addr-data:/opt/addr-data \
   --bind /scratch/<cchmc-user>/addr-tmp:/tmp \
   --bind "$PWD:/work" \
-  addr_v1.3.0.sif \
+  addr_v2.0.0.sif \
   addr-geocode \
     --input /work/addresses.csv
 ```
