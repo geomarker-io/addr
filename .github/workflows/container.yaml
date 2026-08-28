@@ -6,9 +6,18 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: "Existing published release tag to publish as release_tag + latest"
+        description: "Existing published release tag to backfill"
+        required: true
+        type: string
+      preserve_amd64_digest:
+        description: "Existing linux/amd64 sha256 digest to preserve (optional)"
         required: false
         type: string
+      update_latest:
+        description: "Also update latest (tag must still be the latest published release)"
+        required: true
+        default: false
+        type: boolean
 
 name: container
 
@@ -17,75 +26,192 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: addr
-  REGISTRY: ghcr.io/geomarker-io
+  REGISTRY_IMAGE: ghcr.io/geomarker-io/addr
   R_VERSION: "4.4.3"
   RUST_VERSION: "1.95.0"
   STOW_VERSION: "0.3.0"
 
 jobs:
-  container:
-    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
+  prepare:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    outputs:
+      created: ${{ steps.meta.outputs.created }}
+      image_version: ${{ steps.meta.outputs.image_version }}
+      matrix: ${{ steps.meta.outputs.matrix }}
+      preserve_amd64_digest: ${{ steps.meta.outputs.preserve_amd64_digest }}
+      publish: ${{ steps.meta.outputs.publish }}
+      release_tag: ${{ steps.meta.outputs.release_tag }}
+      revision: ${{ steps.meta.outputs.revision }}
+      update_latest: ${{ steps.meta.outputs.update_latest }}
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release_tag || github.ref }}
+          fetch-depth: 1
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref }}
 
-      - name: Set image metadata
+      - name: Set up Docker Buildx
+        if: github.event_name == 'workflow_dispatch' && inputs.preserve_amd64_digest != ''
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        if: github.event_name == 'workflow_dispatch' && inputs.preserve_amd64_digest != ''
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve and validate publication metadata
         id: meta
         env:
+          DISPATCH_PRESERVE_AMD64_DIGEST: ${{ inputs.preserve_amd64_digest }}
+          DISPATCH_RELEASE_TAG: ${{ inputs.release_tag }}
+          DISPATCH_UPDATE_LATEST: ${{ inputs.update_latest }}
           EVENT_NAME: ${{ github.event_name }}
           GH_TOKEN: ${{ github.token }}
-          RUN_ID: ${{ github.run_id }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
-          DISPATCH_RELEASE_TAG: ${{ github.event.inputs.release_tag }}
           REPOSITORY: ${{ github.repository }}
         run: |
-          created="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          set -euo pipefail
+
           revision="$(git rev-parse HEAD)"
-
+          created="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          publish=false
           release_tag=""
-          if [ "$EVENT_NAME" = "release" ]; then
-            release_tag="${RELEASE_TAG}"
-          elif [ -n "$DISPATCH_RELEASE_TAG" ]; then
-            release_tag="${DISPATCH_RELEASE_TAG}"
-          fi
+          preserve_amd64_digest=""
+          update_latest=false
 
-          if [ -n "$release_tag" ]; then
-            is_draft="$(gh release view "$release_tag" --repo "$REPOSITORY" --json isDraft --jq '.isDraft')"
-            if [ "$is_draft" = "true" ]; then
-              echo "Release tag ${release_tag} exists only as a draft release." >&2
+          case "$EVENT_NAME" in
+            release)
+              publish=true
+              release_tag="$RELEASE_TAG"
+              update_latest=true
+              ;;
+            workflow_dispatch)
+              publish=true
+              release_tag="$DISPATCH_RELEASE_TAG"
+              preserve_amd64_digest="$DISPATCH_PRESERVE_AMD64_DIGEST"
+              update_latest="$DISPATCH_UPDATE_LATEST"
+              ;;
+            pull_request)
+              ;;
+            *)
+              echo "Unsupported event: $EVENT_NAME" >&2
+              exit 1
+              ;;
+          esac
+
+          if [ "$publish" = true ]; then
+            release_json="$(gh release view "$release_tag" --repo "$REPOSITORY" --json isDraft,publishedAt,tagName)"
+            if [ "$(jq -r '.isDraft' <<<"$release_json")" != false ] ||
+              [ "$(jq -r '.publishedAt // empty' <<<"$release_json")" = "" ]; then
+              echo "Release $release_tag is not an existing published GitHub release." >&2
               exit 1
             fi
-            tags="${release_tag} latest"
-            version="${release_tag}"
-          elif [ "$EVENT_NAME" = "pull_request" ]; then
-            tags="pr-${PR_NUMBER} pr-${PR_NUMBER}-${revision}"
-            version="pr-${PR_NUMBER}"
+
+            checked_out_tag="$(git tag --points-at HEAD --list "$release_tag")"
+            if [ "$checked_out_tag" != "$release_tag" ]; then
+              echo "The checkout is not the commit tagged by $release_tag." >&2
+              exit 1
+            fi
+
+            image_version="$release_tag"
+
+            if [ "$EVENT_NAME" = workflow_dispatch ] && [ "$update_latest" = true ]; then
+              latest_release_tag="$(gh release view --repo "$REPOSITORY" --json tagName --jq '.tagName')"
+              if [ "$release_tag" != "$latest_release_tag" ]; then
+                echo "Refusing to update latest: $release_tag is not the latest published release ($latest_release_tag)." >&2
+                exit 1
+              fi
+            fi
           else
-            tags="manual-${RUN_ID} manual-${RUN_ID}-${revision}"
-            version="manual-${RUN_ID}"
+            image_version="pr-${PR_NUMBER}"
+          fi
+
+          if [ -n "$preserve_amd64_digest" ]; then
+            if [[ ! "$preserve_amd64_digest" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+              echo "preserve_amd64_digest must be a full sha256 digest." >&2
+              exit 1
+            fi
+
+            preserved_ref="${REGISTRY_IMAGE}@${preserve_amd64_digest}"
+            image_json="$(docker buildx imagetools inspect "$preserved_ref" --format '{{json .Image}}')"
+
+            jq -e --arg revision "$revision" --arg version "$release_tag" '
+              .architecture == "amd64" and
+              .os == "linux" and
+              .config.User == "addr" and
+              .config.WorkingDir == "/home/addr" and
+              .config.Cmd == ["R", "--quiet", "--no-save"] and
+              .config.Entrypoint == null and
+              (.config.Env | index("R_USER_DATA_DIR=/opt/addr-data") != null) and
+              .config.Labels["org.opencontainers.image.revision"] == $revision and
+              .config.Labels["org.opencontainers.image.version"] == $version and
+              .config.Labels["org.opencontainers.image.source"] == "https://github.com/geomarker-io/addr"
+            ' <<<"$image_json" >/dev/null
+
+            created="$(jq -r '.config.Labels["org.opencontainers.image.created"] // empty' <<<"$image_json")"
+            if [ -z "$created" ]; then
+              echo "The preserved amd64 image has no org.opencontainers.image.created label." >&2
+              exit 1
+            fi
+
+            matrix='{"include":[{"arch":"amd64","platform":"linux/amd64","runner":"ubuntu-24.04","build":false},{"arch":"arm64","platform":"linux/arm64","runner":"ubuntu-24.04-arm","build":true}]}'
+          else
+            matrix='{"include":[{"arch":"amd64","platform":"linux/amd64","runner":"ubuntu-24.04","build":true},{"arch":"arm64","platform":"linux/arm64","runner":"ubuntu-24.04-arm","build":true}]}'
           fi
 
           {
-            echo "created=${created}"
-            echo "revision=${revision}"
-            echo "tags=${tags}"
-            echo "version=${version}"
+            echo "created=$created"
+            echo "image_version=$image_version"
+            echo "matrix=$matrix"
+            echo "preserve_amd64_digest=$preserve_amd64_digest"
+            echo "publish=$publish"
+            echo "release_tag=$release_tag"
+            echo "revision=$revision"
+            echo "update_latest=$update_latest"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Build image
-        id: build-image
-        uses: redhat-actions/buildah-build@v2
+  build:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
         with:
-          image: ${{ env.IMAGE_NAME }}
-          tags: ${{ steps.meta.outputs.tags }}
+          ref: ${{ needs.prepare.outputs.release_tag || github.ref }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        if: needs.prepare.outputs.publish == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build local image
+        id: build-local
+        if: matrix.build && needs.prepare.outputs.publish != 'true'
+        uses: docker/build-push-action@v7
+        with:
+          build-args: |
+            R_VERSION=${{ env.R_VERSION }}
+            RUST_VERSION=${{ env.RUST_VERSION }}
+            STOW_VERSION=${{ env.STOW_VERSION }}
+            BUILD_DATE=${{ needs.prepare.outputs.created }}
+            VCS_REF=${{ needs.prepare.outputs.revision }}
+            IMAGE_VERSION=${{ needs.prepare.outputs.image_version }}
+          cache-from: type=gha,scope=container-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=container-${{ matrix.arch }}
           context: .
-          containerfiles: |
-            ./Containerfile
-          oci: true
+          file: ./Containerfile
           labels: |
             org.opencontainers.image.title=addr
             org.opencontainers.image.description=R runtime with the addr package installed
@@ -93,22 +219,261 @@ jobs:
             org.opencontainers.image.url=https://github.com/${{ github.repository }}
             org.opencontainers.image.documentation=https://geomarker.io/addr/
             org.opencontainers.image.licenses=MIT
-            org.opencontainers.image.created=${{ steps.meta.outputs.created }}
-            org.opencontainers.image.revision=${{ steps.meta.outputs.revision }}
-            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
+            org.opencontainers.image.created=${{ needs.prepare.outputs.created }}
+            org.opencontainers.image.revision=${{ needs.prepare.outputs.revision }}
+            org.opencontainers.image.version=${{ needs.prepare.outputs.image_version }}
+          load: true
+          platforms: ${{ matrix.platform }}
+          provenance: false
+          sbom: false
+          tags: addr:ci-${{ matrix.arch }}
+
+      - name: Build and push image by digest
+        id: build-publish
+        if: matrix.build && needs.prepare.outputs.publish == 'true'
+        uses: docker/build-push-action@v7
+        with:
           build-args: |
             R_VERSION=${{ env.R_VERSION }}
             RUST_VERSION=${{ env.RUST_VERSION }}
             STOW_VERSION=${{ env.STOW_VERSION }}
-            BUILD_DATE=${{ steps.meta.outputs.created }}
-            VCS_REF=${{ steps.meta.outputs.revision }}
-            IMAGE_VERSION=${{ steps.meta.outputs.version }}
+            BUILD_DATE=${{ needs.prepare.outputs.created }}
+            VCS_REF=${{ needs.prepare.outputs.revision }}
+            IMAGE_VERSION=${{ needs.prepare.outputs.image_version }}
+          cache-from: type=gha,scope=container-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=container-${{ matrix.arch }}
+          context: .
+          file: ./Containerfile
+          labels: |
+            org.opencontainers.image.title=addr
+            org.opencontainers.image.description=R runtime with the addr package installed
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.url=https://github.com/${{ github.repository }}
+            org.opencontainers.image.documentation=https://geomarker.io/addr/
+            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.created=${{ needs.prepare.outputs.created }}
+            org.opencontainers.image.revision=${{ needs.prepare.outputs.revision }}
+            org.opencontainers.image.version=${{ needs.prepare.outputs.image_version }}
+          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true,oci-mediatypes=true
+          platforms: ${{ matrix.platform }}
+          provenance: false
+          sbom: false
 
-      - name: Push image
-        uses: redhat-actions/push-to-registry@v2
+      - name: Resolve image reference
+        id: image
+        env:
+          ARCH: ${{ matrix.arch }}
+          BUILD_IMAGE: ${{ matrix.build }}
+          BUILT_DIGEST: ${{ steps.build-publish.outputs.digest }}
+          PRESERVED_AMD64_DIGEST: ${{ needs.prepare.outputs.preserve_amd64_digest }}
+          PUBLISH: ${{ needs.prepare.outputs.publish }}
+        run: |
+          set -euo pipefail
+
+          digest=""
+          if [ "$BUILD_IMAGE" = true ] && [ "$PUBLISH" = true ]; then
+            digest="$BUILT_DIGEST"
+            image_ref="${REGISTRY_IMAGE}@${digest}"
+          elif [ "$BUILD_IMAGE" = true ]; then
+            image_ref="addr:ci-${ARCH}"
+          else
+            digest="$PRESERVED_AMD64_DIGEST"
+            image_ref="${REGISTRY_IMAGE}@${digest}"
+          fi
+
+          {
+            echo "digest=$digest"
+            echo "ref=$image_ref"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Verify image metadata and runtime behavior
+        env:
+          ARCH: ${{ matrix.arch }}
+          EXPECTED_CREATED: ${{ needs.prepare.outputs.created }}
+          EXPECTED_IMAGE_VERSION: ${{ needs.prepare.outputs.image_version }}
+          EXPECTED_PLATFORM: ${{ matrix.platform }}
+          EXPECTED_REVISION: ${{ needs.prepare.outputs.revision }}
+          IMAGE_REF: ${{ steps.image.outputs.ref }}
+          PUBLISH: ${{ needs.prepare.outputs.publish }}
+        run: |
+          set -euo pipefail
+
+          if [ "$PUBLISH" = true ]; then
+            docker pull "$IMAGE_REF"
+          fi
+
+          image_json="$(docker image inspect "$IMAGE_REF")"
+          actual_platform="$(jq -r '.[0] | "\(.Os)/\(.Architecture)"' <<<"$image_json")"
+          if [ "$actual_platform" != "$EXPECTED_PLATFORM" ]; then
+            echo "Expected $EXPECTED_PLATFORM but found $actual_platform." >&2
+            exit 1
+          fi
+
+          jq -e \
+            --arg created "$EXPECTED_CREATED" \
+            --arg revision "$EXPECTED_REVISION" \
+            --arg version "$EXPECTED_IMAGE_VERSION" '
+              .[0].Config.User == "addr" and
+              .[0].Config.WorkingDir == "/home/addr" and
+              .[0].Config.Cmd == ["R", "--quiet", "--no-save"] and
+              .[0].Config.Entrypoint == null and
+              (.[0].Config.Env | index("R_USER_DATA_DIR=/opt/addr-data") != null) and
+              .[0].Config.Labels["org.opencontainers.image.created"] == $created and
+              .[0].Config.Labels["org.opencontainers.image.revision"] == $revision and
+              .[0].Config.Labels["org.opencontainers.image.version"] == $version and
+              .[0].Config.Labels["org.opencontainers.image.source"] == "https://github.com/geomarker-io/addr"
+            ' <<<"$image_json" >/dev/null
+
+          package_version="$(sed -n 's/^Version:[[:space:]]*//p' DESCRIPTION)"
+          case "$ARCH" in
+            amd64) expected_r_arch=x86_64 ;;
+            arm64) expected_r_arch=aarch64 ;;
+            *) echo "Unsupported architecture: $ARCH" >&2; exit 1 ;;
+          esac
+
+          docker run --rm \
+            --env EXPECTED_ADDR_VERSION="$package_version" \
+            --env EXPECTED_R_ARCH="$expected_r_arch" \
+            "$IMAGE_REF" \
+            Rscript -e 'stopifnot(R.version$arch == Sys.getenv("EXPECTED_R_ARCH"), as.character(packageVersion("addr")) == Sys.getenv("EXPECTED_ADDR_VERSION"), as.character(packageVersion("stow")) == "0.3.0", Sys.info()[["user"]] == "addr", getwd() == "/home/addr", Sys.getenv("R_USER_DATA_DIR") == "/opt/addr-data", file.exists("/usr/local/bin/addr-geocode"))'
+
+          smoke_dir="$(mktemp -d)"
+          trap 'rm -rf "$smoke_dir"' EXIT
+          mkdir -p "$smoke_dir/work" "$smoke_dir/data" "$smoke_dir/tmp"
+          chmod 0777 "$smoke_dir/work" "$smoke_dir/data" "$smoke_dir/tmp"
+          printf 'id,address\n1,\n2,\n' > "$smoke_dir/work/addresses.csv"
+
+          docker run --rm \
+            --volume "$smoke_dir/work:/work" \
+            --volume "$smoke_dir/data:/opt/addr-data" \
+            --volume "$smoke_dir/tmp:/tmp" \
+            "$IMAGE_REF" \
+            addr-geocode --input /work/addresses.csv --preset strict
+
+          output="$smoke_dir/work/addresses__addr-v${package_version}__preset-strict__geocoded.csv"
+          test -f "$output"
+          docker run --rm \
+            --volume "$smoke_dir/work:/work:ro" \
+            --env OUTPUT_FILE="$(basename "$output")" \
+            "$IMAGE_REF" \
+            Rscript -e 'd <- read.csv(file.path("/work", Sys.getenv("OUTPUT_FILE")), check.names = FALSE); stopifnot(nrow(d) == 2L, all(c("addr_geocode_stage", "addr_matched_zipcode", "addr_matched_street", "addr_longitude", "addr_latitude", "addr_s2_cell") %in% names(d)))'
+
+      - name: Export image digest
+        if: needs.prepare.outputs.publish == 'true'
+        env:
+          DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          set -euo pipefail
+          digest_hex="${DIGEST#sha256:}"
+          if [[ ! "$digest_hex" =~ ^[0-9a-f]{64}$ ]]; then
+            echo "Invalid image digest: $DIGEST" >&2
+            exit 1
+          fi
+          mkdir -p "${RUNNER_TEMP}/digests"
+          touch "${RUNNER_TEMP}/digests/${digest_hex}"
+
+      - name: Upload image digest
+        if: needs.prepare.outputs.publish == 'true'
+        uses: actions/upload-artifact@v4
         with:
-          image: ${{ steps.build-image.outputs.image }}
-          tags: ${{ steps.build-image.outputs.tags }}
-          registry: ${{ env.REGISTRY }}
+          name: container-digest-${{ matrix.arch }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    if: needs.prepare.outputs.publish == 'true'
+    needs: [prepare, build]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download image digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: container-digest-*
+          path: ${{ runner.temp }}/digests
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and verify multi-platform OCI index
+        env:
+          CREATED: ${{ needs.prepare.outputs.created }}
+          PRESERVED_AMD64_DIGEST: ${{ needs.prepare.outputs.preserve_amd64_digest }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+          REVISION: ${{ needs.prepare.outputs.revision }}
+          UPDATE_LATEST: ${{ needs.prepare.outputs.update_latest }}
+        run: |
+          set -euo pipefail
+
+          mapfile -t digest_files < <(find "${RUNNER_TEMP}/digests" -maxdepth 1 -type f | sort)
+          if [ "${#digest_files[@]}" -ne 2 ]; then
+            echo "Expected two platform digests, found ${#digest_files[@]}." >&2
+            exit 1
+          fi
+
+          sources=()
+          for digest_file in "${digest_files[@]}"; do
+            digest_hex="$(basename "$digest_file")"
+            if [[ ! "$digest_hex" =~ ^[0-9a-f]{64}$ ]]; then
+              echo "Invalid digest artifact: $digest_hex" >&2
+              exit 1
+            fi
+            sources+=("${REGISTRY_IMAGE}@sha256:${digest_hex}")
+          done
+
+          tags=(--tag "${REGISTRY_IMAGE}:${RELEASE_TAG}")
+          if [ "$UPDATE_LATEST" = true ]; then
+            tags+=(--tag "${REGISTRY_IMAGE}:latest")
+          fi
+
+          docker buildx imagetools create \
+            "${tags[@]}" \
+            --annotation "index:org.opencontainers.image.title=addr" \
+            --annotation "index:org.opencontainers.image.description=R runtime with the addr package installed" \
+            --annotation "index:org.opencontainers.image.source=https://github.com/${GITHUB_REPOSITORY}" \
+            --annotation "index:org.opencontainers.image.url=https://github.com/${GITHUB_REPOSITORY}" \
+            --annotation "index:org.opencontainers.image.documentation=https://geomarker.io/addr/" \
+            --annotation "index:org.opencontainers.image.licenses=MIT" \
+            --annotation "index:org.opencontainers.image.created=${CREATED}" \
+            --annotation "index:org.opencontainers.image.revision=${REVISION}" \
+            --annotation "index:org.opencontainers.image.version=${RELEASE_TAG}" \
+            "${sources[@]}"
+
+          release_ref="${REGISTRY_IMAGE}:${RELEASE_TAG}"
+          index_json="$(docker buildx imagetools inspect "$release_ref" --raw)"
+          jq -e \
+            --arg created "$CREATED" \
+            --arg revision "$REVISION" \
+            --arg version "$RELEASE_TAG" '
+              .mediaType == "application/vnd.oci.image.index.v1+json" and
+              (.manifests | length) == 2 and
+              ([.manifests[].platform | "\(.os)/\(.architecture)"] | sort) == ["linux/amd64", "linux/arm64"] and
+              .annotations["org.opencontainers.image.created"] == $created and
+              .annotations["org.opencontainers.image.revision"] == $revision and
+              .annotations["org.opencontainers.image.version"] == $version
+            ' <<<"$index_json" >/dev/null
+
+          if [ -n "$PRESERVED_AMD64_DIGEST" ]; then
+            jq -e --arg digest "$PRESERVED_AMD64_DIGEST" '
+              any(.manifests[]; .platform.os == "linux" and .platform.architecture == "amd64" and .digest == $digest)
+            ' <<<"$index_json" >/dev/null
+          fi
+
+          release_digest="$(docker buildx imagetools inspect "$release_ref" --format '{{json .Manifest}}' | jq -r '.digest')"
+          if [ "$UPDATE_LATEST" = true ]; then
+            latest_digest="$(docker buildx imagetools inspect "${REGISTRY_IMAGE}:latest" --format '{{json .Manifest}}' | jq -r '.digest')"
+            if [ "$release_digest" != "$latest_digest" ]; then
+              echo "latest does not point to the release index." >&2
+              exit 1
+            fi
+          fi
+
+          echo "Published ${release_ref}@${release_digest} for linux/amd64 and linux/arm64."
