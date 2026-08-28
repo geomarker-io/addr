@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">addr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0.9009</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,12 +28,15 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/geomarker-io/addr/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/geomarker-io/addr/blob/v2.0.0/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="development version" id="addr-development-version">addr (development version)<a class="anchor" aria-label="anchor" href="#addr-development-version"></a></h2>
-<ul><li>Breaking: <code><a href="../reference/addr.html">addr()</a></code>, <code><a href="../reference/addr.html">addr_number()</a></code>, <code><a href="../reference/addr.html">addr_street()</a></code>, <code><a href="../reference/addr.html">addr_place()</a></code>, and <code><a href="../reference/as_addr.html">as_addr()</a></code> now store every address component in uppercase after applying existing mappings. Mapping flags control abbreviation mapping but no longer preserve input case. <code><a href="../reference/as_addr.html">as_addr()</a></code> upgrades legacy mixed-case addr objects. Prepared <code>addr_match_index</code> objects created by an older version must be rebuilt with <code><a href="../reference/addr_match.html">addr_match_prepare()</a></code>.</li>
+<h2 class="pkg-version" data-toc-text="2.0.0" id="addr-200">addr 2.0.0<a class="anchor" aria-label="anchor" href="#addr-200"></a></h2>
+<ul><li>Breaking: <code>addr-geocode</code> now uses the installed <code><a href="../reference/geocode.html">geocode()</a></code> defaults, including its TIGER year, and selects matching behavior with <code>--preset default</code>, <code>strict</code>, <code>exact-zip</code>, or <code>loose</code>. The former <code>--taf-year</code> option has been removed. The same preset argument works for local and container invocations, and deterministic output filenames record the selected preset alongside the addr version.</li>
+<li>Breaking: addr now requires R 4.2.0 or newer.</li>
+<li>The vendored Rust bridge now uses <code>extendr-api</code> 0.9.0. The minimum supported Cargo and rustc versions are now 1.71.</li>
+<li>Breaking: <code><a href="../reference/addr.html">addr()</a></code>, <code><a href="../reference/addr.html">addr_number()</a></code>, <code><a href="../reference/addr.html">addr_street()</a></code>, <code><a href="../reference/addr.html">addr_place()</a></code>, and <code><a href="../reference/as_addr.html">as_addr()</a></code> now store every address component in uppercase after applying existing mappings. Mapping flags control abbreviation mapping but no longer preserve input case. <code><a href="../reference/as_addr.html">as_addr()</a></code> upgrades legacy mixed-case addr objects. Prepared <code>addr_match_index</code> objects created by an older version must be rebuilt with <code><a href="../reference/addr_match.html">addr_match_prepare()</a></code>.</li>
 <li>
 <code><a href="../reference/geocode.html">geocode()</a></code> and <code><a href="../reference/geocode.html">geocode_zip()</a></code> now consider Census place- and county-subdivision-derived ZCTAs by default after the exact input ZIP and before typographical ZIP variants. The new <code>place_zip_variants</code> and <code>place_zip_variant</code> arguments independently control this search. Valid address ranges are preferred across all candidate tiers, and TIGER county files for every enabled candidate are prepared before geocoding.</li>
 <li>Breaking: <code>taf_zip()</code> is now <code><a href="../reference/taf.html">taf()</a></code>, making <code><a href="../reference/taf.html">taf()</a></code> the materialized TAF reader for one or more ZIP codes alongside the county-oriented <code><a href="../reference/nad.html">nad()</a></code>. The former lazy Arrow <code><a href="../reference/taf.html">taf()</a></code> interface is now <code><a href="../reference/taf_dataset.html">taf_dataset()</a></code>, parallel to <code><a href="../reference/nad_dataset.html">nad_dataset()</a></code>. No compatibility aliases are retained.</li>
