@@ -513,22 +513,87 @@ test_that("taf_manifest inventories and validates installed county ZIP files", {
   )
 })
 
-test_that("TAF fuel scripts carry the schema-v2 manifest contract", {
-  scripts <- system.file(
+test_that("TAF bake and installer carry the schema-v2 manifest contract", {
+  bake <- system.file("bake_taf.R", package = "addr")
+  installer <- system.file(
     "exec",
-    c("pack-addr-taf-fuel.sh", "install-addr-taf-fuel.sh"),
+    "install-addr-taf-fuel.sh",
     package = "addr"
   )
-  expect_true(all(nzchar(scripts)))
-  text <- lapply(scripts, readLines, warn = FALSE)
-  expect_true(any(grepl('"schema_version" "2"', text[[1L]], fixed = TRUE)))
-  expect_true(any(grepl('VERSION="${2:-v2}"', text[[1L]], fixed = TRUE)))
-  expect_true(any(grepl('SCHEMA_VERSION" = "2"', text[[2L]], fixed = TRUE)))
-  expect_true(any(grepl('TAF_VERSION" = "v2"', text[[2L]], fixed = TRUE)))
-  expect_true(any(grepl("manifest_row_count", text[[1L]], fixed = TRUE)))
-  expect_true(any(grepl("taf_validate_manifest", text[[1L]], fixed = TRUE)))
-  expect_true(any(grepl("taf_validate_manifest", text[[2L]], fixed = TRUE)))
-  expect_true(any(grepl("taf_manifest", text[[2L]], fixed = TRUE)))
+  expect_true(nzchar(bake))
+  expect_true(nzchar(installer))
+  expect_no_error(parse(bake))
+  bake_text <- readLines(bake, warn = FALSE)
+  installer_text <- readLines(installer, warn = FALSE)
+  expect_true(any(grepl("schema_version = 2L", bake_text, fixed = TRUE)))
+  expect_true(any(grepl('taf_version <- "v2"', bake_text, fixed = TRUE)))
+  expect_true(any(grepl("manifest_row_count", bake_text, fixed = TRUE)))
+  expect_true(any(grepl("taf_validate_manifest", bake_text, fixed = TRUE)))
+  expect_true(any(grepl("pack_taf_fuel", bake_text, fixed = TRUE)))
+  expect_true(any(grepl(
+    'SCHEMA_VERSION" = "2"',
+    installer_text,
+    fixed = TRUE
+  )))
+  expect_true(any(grepl(
+    'TAF_VERSION" = "v2"',
+    installer_text,
+    fixed = TRUE
+  )))
+  expect_true(any(grepl(
+    "taf_validate_manifest",
+    installer_text,
+    fixed = TRUE
+  )))
+  expect_true(any(grepl("taf_manifest", installer_text, fixed = TRUE)))
+})
+
+test_that("TAF bake packer writes a validated archive and sidecar", {
+  skip_if(!nzchar(Sys.which("zstd")))
+  withr::local_envvar(list("R_USER_DATA_DIR" = tempfile()))
+  year <- "2025"
+  version <- "v2"
+  manifest <- taf_install_test_file(year = year, version = version)
+  taf_write_county_zip_manifest(manifest, year = year, version = version)
+
+  bake <- parse(system.file("bake_taf.R", package = "addr"))
+  is_packer <- vapply(bake, function(expression) {
+    is.call(expression) &&
+      identical(expression[[1L]], quote(`<-`)) &&
+      identical(expression[[2L]], quote(pack_taf_fuel))
+  }, logical(1))
+  pack_environment <- new.env(parent = asNamespace("addr"))
+  eval(bake[[which(is_packer)[[1L]]]], envir = pack_environment)
+
+  out_dir <- tempfile()
+  assets <- pack_environment$pack_taf_fuel(
+    year = year,
+    version = version,
+    out_dir = out_dir,
+    package_version = "2.0.0",
+    data_root = tools::R_user_dir("addr", "data")
+  )
+  expect_true(all(file.exists(assets)))
+  expect_gt(unname(file.info(assets[["archive"]])$size), 0)
+  sidecar <- paste(
+    readLines(assets[["metadata"]], warn = FALSE),
+    collapse = "\n"
+  )
+  expect_match(sidecar, '"schema_version": 2', fixed = TRUE)
+  expect_match(
+    sidecar,
+    '"addr_package_version_required": "2.0.0"',
+    fixed = TRUE
+  )
+  expect_match(
+    sidecar,
+    digest::digest(
+      algo = "sha256",
+      serialize = FALSE,
+      file = assets[["archive"]]
+    ),
+    fixed = TRUE
+  )
 })
 
 test_that("taf_catalog reads installed ZIP county catalog", {

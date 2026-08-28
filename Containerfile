@@ -43,6 +43,7 @@ WORKDIR /tmp/addr
 COPY DESCRIPTION LICENSE NAMESPACE configure configure.win cleanup cleanup.win ./
 COPY R/ ./R/
 COPY inst/ ./inst/
+COPY exec/ ./exec/
 COPY man/ ./man/
 COPY src/entrypoint.c src/Makevars src/Makevars.ucrt src/Makevars.win src/addr-win.def ./src/
 COPY src/rust/Cargo.toml src/rust/Cargo.lock src/rust/cargo-vendor-config.toml src/rust/vendor.tar.xz ./src/rust/

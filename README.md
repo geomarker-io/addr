@@ -202,13 +202,13 @@ bash "$(Rscript -e 'cat(system.file("exec", "install-addr-taf-fuel.sh", package 
 
 The installer refuses to overwrite either existing year-specific directory. Remove both directories before deliberately replacing an installation, or set `R_USER_DATA_DIR` to install in a different location.
 
-To create the same artifact from locally installed counties, run the packer. It validates the local manifest and every county-ZIP Parquet file before writing the archive and sidecar:
+Maintainers create the archive and sidecar with the same one-shot development workflow that rebuilds every county file and regenerates the packaged catalog:
 
 ```sh
-bash "$(Rscript -e 'cat(system.file("exec", "pack-addr-taf-fuel.sh", package = "addr"))')" \
-  2025 v2 "$PWD"
+Rscript inst/bake_taf.R
 ```
 
+The release assets are written to the current directory by default. Set `ADDR_TAF_RELEASE_DIR` to choose another output directory.
 The sidecar records the schema, exact required addr version, TAF dataset version and year, archive and installed Parquet codecs, archive size and SHA-256 digest, installed paths, manifest row count, and expected file counts.
 
 ## Container and command-line interface
