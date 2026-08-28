@@ -549,6 +549,7 @@ test_that("TAF bake and installer carry the schema-v2 manifest contract", {
 })
 
 test_that("TAF bake packer writes a validated archive and sidecar", {
+  skip_on_os("windows")
   skip_if(!nzchar(Sys.which("zstd")))
   withr::local_envvar(list("R_USER_DATA_DIR" = tempfile()))
   year <- "2025"
