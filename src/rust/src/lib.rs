@@ -1,4 +1,5 @@
 use extendr_api::prelude::*;
+use extendr_api::Result;
 use flate2::read::DeflateDecoder;
 use std::collections::HashMap;
 use std::fs::File;

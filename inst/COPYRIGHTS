@@ -40,13 +40,13 @@ Package: cqdb 0.5.8
 License: MIT
 Authors: messense <messense@icloud.com>
 
-Package: crfs 0.1.3
-License: MIT
-Authors: messense <messense@icloud.com>
-
 Package: crc32fast 1.5.1
 License: MIT OR Apache-2.0
 Authors: Sam Rijs <srijs@airpost.net>; Alex Crichton <alex@alexcrichton.com>
+
+Package: crfs 0.1.3
+License: MIT
+Authors: messense <messense@icloud.com>
 
 Package: csv 1.3.0
 License: Unlicense/MIT
@@ -56,13 +56,14 @@ Package: csv-core 0.1.13
 License: Unlicense/MIT
 Authors: Andrew Gallant <jamslam@gmail.com>
 
-Package: extendr-api 0.7.1
+Package: extendr-api 0.9.0
 License: MIT
-Authors: andy-thomason <andy@andythomason.com>; Thomas Down; Mossa Merhi Reimert <mossa@sund.ku.dk>; Claus O. Wilke <wilke@austin.utexas.edu>; Hiroaki Yutani; Ilia A. Kosenkov <ilia.kosenkov@outlook.com>; Michael Milton <michael.r.milton@gmail.com>
 
-Package: extendr-macros 0.7.1
+Package: extendr-ffi 0.9.0
 License: MIT
-Authors: andy-thomason <andy@andythomason.com>; Thomas Down; Mossa Merhi Reimert <mossa@sund.ku.dk>; Claus O. Wilke <wilke@austin.utexas.edu>; Hiroaki Yutani; Ilia A. Kosenkov <ilia.kosenkov@outlook.com>; Michael Milton <michael.r.milton@gmail.com>
+
+Package: extendr-macros 0.9.0
+License: MIT
 
 Package: flate2 1.0.28
 License: MIT OR Apache-2.0
@@ -78,11 +79,7 @@ Authors: Keunhong Lee <dlrmsghd@gmail.com>
 
 Package: lazy_static 1.5.0
 License: MIT OR Apache-2.0
-Authors: Marvin Lobel <loebel.marvin@gmail.com>
-
-Package: libR-sys 0.7.1
-License: MIT
-Authors: andy-thomason <andy@andythomason.com>; Thomas Down; Mossa Merhi Reimert <mossa@sund.ku.dk>; Claus O. Wilke <wilke@austin.utexas.edu>; Ilia A. Kosenkov <ilia.kosenkov@outlook.com>; Hiroaki Yutani
+Authors: Marvin Löbel <loebel.marvin@gmail.com>
 
 Package: memchr 2.7.4
 License: Unlicense OR MIT
@@ -92,7 +89,7 @@ Package: miniz_oxide 0.7.4
 License: MIT OR Zlib OR Apache-2.0
 Authors: Frommi <daniil.liferenko@gmail.com>; oyvindln <oyvindln@users.noreply.github.com>
 
-Package: once_cell 1.19.0
+Package: once_cell 1.21.4
 License: MIT OR Apache-2.0
 Authors: Aleksey Kladov <aleksey.kladov@gmail.com>
 
@@ -100,11 +97,15 @@ Package: paste 1.0.15
 License: MIT OR Apache-2.0
 Authors: David Tolnay <dtolnay@gmail.com>
 
-Package: proc-macro2 1.0.86
+Package: proc-macro2 1.0.107
 License: MIT OR Apache-2.0
 Authors: David Tolnay <dtolnay@gmail.com>; Alex Crichton <alex@alexcrichton.com>
 
-Package: quote 1.0.37
+Package: quote 1.0.47
+License: MIT OR Apache-2.0
+Authors: David Tolnay <dtolnay@gmail.com>
+
+Package: readonly 0.2.14
 License: MIT OR Apache-2.0
 Authors: David Tolnay <dtolnay@gmail.com>
 
@@ -136,7 +137,11 @@ Package: serde_derive 1.0.210
 License: MIT OR Apache-2.0
 Authors: Erick Tryzelaar <erick.tryzelaar@gmail.com>; David Tolnay <dtolnay@gmail.com>
 
-Package: syn 2.0.77
+Package: syn 2.0.119
+License: MIT OR Apache-2.0
+Authors: David Tolnay <dtolnay@gmail.com>
+
+Package: syn 3.0.4
 License: MIT OR Apache-2.0
 Authors: David Tolnay <dtolnay@gmail.com>
 

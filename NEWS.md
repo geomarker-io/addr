@@ -1,5 +1,6 @@
 # addr (development version)
 
+- The vendored Rust bridge now uses `extendr-api` 0.9.0. The minimum supported Cargo and rustc versions are now 1.71.
 - Breaking: `addr()`, `addr_number()`, `addr_street()`, `addr_place()`, and `as_addr()` now store every address component in uppercase after applying existing mappings. Mapping flags control abbreviation mapping but no longer preserve input case. `as_addr()` upgrades legacy mixed-case addr objects. Prepared `addr_match_index` objects created by an older version must be rebuilt with `addr_match_prepare()`.
 - `geocode()` and `geocode_zip()` now consider Census place- and county-subdivision-derived ZCTAs by default after the exact input ZIP and before typographical ZIP variants. The new `place_zip_variants` and `place_zip_variant` arguments independently control this search. Valid address ranges are preferred across all candidate tiers, and TIGER county files for every enabled candidate are prepared before geocoding.
 - Breaking: `taf_zip()` is now `taf()`, making `taf()` the materialized TAF reader for one or more ZIP codes alongside the county-oriented `nad()`. The former lazy Arrow `taf()` interface is now `taf_dataset()`, parallel to `nad_dataset()`. No compatibility aliases are retained.
