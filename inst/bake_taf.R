@@ -1,14 +1,4 @@
-library(addr)
-
-county_fips_reference <- getFromNamespace(
-  "county_fips_reference",
-  ns = "addr"
-)
-taf_catalog_source_path <- getFromNamespace(
-  "taf_catalog_source_path",
-  ns = "addr"
-)
-taf_write_catalog <- getFromNamespace("taf_write_catalog", ns = "addr")
+devtools::load_all()
 
 cnty_fips <- county_fips_reference$county_fips
 taf_years <- 2025L
@@ -51,7 +41,7 @@ for (yr in as.character(taf_years)) {
       county,
       year = yr,
       version = "v2",
-      overwrite = FALSE,
+      overwrite = TRUE,
       redownload = FALSE
     )
   }
