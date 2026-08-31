@@ -1,6 +1,6 @@
 Package: addr
 Title: Clean, Parse, Harmonize, Match, and Geocode Messy Real-World US Addresses
-Version: 2.0.0
+Version: 2.0.0.9000
 Authors@R: 
     c(person("Cole", "Brokamp", email = "cole@colebrokamp.com", role = c("aut", "cre")),
       person("Erika", "Manning", role = c("aut")))
@@ -30,8 +30,6 @@ Imports:
     stringdist,
     tibble,
     vctrs
-Remotes:
-    cole-brokamp/stow
 SystemRequirements: Cargo (>= 1.71), rustc (>= 1.71)
 Config/testthat/edition: 3
 Depends: 

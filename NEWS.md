@@ -1,3 +1,7 @@
+# addr 2.0.0.9000
+
+- Development now continues as addr 2.0.0.9000. The stow dependency is resolved from CRAN for package development and through the container's configured P3M CRAN repository for container builds; the former GitHub remote and container tag-archive installation have been removed.
+
 # addr 2.0.0
 
 - The published addr container image now supports both linux/amd64 and linux/arm64 through a multi-platform OCI index. Each architecture is built and smoke-tested on a native GitHub-hosted runner.

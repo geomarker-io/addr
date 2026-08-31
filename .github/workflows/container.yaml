@@ -14,7 +14,6 @@ env:
   REGISTRY_IMAGE: ghcr.io/geomarker-io/addr
   R_VERSION: "4.4.3"
   RUST_VERSION: "1.95.0"
-  STOW_VERSION: "0.3.0"
 
 jobs:
   build:
@@ -55,7 +54,6 @@ jobs:
           build-args: |
             R_VERSION=${{ env.R_VERSION }}
             RUST_VERSION=${{ env.RUST_VERSION }}
-            STOW_VERSION=${{ env.STOW_VERSION }}
             BUILD_DATE=${{ env.IMAGE_CREATED }}
             VCS_REF=${{ env.IMAGE_REVISION }}
             IMAGE_VERSION=${{ env.IMAGE_VERSION }}
@@ -77,7 +75,6 @@ jobs:
           build-args: |
             R_VERSION=${{ env.R_VERSION }}
             RUST_VERSION=${{ env.RUST_VERSION }}
-            STOW_VERSION=${{ env.STOW_VERSION }}
             BUILD_DATE=${{ env.IMAGE_CREATED }}
             VCS_REF=${{ env.IMAGE_REVISION }}
             IMAGE_VERSION=${{ env.IMAGE_VERSION }}
@@ -121,7 +118,7 @@ jobs:
             --env EXPECTED_ADDR_VERSION="$package_version" \
             --env EXPECTED_R_ARCH="$expected_r_arch" \
             "$image_ref" \
-            Rscript -e 'stopifnot(R.version$arch == Sys.getenv("EXPECTED_R_ARCH"), as.character(packageVersion("addr")) == Sys.getenv("EXPECTED_ADDR_VERSION"), as.character(packageVersion("stow")) == "0.3.0", Sys.info()[["user"]] == "addr", getwd() == "/home/addr", Sys.getenv("R_USER_DATA_DIR") == "/opt/addr-data", file.exists("/usr/local/bin/addr-geocode"))'
+            Rscript -e 'stopifnot(R.version$arch == Sys.getenv("EXPECTED_R_ARCH"), as.character(packageVersion("addr")) == Sys.getenv("EXPECTED_ADDR_VERSION"), packageVersion("stow") >= package_version("0.3.0"), Sys.info()[["user"]] == "addr", getwd() == "/home/addr", Sys.getenv("R_USER_DATA_DIR") == "/opt/addr-data", file.exists("/usr/local/bin/addr-geocode"))'
 
       - name: Export image digest
         if: github.event_name == 'release'

@@ -1,12 +1,10 @@
 ARG R_VERSION=4.4.3
 ARG RUST_VERSION=1.95.0
-ARG STOW_VERSION=0.3.0
 
 FROM ghcr.io/rocker-org/r-ver:${R_VERSION} AS builder
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG RUST_VERSION
-ARG STOW_VERSION
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -35,9 +33,8 @@ RUN echo "options(repos = c(CRAN = 'https://p3m.dev/cran/__linux__/manylinux_2_2
     >> "${R_HOME}/etc/Rprofile.site"
 
 RUN R -q -e "install.packages(c('curl', 'digest', 'jsonlite', 'mirai', 'nanoparquet', 'wk', 'proxy', 'e1071', 'classInt', 'DBI', 's2', 'S7', 'stringdist', 'tibble', 'units', 'vctrs', 'Rcpp'), Ncpus = 1)" \
-    && R -q -e "install.packages('sf', repos = c(CRAN = 'https://cloud.r-project.org'), type = 'source', dependencies = FALSE, Ncpus = 1)" \
-    && R -q -e "install.packages('https://github.com/cole-brokamp/stow/archive/refs/tags/v${STOW_VERSION}.tar.gz', repos = NULL, type = 'source')" \
-    && R -q -e "stopifnot(packageVersion('stow') == package_version('${STOW_VERSION}'))"
+    && R -q -e "install.packages('stow', Ncpus = 1); stopifnot(packageVersion('stow') >= package_version('0.3.0'))" \
+    && R -q -e "install.packages('sf', type = 'source', dependencies = FALSE, Ncpus = 1)"
 
 WORKDIR /tmp/addr
 COPY DESCRIPTION LICENSE NAMESPACE configure configure.win cleanup cleanup.win ./
