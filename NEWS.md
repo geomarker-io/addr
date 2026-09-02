@@ -1,5 +1,6 @@
 # addr 2.0.0
 
+- `addr-geocode` now lets downstream images set `ADDR_GEOCODE_RELEASE_TAG` so their version-style release tag replaces the installed package version in deterministic output filenames. The optional leading `v` is normalized to keep exactly one `v` in the filename; unset or empty values retain the package-version default.
 - Breaking: `addr-geocode` now uses the installed `geocode()` defaults, including its TIGER year, and selects matching behavior with `--preset default`, `strict`, `exact-zip`, or `loose`. The former `--taf-year` option has been removed. The same preset argument works for local and container invocations, and deterministic output filenames record the selected preset alongside the addr version.
 - Breaking: addr now requires R 4.2.0 or newer.
 - The vendored Rust bridge now uses `extendr-api` 0.9.0. The minimum supported Cargo and rustc versions are now 1.71.
