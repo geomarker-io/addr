@@ -39,6 +39,19 @@ expect_error <- function(expr, pattern) {
 Sys.setenv(ADDR_GEOCODE_CLI_SOURCE_ONLY = "1")
 source(script)
 
+original_release_tag <- Sys.getenv(
+  "ADDR_GEOCODE_RELEASE_TAG",
+  unset = NA_character_
+)
+on.exit({
+  if (is.na(original_release_tag)) {
+    Sys.unsetenv("ADDR_GEOCODE_RELEASE_TAG")
+  } else {
+    Sys.setenv(ADDR_GEOCODE_RELEASE_TAG = original_release_tag)
+  }
+}, add = TRUE)
+Sys.unsetenv("ADDR_GEOCODE_RELEASE_TAG")
+
 tmp <- tempfile("addr-geocode-cli-")
 dir.create(tmp)
 on.exit(unlink(tmp, recursive = TRUE, force = TRUE), add = TRUE)
@@ -108,6 +121,10 @@ assert(
   ),
   "help does not link to the geocode reference"
 )
+assert(
+  grepl("ADDR_GEOCODE_RELEASE_TAG", usage, fixed = TRUE),
+  "help does not document the downstream release-tag override"
+)
 
 expect_error(
   addr_geocode_cli_parse_args(character()),
@@ -153,6 +170,18 @@ assert(
   "csv output path was not deterministic"
 )
 
+Sys.setenv(ADDR_GEOCODE_RELEASE_TAG = "")
+assert(
+  identical(
+    basename(addr_geocode_cli_output_path(
+      file.path(tmp, "addresses.csv"),
+      version = "1.2.0"
+    )),
+    basename(out_path)
+  ),
+  "empty release tag did not retain the package-version default"
+)
+
 parquet_out_path <- addr_geocode_cli_output_path(
   file.path(tmp, "addresses.parquet"),
   version = "1.2.0",
@@ -165,6 +194,56 @@ assert(
   ),
   "parquet output path was not deterministic"
 )
+
+Sys.setenv(
+  ADDR_GEOCODE_RELEASE_TAG = "v2.0.0-taf-v2-2025"
+)
+release_out_path <- addr_geocode_cli_output_path(
+  file.path(tmp, "address.parquet"),
+  version = "1.2.0"
+)
+assert(
+  identical(
+    basename(release_out_path),
+    paste0(
+      "address__addr-v2.0.0-taf-v2-2025__",
+      "preset-default__geocoded.parquet"
+    )
+  ),
+  "release tag did not replace the package version with exactly one `v`"
+)
+
+Sys.setenv(
+  ADDR_GEOCODE_RELEASE_TAG = "2.0.0-taf-v2-2025"
+)
+assert(
+  identical(
+    basename(addr_geocode_cli_output_path(
+      file.path(tmp, "address.parquet"),
+      version = "1.2.0"
+    )),
+    basename(release_out_path)
+  ),
+  "release tag without a leading `v` was not normalized"
+)
+
+for (invalid_release_tag in c(
+  "v",
+  "vv2.0.0",
+  "latest",
+  "v2.0.0/tafs",
+  paste0("v2", strrep("a", 127L))
+)) {
+  Sys.setenv(ADDR_GEOCODE_RELEASE_TAG = invalid_release_tag)
+  expect_error(
+    addr_geocode_cli_output_path(
+      file.path(tmp, "address.parquet"),
+      version = "1.2.0"
+    ),
+    "ADDR_GEOCODE_RELEASE_TAG must be a version-style tag"
+  )
+}
+Sys.unsetenv("ADDR_GEOCODE_RELEASE_TAG")
 
 input <- data.frame(
   id = 1:2,
@@ -298,5 +377,47 @@ expected_run_output <- addr_geocode_cli_output_path(
   preset = run_preset
 )
 assert(file.exists(expected_run_output), "CLI invocation failed")
+
+release_run_input <- file.path(tmp, "address.csv")
+utils::write.csv(
+  data.frame(id = 1:2, address = c(NA_character_, NA_character_)),
+  release_run_input,
+  row.names = FALSE,
+  na = ""
+)
+Sys.setenv(
+  ADDR_GEOCODE_RELEASE_TAG = "v2.0.0-taf-v2-2025"
+)
+release_run_out <- system2(
+  script,
+  c(
+    "--input",
+    release_run_input,
+    "--data-dir",
+    file.path(tmp, "addr-data")
+  ),
+  stdout = TRUE,
+  stderr = TRUE
+)
+release_status <- attr(release_run_out, "status")
+if (is.null(release_status)) {
+  release_status <- 0L
+}
+assert(
+  identical(release_status, 0L),
+  paste(release_run_out, collapse = "\n")
+)
+release_run_output <- file.path(
+  tmp,
+  paste0(
+    "address__addr-v2.0.0-taf-v2-2025__",
+    "preset-default__geocoded.csv"
+  )
+)
+assert(
+  file.exists(release_run_output),
+  "CLI invocation did not honor the downstream release tag"
+)
+Sys.unsetenv("ADDR_GEOCODE_RELEASE_TAG")
 
 cat("addr-geocode CLI tests passed\n")

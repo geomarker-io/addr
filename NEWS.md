@@ -1,3 +1,7 @@
+# addr 2.0.0.9001
+
+- `addr-geocode` now lets downstream images set `ADDR_GEOCODE_RELEASE_TAG` so their version-style release tag replaces the installed package version in deterministic output filenames. The optional leading `v` is normalized to keep exactly one `v` in the filename; unset or empty values retain the package-version default.
+
 # addr 2.0.0.9000
 
 - Development now continues as addr 2.0.0.9000. The stow dependency is resolved from CRAN for package development and through the container's configured P3M CRAN repository for container builds; the former GitHub remote and container tag-archive installation have been removed.

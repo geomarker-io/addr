@@ -33,6 +33,9 @@ addr_geocode_cli_usage <- function() {
     "  Writes one geocoded file matching the input file type. The output file",
     "  name is deterministic and includes the installed addr package version",
     "  and selected preset.",
+    "  A downstream image may set ADDR_GEOCODE_RELEASE_TAG to replace the",
+    "  package-version portion with its version-style release tag. An optional",
+    "  single leading `v` is normalized so the filename contains exactly one `v`.",
     "",
     "Geocoding presets:",
     "  default    Use all defaults from addr::geocode().",
@@ -209,6 +212,27 @@ addr_geocode_cli_write <- function(x, path) {
   invisible(path)
 }
 
+addr_geocode_cli_filename_version <- function(version = NULL) {
+  release_tag <- Sys.getenv("ADDR_GEOCODE_RELEASE_TAG", unset = "")
+  if (nzchar(release_tag)) {
+    valid_release_tag <- nchar(release_tag, type = "bytes") <= 128L &&
+      grepl("^v?[0-9][A-Za-z0-9._-]*$", release_tag)
+    if (!valid_release_tag) {
+      addr_geocode_cli_stop(
+        "ADDR_GEOCODE_RELEASE_TAG must be a version-style tag no longer ",
+        "than 128 bytes: an optional single leading `v`, then a digit, ",
+        "followed only by ASCII letters, digits, `.`, `_`, or `-`"
+      )
+    }
+    return(sub("^v", "", release_tag))
+  }
+
+  if (is.null(version)) {
+    version <- as.character(utils::packageVersion("addr"))
+  }
+  version
+}
+
 addr_geocode_cli_output_path <- function(
   input,
   output_dir = NULL,
@@ -220,9 +244,7 @@ addr_geocode_cli_output_path <- function(
   if (is.null(output_dir)) {
     output_dir <- input_dir
   }
-  if (is.null(version)) {
-    version <- as.character(utils::packageVersion("addr"))
-  }
+  version <- addr_geocode_cli_filename_version(version)
   ext <- tolower(tools::file_ext(input))
   stem <- tools::file_path_sans_ext(basename(input))
   version <- gsub("[^A-Za-z0-9._-]+", "-", version)
