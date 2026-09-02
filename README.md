@@ -236,6 +236,10 @@ docker run --rm -it -v addr-data:/opt/addr-data ghcr.io/geomarker-io/addr:v2.0.0
 The container includes an `addr-geocode` command for CSV or parquet files with a column named exactly `address`.
 The command writes a deterministic output file next to the input, matching the input file type and appending TIGER range geocoding columns.
 The filename records both the installed addr version and selected preset; for example, strict geocoding of `addresses.csv` with addr 2.0.0 writes `addresses__addr-v2.0.0__preset-strict__geocoded.csv`.
+A downstream image can set `ADDR_GEOCODE_RELEASE_TAG` so its version-style release tag replaces the package version in that filename.
+The value must start with an optional single lowercase `v` followed by a digit and contain only ASCII letters, digits, `.`, `_`, or `-` (128 bytes maximum).
+The CLI normalizes the optional leading `v`, so `ADDR_GEOCODE_RELEASE_TAG=v2.0.0-taf-v2-2025` applied to `address.parquet` produces `address__addr-v2.0.0-taf-v2-2025__preset-default__geocoded.parquet` with exactly one `v`.
+If the variable is unset or empty, the installed addr package version remains the default.
 Geocoding uses the installed `geocode()` defaults, including its default TIGER year.
 Use `--preset` to select one of four matching strategies:
 
