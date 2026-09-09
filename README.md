@@ -233,6 +233,8 @@ docker run --rm -it -v addr-data:/opt/addr-data ghcr.io/geomarker-io/addr:v2.0.0
 
 ### Batch geocoding on a cluster
 
+For a ready-to-run CLI image with the complete 2025 TIGER Address Features bundle included, see [addr_geocoder](https://github.com/geomarker-io/addr_geocoder), which provides setup and usage instructions for batch geocoding.
+
 The container includes an `addr-geocode` command for CSV or parquet files with a column named exactly `address`.
 The command writes a deterministic output file next to the input, matching the input file type and appending TIGER range geocoding columns.
 The filename records both the installed addr version and selected preset; for example, strict geocoding of `addresses.csv` with addr 2.0.0 writes `addresses__addr-v2.0.0__preset-strict__geocoded.csv`.

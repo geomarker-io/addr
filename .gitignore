@@ -3,3 +3,5 @@ docs
 inst/doc
 NAD_r19.zip
 NAD_r19.gdb/
+.DS_Store
+.Rhistory
