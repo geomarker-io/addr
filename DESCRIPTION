@@ -105,6 +105,7 @@ Collate:
     'clean.R'
     'county_fips.R'
     'data.R'
+    'data_management.R'
     'extendr-wrappers.R'
     'fuzzy_match.R'
     'geocode.R'

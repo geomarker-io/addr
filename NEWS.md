@@ -1,5 +1,8 @@
 # addr 2.0.0.9001
 
+- `taf_missing_counties()` now exposes the download-free preflight used by county installation. `nad_remove()` and `taf_remove()` preview or remove processed county files and update their manifests; stow continues to manage downloaded sources.
+- `geocode()` now explains retained source and processed data before the first automatic county installation in an R session.
+
 - `voter_addresses()` now returns 2,000 NAD-derived example strings under USDOT's unrestricted reuse terms. `elh_data()` now uses the Eviction Lab's explicitly ODC-BY 1.0-licensed Cincinnati snapshot for September 2022 through August 2023, with attribution and the full license included. Both functions retain their names and output schemas.
 
 - S7 address properties now work on R 4.2 by conditionally importing S7's compatibility accessor for R versions before 4.3.

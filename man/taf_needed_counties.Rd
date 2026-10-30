@@ -3,6 +3,7 @@
 \name{taf_needed_counties}
 \alias{taf_needed_counties}
 \alias{taf_ensure}
+\alias{taf_missing_counties}
 \title{Find and install TAF counties needed for ZIP codes}
 \usage{
 taf_needed_counties(
@@ -24,6 +25,16 @@ taf_ensure(
   place_zip_variants = TRUE,
   place_zip_variant = c("place", "county-sub"),
   redownload = FALSE
+)
+
+taf_missing_counties(
+  x,
+  year = as.character(2025:2011),
+  version = "v2",
+  zip_variants = TRUE,
+  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
+  place_zip_variants = TRUE,
+  place_zip_variant = c("place", "county-sub")
 )
 }
 \arguments{
@@ -52,7 +63,8 @@ copies of TIGER ZIP files?}
 }
 \value{
 \code{taf_needed_counties()} returns a tibble with catalog columns plus
-\code{source_zip} and \code{source_zip_variant}. \code{taf_ensure()} invisibly returns the
+\code{source_zip} and \code{source_zip_variant}. \code{taf_missing_counties()} returns the
+missing subset with the same columns. \code{taf_ensure()} invisibly returns the
 subset of needed counties that were missing before installation.
 }
 \description{
@@ -62,6 +74,9 @@ includes selected place, county-subdivision, and typographical ZIP candidates
 when requested. Character input contains ZIP codes only, so place-derived
 candidates cannot be inferred. \code{taf_ensure()} installs any needed counties
 that are not already present in the local TAF manifest.
+\code{taf_missing_counties()} previews that missing subset without downloading
+or installing anything. Files absent from disk are treated as missing even
+if a stale manifest entry remains.
 }
 \examples{
 taf_needed_counties(as_addr("10 MAIN ST CINCINNATI OH 45220"))

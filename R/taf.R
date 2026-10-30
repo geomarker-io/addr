@@ -156,6 +156,9 @@ taf_manifest <- function(
 #' when requested. Character input contains ZIP codes only, so place-derived
 #' candidates cannot be inferred. `taf_ensure()` installs any needed counties
 #' that are not already present in the local TAF manifest.
+#' `taf_missing_counties()` previews that missing subset without downloading
+#' or installing anything. Files absent from disk are treated as missing even
+#' if a stale manifest entry remains.
 #'
 #' @param x an addr vector (`?as_addr`) or character vector of ZIP codes
 #' @inheritParams taf
@@ -166,7 +169,8 @@ taf_manifest <- function(
 #' @param place_zip_variant nonempty character vector containing `"place"`
 #'   and/or `"county-sub"`; requested order determines precedence
 #' @returns `taf_needed_counties()` returns a tibble with catalog columns plus
-#'   `source_zip` and `source_zip_variant`. `taf_ensure()` invisibly returns the
+#'   `source_zip` and `source_zip_variant`. `taf_missing_counties()` returns the
+#'   missing subset with the same columns. `taf_ensure()` invisibly returns the
 #'   subset of needed counties that were missing before installation.
 #' @export
 #' @examples
@@ -1090,15 +1094,18 @@ taf_empty_needed_counties <- function() {
   )
 }
 
+#' @rdname taf_needed_counties
+#' @export
 taf_missing_counties <- function(
   x,
-  year,
-  version,
+  year = as.character(2025:2011),
+  version = "v2",
   zip_variants = TRUE,
   zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
   place_zip_variants = TRUE,
   place_zip_variant = c("place", "county-sub")
 ) {
+  year <- match.arg(year)
   needed <- taf_needed_counties(
     x,
     year = year,

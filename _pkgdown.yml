@@ -43,12 +43,15 @@ reference:
       - taf_dataset
       - taf_catalog
       - taf_needed_counties
+      - taf_missing_counties
+      - taf_remove
       - tiger_addr_feat
       - tiger_feat_names
   - title: National Address Database
     contents:
       - nad
       - nad_manifest
+      - nad_remove
       - nad_install
       - nad_dataset
       - nad_catalog
