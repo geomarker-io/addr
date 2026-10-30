@@ -1443,6 +1443,29 @@ test_that("geocode works with mirai daemons on voter addresses", {
     addr.taf_catalog_dir = file.path(temp_root, "inst", "extdata")
   )
 
+  # Check the optional socket facility before preparing the reference fixture.
+  # Leave all errors from geocoding and worker execution visible to the test.
+  on.exit(mirai::daemons(0), add = TRUE)
+  tryCatch(
+    mirai::daemons(2),
+    error = function(e) {
+      socket_permission_error <- grepl(
+        "Permission denied|Operation not permitted|Address family not supported",
+        conditionMessage(e),
+        ignore.case = TRUE
+      )
+      dispatcher_error <- grepl(
+        "dispatcher_start",
+        paste(deparse(conditionCall(e)), collapse = ""),
+        fixed = TRUE
+      )
+      if (socket_permission_error && dispatcher_error) {
+        skip(paste("mirai local sockets are unavailable:", conditionMessage(e)))
+      }
+      stop(e)
+    }
+  )
+
   year <- "2025"
   version <- "v2"
   county <- "39061"
@@ -1536,9 +1559,6 @@ test_that("geocode works with mirai daemons on voter addresses", {
   )
   taf_write_county_zip_manifest(manifest, year = year, version = version)
   taf_write_catalog(manifest, year = year, version = version, root = temp_root)
-
-  mirai::daemons(2)
-  on.exit(mirai::daemons(0), add = TRUE)
 
   out <- geocode(
     x,
