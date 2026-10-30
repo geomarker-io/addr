@@ -19,3 +19,4 @@
 ^Containerfile$
 ^\.dockerignore$
 ^Justfile$
+^cran-comments\.md$
