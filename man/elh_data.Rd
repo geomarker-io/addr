@@ -4,10 +4,15 @@
 \alias{elh_data}
 \title{Example line-one addresses}
 \source{
-Eviction Lab, Princeton University. Cincinnati Eviction Hotspots,
-release current through 2024-08-31, Eviction Tracking System.
-See \code{system.file("DATA-SOURCES", package = "addr")} for attribution and
-the unresolved redistribution-license status of this snapshot.
+Eviction Lab, Princeton University, Eviction Tracking System,
+Cincinnati hotspot report in
+\href{https://eviction-lab-data-downloads.s3.amazonaws.com/ets/hotspots_reports.zip}{hotspots_reports.zip}.
+The \href{https://data-downloads.evictionlab.org/}{provider's download site}
+distributes this database under the
+\href{https://opendatacommons.org/licenses/by/1-0/}{Open Data Commons Attribution License (ODC-BY 1.0)}.
+Attribution and redistribution terms are included in
+\code{system.file("DATA-SOURCES", package = "addr")} and
+\code{system.file("ODC-BY-1.0", package = "addr")}.
 }
 \usage{
 elh_data()
@@ -16,13 +21,9 @@ elh_data()
 a tibble with 100 rows and 9 columns
 }
 \description{
-The Cincinnati Eviction Hotspots data was downloaded from
-\href{https://evictionlab.org/uploads/cincinnati_hotspots_media_report.csv}{Eviction Lab}
-and contains characteristics of the top 100 buildings that are responsible for about 25\% of
-all eviction filings in Cincinnati (from their "current through 8-31-2024" release).
-}
-\details{
-https://evictionlab.org/eviction-tracking/cincinnati-oh/
+Cincinnati Eviction Hotspots from the Eviction Lab's licensed download
+archive, covering 2022-09-01 through 2023-08-31. These are historical
+examples, not current building rankings or eviction estimates.
 }
 \examples{
 elh_data()

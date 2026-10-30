@@ -22,28 +22,34 @@ check the exact source tarball to be uploaded.
   package-specific user data directory. Download controls and retention behavior
   will be reviewed separately before submission.
 - Packaged data provenance and redistribution status are recorded in DATA-SOURCES.
-  Resolve the voter-address and Eviction Lab fixture redistribution status before
-  uploading a release; these are not represented as covered by the MIT license.
+  Address strings now come from the unrestricted USDOT NAD fixture rather than
+  voter records. The Eviction Lab example now uses the provider's explicitly
+  ODC-BY 1.0-licensed 2022-2023 hotspot archive; its full license, attribution,
+  and source notice accompany the RDS. LICENSE.note identifies this exception
+  to the package's MIT software license.
 
 Validation record
 
-- Local source tarball, macOS arm64 / R 4.6.1, 2026-10-30: R CMD check
-  --as-cran completed with 0 errors, 0 warnings, and 1 incoming-feasibility note
-  for a new submission with the intentionally retained development version.
-  Tests: 795 passes, 3 opt-in live-download skips. Both PDF and HTML manual
-  checks passed with checkbashisms and HTML Tidy 5.8.0 available. A separate
-  urlchecker run found no invalid URLs.
+- Local source tarball with the replacement fixtures, macOS arm64 / R 4.6.1,
+  2026-10-30: R CMD check --as-cran completed with 0 errors, 0 warnings, and
+  1 incoming-feasibility note for the intentionally retained development version.
+  CRAN's remote archive.rds request timed out in the first attempt; the completed
+  run used _R_CHECK_CRAN_INCOMING_REMOTE_=false. Tests: 807 passes and 3 opt-in
+  live-download skips. Both PDF and HTML manual checks passed with checkbashisms
+  and HTML Tidy 5.8.0 available. The new fixture source and license URLs were
+  retrieved separately, and all 900 hotspot cells were compared with the
+  provider's licensed archive. The earlier full remote-incoming check, before
+  fixture replacement, passed with only the expected new-submission/dev-version
+  note; the earlier urlchecker run found no invalid URLs.
 - CI covers release R on macOS, Windows, and Linux; R-devel on Windows and Linux;
   Linux R-oldrel; and R 4.2.0 / Rust 1.71. Linux R-devel and the minimum-version
   job use required packages and test tools with selected optional packages absent;
   the other jobs include the full suggested dependencies.
   Record the completed run URLs and results for the final release here.
-  Development validation at commit 35ea015:
-  https://github.com/geomarker-io/addr/actions/runs/41048619817
-  The release jobs on all three platforms, Windows R-devel, Linux R-oldrel,
-  R 4.2.0 / Rust 1.71, and the installed CLI check passed. The Linux R-devel job
-  was superseded during dependency setup by the required-dependency configuration
-  described above; record the completed replacement run before release.
+  Development validation before the fixture replacements (commit 09b40b3):
+  https://github.com/geomarker-io/addr/actions/runs/41050750435
+  All matrix jobs and the installed CLI check passed, including Linux R-devel
+  with the required-dependency configuration described above.
 - The minimum-version job has 0 errors and 0 warnings, with 782 test passes and
   five skips (three live-download tests and two unavailable optional interfaces).
   Its three notes are: the deliberately absent suggested packages; a 16.3 MB

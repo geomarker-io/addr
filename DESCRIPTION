@@ -63,6 +63,8 @@ Copyright: The vendored Rust code is authored by the contributors credited
     ANLAB-KAIST, Keunhong Lee, Frommi, Unicode, Inc., and Boyd Johnson.
     Per-crate authorship and licenses are listed in inst/COPYRIGHTS;
     complete license and copyright notices are preserved in inst/RUST-LICENSES.
+    The Eviction Lab hotspot database is distributed separately under ODC-BY 1.0;
+    see inst/LICENSE.note, inst/DATA-SOURCES, and inst/ODC-BY-1.0.
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Suggests: 

@@ -1,0 +1,12 @@
+The addr software is licensed under the MIT license identified in DESCRIPTION
+and LICENSE. Vendored Rust component notices are in COPYRIGHTS and RUST-LICENSES.
+
+The database in extdata/elh_data.rds is from the Eviction Lab, Princeton
+University, and is distributed under the Open Data Commons Attribution License
+(ODC-BY) 1.0. It is not offered under the software's MIT license. See DATA-SOURCES
+for attribution, provenance, and required notices, and ODC-BY-1.0 for the full
+license. The same license URI and attribution are embedded in the RDS:
+https://opendatacommons.org/licenses/by/1-0/
+
+The NAD-derived example fixtures and Census reference tables have the reuse
+terms described in DATA-SOURCES.
