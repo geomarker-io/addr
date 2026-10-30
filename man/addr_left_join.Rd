@@ -80,24 +80,35 @@ return multiple distinct candidate addresses from \code{y}. \code{addr_match()} 
 selects a single best address before this wrapper expands exact duplicates.
 }
 \examples{
-the_addr <- nad_example_data()
+# Two reference rows share an address, so a match returns both units.
+the_addr <- tibble::tibble(
+  reference_addr = as_addr(c(
+    "10 Main St Cincinnati OH 45220",
+    "10 Main St Cincinnati OH 45220",
+    "20 Main St Cincinnati OH 45220"
+  )),
+  unit = c("1", "2", "")
+)
 my_addr <- tibble::tibble(
-  addr = as_addr(voter_addresses()[1:25]),
-  id = 1:25
+  addr = as_addr(c(
+    "10 Maine St Cincinnati OH 45220",
+    "20 Main St Cincinnati OH 45220",
+    "10 Oak St Cincinnati OH 45220"
+  )),
+  id = 1:3
 )
 
 d <- addr_left_join(
   my_addr,
   the_addr,
-  by = c("addr", "nad_addr"),
-  match_prepared = nad_example_data(match_prepared = TRUE)
+  by = c("addr", "reference_addr"),
+  match_prepared = addr_match_prepare(the_addr$reference_addr)
 )
 
 d
 
-# some addresses may match with more than one address in NAD
-# since matching does not consider subaddress (e.g. "line two")
-# take the first row in these cases
+# Matching does not consider subaddress (e.g. "line two").
+# Count each input once when summarizing the joined matches.
 
-table(addr_match_stage(d$nad_addr.y[!duplicated(d$id)]))
+table(addr_match_stage(d$reference_addr.y[!duplicated(d$id)]))
 }

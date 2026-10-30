@@ -1,19 +1,16 @@
-# addr 2.0.0.9001
+# addr 2.1.0
 
+- Added `taf_missing_counties()` for a download-free preflight of missing geocoding counties, including the selected place and ZIP candidates.
+- Added `nad_remove()` and `taf_remove()` to preview or remove processed county files and update their manifests. Downloaded source files remain managed by stow; the README documents stow's inventory, removal, and pruning tools.
+- `geocode()` explains retained source and processed data before its first automatic county installation in each R session.
 - `addr_fuzzy_left_join(progress = FALSE)` now suppresses its progress output.
-
-- `taf_missing_counties()` now exposes the download-free preflight used by county installation. `nad_remove()` and `taf_remove()` preview or remove processed county files and update their manifests; stow continues to manage downloaded sources.
-- `geocode()` now explains retained source and processed data before the first automatic county installation in an R session.
-
-- `voter_addresses()` now returns 2,000 NAD-derived example strings under USDOT's unrestricted reuse terms. `elh_data()` now uses the Eviction Lab's explicitly ODC-BY 1.0-licensed Cincinnati snapshot for September 2022 through August 2023, with attribution and the full license included. Both functions retain their names and output schemas.
-
-- S7 address properties now work on R 4.2 by conditionally importing S7's compatibility accessor for R versions before 4.3.
-- Release builds now clean Rust build intermediates after linking the shared library, following extendr's build template while preserving Makevars and C objects for R's compiled-code checks.
-- `addr-geocode` now lets downstream images set `ADDR_GEOCODE_RELEASE_TAG` so their version-style release tag replaces the installed package version in deterministic output filenames. The optional leading `v` is normalized to keep exactly one `v` in the filename; unset or empty values retain the package-version default.
-
-# addr 2.0.0.9000
-
-- Development now continues as addr 2.0.0.9000. The stow dependency is resolved from CRAN for package development and through the container's configured P3M CRAN repository for container builds; the former GitHub remote and container tag-archive installation have been removed.
+- `voter_addresses()` now returns 2,000 NAD-derived example strings under USDOT's unrestricted reuse terms. `elh_data()` now uses the Eviction Lab's ODC-BY 1.0-licensed Cincinnati snapshot for September 2022 through August 2023, with attribution and the full license included. Both functions retain their names and output schemas.
+- S7 address properties work on R 4.2 through S7's conditional compatibility accessor.
+- Rust toolchain checks match the declared Cargo/rustc 1.71 minimum. Release builds clean Rust intermediates after linking while preserving Makevars and C objects for R's compiled-code checks.
+- Package metadata credits the vendored Rust contributors and preserves their full license notices. Help pages describe the public NAD and geocoding interfaces, and the testthat minimum is 3.2.0.
+- The optional mirai integration test skips recognized local socket restrictions while preserving worker failures. Package checks cover release, development, old-release, and minimum supported R/toolchain configurations.
+- `addr-geocode` lets downstream images set `ADDR_GEOCODE_RELEASE_TAG` to replace the installed package version in output filenames, normalizing an optional leading `v`.
+- stow is resolved from CRAN for development and from the container's configured P3M CRAN repository for container builds.
 
 # addr 2.0.0
 

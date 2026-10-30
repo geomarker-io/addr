@@ -1,81 +1,125 @@
-Submission preparation notes for addr 2.0.0.9001
+This is the first CRAN submission of addr, version 2.1.0.
 
-This is a development checklist, not a completed CRAN submission record.
-Keep the development version until the release is prepared, then rebuild and
-check the exact source tarball to be uploaded.
+Overall-checktime follow-up
 
-- The Rust dependency sources are bundled in src/rust/vendor.tar.xz. Installation
-  uses cargo --locked --offline with at most two compilation jobs. Cargo and
-  rustc 1.71 or newer are required; the package does not install either tool.
-  DESCRIPTION credits upstream contributors; COPYRIGHTS and RUST-LICENSES retain
-  the detailed attribution and license notices in installed packages.
-  Release builds remove Rust intermediates after linking, following extendr's
-  build template. Makevars and C objects remain available for R's symbol checks.
-- R 4.2 uses S7's documented conditional import of its compatible `@` accessor;
-  R 4.3 and later use the native accessor. The R dependency stays at 4.2.0.
-- Loading the package does not download data. Live TIGER download tests are
-  explicitly opt-in and skipped during CRAN checks. Local fixture tests exercise
-  the data readers and geocoding. Optional mirai integration skips only recognized
-  dispatcher socket-permission or unsupported-address-family errors.
-- Large-data examples are not run automatically. NAD county preparation can
-  require a roughly 7.6 GB archive. TIGER source and processed-data copies use the
-  package-specific user data directory. Download controls and retention behavior
-  are described in the retained-data section of the README. stow owns source
-  inventory and removal; nad_remove() and taf_remove() preview or remove only
-  processed files and update their manifests. taf_missing_counties() previews
-  automatic geocoding installations without network requests. geocode() prints
-  a retained-data notice once per R session before its first automatic install.
-- Packaged data provenance and redistribution status are recorded in DATA-SOURCES.
-  Address strings now come from the unrestricted USDOT NAD fixture rather than
-  voter records. The Eviction Lab example now uses the provider's explicitly
-  ODC-BY 1.0-licensed 2022-2023 hotspot archive; its full license, attribution,
-  and source notice accompany the RDS. LICENSE.note identifies this exception
-  to the package's MIT software license.
+The revised submission from commit 77c64a5 resolved the example and spelling
+flags. Its Windows pretest still exceeded the overall checktime limit:
+https://win-builder.r-project.org/incoming_pretest/addr_2.1.0_20261030_202203/
+The examples took 33 seconds, but the tests took 456 seconds and the Rust
+build took 112 seconds. All 844 Windows test expectations passed.
 
-Validation record
+Two integration tests now use six representative inputs instead of 100.
+The prepared-reference test retains the full packaged reference, several
+ZIP groups, reordered/duplicate matches, and ZIP-only fallbacks. The real
+mirai test still starts two workers, processes three ZIP groups, restores
+input order and duplicates, and checks matched and missing results,
+geographic coordinates, and S2 cells. No tests were disabled and package
+behavior is unchanged.
 
-- Local source tarball with the data-management helpers, macOS arm64 / R 4.6.1,
-  2026-10-30: R CMD check --as-cran completed with 0 errors, 0 warnings, and
-  1 incoming-feasibility note for the intentionally retained development version.
-  The run used _R_CHECK_CRAN_INCOMING_REMOTE_=false because CRAN's remote
-  archive.rds request had timed out during the preceding fixture validation.
-  Tests: 856 passes and 3 opt-in live-download skips. Both PDF and HTML manual
-  checks passed with checkbashisms and HTML Tidy 5.8.0 available. Cleanup tests
-  use temporary datasets and cover previews, stale records, partial failures,
-  path boundaries, and retaining other counties, years, and source archives.
-  The earlier full remote-incoming check, before fixture replacement, passed
-  with only the expected new-submission/dev-version note. The fixture source
-  and license URLs were retrieved separately, and all 900 hotspot cells were
-  compared with the provider's licensed archive.
-- CI covers release R on macOS, Windows, and Linux; R-devel on Windows and Linux;
-  Linux R-oldrel; and R 4.2.0 / Rust 1.71. Linux R-devel and the minimum-version
-  job use required packages and test tools with selected optional packages absent;
-  the other jobs include the full suggested dependencies.
-  Record the completed run URLs and results for the final release here.
-  Development validation before the fixture replacements (commit 09b40b3):
-  https://github.com/geomarker-io/addr/actions/runs/41050750435
-  All matrix jobs and the installed CLI check passed, including Linux R-devel
-  with the required-dependency configuration described above.
-- The earlier minimum-version job has 0 errors and 0 warnings, with 782 test passes and
-  five skips (three live-download tests and two unavailable optional interfaces).
-  Its three notes are: the deliberately absent suggested packages; a 16.3 MB
-  installed package dominated by the 11 MB Rust-linked library with rustc 1.71;
-  and codetools treating the property-name arguments to S7's pre-4.3 `@`
-  accessor as undefined globals. Those reported names are address properties
-  (`digits`, `name`, `number`, `place`, street components, `state`, and `zipcode`),
-  not free-variable lookups. Current-R local and Linux release/oldrel checks do
-  not report the property-name note. Data and documentation remain below 5 MB
-  each, and the source tarball remains below 10 MB.
-- The Linux release job includes PDF manual validation. Shell/HTML checking tools
-  are installed on Unix runners, and warnings fail the CI checks.
-- The pkgdown site builds locally with the new preflight/removal topics and
-  retained-data instructions. The fuzzy-join example now honors progress = FALSE;
-  the full site build reports no warnings.
-- Before submission, run current Win-builder R-devel and macOS builder checks on
-  the exact release tarball and record their results here. Those service checks
-  have not yet been submitted.
-- A first CRAN submission may report the normal "New submission" note. The
-  development-version note must be eliminated by choosing the release version.
-- Confirm the maintainer address and credited authors, review current CRAN
-  policies, and resolve all unexplained warnings or significant notes before
-  submitting through the CRAN form.
+The revised source archive passed R CMD check --as-cran on macOS arm64,
+R 4.6.1, with 0 errors, 0 warnings, and only "New submission". All 865
+test expectations passed with 3 opt-in live-download skips. Test elapsed
+time was 17.8 seconds; PDF and HTML manuals passed. A separate same-machine
+profile measured 16.9 seconds across test cases, down from 28.0 seconds.
+
+The existing release workflow checks the identical source archive with
+Linux R-devel, and the platform matrix checks Windows release and R-devel.
+CI runner timing is not a guarantee of the CRAN check farm's runtime.
+
+Pretest follow-up
+
+The 2026-10-30 incoming pretest of the original archive reported two NOTEs
+on Windows and one on Debian:
+https://win-builder.r-project.org/incoming_pretest/addr_2.1.0_20261030_170256/
+
+- The Windows examples for addr_match and addr_left_join took 52.99 and
+  39.35 seconds. Both now use small, explicit reference tables instead of
+  matching against the 5,000-row NAD fixture. All example code still runs;
+  it demonstrates fuzzy matching, partial match stages, prepared reference
+  reuse, and duplicate-row joins. Package matching behavior is unchanged.
+- DESCRIPTION now uses "Locate" and "locates" instead of the flagged
+  "Geocode" and "geocodes". The description still explains address-point
+  matching and coordinate estimation from Census street address ranges.
+- "New submission" is expected for this package's first CRAN submission.
+  The original pretests had no errors or warnings; Debian examples passed.
+
+Validation after these fixes on macOS arm64, R 4.6.1: a freshly built source
+archive passed R CMD check --as-cran with 0 errors, 0 warnings, and 1 NOTE
+("New submission"). Local and remote incoming checks were enabled. The
+addr_match and addr_left_join examples took 0.441 and 0.176 seconds elapsed.
+All 856 test expectations passed; only the 3 opt-in live-download tests were
+skipped. PDF and HTML manuals passed. The PR platform matrix checks the
+revised source on Windows, Linux, and macOS.
+
+A fresh source archive is required for any resubmission. The archive and
+platform results below describe the original submission, before these fixes.
+
+Original submitted source
+
+- addr_2.1.0.tar.gz, built with R 4.6.2 on Linux from commit 4a3587c.
+- Size: 7,075,216 bytes.
+- SHA-256: 15ba84e0225aad0044e3ba201631583d2b497706cf542703b62e1512b00c636a
+- Source artifact and exact-tarball R-devel check:
+  https://github.com/geomarker-io/addr/actions/runs/41069125159
+- Updates to this file do not affect the archive; cran-comments.md is excluded
+  from the source package.
+
+Original-archive checks performed on 2026-10-30
+
+- macOS arm64, R 4.6.1: R CMD check --as-cran completed with 0 errors,
+  0 warnings, and 1 NOTE: "New submission". Both local and remote incoming
+  checks were enabled, using the official stat.ethz.ch CRAN mirror for metadata.
+  There is no development-version NOTE. Tests: 856 passes and 3 opt-in live
+  TIGER download skips. PDF and HTML manuals passed, with checkbashisms and
+  HTML Tidy 5.8.0 available.
+- Ubuntu 24.04.5, R-devel (2026-10-26 r90766): the identical source archive
+  passed R CMD check --as-cran, including PDF and HTML manuals, with 0 errors,
+  0 warnings, and 1 NOTE: "New submission". Remote incoming checks were enabled.
+  This job deliberately omits arrow, dplyr, leaflet, mirai, and sf to exercise
+  required-dependency-only use; their absence is reported as INFO. Full suggested
+  dependencies are exercised by the local and other platform checks.
+- urlchecker: no invalid URLs found.
+- Release platform matrix:
+  https://github.com/geomarker-io/addr/actions/runs/41069125122
+  Release R on macOS, Windows, and Linux; Windows/Linux R-devel; Linux R-oldrel;
+  R 4.2.0 with Rust 1.71; and installed CLI validation all passed.
+  Windows R-devel (2026-10-29 r90794 ucrt) reports Status: OK, with 844 test
+  passes and 5 skips (3 opt-in downloads and 2 Unix-specific tests).
+
+Minimum-version notes
+
+The R 4.2.0 / Rust 1.71 job has 0 errors, 0 warnings, and 3 NOTEs, with 843 test
+passes and 5 skips (3 opt-in downloads and 2 absent optional interfaces):
+
+- The suggested packages listed above are deliberately absent.
+- Installed size is 16.4 MB, dominated by an 11 MB Rust-linked library from
+  the minimum supported compiler. Bundled data and documentation are each
+  below 5 MB, and the source archive is below 10 MB.
+- R 4.2 codetools treats property names passed to S7's compatibility `@`
+  accessor as undefined globals. These are address properties, not free-variable
+  lookups. The package follows S7's conditional import guidance for R < 4.3;
+  current R and R-devel checks do not report this note.
+
+Installation and external data
+
+Rust sources and dependencies are bundled in src/rust/vendor.tar.xz. Builds use
+cargo --locked --offline and at most two compilation jobs; neither Rust tools
+nor dependency code are downloaded at installation. Cargo/rustc >= 1.71 are
+required. DESCRIPTION credits upstream contributors, and COPYRIGHTS and
+RUST-LICENSES preserve detailed notices. Post-link cleanup removes Rust build
+intermediates while retaining Makevars and C objects for R's symbol checks.
+
+Loading addr does not access the network. Large downloads are in non-running
+examples; live-download tests are opt-in and skipped on CRAN. Local fixtures
+exercise geocoding and data management. The optional mirai integration test
+skips narrowly recognized prohibited or unsupported localhost sockets.
+
+On-demand NAD/TIGER data are stored beneath tools::R_user_dir("addr", "data").
+stow manages source inventory and cleanup; addr's removal helpers manage
+processed counties and their manifests, with previews by default. A missing-
+county preflight and retained-data notice make automatic geocoding installs
+visible. Packaged fixtures and references retain their source attribution and
+reuse terms in DATA-SOURCES. The Eviction Lab hotspot database is separately
+licensed under ODC-BY 1.0; LICENSE.note and ODC-BY-1.0 preserve its terms, also
+embedded with attribution in the fixture. Addr's own software is MIT-licensed;
+vendored Rust license terms are preserved separately.

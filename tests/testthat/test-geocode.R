@@ -1480,9 +1480,17 @@ test_that("geocode works with mirai daemons on voter addresses", {
     ns = "addr"
   )
 
-  x <- as_addr(voter_addresses()[1:100])
-  zip_ok <- !is.na(x@place@zipcode) & x@place@zipcode != ""
-  x_ref <- x[zip_ok]
+  # Three ZIP groups exercise two real workers. Reorder and repeat matches
+  # to check result restoration, and retain unmatched and missing inputs.
+  x_ref <- as_addr(voter_addresses()[1:3])
+  expect_length(unique(x_ref@place@zipcode), 3L)
+  x <- vctrs::vec_c(
+    x_ref[c(3, 1, 2, 1)],
+    as_addr(c(
+      paste("1 SYNTHETIC EXAMPLE RD CINCINNATI OH", x_ref@place@zipcode[[1]]),
+      NA_character_
+    ))
+  )
   ref_df <- unique(data.frame(
     FULLNAME = format(x_ref@street),
     ZIP = x_ref@place@zipcode,
@@ -1568,18 +1576,21 @@ test_that("geocode works with mirai daemons on voter addresses", {
     progress = FALSE
   )
 
-  has_number <- !is.na(x@number@digits) & x@number@digits != ""
-  has_street_name <- !is.na(x@street@name) & x@street@name != ""
+  matched <- c(TRUE, TRUE, TRUE, TRUE, FALSE, FALSE)
   expect_s3_class(out, "tbl_df")
-  expect_equal(nrow(out), 100L)
+  expect_equal(nrow(out), length(x))
   expect_equal(out$addr, x)
-  expect_equal(sum(!is.na(out$matched_zipcode)), sum(has_street_name))
-  expect_equal(sum(!is.na(out$matched_street)), sum(has_street_name))
-  expect_equal(
-    sum(!is.na(out$matched_geography)),
-    sum(has_number & has_street_name)
-  )
-  expect_equal(sum(!is.na(out$s2_cell)), sum(has_number & has_street_name))
+  expect_equal(out$matched_zipcode[matched], x[matched]@place@zipcode)
+  expect_true(all(is.na(out$matched_zipcode[!matched])))
+  expect_identical(!is.na(out$matched_street), matched)
+  expect_equal(format(out$matched_street[matched]), format(x[matched]@street))
+  expect_identical(!is.na(out$matched_geography), matched)
+  expect_identical(!is.na(out$s2_cell), matched)
+  expect_equal(out$matched_geography[2], out$matched_geography[4])
+  expect_equal(out$s2_cell[2], out$s2_cell[4])
+  coords <- wk::wk_coords(out$matched_geography[matched])
+  expect_true(all(coords$x > -84.5 & coords$x < -84.49))
+  expect_true(all(coords$y > 39.1 & coords$y < 39.11))
 })
 
 test_that("geocode falls back to the default progress bar when mirai is unavailable", {

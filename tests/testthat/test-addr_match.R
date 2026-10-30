@@ -205,39 +205,36 @@ test_that("addr_match_stage rejects non-addr_match structures in strict mode", {
 })
 
 test_that("addr_match works with packaged prepared example data", {
-  addresses <- voter_addresses()[1:100]
-  # Keep both successful matches and ZIP-only fallbacks in the fixture test.
-  addresses[87:100] <- paste(
+  # Reordered matches, a duplicate, and ZIP-only fallbacks exercise the full
+  # packaged reference without repeating the same work for 100 input rows.
+  addresses <- voter_addresses()[c(3, 1, 2, 1, 87, 88)]
+  addresses[5:6] <- paste(
     "1 SYNTHETIC EXAMPLE RD CINCINNATI OH",
-    sub(".* ", "", addresses[87:100])
+    sub(".* ", "", addresses[5:6])
   )
   x <- as_addr(addresses)
   y <- nad_example_data(match_prepared = TRUE)
   out <- addr_match(x, y, progress = FALSE)
   stage <- addr_match_stage(out)
-  expect_equal(sum(!is.na(out@number)), 86)
-  expect_equal(sum(!is.na(out@street)), 86)
-  expect_equal(sum(!is.na(out@place@zipcode)), 100)
+  expect_gte(length(unique(x@place@zipcode)), 3L)
+  expect_equal(sum(!is.na(out@number)), 4)
+  expect_equal(sum(!is.na(out@street)), 4)
+  expect_equal(out@place@zipcode, x@place@zipcode)
   expect_equal(
     as.integer(table(stage)),
-    c(0L, 14L, 0L, 86L)
+    c(0L, 2L, 0L, 4L)
   )
+  expect_identical(as.character(stage), c(rep("number", 4), rep("zip", 2)))
   expect_true(inherits(out, "addr"))
-  expect_length(out, 100L)
-  expect_equal(sum(!is.na(out)), 86)
+  expect_length(out, 6L)
+  expect_equal(sum(!is.na(out)), 4)
   expect_equal(
-    format(out[1:10]),
+    format(out[1:4]),
     c(
+      "9960 DALY RD CINCINNATI OH 45231",
       "3359 QUEEN CITY AVE CINCINNATI OH 45238",
       "1040 KREIS LN CINCINNATI OH 45205",
-      "9960 DALY RD CINCINNATI OH 45231",
-      "413 VOLKERT PL CINCINNATI OH 45219",
-      "8519 LINDERWOOD LN CINCINNATI OH 45255",
-      "6361 BEECHMONT AVE CINCINNATI OH 45230",
-      "10466 ADVENTURE LN CINCINNATI OH 45242",
-      "3156 LOOKOUT CIR CINCINNATI OH 45208",
-      "310 WYOMING AVE CINCINNATI OH 45215",
-      "118 SPRINGFIELD PIKE CINCINNATI OH 45215"
+      "3359 QUEEN CITY AVE CINCINNATI OH 45238"
     )
   )
 })

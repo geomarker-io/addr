@@ -1,0 +1,88 @@
+name: release candidate
+
+on:
+  pull_request:
+    branches: [main, master]
+    paths-ignore: [cran-comments.md]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    if: startsWith(github.head_ref, 'release-') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+      - name: Build the release source once
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/release"
+          cd "$RUNNER_TEMP/release"
+          R CMD build --no-build-vignettes "$GITHUB_WORKSPACE"
+          sha256sum addr_*.tar.gz > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-source
+          path: ${{ runner.temp }}/release/
+          retention-days: 90
+
+  devel:
+    needs: source
+    runs-on: ubuntu-latest
+    env:
+      ADDR_RUN_NETWORK_TESTS: "false"
+      NOT_CRAN: "false"
+      _R_CHECK_CRAN_INCOMING_: "true"
+      _R_CHECK_CRAN_INCOMING_REMOTE_: "true"
+      _R_CHECK_FORCE_SUGGESTS_: "false"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-source
+          path: ${{ runner.temp }}/release/
+      - name: Install validation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends devscripts tidy qpdf
+      - uses: r-lib/actions/setup-pandoc@v2
+      - uses: r-lib/actions/setup-tinytex@v2
+      - name: Install manual fonts
+        run: |
+          tlmgr update --self
+          tlmgr install collection-fontsrecommended inconsolata fancyvrb
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: devel
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          dependencies: '"hard"'
+          extra-packages: |
+            any::rcmdcheck
+            any::testthat
+            any::withr
+          cache-version: minimum-dependencies
+      - name: Check the release tarball with R-devel
+        shell: Rscript {0}
+        run: |
+          release_dir <- file.path(Sys.getenv("RUNNER_TEMP"), "release")
+          tarball <- list.files(release_dir, "[.]tar[.]gz$", full.names = TRUE)
+          stopifnot(length(tarball) == 1L)
+          result <- rcmdcheck::rcmdcheck(
+            tarball, args = "--as-cran", check_dir = "release-check",
+            error_on = "warning"
+          )
+          cat("Source tarball:", basename(tarball), "\n")
+          cat("SHA-256:", digest::digest(file = tarball, algo = "sha256"), "\n")
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-r-devel-results
+          path: release-check/
+          retention-days: 90
