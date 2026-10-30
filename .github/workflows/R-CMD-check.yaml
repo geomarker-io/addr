@@ -54,16 +54,16 @@ jobs:
           - {os: windows-latest, r: 'release'}
           - {os: windows-latest, r: 'devel'}
           - {os: ubuntu-latest, r: 'release', manual: true}
-          - {os: ubuntu-latest, r: 'devel'}
+          - {os: ubuntu-latest, r: 'devel', limited: true}
           - {os: ubuntu-latest, r: 'oldrel-1'}
-          - {os: ubuntu-22.04, r: '4.2.0', minimum: true}
+          - {os: ubuntu-22.04, r: '4.2.0', minimum: true, limited: true}
 
     env:
       ADDR_RUN_NETWORK_TESTS: "false"
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
       R_MAX_PROTECT_SIZE: 500000
-      _R_CHECK_FORCE_SUGGESTS_: ${{ matrix.config.minimum && 'false' || 'true' }}
+      _R_CHECK_FORCE_SUGGESTS_: ${{ matrix.config.limited && 'false' || 'true' }}
 
     steps:
       - uses: actions/checkout@v7
@@ -99,13 +99,13 @@ jobs:
           use-public-rspm: true
 
       - uses: r-lib/actions/setup-r-dependencies@v2
-        if: '!matrix.config.minimum'
+        if: '!matrix.config.limited'
         with:
           extra-packages: any::rcmdcheck
           needs: check
 
       - uses: r-lib/actions/setup-r-dependencies@v2
-        if: matrix.config.minimum
+        if: matrix.config.limited
         with:
           dependencies: '"hard"'
           extra-packages: |
@@ -115,7 +115,7 @@ jobs:
           cache-version: minimum-dependencies
 
       - name: Verify optional runtime packages are absent
-        if: matrix.config.minimum
+        if: matrix.config.limited
         shell: Rscript {0}
         run: |
           optional <- c("arrow", "dplyr", "leaflet", "mirai", "sf")
