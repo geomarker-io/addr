@@ -1,0 +1,15 @@
+# Track only the console demo source and its two example inputs.
+*
+!.gitignore
+!README.md
+!requirements.txt
+!console/
+console/*
+!console/source/
+console/source/*
+!console/source/*.R
+!console/source/*.py
+!console/data/
+console/data/*
+!console/data/my_addresses.csv
+!console/data/reference_addresses.csv
