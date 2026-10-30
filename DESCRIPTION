@@ -3,12 +3,58 @@ Title: Clean, Parse, Harmonize, Match, and Geocode Messy Real-World US Addresses
 Version: 2.0.0.9001
 Authors@R: 
     c(person("Cole", "Brokamp", email = "cole@colebrokamp.com", role = c("aut", "cre")),
-      person("Erika", "Manning", role = c("aut")))
+      person("Erika", "Manning", role = "aut"),
+      person("Jonas", "Schievink", role = "ctb",
+             comment = "adler Rust crate"),
+      person("Andrew", "Gallant", role = "ctb",
+             comment = "aho-corasick, bstr, csv, csv-core, memchr, regex-automata Rust crates"),
+      person("Manish", "Goregaokar", role = "ctb",
+             comment = "array-init Rust crate"),
+      person("Michal", "Vaner", role = "ctb",
+             comment = "array-init Rust crate"),
+      person("The Rust Project Developers", role = "ctb",
+             comment = "bitflags, lazy_static, regex, regex-automata, regex-syntax Rust crates"),
+      person("Alex", "Crichton", role = "ctb",
+             comment = "cfg-if, crc32fast, flate2, proc-macro2 Rust crates"),
+      person("messense", role = "ctb",
+             comment = "cqdb, crfs Rust crates"),
+      person("Sam", "Rijs", role = "ctb",
+             comment = "crc32fast Rust crate"),
+      person("The Extendr contributors", role = "ctb",
+             comment = "extendr-api, extendr-ffi, extendr-macros Rust crates"),
+      person("Josh", "Triplett", role = "ctb",
+             comment = "flate2 Rust crate"),
+      person("David", "Tolnay", role = "ctb",
+             comment = "itoa, paste, proc-macro2, quote, readonly, ryu, serde, syn, unicode-ident Rust crates"),
+      person("Keunhong", "Lee", role = "ctb",
+             comment = "jhash Rust crate"),
+      person("Marvin", "Loebel", role = "ctb",
+             comment = "lazy_static Rust crate"),
+      person("bluss", role = "ctb",
+             comment = "memchr Rust crate"),
+      person("Frommi", role = "ctb",
+             comment = "miniz_oxide Rust crate"),
+      person("oyvindln", role = "ctb",
+             comment = "miniz_oxide Rust crate"),
+      person("Aleksey", "Kladov", role = "ctb",
+             comment = "once_cell Rust crate"),
+      person("Erick", "Tryzelaar", role = "ctb",
+             comment = "serde, serde_derive Rust crates"),
+      person("Boyd", "Johnson", role = "ctb",
+             comment = "usaddress Rust crate"),
+      person("ANLAB-KAIST", role = "cph", comment = "jhash Rust crate"),
+      person("Unicode, Inc.", role = "cph", comment = "unicode-ident Unicode data"))
 Description: Cleans, parses, standardizes, matches, and geocodes messy, real-world US addresses. Uses the included usaddress library to tag address components and build addr vector objects composed of addr_part vectors for number, street, and place. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.
 URL: https://github.com/geomarker-io/addr/, https://geomarker.io/addr/
 BugReports: https://github.com/geomarker-io/addr/issues/
 License: MIT + file LICENSE
-Copyright: See file inst/COPYRIGHTS for vendored Rust crate copyright information.
+Copyright: The vendored Rust code is authored by the contributors credited
+    above and is copyright its upstream holders, including Andrew Gallant,
+    the array-init developers, the Rust Project Developers, Alex Crichton,
+    messense, Sam Rijs and contributors, the Extendr contributors,
+    ANLAB-KAIST, Keunhong Lee, Frommi, Unicode, Inc., and Boyd Johnson.
+    Per-crate authorship and licenses are listed in inst/COPYRIGHTS;
+    complete license and copyright notices are preserved in inst/RUST-LICENSES.
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Suggests: 
