@@ -1,6 +1,34 @@
 This is the first CRAN submission of addr, version 2.1.0.
 
-Release source
+Pretest follow-up
+
+The 2026-10-30 incoming pretest of the original archive reported two NOTEs
+on Windows and one on Debian:
+https://win-builder.r-project.org/incoming_pretest/addr_2.1.0_20261030_170256/
+
+- The Windows examples for addr_match and addr_left_join took 52.99 and
+  39.35 seconds. Both now use small, explicit reference tables instead of
+  matching against the 5,000-row NAD fixture. All example code still runs;
+  it demonstrates fuzzy matching, partial match stages, prepared reference
+  reuse, and duplicate-row joins. Package matching behavior is unchanged.
+- DESCRIPTION now uses "Locate" and "locates" instead of the flagged
+  "Geocode" and "geocodes". The description still explains address-point
+  matching and coordinate estimation from Census street address ranges.
+- "New submission" is expected for this package's first CRAN submission.
+  The original pretests had no errors or warnings; Debian examples passed.
+
+Validation after these fixes on macOS arm64, R 4.6.1: a freshly built source
+archive passed R CMD check --as-cran with 0 errors, 0 warnings, and 1 NOTE
+("New submission"). Local and remote incoming checks were enabled. The
+addr_match and addr_left_join examples took 0.441 and 0.176 seconds elapsed.
+All 856 test expectations passed; only the 3 opt-in live-download tests were
+skipped. PDF and HTML manuals passed. The PR platform matrix checks the
+revised source on Windows, Linux, and macOS.
+
+A fresh source archive is required for any resubmission. The archive and
+platform results below describe the original submission, before these fixes.
+
+Original submitted source
 
 - addr_2.1.0.tar.gz, built with R 4.6.2 on Linux from commit 4a3587c.
 - Size: 7,075,216 bytes.
@@ -10,7 +38,7 @@ Release source
 - Updates to this file do not affect the archive; cran-comments.md is excluded
   from the source package.
 
-Checks performed on 2026-10-30
+Original-archive checks performed on 2026-10-30
 
 - macOS arm64, R 4.6.1: R CMD check --as-cran completed with 0 errors,
   0 warnings, and 1 NOTE: "New submission". Both local and remote incoming

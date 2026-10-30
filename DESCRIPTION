@@ -1,5 +1,5 @@
 Package: addr
-Title: Clean, Parse, Harmonize, Match, and Geocode Messy Real-World US Addresses
+Title: Clean, Parse, Harmonize, Match, and Locate Messy Real-World US Addresses
 Version: 2.1.0
 Authors@R: 
     c(person("Cole", "Brokamp", email = "cole@colebrokamp.com", role = c("aut", "cre")),
@@ -44,7 +44,7 @@ Authors@R:
              comment = "usaddress Rust crate"),
       person("ANLAB-KAIST", role = "cph", comment = "jhash Rust crate"),
       person("Unicode, Inc.", role = "cph", comment = "unicode-ident Unicode data"))
-Description: Cleans, parses, standardizes, matches, and geocodes United States
+Description: Cleans, parses, standardizes, matches, and locates United States
     addresses. Uses the bundled 'usaddress' Rust library
     <https://github.com/boydjohnson/usaddress-rs> to tag address components and
     construct typed vectors for address numbers, streets, and places. Supports

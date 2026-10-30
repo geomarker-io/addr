@@ -100,18 +100,19 @@ by an older package version must be rebuilt with \code{addr_match_prepare()} bef
 it can be used for matching.
 }
 \examples{
-the_addr <- nad_example_data(match_prepared = TRUE)
-my_addr <- as_addr(
-  c(
-    "2700 Alice St 45222",
-    "10623 Srpingfield Pike 45215",
-    "173 Wuhlper Ave 45220",
-    "12176 8th Ave 45249",
-    "12176 7ht Ave 45249",
-    "10 W 14th St 45202",
-    "10 Oak Rd 45241"
-  )
-)
+# A small reference keeps the example quick and its matches easy to inspect.
+the_addr <- as_addr(c(
+  "10 Main St Cincinnati OH 45220",
+  "11 Main St Cincinnati OH 45220",
+  "10 Elm St Cincinnati OH 45220"
+))
+my_addr <- as_addr(c(
+  "10 Main St Cincinnati OH 45220",  # exact match
+  "10 Maine St Cincinnati OH 45220", # fuzzy street match
+  "99 Main St Cincinnati OH 45220",  # ZIP and street only
+  "10 Oak St Cincinnati OH 45220",   # ZIP only
+  "10 Main St Cincinnati OH 99999"   # no matching ZIP
+))
 
 addr_match(my_addr, the_addr)
 
@@ -126,9 +127,9 @@ addr_match(
   match_street_directional = "ignore"
 )
 
-my_addr <- as_addr(voter_addresses()[1:25])
-
-d <- addr_match(my_addr, the_addr)
+# Prepare the reference once when it will be reused.
+prepared <- addr_match_prepare(the_addr)
+d <- addr_match(my_addr, prepared)
 d
 
 addr_match_stage(d)
