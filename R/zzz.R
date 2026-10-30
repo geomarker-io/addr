@@ -1,3 +1,7 @@
+# S7 exports a compatible property accessor only on R versions before 4.3.
+#' @rawNamespace if (getRversion() < "4.3.0") importFrom("S7", "@")
+NULL
+
 .onLoad <- function(...) {
   S7::methods_register()
 }
