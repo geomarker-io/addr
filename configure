@@ -3,7 +3,7 @@
 set -eu
 
 min_major=1
-min_minor=65
+min_minor=71
 
 if [ -n "${HOME:-}" ] && [ -d "$HOME/.cargo/bin" ]; then
   PATH="$PATH:$HOME/.cargo/bin"
