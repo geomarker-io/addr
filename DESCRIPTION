@@ -44,7 +44,15 @@ Authors@R:
              comment = "usaddress Rust crate"),
       person("ANLAB-KAIST", role = "cph", comment = "jhash Rust crate"),
       person("Unicode, Inc.", role = "cph", comment = "unicode-ident Unicode data"))
-Description: Cleans, parses, standardizes, matches, and geocodes messy, real-world US addresses. Uses the included usaddress library to tag address components and build addr vector objects composed of addr_part vectors for number, street, and place. These vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.
+Description: Cleans, parses, standardizes, matches, and geocodes United States
+    addresses. Uses the bundled 'usaddress' Rust library
+    <https://github.com/boydjohnson/usaddress-rs> to tag address components and
+    construct typed vectors for address numbers, streets, and places. Supports
+    staged exact and fuzzy matching, joins to reference address tables, and
+    address-point matching with the National Address Database. Estimates
+    geographic coordinates by interpolating along Census TIGER/Line street
+    address ranges. Address vectors can be used as data-frame columns with
+    standard R tools.
 URL: https://github.com/geomarker-io/addr/, https://geomarker.io/addr/
 BugReports: https://github.com/geomarker-io/addr/issues/
 License: MIT + file LICENSE
