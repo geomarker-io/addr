@@ -140,14 +140,13 @@ Census does not publish a numeric TIGER request limit. Plan downloads by the num
 As a conservative addr guideline, on-demand HTTPS installation is intended for at most 10 missing counties (at most 20 source requests) in one job. Preview the exact number without downloading anything:
 
 ```r
-needed <- taf_needed_counties(
+missing <- taf_missing_counties(
   x,
   year = "2025",
   zip_variants = TRUE,
   place_zip_variants = TRUE
 )
-installed <- unique(taf_manifest("2025")$county_fips)
-length(setdiff(unique(needed$county_fips), installed))
+length(unique(missing$county_fips))
 ```
 
 For more than 10 missing counties, install the 2025 TAF fuel bundle below. Setting `place_zip_variants = FALSE` and `zip_variants = FALSE` can reduce downloads when the broader matching search is not needed.
@@ -161,6 +160,48 @@ options(addr.tiger_download_protocol = "https")
 ```
 
 An invalid HTML `Request Rejected` response is never cached as a TIGER ZIP. If all retries fail, the error identifies the rejection and includes the Census support ID when the response provides one.
+
+
+## Managing retained data
+
+Downloaded source files belong to stow. Inspect their paths, sizes, and modification times directly:
+
+```r
+stow::stow_info(package = "addr")
+stow::stow_info(package = "addr", subdir = "tiger_addr_feat")
+```
+
+The source subdirectories are `nad`, `tiger_feat_names`, and `tiger_addr_feat`.
+Use `stow::stow_remove()` with the original download URL and matching subdirectory to preview and then remove a source and its ETag variants. For example:
+
+```r
+url <- "https://www2.census.gov/geo/tiger/TIGER2024/ADDRFEAT/tl_2024_39061_addrfeat.zip"
+stow::stow_remove(url, package = "addr", subdir = "tiger_addr_feat", dry_run = TRUE)
+# After reviewing the preview:
+# stow::stow_remove(url, package = "addr", subdir = "tiger_addr_feat")
+
+# Preview abandoned temporary and backup files older than 30 days:
+stow::stow_prune(package = "addr", dry_run = TRUE)
+```
+
+`stow_prune()` does not remove valid canonical source copies based on age alone.
+Removing a source does not remove the processed data derived from it. Installed processed data remain usable without that source; future county preparation may need to download it again.
+
+Processed Parquet files belong to addr. Inventory them with `nad_manifest()` and `taf_manifest(year = "2025")`. Remove counties or an obsolete TAF year with the helpers below; these update the corresponding manifest and leave stow's sources intact. Removal previews are the default:
+
+```r
+nad_remove("39061")
+taf_remove("39061", year = "2024")
+taf_remove(year = "2024") # all counties in this year
+
+# Stop jobs using these data and review the preview before actual removal:
+# nad_remove("39061", dry_run = FALSE)
+# taf_remove(year = "2024", dry_run = FALSE)
+```
+
+Both areas are beneath `tools::R_user_dir("addr", "data")`; set `R_USER_DATA_DIR` before use to relocate them. Bundled example fixtures and reference catalogs stay in the installed package and are not removed by these helpers.
+
+`geocode()` prints a retained-data notice before its first automatic county installation in each R session. Download behavior stays the same: use `taf_missing_counties()` to preview the expanded county set, and `taf_install = FALSE` to geocode with installed data only.
 
 
 ## TAF fuel bundle

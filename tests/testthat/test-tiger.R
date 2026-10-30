@@ -776,3 +776,57 @@ test_that("tiger_addr_feat() works with existing user data dir", {
   expect_true(all(c("LINEARID", "FULLNAME", "ZIP") %in% names(d)))
   expect_s3_class(d$s2_geography, "s2_geography")
 })
+
+test_that("TAF removal keeps other counties, years, and stow sources", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-remove-"))
+  rows <- vctrs::vec_rbind(
+    taf_install_test_file("45220", "39061", year = "2024"),
+    taf_install_test_file("45221", "39061", year = "2024"),
+    taf_install_test_file("45011", "39017", year = "2024")
+  )
+  taf_write_county_zip_manifest(rows, "2024", "v2")
+  other_year <- taf_install_test_file("45220", "39061", year = "2025")
+  taf_write_county_zip_manifest(other_year, "2025", "v2")
+  source <- file.path(stow::stow_path(package = "addr", subdir = "tiger_addr_feat"), "source.zip")
+  writeLines("source", source)
+  preview <- taf_remove("39061", year = "2024")
+  expect_equal(nrow(preview), 2L)
+  expect_true(all(file.exists(preview$path)))
+  expect_equal(nrow(taf_manifest("2024", validate = TRUE)), 3L)
+  expect_equal(taf_remove("39061", year = "2024", dry_run = FALSE), preview)
+  expect_false(any(file.exists(preview$path)))
+  expect_identical(taf_manifest("2024", validate = TRUE)$county_fips, "39017")
+  expect_identical(taf_manifest("2025", validate = TRUE), other_year)
+  expect_true(file.exists(source))
+  taf_remove(year = "2024", dry_run = FALSE)
+  expect_equal(nrow(taf_manifest("2024", validate = TRUE)), 0L)
+  expect_equal(nrow(taf_manifest("2025", validate = TRUE)), 1L)
+})
+
+test_that("TAF preflight reports stale or absent counties without installing", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-plan-"))
+  rows <- taf_install_test_file("45220", "39061", year = "2025")
+  taf_write_county_zip_manifest(rows, "2025", "v2")
+  local_mocked_bindings(taf_install = function(...) stop("unexpected installation"))
+  expect_equal(nrow(taf_missing_counties("45220", zip_variants = FALSE)), 0L)
+  paths <- taf_manifest_file_paths(rows, taf_dataset_path("2025", "v2"))
+  unlink(paths)
+  missing <- taf_missing_counties("45220", zip_variants = FALSE)
+  expect_true("39061" %in% missing$county_fips)
+  taf_remove("39061", dry_run = FALSE)
+  expect_equal(nrow(taf_manifest(validate = TRUE)), 0L)
+})
+
+test_that("partial TAF removal failures leave the county marked incomplete", {
+  withr::local_envvar(R_USER_DATA_DIR = tempfile("addr-partial-remove-"))
+  rows <- vctrs::vec_rbind(
+    taf_install_test_file("45220", "39061"),
+    taf_install_test_file("45221", "39061")
+  )
+  taf_write_county_zip_manifest(rows, "2025", "v2")
+  local_mocked_bindings(addr_unlink_processed = function(paths) unlink(paths[[1L]]))
+  expect_error(taf_remove("39061", dry_run = FALSE), "could not remove processed data file")
+  expect_identical(taf_manifest(), rows)
+  expect_length(taf_installed_counties(taf_manifest(), "2025", "v2"), 0L)
+  expect_error(taf_manifest(validate = TRUE), "missing")
+})

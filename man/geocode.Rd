@@ -160,11 +160,16 @@ variants are enabled by default, a geocode call can consider many ZCTAs and
 download many county TAF files. Common place/state names can increase this
 substantially. Disable
 \code{place_zip_variants}, \code{zip_variants}, or both when that broader search and
-its downloads are not wanted.
+its downloads are not wanted. Preview missing counties without network
+access with \code{\link[=taf_missing_counties]{taf_missing_counties()}} using the same candidate settings.
+The first automatic installation in each R session prints a notice about
+retained sources and processed data; it does not request confirmation.
+Use \code{\link[stow:stow_info]{stow::stow_info()}} to inventory sources and \code{\link[=taf_remove]{taf_remove()}} to preview
+or remove processed counties from a year that is no longer needed.
 }
 \examples{
 x <- as_addr(voter_addresses()[1:25])
-taf_needed_counties(x)
+taf_missing_counties(x)
 
 \dontrun{
   # for example purposes, only install one county

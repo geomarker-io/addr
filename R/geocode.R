@@ -96,12 +96,17 @@
 #' download many county TAF files. Common place/state names can increase this
 #' substantially. Disable
 #' `place_zip_variants`, `zip_variants`, or both when that broader search and
-#' its downloads are not wanted.
+#' its downloads are not wanted. Preview missing counties without network
+#' access with [taf_missing_counties()] using the same candidate settings.
+#' The first automatic installation in each R session prints a notice about
+#' retained sources and processed data; it does not request confirmation.
+#' Use [stow::stow_info()] to inventory sources and [taf_remove()] to preview
+#' or remove processed counties from a year that is no longer needed.
 #'
 #' @export
 #' @examples
 #' x <- as_addr(voter_addresses()[1:25])
-#' taf_needed_counties(x)
+#' taf_missing_counties(x)
 #'
 #' \dontrun{
 #'   # for example purposes, only install one county
@@ -1219,6 +1224,7 @@ geocode_install_missing_taf_counties <- function(
   if (nrow(missing) == 0L) {
     return(invisible(missing))
   }
+  geocode_data_notice(missing, year)
   taf_with_install_lock(year, version, {
     for (county in unique(missing$county_fips)) {
       taf_install(
@@ -1800,4 +1806,27 @@ geocode_radians_to_degrees <- function(x) {
 
 geocode_normalize_longitude <- function(x) {
   ((x + 540) %% 360) - 180
+}
+
+
+# The notice is delayed until data is actually missing, and is shown once per
+# R session. stow remains responsible for downloading and retaining sources.
+geocode_data_state <- new.env(parent = emptyenv())
+geocode_data_state$notice_shown <- FALSE
+
+geocode_data_notice <- function(missing, year) {
+  if (nrow(missing) == 0L || geocode_data_state$notice_shown) {
+    return(invisible(NULL))
+  }
+  message(
+    "geocode() will install TIGER data for ",
+    length(unique(missing$county_fips)), " missing county/counties (", year, ").\n",
+    "Enabled ZIP and place variants can require counties beyond the input ZIPs.\n",
+    "Source ZIPs are retained by stow; processed Parquet files are stored under:\n  ",
+    tools::R_user_dir("addr", "data"), "\n",
+    "Use stow::stow_info(package = 'addr') and taf_manifest() to inspect retained data; ",
+    "see ?taf_remove for cleanup. Set taf_install = FALSE to use installed data only."
+  )
+  geocode_data_state$notice_shown <- TRUE
+  invisible(NULL)
 }
