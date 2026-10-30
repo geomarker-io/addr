@@ -2,8 +2,6 @@
 
 <!-- badges: start -->
 
-[![CRAN
-status](https://www.r-pkg.org/badges/version/addr)](https://CRAN.R-project.org/package=addr)
 [![R-CMD-check](https://github.com/geomarker-io/addr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/geomarker-io/addr/actions/workflows/R-CMD-check.yaml)
 [![live TIGER download tests](https://github.com/geomarker-io/addr/actions/workflows/network-tests.yaml/badge.svg?branch=main)](https://github.com/geomarker-io/addr/actions/workflows/network-tests.yaml)
 [![Lifecycle:
