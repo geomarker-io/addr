@@ -1,4 +1,4 @@
-# addr <img src="man/figures/logo.svg" align="right" height="250" />
+# addr <img src="man/figures/logo.svg" alt="" align="right" height="250" />
 
 <!-- badges: start -->
 
@@ -19,7 +19,7 @@ The goal of addr is to clean, parse, standardize, match, and geocode real-world,
 Each are structured to reuse the United States Thoroughfare, Landmark, and Postal Address Data Standard from the US Federal Geographic Data Committee.
 Every component stored in these typed vectors is canonicalized to uppercase, making it visually distinct from raw input text and directly comparable without additional case handling.
 
-<img src="./man/figures/addr_data.png" height="430" />
+<img src="./man/figures/addr_data.png" alt="An addr vector contains number (prefix, digits, suffix), street (name, types, directionals), and place (city, state, ZIP code) components." height="430" />
 
 The standard also facilitates efficient operations with the Department of Transportation's National Address Database for address matching and with the Census TIGER/Line Shapefiles for street-range geocoding.
 Address vectors can be standardized, matched, joined, and used as data-frame columns, allowing standard R tools to work with nested address structures.
@@ -114,7 +114,7 @@ Street range geocoding does not use address-level data, but instead interpolates
 In any case, geocoding includes (1) cleaning address text, (2) tagging the address, (3) harmonizing the address tags, (4) matching the ZIP code and street combinations.
 Any differences between the methods arise when placing a coordinate after matching the ZIP code and street
 
-![](man/figures/geocoding_methods.png)
+![Address cleaning, tagging, harmonization, and matching precede coordinate placement using parcel centroids, NAD address points, or street-range interpolation and side offsets.](man/figures/geocoding_methods.png)
 
 `geocode()` converts `addr()` vectors to point locations using Census TIGER address ranges.
 It matches the input street to installed TIGER address features, chooses the best address range and street side from the address number, interpolates a point along the range, and offsets that point from the street line.

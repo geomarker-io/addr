@@ -52,7 +52,6 @@ reference:
       - nad_install
       - nad_dataset
       - nad_catalog
-      - nad_download
       - nad_example_data
   - title: Fuzzy join addr
     contents:
