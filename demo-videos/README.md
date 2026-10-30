@@ -85,26 +85,31 @@ upload. See [GitHub's attachment instructions](https://docs.github.com/en/github
 
 Each replacement upload produces a new URL. Update the table above and the
 README embeds together when publishing a new recording. Keep a normal link to
-each video below its player as a fallback for other Markdown renderers.
+each video below its player as a fallback for other Markdown renderers. Put
+that link in a sentence: a standalone attachment link can create a second
+video player on GitHub.
 
 ## Insert the players into the package README
 
-Under `### Address Matching` in the root `README.md`, insert:
+The root README includes both players. To recreate or update the embeds, use
+the following markup under the corresponding section headings.
+
+Under `### Address Matching` in the root `README.md`:
 
 ```html
 <video controls preload="metadata" width="100%"
   src="https://github.com/user-attachments/assets/bd1e8318-7547-4a31-ab75-3dcdae2f7d7f"></video>
 
-[Watch the address-matching demo](https://github.com/user-attachments/assets/bd1e8318-7547-4a31-ab75-3dcdae2f7d7f)
+Video link: [Watch the address-matching demo](https://github.com/user-attachments/assets/bd1e8318-7547-4a31-ab75-3dcdae2f7d7f).
 ```
 
-Under `### Geocoding`, insert:
+Under `### Geocoding`:
 
 ```html
 <video controls preload="metadata" width="100%"
   src="https://github.com/user-attachments/assets/fb8e0416-0926-434e-bbb8-a3997ab8d3be"></video>
 
-[Watch the street-range geocoding demo](https://github.com/user-attachments/assets/fb8e0416-0926-434e-bbb8-a3997ab8d3be)
+Video link: [Watch the street-range geocoding demo](https://github.com/user-attachments/assets/fb8e0416-0926-434e-bbb8-a3997ab8d3be).
 ```
 
 Use the uploaded attachment URLs as `src`, and preview the README on GitHub.

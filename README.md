@@ -78,6 +78,11 @@ as_addr(c("3333 Burnet Ave Cincinnati OH 45229",
 Matching is staged: ZIP codes are matched first, then streets are matched within each matched ZIP code, then address numbers are matched within each matched ZIP/street group.
 This keeps matching fast while still allowing common street-name, phonetic, ZIP-code, and address-number variation.
 
+<video controls preload="metadata" width="100%"
+  src="https://github.com/user-attachments/assets/bd1e8318-7547-4a31-ab75-3dcdae2f7d7f"></video>
+
+Video link: [Watch the address-matching demo](https://github.com/user-attachments/assets/bd1e8318-7547-4a31-ab75-3dcdae2f7d7f).
+
 Use `addr_left_join()` when the goal is to join data frames with `addr` columns.
 It uses the same staged matching as `addr_match()` and then expands exact duplicate reference rows when more than one row in `y` has the selected address.
 Use `addr_fuzzy_left_join()` when you need all fuzzy candidate matches rather than one selected match.
@@ -117,6 +122,11 @@ Any differences between the methods arise when placing a coordinate after matchi
 It matches the input street to installed TIGER address features, chooses the best address range and street side from the address number, interpolates a point along the range, and offsets that point from the street line.
 Geocoding returns the input address, matched ZIP code, matched street, point s2 geography, and s2 cell.
 Inputs with missing or unmatched ZIP codes, streets, or address ranges return missing geographies rather than centroids of larger areas.
+
+<video controls preload="metadata" width="100%"
+  src="https://github.com/user-attachments/assets/fb8e0416-0926-434e-bbb8-a3997ab8d3be"></video>
+
+Video link: [Watch the street-range geocoding demo](https://github.com/user-attachments/assets/fb8e0416-0926-434e-bbb8-a3997ab8d3be).
 
 #### TIGER Address Features
 
