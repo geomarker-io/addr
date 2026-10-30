@@ -2,7 +2,6 @@
 % Please edit documentation in R/geocode.R
 \name{geocode}
 \alias{geocode}
-\alias{geocode_zip}
 \title{Geocode addr vectors with Census TIGER address features}
 \usage{
 geocode(
@@ -22,25 +21,6 @@ geocode(
   offset = 10L,
   add_s2_cell = TRUE,
   progress = interactive()
-)
-
-geocode_zip(
-  x,
-  offset = 10L,
-  name_phonetic_dist = 1L,
-  name_fuzzy_dist = 2L,
-  match_street_type = c("exact", "compatible", "ignore"),
-  match_street_directional = c("exact", "swap", "ignore"),
-  zip_variants = TRUE,
-  zip_variant = c("minus1", "plus1", "sub5", "sub4", "swap"),
-  year = as.character(2025:2011),
-  version = "v2",
-  taf_install = TRUE,
-  taf_redownload = FALSE,
-  progress_callback = NULL,
-  taf_check = TRUE,
-  place_zip_variants = TRUE,
-  place_zip_variant = c("place", "county-sub")
 )
 }
 \arguments{
@@ -105,12 +85,6 @@ computation.}
 
 \item{progress}{logical; show progress messages and a ZIP-code progress bar
 while geocoding?}
-
-\item{progress_callback}{optional callback used internally by \code{geocode()}
-to update progress after ZIP-code reference data is loaded}
-
-\item{taf_check}{logical; check for missing TAF counties? Used internally
-by \code{geocode()} after checking once for the full input vector.}
 }
 \value{
 A tibble with columns \code{addr} (the input addr vector),
@@ -139,12 +113,9 @@ range for the address number, the best street-only match is retained and
 only the geography and s2 cell values return \code{NA}.
 }
 \details{
-\code{geocode_zip()} is the workhorse function and operates on addr vectors
-with the same ZIP code; use \code{geocode()} to geocode an addr vector
-with multiple ZIP codes by grouping them by ZIP code and processing
-serially by default.
-At a lower level, grouping addr vectors by ZIP code and applying
-\code{geocode_zip()} facilitates more control (e.g., parallel processing).
+\code{geocode()} groups addr vectors by ZIP code and processes those groups
+serially by default. Configure mirai daemons before calling \code{geocode()}
+to process ZIP groups in parallel, as described below.
 Before ZIP grouping, \code{geocode()} deduplicates formatted \code{addr} values
 internally and restores the output to the original input order and length.
 Exact duplicates therefore do not trigger repeated TAF reads, street
@@ -180,7 +151,7 @@ If the mirai package is installed and mirai daemons have already been
 configured by the caller, \code{geocode()} uses them for ZIP-code-level
 parallel processing. Otherwise it falls back to sequential processing.
 
-\code{geocode()} and \code{geocode_zip()} both download and install tiger address
+\code{geocode()} downloads and installs TIGER address
 features by county (\code{?taf_install}) as needed based on the input addr ZIP
 codes and all enabled candidate tiers. TAF install checks run before reading
 TAF ZIP files so parallel geocoding workers do not try to download county

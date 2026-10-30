@@ -3,7 +3,6 @@
 \name{nad}
 \alias{nad}
 \alias{nad_install}
-\alias{nad_download}
 \title{Read National Address Database (NAD) tables into R}
 \usage{
 nad(
@@ -21,8 +20,6 @@ nad_install(
   overwrite = FALSE,
   refresh_source = c("no", "yes", "force")
 )
-
-nad_download(version = 23L, refresh_source = c("yes", "no", "force"))
 }
 \arguments{
 \item{county}{character, length one; county name or 5-digit county FIPS
@@ -57,7 +54,7 @@ into a database. Find more information in the source data portal:
 \url{https://data.transportation.gov/d/fc2s-wawr}
 
 \code{nad()} reads processed NAD data for one county, installing that county from
-source data managed by \code{nad_download()} when needed.
+a managed local copy of the source archive when needed.
 Counties can be identified either by county name plus state, or by a
 5-digit county FIPS identifier. County names and state abbreviations are
 resolved internally and determine the processed-data path and source filter.
@@ -81,8 +78,9 @@ separation.
 The revision 23 comma-delimited flat source archive is downloaded from the
 transportation.gov data portal:
 \url{https://data.transportation.gov/d/fc2s-wawr}.
-\code{nad_download(version = 23L)} installs the pinned compressed archive as a
-durable managed local copy using \code{stow::stow()}. County installation streams
+\code{nad_install(county, refresh_source = "yes")} installs the pinned compressed
+archive as a durable managed local copy using \code{stow::stow()} when needed.
+County installation streams
 the nationwide text member directly from that archive, retains the requested
 county, and writes a separate processed Parquet file.
 The roughly 41 GB text member is never unpacked on disk.
@@ -99,15 +97,12 @@ and ZIP code.
 Addresses with malformed ZIP codes are removed.
 }
 \examples{
-# explicitly download source data, then create county output on first read
+# Downloads a roughly 7.6 GB source archive; requires internet access.
 \dontrun{
-  # manually install the compressed revision 23 flat source archive
-  nad_download()
-  # manually build a county Parquet file
-  nad_install("39017")
+  # download the source archive and build a county Parquet file
+  nad_install("39017", refresh_source = "yes")
 
-  # read files by name or fips id into R,
-  # nad will be downloaded and counties installed as needed
+  # read the installed county by name or FIPS identifier
   nad("Butler", "OH")
   nad("39017")
 }

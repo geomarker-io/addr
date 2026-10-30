@@ -91,7 +91,7 @@ For repeated matching against the same reference addresses, prepare the referenc
 
 `nad()` reads county-level address points from the U.S. Department of Transportation National Address Database, including reconstruction of addr and s2 columns.
 Counties can be requested by county name plus state, such as `"Hamilton", "OH"`, or by 5-digit county FIPS code, such as `"39061"`.
-On first use, `nad_download()` installs USDOT's compressed NAD revision 23 flat-file archive as a durable managed local copy using `stow()`. 
+Use `nad_install(county, refresh_source = "yes")` to download USDOT's compressed NAD revision 23 flat-file archive and prepare a county. The source archive is retained as a durable managed local copy using `stow()`.
 The nationwide NAD source is large and county extraction requires a complete streaming scan, so addr caches each processed county under `v2/nad/23` in its package-specific user data directory.
 `nad_catalog()` reads the packaged revision 23 catalog of 2,259 source-available counties and their source row counts; `nad_install()` checks this catalog before scanning the national source.
 NAD23 has no county FIPS field, so the catalog retains each exact source label and maps it to the package's Census county reference, including separate unsuffixed county and explicit independent-city labels.
