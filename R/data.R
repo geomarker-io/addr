@@ -52,7 +52,7 @@ nad_example_data <- function(match_prepared = FALSE) {
 #' `voter_addresses()` returns a small baked example character vector derived
 #' from real-world addresses originally downloaded from the Hamilton County,
 #' Ohio voter registration database on 2024-09-12. The original export URL was
-#' <https://votehamiltoncountyohio.gov/download.php?file=VoterListExport-20240912-no.csv>,
+#' \samp{https://votehamiltoncountyohio.gov/download.php?file=VoterListExport-20240912-no.csv},
 #' although that URL is not expected to remain available. Fields named
 #' `AddressPreDirectional`, `AddressNumber`, `AddressStreet`, `AddressSuffix`,
 #' `CityName`, `"OH"`, and `AddressZip` were pasted together before reducing the
