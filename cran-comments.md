@@ -1,5 +1,31 @@
 This is the first CRAN submission of addr, version 2.1.0.
 
+Overall-checktime follow-up
+
+The revised submission from commit 77c64a5 resolved the example and spelling
+flags. Its Windows pretest still exceeded the overall checktime limit:
+https://win-builder.r-project.org/incoming_pretest/addr_2.1.0_20261030_202203/
+The examples took 33 seconds, but the tests took 456 seconds and the Rust
+build took 112 seconds. All 844 Windows test expectations passed.
+
+Two integration tests now use six representative inputs instead of 100.
+The prepared-reference test retains the full packaged reference, several
+ZIP groups, reordered/duplicate matches, and ZIP-only fallbacks. The real
+mirai test still starts two workers, processes three ZIP groups, restores
+input order and duplicates, and checks matched and missing results,
+geographic coordinates, and S2 cells. No tests were disabled and package
+behavior is unchanged.
+
+The revised source archive passed R CMD check --as-cran on macOS arm64,
+R 4.6.1, with 0 errors, 0 warnings, and only "New submission". All 865
+test expectations passed with 3 opt-in live-download skips. Test elapsed
+time was 17.8 seconds; PDF and HTML manuals passed. A separate same-machine
+profile measured 16.9 seconds across test cases, down from 28.0 seconds.
+
+The existing release workflow checks the identical source archive with
+Linux R-devel, and the platform matrix checks Windows release and R-devel.
+CI runner timing is not a guarantee of the CRAN check farm's runtime.
+
 Pretest follow-up
 
 The 2026-10-30 incoming pretest of the original archive reported two NOTEs
