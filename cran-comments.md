@@ -20,7 +20,11 @@ check the exact source tarball to be uploaded.
 - Large-data examples are not run automatically. NAD county preparation can
   require a roughly 7.6 GB archive. TIGER source and processed-data copies use the
   package-specific user data directory. Download controls and retention behavior
-  will be reviewed separately before submission.
+  are described in the retained-data section of the README. stow owns source
+  inventory and removal; nad_remove() and taf_remove() preview or remove only
+  processed files and update their manifests. taf_missing_counties() previews
+  automatic geocoding installations without network requests. geocode() prints
+  a retained-data notice once per R session before its first automatic install.
 - Packaged data provenance and redistribution status are recorded in DATA-SOURCES.
   Address strings now come from the unrestricted USDOT NAD fixture rather than
   voter records. The Eviction Lab example now uses the provider's explicitly
@@ -30,17 +34,19 @@ check the exact source tarball to be uploaded.
 
 Validation record
 
-- Local source tarball with the replacement fixtures, macOS arm64 / R 4.6.1,
+- Local source tarball with the data-management helpers, macOS arm64 / R 4.6.1,
   2026-10-30: R CMD check --as-cran completed with 0 errors, 0 warnings, and
   1 incoming-feasibility note for the intentionally retained development version.
-  CRAN's remote archive.rds request timed out in the first attempt; the completed
-  run used _R_CHECK_CRAN_INCOMING_REMOTE_=false. Tests: 807 passes and 3 opt-in
-  live-download skips. Both PDF and HTML manual checks passed with checkbashisms
-  and HTML Tidy 5.8.0 available. The new fixture source and license URLs were
-  retrieved separately, and all 900 hotspot cells were compared with the
-  provider's licensed archive. The earlier full remote-incoming check, before
-  fixture replacement, passed with only the expected new-submission/dev-version
-  note; the earlier urlchecker run found no invalid URLs.
+  The run used _R_CHECK_CRAN_INCOMING_REMOTE_=false because CRAN's remote
+  archive.rds request had timed out during the preceding fixture validation.
+  Tests: 856 passes and 3 opt-in live-download skips. Both PDF and HTML manual
+  checks passed with checkbashisms and HTML Tidy 5.8.0 available. Cleanup tests
+  use temporary datasets and cover previews, stale records, partial failures,
+  path boundaries, and retaining other counties, years, and source archives.
+  The earlier full remote-incoming check, before fixture replacement, passed
+  with only the expected new-submission/dev-version note. The fixture source
+  and license URLs were retrieved separately, and all 900 hotspot cells were
+  compared with the provider's licensed archive.
 - CI covers release R on macOS, Windows, and Linux; R-devel on Windows and Linux;
   Linux R-oldrel; and R 4.2.0 / Rust 1.71. Linux R-devel and the minimum-version
   job use required packages and test tools with selected optional packages absent;
@@ -50,7 +56,7 @@ Validation record
   https://github.com/geomarker-io/addr/actions/runs/41050750435
   All matrix jobs and the installed CLI check passed, including Linux R-devel
   with the required-dependency configuration described above.
-- The minimum-version job has 0 errors and 0 warnings, with 782 test passes and
+- The earlier minimum-version job has 0 errors and 0 warnings, with 782 test passes and
   five skips (three live-download tests and two unavailable optional interfaces).
   Its three notes are: the deliberately absent suggested packages; a 16.3 MB
   installed package dominated by the 11 MB Rust-linked library with rustc 1.71;
@@ -62,9 +68,9 @@ Validation record
   each, and the source tarball remains below 10 MB.
 - The Linux release job includes PDF manual validation. Shell/HTML checking tools
   are installed on Unix runners, and warnings fail the CI checks.
-- The pkgdown site builds locally after removing the obsolete nad_download topic
-  and adding descriptions for README images. Existing terminal-progress rendering
-  warnings from the fuzzy-join example remain for the separate messages work.
+- The pkgdown site builds locally with the new preflight/removal topics and
+  retained-data instructions. The fuzzy-join example now honors progress = FALSE;
+  the full site build reports no warnings.
 - Before submission, run current Win-builder R-devel and macOS builder checks on
   the exact release tarball and record their results here. Those service checks
   have not yet been submitted.

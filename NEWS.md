@@ -1,5 +1,7 @@
 # addr 2.0.0.9001
 
+- `addr_fuzzy_left_join(progress = FALSE)` now suppresses its progress output.
+
 - `taf_missing_counties()` now exposes the download-free preflight used by county installation. `nad_remove()` and `taf_remove()` preview or remove processed county files and update their manifests; stow continues to manage downloaded sources.
 - `geocode()` now explains retained source and processed data before the first automatic county installation in an R session.
 

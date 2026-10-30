@@ -66,3 +66,17 @@ test_that("addr_match with NAD", {
 
   expect_true(all(my_addresses %in% cagis_matches$my_addresses))
 })
+
+test_that("fuzzy join honors progress = FALSE without changing results", {
+  x <- tibble::tibble(addr = as_addr("10 MAIN ST CINCINNATI OH 45220"))
+  output <- capture.output(
+    expect_message(out <- addr_fuzzy_left_join(x, x, progress = FALSE), NA)
+  )
+  expect_length(output, 0L)
+  expect_equal(nrow(out), 1L)
+  expect_output(
+    suppressMessages(with_progress <- addr_fuzzy_left_join(x, x, progress = TRUE)),
+    "matching addr vectors"
+  )
+  expect_equal(with_progress, out)
+})

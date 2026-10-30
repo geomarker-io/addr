@@ -158,7 +158,7 @@ addr_fuzzy_left_join <- function(
   total <- length(x_addr)
   processed <- length(x_idx_no_zip)
   start_time <- proc.time()[["elapsed"]]
-  if (total > 0L) {
+  if (progress && total > 0L) {
     on.exit(
       {
         elapsed <- proc.time()[["elapsed"]] - start_time
@@ -189,24 +189,28 @@ addr_fuzzy_left_join <- function(
 
   by_zip_matches <- lapply(names(by_zip), \(zip) {
     bz <- by_zip[[zip]]
-    addr_progress_update(
-      processed,
-      total,
-      addr_progress_text(zip, length(bz$x), length(bz$y)),
-      first = FALSE
-    )
+    if (progress) {
+      addr_progress_update(
+        processed,
+        total,
+        addr_progress_text(zip, length(bz$x), length(bz$y)),
+        first = FALSE
+      )
+    }
     out <- addr_fuzzy_match(
       x = x_addr[bz$x],
       y = y_addr[bz$y],
       addr_fields = af
     )
     processed <<- processed + length(bz$x)
-    addr_progress_update(
-      processed,
-      total,
-      addr_progress_text(zip, length(bz$x), length(bz$y)),
-      first = FALSE
-    )
+    if (progress) {
+      addr_progress_update(
+        processed,
+        total,
+        addr_progress_text(zip, length(bz$x), length(bz$y)),
+        first = FALSE
+      )
+    }
     out
   })
 
