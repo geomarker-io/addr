@@ -11,7 +11,9 @@ CARGO_CONFIG_DIR = ./rust/.cargo
 CARGO_CONFIG = $(CARGO_CONFIG_DIR)/config.toml
 CARGO_CONFIG_TEMPLATE = ./rust/cargo-vendor-config.toml
 
-all: C_clean
+all: $(SHLIB) rust_clean
+
+.PHONY: all rust_clean clean
 
 $(SHLIB): $(STATLIB)
 
@@ -41,8 +43,10 @@ $(VENDOR_DIR): $(VENDOR_ARCHIVE)
 	rm -Rf $(VENDOR_DIR)
 	tar -xJf $(VENDOR_ARCHIVE) -C ./rust
 
-C_clean:
-	rm -Rf $(SHLIB) $(STATLIB) $(OBJECTS)
+# Match extendr's release-build cleanup after the shared library is linked.
+# Retain Makevars and C objects for R's compiled-code checks.
+rust_clean: $(SHLIB)
+	rm -Rf $(TARGET_DIR) $(VENDOR_DIR) $(CARGOTMP) $(CARGO_CONFIG_DIR)
 
 clean:
 	rm -Rf $(SHLIB) $(STATLIB) $(OBJECTS) $(TARGET_DIR) rust/vendor rust/cargo-home rust/.cargo
