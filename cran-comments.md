@@ -29,9 +29,13 @@ Checks performed on 2026-10-30
 - Release platform matrix:
   https://github.com/geomarker-io/addr/actions/runs/41069125122
   Release R on macOS, Windows, and Linux; Windows/Linux R-devel; Linux R-oldrel;
-  R 4.2.0 with Rust 1.71; and installed CLI validation.
+  R 4.2.0 with Rust 1.71; and installed CLI validation all passed.
+  Windows R-devel (2026-10-29 r90794 ucrt) reports Status: OK, with 844 test
+  passes and 5 skips (3 opt-in downloads and 2 Unix-specific tests).
 - Win-builder R-devel: the archive was accepted through the HTTPS upload form
-  on 2026-10-30 at 14:12 UTC. Results are pending the maintainer's result email.
+  on 2026-10-30 at 14:12 UTC. At 14:44 UTC, the archive was still listed in
+  the public R-devel queue. No result email has arrived yet; its outcome remains
+  pending and must be reviewed before CRAN submission.
 
 Minimum-version notes
 
@@ -68,4 +72,5 @@ county preflight and retained-data notice make automatic geocoding installs
 visible. Packaged fixtures and references retain their source attribution and
 reuse terms in DATA-SOURCES. The Eviction Lab hotspot database is separately
 licensed under ODC-BY 1.0; LICENSE.note and ODC-BY-1.0 preserve its terms, also
-embedded with attribution in the fixture. Other package code remains MIT.
+embedded with attribution in the fixture. Addr's own software is MIT-licensed;
+vendored Rust license terms are preserved separately.
