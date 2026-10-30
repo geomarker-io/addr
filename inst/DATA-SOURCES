@@ -1,0 +1,93 @@
+Packaged data sources, attribution, and redistribution status
+===========================================================
+
+Reviewed 2026-10-30. This notice describes the bundled fixtures and reference
+tables; it does not apply the package's MIT software license to third-party
+data or grant permissions on behalf of the data providers.
+
+National Address Database (NAD)
+-------------------------------
+Files: extdata/nad_39061.rds, extdata/nad_39061_mp.rds,
+       extdata/v2/nad_catalog/23/counties.parquet
+Provider: U.S. Department of Transportation, with state, local, and tribal
+          address programs.
+Source: National Address Database, revision 23.
+        https://data.transportation.gov/d/fc2s-wawr
+Preparation: The address fixture contains 5,000 Hamilton County, Ohio rows;
+             the prepared index is derived from that fixture. The catalog
+             inventories revision 23 source county labels and row counts.
+Terms: USDOT identifies the NAD as a federal government work not subject to
+       copyright protection under 17 U.S.C. 105 and available for reuse
+       without limitation or restriction. Its disclaimer also describes
+       accuracy, coverage, liability, and state mailing-list limitations.
+       https://www.transportation.gov/mission/open/gis/national-address-database/national-address-database-nad-disclaimer
+Attribution: U.S. Department of Transportation, National Address Database,
+             revision 23; county fixture and matching index prepared by the
+             addr authors.
+
+Hamilton County voter-address examples
+--------------------------------------
+File: extdata/voter_addresses.rds
+Provider: Hamilton County, Ohio Board of Elections.
+Snapshot: 2024-09-12.
+Historical export (retained for provenance, not as a live download link):
+  https://votehamiltoncountyohio.gov/download.php?file=VoterListExport-20240912-no.csv
+Current source information:
+  https://votehamiltoncountyohio.gov/campaign-media/voter-lists/
+Preparation: Address components were concatenated with state "OH" and reduced
+             to 2,000 unique address strings. The fixture has no voter names,
+             party affiliations, or voting-history fields.
+Terms: The Board publishes registered-voter lists in CSV and PDF formats.
+       Ohio Revised Code 3503.13 identifies disclosable voter-registration
+       records as public records, with exceptions for protected information.
+       https://codes.ohio.gov/ohio-revised-code/section-3503.13
+       No separate redistribution license or written permission has been
+       established for the historical export. Public availability is recorded
+       here as provenance, rather than represented as an open-data license.
+Attribution: Hamilton County Board of Elections, registered-voter export,
+             2024-09-12; address-only fixture prepared by the addr authors.
+Before CRAN submission: resolve and record the basis for redistribution of
+                       this fixture, or replace it with a suitably licensed
+                       or synthetic fixture in a separate change.
+
+Cincinnati Eviction Hotspots
+-----------------------------
+File: extdata/elh_data.rds
+Provider: Eviction Lab, Princeton University; the Cincinnati tracking page
+          credits January Advisors with collection of filings from 2020 on.
+Source: Cincinnati Eviction Hotspots, "current through 8-31-2024" release.
+        https://evictionlab.org/eviction-tracking/cincinnati-oh/
+Original CSV:
+  https://evictionlab.org/uploads/cincinnati_hotspots_media_report.csv
+Preparation: inst/make_elh_data.R reads the public CSV and saves an RDS copy.
+             The fixture contains 100 rows and nine columns, including building
+             addresses, filing counts, plaintiff labels, and coordinates.
+Attribution: Eviction Lab, Princeton University. Cincinnati Eviction Hotspots,
+             release current through 2024-08-31, Eviction Tracking System.
+Terms: The provider publishes the aggregate hotspot file for download and
+       requests citation of the Eviction Tracking System. No explicit
+       redistribution license for this particular file has been established,
+       and the package maintainer has no separate written permission. This
+       notice therefore does not claim that the file is MIT-, CC-, or
+       ODC-licensed. The current website's citation version should not be used
+       to relabel the older packaged snapshot.
+Before CRAN submission: obtain and record redistribution terms for this
+                       snapshot, or replace it with a suitably licensed or
+                       synthetic fixture in a separate change.
+
+Census reference data
+----------------------
+Files: extdata/v2/tiger_addr_feat_catalog/2024/county_zip.parquet,
+       extdata/v2/tiger_addr_feat_catalog/2025/county_zip.parquet;
+       the county and place-to-ZCTA reference tables in R/sysdata.rda.
+Provider: U.S. Census Bureau.
+Sources: TIGER/Line address features (2024 and 2025), 2020 ZCTA-to-place and
+         ZCTA-to-county-subdivision relationship files, and the 2025 county
+         adjacency reference. inst/make_reference_data.R records the source
+         URLs and transformations for the county and place reference tables.
+Terms: Census Bureau data are in the public domain; credit the Census Bureau
+       as the source. Products derived from these data are not Census Bureau
+       products or endorsements.
+       https://www.census.gov/about/policies/citation.html
+Preparation: The addr authors constructed ZIP/county range-count catalogs
+             and normalized county/place lookup tables from these sources.
