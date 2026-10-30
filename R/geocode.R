@@ -49,12 +49,9 @@
 #'   `add_s2_cell = TRUE`, the tibble also includes `s2_cell` (`s2_cell`
 #'   vector).
 #' @details
-#' `geocode_zip()` is the workhorse function and operates on addr vectors
-#' with the same ZIP code; use `geocode()` to geocode an addr vector
-#' with multiple ZIP codes by grouping them by ZIP code and processing
-#' serially by default.
-#' At a lower level, grouping addr vectors by ZIP code and applying
-#' `geocode_zip()` facilitates more control (e.g., parallel processing).
+#' `geocode()` groups addr vectors by ZIP code and processes those groups
+#' serially by default. Configure mirai daemons before calling `geocode()`
+#' to process ZIP groups in parallel, as described below.
 #' Before ZIP grouping, `geocode()` deduplicates formatted `addr` values
 #' internally and restores the output to the original input order and length.
 #' Exact duplicates therefore do not trigger repeated TAF reads, street
@@ -90,7 +87,7 @@
 #' configured by the caller, `geocode()` uses them for ZIP-code-level
 #' parallel processing. Otherwise it falls back to sequential processing.
 #'
-#' `geocode()` and `geocode_zip()` both download and install tiger address
+#' `geocode()` downloads and installs TIGER address
 #' features by county (`?taf_install`) as needed based on the input addr ZIP
 #' codes and all enabled candidate tiers. TAF install checks run before reading
 #' TAF ZIP files so parallel geocoding workers do not try to download county
@@ -1267,11 +1264,7 @@ geocode_require_taf_installed <- function(missing) {
 # gcd_tbl$s2_cell <- as.character(gcd_tbl$s2_cell)
 # gcd_tbl$wkt <- s2::s2_as_text(x_s2_geo)
 
-#' @param progress_callback optional callback used internally by `geocode()`
-#'   to update progress after ZIP-code reference data is loaded
-#' @param taf_check logical; check for missing TAF counties? Used internally
-#'   by `geocode()` after checking once for the full input vector.
-#' @rdname geocode
+# Internal single-ZIP worker; the public interface is geocode().
 geocode_zip <- function(
   x,
   offset = 10L,
