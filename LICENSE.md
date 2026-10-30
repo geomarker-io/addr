@@ -1,6 +1,6 @@
 # MIT License
 
-Copyright (c) 2024 hashdress authors
+Copyright (c) 2024 Cole Brokamp, Erika Manning
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
