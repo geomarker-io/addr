@@ -205,7 +205,13 @@ test_that("addr_match_stage rejects non-addr_match structures in strict mode", {
 })
 
 test_that("addr_match works with packaged prepared example data", {
-  x <- as_addr(voter_addresses()[1:100])
+  addresses <- voter_addresses()[1:100]
+  # Keep both successful matches and ZIP-only fallbacks in the fixture test.
+  addresses[87:100] <- paste(
+    "1 SYNTHETIC EXAMPLE RD CINCINNATI OH",
+    sub(".* ", "", addresses[87:100])
+  )
+  x <- as_addr(addresses)
   y <- nad_example_data(match_prepared = TRUE)
   out <- addr_match(x, y, progress = FALSE)
   stage <- addr_match_stage(out)

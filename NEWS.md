@@ -1,5 +1,7 @@
 # addr 2.0.0.9001
 
+- `voter_addresses()` now returns 2,000 NAD-derived example strings under USDOT's unrestricted reuse terms. `elh_data()` now uses the Eviction Lab's explicitly ODC-BY 1.0-licensed Cincinnati snapshot for September 2022 through August 2023, with attribution and the full license included. Both functions retain their names and output schemas.
+
 - S7 address properties now work on R 4.2 by conditionally importing S7's compatibility accessor for R versions before 4.3.
 - Release builds now clean Rust build intermediates after linking the shared library, following extendr's build template while preserving Makevars and C objects for R's compiled-code checks.
 - `addr-geocode` now lets downstream images set `ADDR_GEOCODE_RELEASE_TAG` so their version-style release tag replaces the installed package version in deterministic output filenames. The optional leading `v` is normalized to keep exactly one `v` in the filename; unset or empty values retain the package-version default.
