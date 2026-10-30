@@ -4,7 +4,9 @@ Vendored Rust crate copyright information
 The addr package vendors Rust crate sources for reproducible offline builds.
 The vendored sources are distributed as src/rust/vendor.tar.xz. Upstream
 license files, notices, and Cargo package metadata are preserved in that
-archive.
+archive. Complete license texts and copyright notices are also installed
+in RUST-LICENSES, including the MIT license and contributor list from the
+upstream extendr v0.9.0 release.
 
 The following Rust crates are included in the vendored dependency archive:
 
@@ -58,12 +60,15 @@ Authors: Andrew Gallant <jamslam@gmail.com>
 
 Package: extendr-api 0.9.0
 License: MIT
+Authors: The Extendr contributors (see RUST-LICENSES)
 
 Package: extendr-ffi 0.9.0
 License: MIT
+Authors: The Extendr contributors (see RUST-LICENSES)
 
 Package: extendr-macros 0.9.0
 License: MIT
+Authors: The Extendr contributors (see RUST-LICENSES)
 
 Package: flate2 1.0.28
 License: MIT OR Apache-2.0
