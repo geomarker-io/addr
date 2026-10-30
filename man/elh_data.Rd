@@ -3,6 +3,12 @@
 \name{elh_data}
 \alias{elh_data}
 \title{Example line-one addresses}
+\source{
+Eviction Lab, Princeton University. Cincinnati Eviction Hotspots,
+release current through 2024-08-31, Eviction Tracking System.
+See \code{system.file("DATA-SOURCES", package = "addr")} for attribution and
+the unresolved redistribution-license status of this snapshot.
+}
 \usage{
 elh_data()
 }
@@ -11,7 +17,7 @@ a tibble with 100 rows and 9 columns
 }
 \description{
 The Cincinnati Eviction Hotspots data was downloaded from
-\href{https://evictionlab.org/uploads/cincinnati_hotspots_media_report.csv}{Eviction Labs}
+\href{https://evictionlab.org/uploads/cincinnati_hotspots_media_report.csv}{Eviction Lab}
 and contains characteristics of the top 100 buildings that are responsible for about 25\% of
 all eviction filings in Cincinnati (from their "current through 8-31-2024" release).
 }

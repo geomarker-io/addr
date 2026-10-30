@@ -3,6 +3,14 @@
 \name{nad_example_data}
 \alias{nad_example_data}
 \title{Example National Address Database addresses}
+\source{
+U.S. Department of Transportation, National Address Database,
+revision 23. USDOT identifies the NAD as a federal government work
+available for reuse; see its
+\href{https://www.transportation.gov/mission/open/gis/national-address-database/national-address-database-nad-disclaimer}{disclaimer}.
+Packaged-data provenance and terms are recorded in
+\code{system.file("DATA-SOURCES", package = "addr")}.
+}
 \usage{
 nad_example_data(match_prepared = FALSE)
 }

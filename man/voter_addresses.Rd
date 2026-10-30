@@ -3,6 +3,12 @@
 \name{voter_addresses}
 \alias{voter_addresses}
 \title{Example addresses}
+\source{
+Hamilton County Board of Elections, registered-voter export,
+2024-09-12. See \code{system.file("DATA-SOURCES", package = "addr")} for
+preparation details and the unresolved redistribution-license status
+of the historical export.
+}
 \usage{
 voter_addresses()
 }
