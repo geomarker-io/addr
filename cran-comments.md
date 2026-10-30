@@ -7,9 +7,8 @@ Release source
 - SHA-256: 15ba84e0225aad0044e3ba201631583d2b497706cf542703b62e1512b00c636a
 - Source artifact and exact-tarball R-devel check:
   https://github.com/geomarker-io/addr/actions/runs/41069125159
-- The same archive was checked locally and uploaded to Win-builder R-devel.
-  Updates to this file do not affect it; cran-comments.md is excluded from
-  the source package.
+- Updates to this file do not affect the archive; cran-comments.md is excluded
+  from the source package.
 
 Checks performed on 2026-10-30
 
@@ -32,16 +31,6 @@ Checks performed on 2026-10-30
   R 4.2.0 with Rust 1.71; and installed CLI validation all passed.
   Windows R-devel (2026-10-29 r90794 ucrt) reports Status: OK, with 844 test
   passes and 5 skips (3 opt-in downloads and 2 Unix-specific tests).
-- Win-builder R-devel (2026-10-28 r90783 ucrt), Windows x64: the result email
-  is dated 2026-10-30 at 15:21 UTC. Report:
-  https://win-builder.r-project.org/u3eXo3fA7GXw/00check.log
-  A binary was produced, but the complete served check log is only 532 bytes
-  and ends during "checking CRAN incoming feasibility". There is no final
-  Status line, and no example or test results were published. A successful
-  Win-builder check therefore cannot be confirmed from this report.
-  The identical archive was resubmitted once via HTTPS to Win-builder R-devel
-  at 15:46 UTC. The retry's complete report is pending. The release PR remains in draft until
-  that outcome has been reviewed.
 
 Minimum-version notes
 
