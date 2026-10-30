@@ -7,8 +7,8 @@ actual typing, output, execution time, and reading pauses.
 
 | Demo | Length | Hosted video |
 | --- | --- | --- |
-| Address matching | 1:03 | ADDRESS_MATCHING_URL |
-| Street-range geocoding | 1:02 | RANGE_GEOCODING_URL |
+| Address matching | 1:03 | [Watch](https://github.com/user-attachments/assets/bd1e8318-7547-4a31-ab75-3dcdae2f7d7f) |
+| Street-range geocoding | 1:02 | [Watch](https://github.com/user-attachments/assets/fb8e0416-0926-434e-bbb8-a3997ab8d3be) |
 
 The source scripts and two example CSVs are tracked here. MP4s, terminal
 recordings, output CSVs, virtual environments, and build/QA files are ignored.
@@ -64,8 +64,9 @@ with that player. Review the extracted frames in `console/qa/` before upload.
 
 ## Upload to GitHub
 
-Host the MP4s as attachments on the pull request introducing or updating the
-demos. Only their URLs go into Markdown; the binaries stay outside Git history.
+The current videos are attachments on [PR #108](https://github.com/geomarker-io/addr/pull/108).
+For future versions, attach the MP4s to the PR introducing the updated demos.
+Only their URLs go into Markdown; the binaries stay outside Git history.
 Attachments to this public repository are publicly accessible.
 
 With a GitHub CLI version that supports `--attach` (tested with 2.103.3):
@@ -92,18 +93,18 @@ Under `### Address Matching` in the root `README.md`, insert:
 
 ```html
 <video controls preload="metadata" width="100%"
-  src="ADDRESS_MATCHING_URL"></video>
+  src="https://github.com/user-attachments/assets/bd1e8318-7547-4a31-ab75-3dcdae2f7d7f"></video>
 
-[Watch the address-matching demo](ADDRESS_MATCHING_URL)
+[Watch the address-matching demo](https://github.com/user-attachments/assets/bd1e8318-7547-4a31-ab75-3dcdae2f7d7f)
 ```
 
 Under `### Geocoding`, insert:
 
 ```html
 <video controls preload="metadata" width="100%"
-  src="RANGE_GEOCODING_URL"></video>
+  src="https://github.com/user-attachments/assets/fb8e0416-0926-434e-bbb8-a3997ab8d3be"></video>
 
-[Watch the street-range geocoding demo](RANGE_GEOCODING_URL)
+[Watch the street-range geocoding demo](https://github.com/user-attachments/assets/fb8e0416-0926-434e-bbb8-a3997ab8d3be)
 ```
 
 Use the uploaded attachment URLs as `src`, and preview the README on GitHub.
